@@ -1,0 +1,164 @@
+'use client';
+
+import React, { useState } from 'react';
+import Link from 'next/link';
+import { StarOfTruth } from '@/components/brand/Logo';
+import { StatusBadge } from '@/components/ui/StatusBadge';
+import {
+  ShieldCheck,
+  CheckCircle2,
+  FileText,
+  Search,
+  ExternalLink,
+  Coins,
+  Building,
+  Lock,
+  ArrowRight,
+  TrendingUp,
+} from 'lucide-react';
+
+export default function TransparencyPage() {
+  const [filterType, setFilterType] = useState('all');
+
+  return (
+    <div className="flex flex-col min-h-screen bg-parchment-canvas">
+
+      {/* ── HERO ── */}
+      <section className="relative bg-navy text-parchment overflow-hidden pt-24 pb-20 lg:pt-32 lg:pb-28 border-b border-gold/20">
+        <div className="absolute inset-0 bg-gradient-to-b from-navy-deep/95 via-navy/90 to-navy-deep" />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-3xl space-y-5">
+            <div className="flex items-center gap-3">
+              <div className="inline-flex items-center gap-2 px-3 py-1 border border-gold/30 bg-navy-deep/80 rounded-sm">
+                <StarOfTruth size={14} />
+                <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-gold">Public Transparency</span>
+              </div>
+              <StatusBadge status="Operational" size="sm" />
+            </div>
+
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-parchment leading-[1.08]">
+              Radical Institutional Transparency
+            </h1>
+
+            <p className="text-base sm:text-lg text-parchment/75 leading-relaxed font-light">
+              Under Article 12 of the Covenant, state secrecy regarding public expenditures, sovereign reserves, and procurement contracts is constitutionally prohibited. Every Guilder is auditable on the Aletheia StableChain.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ── LIVE AUDIT METRICS ── */}
+      <section className="bg-navy-deep border-b border-navy/30 text-parchment py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+            <div className="space-y-1">
+              <span className="text-2xl font-bold text-gold">100%</span>
+              <p className="text-xs text-parchment/70 uppercase tracking-wide">Public Contract Inscription</p>
+            </div>
+            <div className="space-y-1">
+              <span className="text-2xl font-bold text-gold">2.45B AEY</span>
+              <p className="text-xs text-parchment/70 uppercase tracking-wide">Audited Sovereign Reserves</p>
+            </div>
+            <div className="space-y-1">
+              <span className="text-2xl font-bold text-gold">500 ms</span>
+              <p className="text-xs text-parchment/70 uppercase tracking-wide">Ledger Reconciliation</p>
+            </div>
+            <div className="space-y-1">
+              <span className="text-2xl font-bold text-gold">Quarterly</span>
+              <p className="text-xs text-parchment/70 uppercase tracking-wide">Independent Big-4 Audit</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── TRANSPARENCY PILLARS ── */}
+      <section className="py-16 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+          <div className="bg-white p-6 border border-navy/15 rounded-sm space-y-3 hover:shadow-md transition-shadow">
+            <div className="w-10 h-10 rounded-sm bg-navy text-gold flex items-center justify-center">
+              <Coins className="w-5 h-5" />
+            </div>
+            <h3 className="text-base font-bold text-navy">Open Treasury Ledger</h3>
+            <p className="text-xs text-navy/70 leading-relaxed">
+              Every disbursement made by any ministry or government agency is signed with verifiable cryptographic keys and viewable by any citizen or e-resident in real time.
+            </p>
+          </div>
+
+          <div className="bg-white p-6 border border-navy/15 rounded-sm space-y-3 hover:shadow-md transition-shadow">
+            <div className="w-10 h-10 rounded-sm bg-navy text-gold flex items-center justify-center">
+              <Building className="w-5 h-5" />
+            </div>
+            <h3 className="text-base font-bold text-navy">Competitive Procurement</h3>
+            <p className="text-xs text-navy/70 leading-relaxed">
+              All infrastructure, defense, and maritime contracts above 50,000 AEY must be awarded through blind cryptographic auctions on the public procurement registry.
+            </p>
+          </div>
+
+          <div className="bg-white p-6 border border-navy/15 rounded-sm space-y-3 hover:shadow-md transition-shadow">
+            <div className="w-10 h-10 rounded-sm bg-navy text-gold flex items-center justify-center">
+              <Lock className="w-5 h-5" />
+            </div>
+            <h3 className="text-base font-bold text-navy">Whistleblower Protection</h3>
+            <p className="text-xs text-navy/70 leading-relaxed">
+              Constitutional immunity and anonymous cryptographic submission channels are provided to any official reporting administrative malfeasance.
+            </p>
+          </div>
+        </div>
+
+        {/* RECENT PUBLIC EXPENDITURES TABLE */}
+        <div className="bg-white border border-navy/15 rounded-sm p-6 shadow-sm space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-navy/10 pb-4">
+            <div>
+              <h3 className="text-lg font-bold text-navy">Latest Reconciled Public Expenditures</h3>
+              <p className="text-xs text-navy/60">Live feed from the Sovereign Treasury settlement contract.</p>
+            </div>
+            <Link
+              href="/treasury"
+              className="text-xs text-gold font-bold hover:underline flex items-center gap-1"
+            >
+              Full Balance Sheet <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="bg-parchment-light text-navy/70 font-mono uppercase text-[10px] border-b border-navy/10">
+                  <th className="p-3">Reference</th>
+                  <th className="p-3">Disbursing Body</th>
+                  <th className="p-3">Purpose</th>
+                  <th className="p-3">Amount (AEY)</th>
+                  <th className="p-3">Verification Hash</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-navy/10 font-mono">
+                <tr>
+                  <td className="p-3 font-bold text-navy">EXP-2026-891</td>
+                  <td className="p-3 text-navy/80">Ministry of Territorial Dev.</td>
+                  <td className="p-3 font-sans text-navy/80">St. Brendan Deepwater Seabed Core Analysis</td>
+                  <td className="p-3 font-bold text-navy">145,000 AEY</td>
+                  <td className="p-3 text-[10px] text-navy/50">0x7f8a...92bc</td>
+                </tr>
+                <tr>
+                  <td className="p-3 font-bold text-navy">EXP-2026-890</td>
+                  <td className="p-3 text-navy/80">ADSS Coast Guard</td>
+                  <td className="p-3 font-sans text-navy/80">Autonomous Navigational Buoy Array Maintenance</td>
+                  <td className="p-3 font-bold text-navy">42,500 AEY</td>
+                  <td className="p-3 text-[10px] text-navy/50">0x3b1c...44a1</td>
+                </tr>
+                <tr>
+                  <td className="p-3 font-bold text-navy">EXP-2026-889</td>
+                  <td className="p-3 text-navy/80">National Registry Dept.</td>
+                  <td className="p-3 font-sans text-navy/80">Polycarbonate e-Passport Blank Stock Procurement</td>
+                  <td className="p-3 font-bold text-navy">88,200 AEY</td>
+                  <td className="p-3 text-[10px] text-navy/50">0x99ea...0012</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  );
+}
