@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useToast } from '@/components/ui/Toast';
 import Link from 'next/link';
 import Image from 'next/image';
 import { StarOfTruth } from '@/components/brand/Logo';
@@ -23,6 +24,7 @@ import {
 } from 'lucide-react';
 
 export default function PassportPortalPage() {
+  const { notify } = useToast();
   const [docId, setDocId] = useState('');
   const [verifyStatus, setVerifyStatus] = useState<'idle' | 'searching' | 'valid' | 'invalid'>('idle');
 
@@ -346,7 +348,7 @@ export default function PassportPortalPage() {
             </div>
             <div className="flex gap-4 pt-2">
               <button
-                onClick={() => alert('CSCA Root certificate (DER format) download initiated.')}
+                onClick={() => notify('CSCA root certificate', 'The DER-encoded Country Signing CA certificate will be published to the ICAO PKD at passport issuance launch.', 'info')}
                 className="px-4 py-2 bg-gold text-navy text-xs font-bold uppercase tracking-wider rounded-sm hover:bg-gold-tint transition-colors"
               >
                 Download CSCA Root (.cer)

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useToast } from '@/components/ui/Toast';
 import Link from 'next/link';
 import { StarOfTruth } from '@/components/brand/Logo';
 import { StatusBadge } from '@/components/ui/StatusBadge';
@@ -51,6 +52,7 @@ const BOND_TRANCHES = [
 ];
 
 export default function InvestPage() {
+  const { notify } = useToast();
   const [selectedBond, setSelectedBond] = useState('sdb-2029');
 
   return (
@@ -144,7 +146,7 @@ export default function InvestPage() {
               </div>
 
               <button
-                onClick={() => alert(`Subscription prospectus for ${bond.name} requested. Direct inquiries to investor.desk@aletheia.gov`)}
+                onClick={() => notify(`Prospectus request recorded: ${bond.name}`, 'The investor desk will respond from investor.desk@aletheia.gov.')}
                 className="w-full py-2.5 bg-navy text-gold text-xs font-bold uppercase tracking-wider rounded-sm hover:bg-navy-deep transition-colors text-center"
               >
                 Request Prospectus

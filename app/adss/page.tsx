@@ -99,6 +99,7 @@ const OVERSIGHT_PRINCIPLES = [
   },
   {
     icon: <Eye className="w-4 h-4 text-gold" />,
+    id: 'intelligence',
     title: 'Intelligence Oversight Committee',
     desc: 'A Standing Parliamentary Committee reviews all intelligence activities. No signals collection without a High Court warrant. Strict surveillance statute.',
   },
@@ -109,6 +110,7 @@ const OVERSIGHT_PRINCIPLES = [
   },
   {
     icon: <Radio className="w-4 h-4 text-gold" />,
+    id: 'emergency',
     title: 'Emergency Coordination Centre',
     desc: '24/7 National Emergency & Civil Protection Centre coordinates disaster response, maritime rescue, and critical infrastructure incidents.',
   },
@@ -168,7 +170,7 @@ export default function ADSSPage() {
               <Link href="/adss/cybersecurity" className="btn-sovereign-gold px-7 py-3.5 rounded-sm flex items-center gap-2.5 group text-sm">
                 Cybersecurity Department <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
-              <Link href="/constitution#art22" className="btn-sovereign-ghost px-6 py-3.5 rounded-sm flex items-center gap-2 text-sm">
+              <Link href="/constitution#art-46" className="btn-sovereign-ghost px-6 py-3.5 rounded-sm flex items-center gap-2 text-sm">
                 Constitutional Mandate
               </Link>
             </div>
@@ -206,6 +208,7 @@ export default function ADSSPage() {
             {DIRECTORATES.map((dir) => (
               <div
                 key={dir.id}
+                id={dir.id}
                 className="bg-white border border-navy/[0.08] rounded-[4px] overflow-hidden hover:shadow-[0_4px_24px_-4px_rgba(21,41,74,0.08)] transition-all"
               >
                 <div className="grid lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-navy/[0.06]">
@@ -273,6 +276,7 @@ export default function ADSSPage() {
             {OVERSIGHT_PRINCIPLES.map((p, i) => (
               <div
                 key={i}
+                id={'id' in p ? p.id : undefined}
                 className="p-5 bg-navy-deep/60 border border-parchment/[0.06] rounded-[4px] hover:border-gold/20 transition-colors"
               >
                 <div className="flex items-center gap-2.5 mb-3">

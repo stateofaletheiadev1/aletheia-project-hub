@@ -3,6 +3,8 @@ import { Manrope } from 'next/font/google';
 import './globals.css';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
+import { SiteChrome } from '@/components/layout/SiteChrome';
+import { ToastProvider } from '@/components/ui/Toast';
 
 const manrope = Manrope({
   subsets: ['latin'],
@@ -12,7 +14,10 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
-  title: 'The Covenant State of Aletheia — Official Digital Platform',
+  title: {
+    default: 'The Covenant State of Aletheia — Official Digital Platform',
+    template: '%s · The Covenant State of Aletheia',
+  },
   description:
     'Official digital front door and civic operating platform of the Covenant State of Aletheia. Veritas in Foedere.',
   metadataBase: new URL('https://stateofaletheia.org'),
@@ -62,11 +67,14 @@ export default function RootLayout({
         >
           Skip to main content
         </a>
-        <Navbar />
-        <main id="main-content" className="flex-1">
-          {children}
-        </main>
-        <Footer />
+        <ToastProvider>
+          <SiteChrome />
+          <Navbar />
+          <main id="main-content" className="flex-1">
+            {children}
+          </main>
+          <Footer />
+        </ToastProvider>
       </body>
     </html>
   );

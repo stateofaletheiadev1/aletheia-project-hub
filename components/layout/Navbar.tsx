@@ -137,6 +137,7 @@ export function Navbar() {
           <div className="flex items-center gap-4 text-[10px] text-white/40 leading-none">
             <button
               onClick={() => setSearchOpen(true)}
+              aria-label="Search the platform (Ctrl or Command + K)"
               className="flex items-center gap-1 hover:text-[#C49A4E] transition-colors"
             >
               <Search className="w-2.5 h-2.5" /> ⌘K
@@ -151,6 +152,9 @@ export function Navbar() {
             <div className="relative">
               <button
                 onClick={() => setLangOpen(v => !v)}
+                aria-haspopup="true"
+                aria-expanded={langOpen}
+                aria-label="Choose language"
                 className="flex items-center gap-1 hover:text-[#C49A4E] transition-colors"
               >
                 <Globe className="w-2.5 h-2.5" /> EN <ChevronDown className="w-2 h-2" />
@@ -252,9 +256,17 @@ export function Navbar() {
                     className="relative"
                     onMouseEnter={() => hasDropdown && enter(item.label)}
                     onMouseLeave={leave}
+                    onFocus={() => hasDropdown && enter(item.label)}
+                    onBlur={(e) => {
+                      // Keep the menu open while focus moves within it (keyboard navigation).
+                      if (!e.currentTarget.contains(e.relatedTarget as Node | null)) leave();
+                    }}
                   >
                     <Link
                       href={item.href}
+                      aria-haspopup={hasDropdown ? 'true' : undefined}
+                      aria-expanded={hasDropdown ? activeMenu === item.label : undefined}
+                      aria-current={pathname === item.href ? 'page' : undefined}
                       className={`relative flex items-center gap-0.5 px-3 py-2 text-[13px] font-medium whitespace-nowrap rounded-[3px] transition-colors ${
                         isActive
                           ? 'text-[#15294A]'
@@ -278,7 +290,7 @@ export function Navbar() {
                     {/* ── MEGA-MENU ─────────────────────────────── */}
                     {hasDropdown && activeMenu === item.label && (
                       <div
-                        className="absolute left-1/2 -translate-x-1/2 top-[calc(100%+2px)] w-[680px] bg-white border border-[#15294A]/[0.08] shadow-[0_12px_48px_-12px_rgba(21,41,74,0.18)] rounded-[4px] overflow-hidden z-50"
+                        className="animate-fade-in absolute left-1/2 -translate-x-1/2 top-[calc(100%+2px)] w-[680px] bg-white border border-[#15294A]/[0.08] shadow-[0_12px_48px_-12px_rgba(21,41,74,0.18)] rounded-[4px] overflow-hidden z-50"
                         onMouseEnter={() => enter(item.label)}
                         onMouseLeave={leave}
                       >
@@ -350,6 +362,7 @@ export function Navbar() {
               <button
                 onClick={() => setSearchOpen(true)}
                 title="Search (⌘K)"
+                aria-label="Search the platform"
                 className="p-2 rounded-[3px] text-[#15294A]/45 hover:text-[#15294A] hover:bg-[#15294A]/[0.04] transition-colors"
               >
                 <Search className="w-4 h-4" />
@@ -378,6 +391,7 @@ export function Navbar() {
             <div className="flex items-center gap-1 xl:hidden">
               <button
                 onClick={() => setSearchOpen(true)}
+                aria-label="Search the platform"
                 className="p-2 text-[#15294A]/50 hover:text-[#15294A] hover:bg-[#15294A]/[0.04] rounded-[3px]"
               >
                 <Search className="w-5 h-5" />
@@ -385,7 +399,8 @@ export function Navbar() {
               <button
                 onClick={() => setMobileOpen(v => !v)}
                 className="p-2 text-[#15294A]/50 hover:text-[#15294A] hover:bg-[#15294A]/[0.04] rounded-[3px]"
-                aria-label="Toggle navigation"
+                aria-label={mobileOpen ? 'Close navigation' : 'Open navigation'}
+                aria-expanded={mobileOpen}
               >
                 {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>

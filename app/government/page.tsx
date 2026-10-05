@@ -302,7 +302,7 @@ export default function GovernmentDirectoryPage() {
 
 
       {/* 3. The Nine Ministries Directory */}
-      <section className="py-16">
+      <section id="cabinet" className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-navy/15 pb-4">
             <div className="space-y-1">

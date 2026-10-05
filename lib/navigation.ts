@@ -34,6 +34,15 @@ export const MAIN_NAVIGATION: NavItem[] = [
           { title: 'Official Gazette & News', href: '/news', desc: 'Decrees, appointments, roadmap updates, and statements' },
           { title: 'Public Documents', href: '/documents', desc: 'The Covenant, Acts, reports, and APS protocol standards' },
           { title: 'Contact & Representation', href: '/contact', desc: 'Diplomatic missions, press inquiries, and public registry' },
+          { title: 'Questions & Answers', href: '/faq', desc: 'Plain answers on membership, money, data, and status' },
+        ],
+      },
+      {
+        group: 'Society & Public Services',
+        items: [
+          { title: 'Life in Aletheia', href: '/society', desc: 'Languages, culture, the civic calendar, and maritime heritage' },
+          { title: 'Health & Social Care', href: '/healthcare', desc: 'Universal covenant healthcare and patient-held records', status: 'Planned' },
+          { title: 'Education & Research', href: '/education', desc: 'Bilingual schools, the National University, and research grants', status: 'Planned' },
         ],
       },
     ],
@@ -47,7 +56,7 @@ export const MAIN_NAVIGATION: NavItem[] = [
         items: [
           { title: 'The Constitution', href: '/constitution', desc: 'The Covenant of Aletheia: searchable articles, permalinks and diffs' },
           { title: 'The Covenant Assembly', href: '/government#assembly', desc: '61-member legislative parliament elected by PR', status: 'Planned' },
-          { title: 'Council of the States', href: '/government#senate', desc: '15-member territorial review chamber representing the 5 states', status: 'Planned' },
+          { title: 'Council of the States', href: '/government#council', desc: '15-member territorial review chamber representing the 5 states', status: 'Planned' },
           { title: 'The Chancellor & Cabinet', href: '/government#cabinet', desc: 'Executive leadership capped at nine ministries' },
           { title: 'The Judiciary & High Court', href: '/government#judiciary', desc: 'Constitutional, civil, and automated dispute resolution', status: 'Planned' },
         ],

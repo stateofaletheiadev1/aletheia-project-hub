@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useToast } from '@/components/ui/Toast';
 import Link from 'next/link';
 import { StarOfTruth } from '@/components/brand/Logo';
 import { StatusBadge } from '@/components/ui/StatusBadge';
@@ -99,6 +100,7 @@ const DOCUMENTS: DocumentItem[] = [
 ];
 
 export default function DocumentsPage() {
+  const { notify } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
 
@@ -179,6 +181,7 @@ export default function DocumentsPage() {
           {filteredDocs.map((doc) => (
             <div
               key={doc.id}
+              id={doc.id}
               className="bg-white border border-navy/15 rounded-sm p-6 hover:shadow-md transition-shadow flex flex-col md:flex-row md:items-center justify-between gap-6"
             >
               <div className="space-y-2 max-w-3xl">
@@ -209,7 +212,7 @@ export default function DocumentsPage() {
 
               <div className="flex md:flex-col gap-2 shrink-0 justify-end">
                 <button
-                  onClick={() => alert(`Document ${doc.code} PDF generation initiated. Status: Verified on StableChain.`)}
+                  onClick={() => notify(`${doc.code} queued for publication`, 'Signed PDF editions are released through the Official Gazette once the registry archive is operational.', 'info')}
                   className="px-4 py-2 bg-navy text-gold text-xs font-bold uppercase tracking-wider rounded-sm hover:bg-navy-deep transition-colors flex items-center justify-center gap-1.5"
                 >
                   <Download className="w-3.5 h-3.5" /> Download PDF

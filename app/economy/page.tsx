@@ -216,7 +216,7 @@ export default function EconomyPage() {
       </section>
 
       {/* ── SECTION 2: STABLECHAIN ── */}
-      <section className="py-24 lg:py-32 bg-navy text-parchment border-b border-gold/20">
+      <section id="infrastructure" className="py-24 lg:py-32 bg-navy text-parchment border-b border-gold/20">
         <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div className="space-y-6">
@@ -301,6 +301,7 @@ export default function EconomyPage() {
             {REVENUE_STREAMS.map((stream) => (
               <div
                 key={stream.id}
+                id={stream.id}
                 className="bg-white border border-navy/[0.07] rounded-[4px] p-5 hover:shadow-[0_4px_24px_-4px_rgba(21,41,74,0.08)] hover:border-gold/20 transition-all group"
               >
                 <div className="flex items-center gap-2.5 mb-3">

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useToast } from '@/components/ui/Toast';
 import Link from 'next/link';
 import { PortalShell } from '@/components/layout/PortalShell';
 import { StarOfTruth } from '@/components/brand/Logo';
@@ -20,6 +21,7 @@ import {
 } from 'lucide-react';
 
 export default function ApplicationWizardPage() {
+  const { notify } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
     firstName: '',
@@ -209,7 +211,7 @@ export default function ApplicationWizardPage() {
                     </div>
                     <button
                       type="button"
-                      onClick={() => alert('Simulated document upload: passport_sample.jpg uploaded successfully.')}
+                      onClick={() => notify('Document attached', 'passport_sample.jpg uploaded to your application (demonstration environment).')}
                       className="px-4 py-1.5 bg-navy text-gold text-xs font-bold uppercase tracking-wider rounded-sm hover:bg-navy-deep transition-colors inline-block"
                     >
                       Select File

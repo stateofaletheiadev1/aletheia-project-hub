@@ -419,7 +419,7 @@ export default function AletheiaPage() {
                 <p className="text-xs text-navy/70 leading-relaxed">
                   15-member senate safeguarding territorial autonomy and ensuring equal representation across all five constituent states.
                 </p>
-                <Link href="/government#senate" className="text-xs text-navy font-bold hover:text-gold flex items-center gap-1">
+                <Link href="/government#council" className="text-xs text-navy font-bold hover:text-gold flex items-center gap-1">
                   Senate Overview <ChevronRight className="w-3 h-3" />
                 </Link>
               </div>

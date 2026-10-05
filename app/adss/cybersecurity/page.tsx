@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useToast } from '@/components/ui/Toast';
 import Link from 'next/link';
 import { StarOfTruth } from '@/components/brand/Logo';
 import { StatusBadge } from '@/components/ui/StatusBadge';
@@ -47,6 +48,7 @@ const ADVISORIES = [
 ];
 
 export default function CybersecurityPage() {
+  const { notify } = useToast();
   const [reported, setReported] = useState(false);
 
   return (
@@ -74,7 +76,7 @@ export default function CybersecurityPage() {
 
             <div className="flex flex-wrap gap-4 pt-2">
               <button
-                onClick={() => alert('Vulnerability Disclosure portal active. Submit reports to security@adss.aletheia.gov')}
+                onClick={() => notify('Responsible disclosure channel', 'Submit encrypted reports to security@adss.aletheia.gov. Acknowledgement within 72 hours under the coordinated disclosure policy.', 'info')}
                 className="px-6 py-2.5 bg-gold text-navy font-bold text-xs uppercase tracking-wider rounded-sm hover:bg-gold-tint transition-all flex items-center gap-2 shadow-lg shadow-gold/10"
               >
                 Report a Vulnerability <Bug className="w-3.5 h-3.5" />
@@ -207,7 +209,7 @@ export default function CybersecurityPage() {
       </section>
 
       {/* ── CALL TO ACTION ── */}
-      <section className="bg-navy text-parchment py-16 border-t border-gold/20">
+      <section id="disclosure" className="bg-navy text-parchment py-16 border-t border-gold/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
           <StarOfTruth size={36} className="mx-auto" />
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-parchment">

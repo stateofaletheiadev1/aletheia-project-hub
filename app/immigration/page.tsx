@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useToast } from '@/components/ui/Toast';
 import Link from 'next/link';
 import Image from 'next/image';
 import { StarOfTruth } from '@/components/brand/Logo';
@@ -65,6 +66,7 @@ const VISA_TYPES = [
 ];
 
 export default function ImmigrationPage() {
+  const { notify } = useToast();
   const [selectedPurpose, setSelectedPurpose] = useState('all');
 
   return (
@@ -251,7 +253,7 @@ export default function ImmigrationPage() {
               <div className="pt-6 mt-6 border-t border-navy/10 flex items-center justify-between">
                 <span className="text-[11px] font-mono text-navy/50">Immigration Code § {visa.id.toUpperCase()}</span>
                 <button
-                  onClick={() => alert(`Applications for ${visa.title} will open upon activation of territorial border infrastructure.`)}
+                  onClick={() => notify(`${visa.title}: applications not yet open`, 'Applications open upon activation of territorial border infrastructure. Register interest via the citizen portal.', 'info')}
                   className="px-4 py-1.5 bg-navy text-gold text-xs font-bold uppercase tracking-wider rounded-sm hover:bg-navy-deep transition-colors inline-flex items-center gap-1"
                 >
                   Apply Online <ArrowRight className="w-3 h-3" />

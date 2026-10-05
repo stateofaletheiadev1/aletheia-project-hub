@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useToast } from '@/components/ui/Toast';
 import Link from 'next/link';
 import Image from 'next/image';
 import { StarOfTruth } from '@/components/brand/Logo';
@@ -43,6 +44,7 @@ const MARITIME_DIVISIONS = [
 ];
 
 export default function MinistryMaritimePage() {
+  const { notify } = useToast();
   return (
     <div className="flex flex-col min-h-screen bg-parchment-canvas">
 
@@ -159,7 +161,7 @@ export default function MinistryMaritimePage() {
 
           <div className="lg:col-span-4 flex justify-end">
             <button
-              onClick={() => alert('Vessel Registration Portal: Submit digital IMO documentation to flag.registry@aletheia.gov')}
+              onClick={() => notify('Vessel registration enquiries', 'Submit digital IMO documentation to flag.registry@aletheia.gov. The online flag registry opens with the maritime administration.', 'info')}
               className="px-6 py-3 bg-navy text-gold font-bold text-xs uppercase tracking-wider rounded-sm hover:bg-navy-deep transition-colors flex items-center gap-2"
             >
               Begin Flagging Application <ArrowRight className="w-3.5 h-3.5" />

@@ -151,6 +151,21 @@ export function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/society" className="hover:text-gold transition-colors">
+                  Life in Aletheia
+                </Link>
+              </li>
+              <li>
+                <Link href="/healthcare" className="hover:text-gold transition-colors">
+                  Health &amp; Social Care
+                </Link>
+              </li>
+              <li>
+                <Link href="/education" className="hover:text-gold transition-colors">
+                  Education &amp; Research
+                </Link>
+              </li>
+              <li>
                 <Link href="/treasury" className="hover:text-gold transition-colors">
                   Treasury & Endowment Fund
                 </Link>
@@ -216,6 +231,20 @@ export function Footer() {
               © {new Date().getFullYear()} The Sovereign Covenant State of Aletheia. All rights reserved.
             </span>
           </div>
+
+          <nav aria-label="Legal" className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[11px]">
+            {[
+              { href: '/privacy', label: 'Privacy' },
+              { href: '/terms', label: 'Terms of Use' },
+              { href: '/accessibility', label: 'Accessibility' },
+              { href: '/faq', label: 'FAQ' },
+              { href: '/contact', label: 'Contact' },
+            ].map((l) => (
+              <Link key={l.href} href={l.href} className="hover:text-gold transition-colors">
+                {l.label}
+              </Link>
+            ))}
+          </nav>
 
           <div className="flex flex-wrap items-center gap-4 text-[11px]">
             <span>Official Languages:</span>
