@@ -19,7 +19,7 @@ export function StatusBadge({ status, size = 'sm', showDot = true, className = '
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 font-medium rounded-sm border uppercase font-sans ${config.badgeClass} ${sizeClasses[size]} ${className}`}
+      className={`inline-flex items-center gap-1.5 font-medium rounded-sm border uppercase font-sans whitespace-nowrap shrink-0 ${config.badgeClass} ${sizeClasses[size]} ${className}`}
       title={config.description}
     >
       {showDot && (
@@ -29,7 +29,7 @@ export function StatusBadge({ status, size = 'sm', showDot = true, className = '
           aria-hidden="true"
         />
       )}
-      <span>{status}</span>
+      <span className="whitespace-nowrap">{status}</span>
     </span>
   );
 }

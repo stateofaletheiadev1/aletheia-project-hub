@@ -275,7 +275,7 @@ export default function HomePage() {
               {
                 num: '02', title: 'StableChain Protocol & APN', status: 'Under Development' as const,
                 color: 'bg-gold',
-                desc: 'Deterministic DAG ledger engine, AEY reserve backing invariants, and zero-gas fee settlement rails currently in active testnet deployment.',
+                desc: 'Deterministic DAG ledger engine, AEY reserve backing invariants, and zero-gas fee settlement rails operating on the sovereign closed mainnet.',
               },
               {
                 num: '03', title: 'Territorial Antioch Build', status: 'Planned' as const,
@@ -286,12 +286,12 @@ export default function HomePage() {
               <div key={num} className="sovereign-card-premium rounded-sm overflow-hidden flex flex-col">
                 <div className={`h-[3px] w-full ${color}`} />
                 <div className="p-7 space-y-4 flex-1">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
                       <span className="text-[11px] font-mono text-navy/30 block mb-1">{num}</span>
                       <h3 className="text-sm font-bold text-navy uppercase tracking-wide leading-tight">{title}</h3>
                     </div>
-                    <StatusBadge status={status} size="sm" />
+                    <StatusBadge status={status} size="sm" className="shrink-0" />
                   </div>
                   <p className="text-sm text-navy/60 leading-relaxed font-light">{desc}</p>
                 </div>
