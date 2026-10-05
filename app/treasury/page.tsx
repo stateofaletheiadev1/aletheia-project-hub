@@ -22,8 +22,7 @@ export default function TreasuryPage() {
     <div className="flex flex-col min-h-screen bg-parchment-canvas">
 
       {/* ── HERO ── */}
-      <section className="relative bg-navy text-parchment overflow-hidden pt-24 pb-20 lg:pt-32 lg:pb-28 border-b border-gold/20">
-        <div className="absolute inset-0 bg-gradient-to-b from-navy-deep/95 via-navy/90 to-navy-deep" />
+      <section className="guilloche-hero relative text-parchment overflow-hidden pt-24 pb-20 lg:pt-32 lg:pb-28 border-b border-gold/30">
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl space-y-5">
             <div className="flex items-center gap-3">
@@ -34,7 +33,7 @@ export default function TreasuryPage() {
               <StatusBadge status="Under Development" size="sm" />
             </div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-parchment leading-[1.08]">
+            <h1 className="heading-hero">
               The Sovereign Treasury & Endowment
             </h1>
 
@@ -46,25 +45,21 @@ export default function TreasuryPage() {
       </section>
 
       {/* ── KEY BALANCE SHEET METRICS ── */}
-      <section className="bg-navy-deep border-b border-navy/30 text-parchment py-8">
+      <section className="bg-[#060C14] border-b border-gold/25 text-parchment py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-            <div className="space-y-1">
-              <span className="text-2xl font-bold text-gold">2.45B AEY</span>
-              <p className="text-xs text-parchment/70 uppercase tracking-wide">Covenant Endowment Fund</p>
-            </div>
-            <div className="space-y-1">
-              <span className="text-2xl font-bold text-gold">0.0%</span>
-              <p className="text-xs text-parchment/70 uppercase tracking-wide">Individual Income Tax</p>
-            </div>
-            <div className="space-y-1">
-              <span className="text-2xl font-bold text-gold">142%</span>
-              <p className="text-xs text-parchment/70 uppercase tracking-wide">Sovereign Reserve Ratio</p>
-            </div>
-            <div className="space-y-1">
-              <span className="text-2xl font-bold text-gold">AAA (p)</span>
-              <p className="text-xs text-parchment/70 uppercase tracking-wide">Public Balance Rating</p>
-            </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-gold/15">
+            {[
+              { value: '2.45B AEY', label: 'Endowment Fund', sublabel: 'Covenant capital base' },
+              { value: '0.0%', label: 'Income Tax', sublabel: 'Constitutionally banned' },
+              { value: '142%', label: 'Reserve Ratio', sublabel: 'Above statutory floor' },
+              { value: 'AAA (p)', label: 'Public Rating', sublabel: 'Planning instrument basis' },
+            ].map(({ value, label, sublabel }) => (
+              <div key={label} className="px-6 py-4 text-center first:pl-0 last:pr-0 space-y-0.5">
+                <div className="text-2xl font-bold font-mono text-gold tracking-tight">{value}</div>
+                <div className="text-[11px] font-bold uppercase tracking-[0.14em] text-parchment/80">{label}</div>
+                <div className="text-[10px] text-parchment/40 font-mono">{sublabel}</div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -80,8 +75,8 @@ export default function TreasuryPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-white p-6 border border-navy/15 rounded-sm space-y-3 hover:shadow-md transition-shadow">
-            <Landmark className="w-6 h-6 text-gold" />
+          <div className="feature-card rounded-sm p-6 space-y-3">
+            <div className="icon-sovereign"><Landmark className="w-5 h-5 text-gold" /></div>
             <h3 className="text-base font-bold text-navy">1. Sovereign Endowment</h3>
             <p className="text-xs text-navy/70 leading-relaxed">
               Permanent multi-asset capital fund invested in European government bonds, precious metals, and tier-1 infrastructure yielding baseline state operating budget.
