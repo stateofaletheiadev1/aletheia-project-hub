@@ -71,7 +71,7 @@ export default function ImmigrationPage() {
     <div className="flex flex-col min-h-screen bg-parchment-canvas">
 
       {/* ── HERO SECTION ── */}
-      <section className="relative bg-navy text-parchment overflow-hidden pt-24 pb-24 lg:pt-32 lg:pb-36 border-b border-gold/20">
+      <section className="guilloche-hero relative text-parchment overflow-hidden pt-24 pb-24 lg:pt-32 lg:pb-36 border-b border-gold/30">
         <div className="absolute inset-0">
           <Image
             src="/images/autonomous_harbor.jpg"
@@ -80,20 +80,19 @@ export default function ImmigrationPage() {
             className="object-cover opacity-20 mix-blend-luminosity"
             priority
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-navy-deep/95 via-navy/90 to-navy-deep" />
         </div>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl space-y-6">
             <div className="flex flex-wrap items-center gap-3">
-              <div className="inline-flex items-center gap-2 px-3 py-1 border border-gold/30 bg-navy-deep/80 rounded-sm">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 border border-gold/40 bg-navy-deep/80 rounded-sm backdrop-blur-sm">
                 <StarOfTruth size={14} />
                 <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-gold">ADSS Immigration Directorate</span>
               </div>
               <StatusBadge status="Planned" size="sm" />
             </div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-parchment leading-[1.08]">
+            <h1 className="heading-hero">
               Immigration & Border Administration
             </h1>
 

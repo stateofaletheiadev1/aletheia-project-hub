@@ -74,7 +74,6 @@ export default function DevelopmentPage() {
       {/* ── HERO ── */}
       <section className="relative bg-navy text-parchment overflow-hidden pt-20 pb-28 lg:pt-32 lg:pb-40">
         <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-br from-navy-deep/98 via-navy to-navy-subtle/80" />
           {/* Hexagonal grid watermark */}
           <svg className="absolute inset-0 w-full h-full opacity-[0.04]" aria-hidden>
             <defs>
@@ -96,7 +95,7 @@ export default function DevelopmentPage() {
               <StatusBadge status="Planned" size="sm" />
             </div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.07] text-parchment">
+            <h1 className="heading-hero">
               Antioch — the capital city of Aletheia.
             </h1>
 

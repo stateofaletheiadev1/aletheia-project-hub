@@ -72,7 +72,6 @@ export default function BusinessPage() {
 
       {/* ── HERO SECTION ── */}
       <section className="relative guilloche-bg text-parchment overflow-hidden pt-24 pb-24 lg:pt-32 lg:pb-36 border-b border-gold/30">
-        <div className="absolute inset-0 bg-gradient-to-b from-navy-deep/95 via-navy/90 to-navy-deep pointer-events-none" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 z-10">
           <div className="max-w-3xl space-y-6">
             <div className="flex flex-wrap items-center gap-3">
@@ -83,7 +82,7 @@ export default function BusinessPage() {
               <StatusBadge status="Under Development" size="sm" />
             </div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-parchment leading-[1.12]">
+            <h1 className="heading-hero">
               Form a Sovereign Enterprise in <span className="text-gold-metallic">15 Minutes</span>
             </h1>
 

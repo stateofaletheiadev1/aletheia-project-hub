@@ -61,7 +61,7 @@ export default function InfrastructurePage() {
     <div className="flex flex-col min-h-screen bg-parchment-canvas">
 
       {/* ── HERO ── */}
-      <section className="relative bg-navy text-parchment overflow-hidden pt-24 pb-20 lg:pt-32 lg:pb-28 border-b border-gold/20">
+      <section className="guilloche-hero relative text-parchment overflow-hidden pt-24 pb-20 lg:pt-32 lg:pb-28 border-b border-gold/30">
         <div className="absolute inset-0">
           <Image
             src="/images/autonomous_harbor.jpg"
@@ -70,24 +70,23 @@ export default function InfrastructurePage() {
             className="object-cover opacity-20 mix-blend-luminosity"
             priority
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-navy-deep/95 via-navy/90 to-navy-deep" />
         </div>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl space-y-5">
             <div className="flex items-center gap-3">
-              <div className="inline-flex items-center gap-2 px-3 py-1 border border-gold/30 bg-navy-deep/80 rounded-sm">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 border border-gold/40 bg-navy-deep/80 rounded-sm backdrop-blur-sm">
                 <StarOfTruth size={14} />
                 <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-gold">Ministry of Territorial Development</span>
               </div>
               <StatusBadge status="Under Development" size="sm" />
             </div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-parchment leading-[1.08]">
+            <h1 className="heading-hero">
               Strategic Infrastructure & Oceanic Engineering
             </h1>
 
-            <p className="text-base sm:text-lg text-parchment/75 leading-relaxed font-light">
+            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">
               Civil structures engineered for multi-century longevity. From deepwater automated ports to concentric urban architecture and subsea telecommunications gateways.
             </p>
           </div>

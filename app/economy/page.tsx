@@ -247,7 +247,7 @@ export default function EconomyPage() {
 
               <div className="flex items-center gap-2 pt-2">
                 <StatusBadge status="Under Development" size="sm" />
-                <span className="text-[11px] text-parchment/50">Testnet Active · Mainnet Q4 2026</span>
+                <span className="text-[11px] text-parchment/50">Mainnet — Sovereign Protocol · Q4 2026</span>
               </div>
 
               <Link href="/stablechain" className="inline-flex items-center gap-2 px-5 py-2.5 border border-gold/30 text-parchment font-semibold text-[12px] uppercase tracking-wider rounded-[3px] hover:border-gold/60 transition-colors group">
