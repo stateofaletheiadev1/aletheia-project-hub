@@ -18,39 +18,7 @@ import {
   Scale,
 } from 'lucide-react';
 import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
-
-const BOND_TRANCHES = [
-  {
-    id: 'sdb-2029',
-    name: 'Sovereign Development Bond 2029 (Series A)',
-    purpose: 'St. Brendan Deepwater Port & Logistics Terminal Phase 1',
-    yieldPct: '4.85%',
-    tenor: '3 Years (Maturity 2029)',
-    coupon: 'Semi-Annual in EUR / AEY',
-    status: 'Operational' as const,
-    minSub: '50,000 AEY',
-  },
-  {
-    id: 'sdb-2031',
-    name: 'Green Maritime Energy Bond 2031 (Series B)',
-    purpose: 'Offshore Floating Wind Turbine Array & Subsea Interconnector',
-    yieldPct: '5.40%',
-    tenor: '5 Years (Maturity 2031)',
-    coupon: 'Quarterly in EUR / AEY',
-    status: 'Under Development' as const,
-    minSub: '100,000 AEY',
-  },
-  {
-    id: 'sdb-2036',
-    name: 'Antioch Concentric Capital Civic Bond 2036 (Series C)',
-    purpose: 'Federal District Civil Infrastructure, Assembly Hall & Fiber Grid',
-    yieldPct: '6.15%',
-    tenor: '10 Years (Maturity 2036)',
-    coupon: 'Annual in EUR / AEY',
-    status: 'Planned' as const,
-    minSub: '250,000 AEY',
-  },
-];
+import { BOND_TRANCHES } from '@/lib/bonds';
 
 export default function InvestPage() {
   const { notify } = useToast();
@@ -147,12 +115,14 @@ export default function InvestPage() {
                 </div>
               </div>
 
-              <button
-                onClick={() => notify(`Prospectus request recorded: ${bond.name}`, 'The investor desk will respond from investor.desk@aletheia.gov.')}
-                className="w-full py-2.5 bg-navy text-gold text-xs font-bold uppercase tracking-wider rounded-sm hover:bg-navy-deep transition-colors text-center"
+              <a
+                href={`/pdf/bonds/${bond.id}`}
+                target="_blank"
+                rel="noopener"
+                className="w-full py-2.5 bg-navy text-gold text-xs font-bold uppercase tracking-wider rounded-sm hover:bg-navy-deep transition-colors text-center block"
               >
-                Request Prospectus
-              </button>
+                Information Memorandum (PDF)
+              </a>
             </div>
           ))}
         </div>

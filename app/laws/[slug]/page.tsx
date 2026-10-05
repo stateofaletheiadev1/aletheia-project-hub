@@ -77,7 +77,7 @@ export default async function StatuteDetailPage({ params }: { params: Promise<{ 
           {/* Action Bar */}
           <div className="flex justify-between items-center border-b border-navy/10 pb-4 text-xs">
             <span className="font-mono text-navy/60">Official Gazette Statutory Inscription</span>
-            <StatuteActions code={statute.code} />
+            <StatuteActions slug={statute.slug} />
           </div>
 
           {/* Preamble */}

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { downloadPortalDocument, type PortalDocumentKind } from '@/lib/pdf/portal';
 import Link from 'next/link';
 import { PortalShell } from '@/components/layout/PortalShell';
 import {
@@ -17,6 +18,7 @@ import {
 
 interface VaultDocument {
   id: string;
+  kind: PortalDocumentKind;
   name: string;
   type: string;
   issuedDate: string;
@@ -28,6 +30,7 @@ interface VaultDocument {
 const DOCUMENTS: VaultDocument[] = [
   {
     id: 'DOC-01',
+    kind: 'e-residence-certificate',
     name: 'Aletheia_E_Residence_Certificate.pdf',
     type: 'Official Residency Certificate',
     issuedDate: '2026-10-01',
@@ -37,6 +40,7 @@ const DOCUMENTS: VaultDocument[] = [
   },
   {
     id: 'DOC-02',
+    kind: 'company-charter',
     name: 'Kaelen_Vance_Marine_SARL_Charter.pdf',
     type: 'Commercial Register Charter',
     issuedDate: '2026-06-12',
@@ -46,6 +50,7 @@ const DOCUMENTS: VaultDocument[] = [
   },
   {
     id: 'DOC-03',
+    kind: 'tax-residency',
     name: 'Sovereign_Tax_Residency_Declaration.pdf',
     type: 'Fiscal Status Attestation',
     issuedDate: '2026-10-02',
@@ -55,6 +60,7 @@ const DOCUMENTS: VaultDocument[] = [
   },
   {
     id: 'DOC-04',
+    kind: 'apostille',
     name: 'Hague_Apostille_Legalisation_Seal.pdf',
     type: 'Digital Apostille Notary',
     issuedDate: '2026-10-03',
@@ -68,8 +74,14 @@ export default function PortalDocumentsPage() {
   const [selectedDoc, setSelectedDoc] = useState<VaultDocument | null>(null);
   const [downloadNotice, setDownloadNotice] = useState<string | null>(null);
 
-  const handleDownload = (docName: string) => {
-    setDownloadNotice(`Downloading authenticated PDF: ${docName}`);
+  const handleDownload = async (doc: VaultDocument) => {
+    setDownloadNotice(`Preparing PDF: ${doc.name}`);
+    try {
+      await downloadPortalDocument(doc.kind, doc.name);
+      setDownloadNotice(`Downloaded: ${doc.name}`);
+    } catch {
+      setDownloadNotice('The PDF could not be generated. Please try again.');
+    }
     setTimeout(() => setDownloadNotice(null), 3500);
   };
 
@@ -131,7 +143,7 @@ export default function PortalDocumentsPage() {
                         Inspect
                       </button>
                       <button
-                        onClick={() => handleDownload(doc.name)}
+                        onClick={() => handleDownload(doc)}
                         className="px-2.5 py-1 rounded-sm bg-navy text-parchment hover:bg-navy-deep transition-colors text-[11px]"
                       >
                         <Download className="w-3 h-3 inline mr-1" /> PDF
@@ -189,7 +201,7 @@ export default function PortalDocumentsPage() {
                 </button>
                 <button
                   onClick={() => {
-                    handleDownload(selectedDoc.name);
+                    handleDownload(selectedDoc);
                     setSelectedDoc(null);
                   }}
                   className="px-4 py-1.5 bg-navy text-parchment text-xs font-semibold rounded-sm hover:bg-navy-deep flex items-center gap-1.5"

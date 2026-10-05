@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { downloadPortalDocument } from '@/lib/pdf/portal';
 import Link from 'next/link';
 import { PortalShell } from '@/components/layout/PortalShell';
 import {
@@ -33,13 +34,14 @@ export default function PortalResidencyStatusPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Link
-              href="/portal/documents"
-              className="px-3.5 py-1.5 bg-navy text-parchment text-xs font-semibold rounded-sm hover:bg-navy-deep transition-colors flex items-center gap-1.5"
-            >
+            <button
+                type="button"
+                onClick={() => void downloadPortalDocument('e-residence-certificate', 'Aletheia_E_Residence_Certificate.pdf')}
+                className="px-3.5 py-1.5 bg-navy text-parchment text-xs font-semibold rounded-sm hover:bg-navy-deep transition-colors flex items-center gap-1.5"
+              >
               <Download className="w-3.5 h-3.5 text-gold" />
               <span>Download Certificate</span>
-            </Link>
+            </button>
           </div>
         </div>
 

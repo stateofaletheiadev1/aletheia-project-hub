@@ -12,6 +12,7 @@ import {
   Share2,
   ExternalLink,
   Printer,
+  Download,
   ChevronRight,
   Shield,
   Landmark,
@@ -97,6 +98,15 @@ export default function ConstitutionPage() {
               <Printer className="w-3.5 h-3.5 text-gold" />
               <span>Print Official Version</span>
             </button>
+            <a
+              href="/pdf/constitution"
+              target="_blank"
+              rel="noopener"
+              className="btn-sovereign-gold px-5 py-2.5 rounded-sm flex items-center gap-2 text-xs font-bold uppercase tracking-wider"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Download PDF</span>
+            </a>
             <span className="text-parchment/30">|</span>
             <span className="text-parchment/60 font-mono text-xs">
               Status: Authoritative Working Draft — Planning Instrument

@@ -1,10 +1,8 @@
 'use client';
 
 import { Download, Printer } from 'lucide-react';
-import { useToast } from '@/components/ui/Toast';
 
-export function StatuteActions({ code }: { code: string }) {
-  const { notify } = useToast();
+export function StatuteActions({ slug }: { slug: string }) {
   return (
     <div className="flex gap-2" data-print-hide>
       <button
@@ -14,19 +12,14 @@ export function StatuteActions({ code }: { code: string }) {
       >
         <Printer className="w-3.5 h-3.5" /> Print
       </button>
-      <button
-        type="button"
-        onClick={() =>
-          notify(
-            `${code}: signed edition`,
-            'Cryptographically signed PDF editions are issued through the Official Gazette registry. Use Print for a faithful copy today.',
-            'info',
-          )
-        }
+      <a
+        href={`/pdf/statutes/${slug}`}
+        target="_blank"
+        rel="noopener"
         className="px-3 py-1.5 bg-navy text-gold font-bold uppercase tracking-wider rounded-sm hover:bg-navy-deep transition-colors flex items-center gap-1.5"
       >
         <Download className="w-3.5 h-3.5" /> Official PDF
-      </button>
+      </a>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { downloadPortalDocument } from '@/lib/pdf/portal';
 import Link from 'next/link';
 import { PortalShell } from '@/components/layout/PortalShell';
 import { StarOfTruth } from '@/components/brand/Logo';
@@ -183,13 +184,14 @@ export default function PortalDigitalIdentityPage() {
               </div>
 
               <div className="pt-2">
-                <Link
-                  href="/portal/documents"
-                  className="w-full py-2 bg-navy text-parchment text-xs font-semibold rounded-sm hover:bg-navy-deep transition-colors flex items-center justify-center gap-1.5"
-                >
+                <button
+                type="button"
+                onClick={() => void downloadPortalDocument('digital-credential', 'Aletheia_Digital_Credential.pdf')}
+                className="w-full py-2 bg-navy text-parchment text-xs font-semibold rounded-sm hover:bg-navy-deep transition-colors flex items-center justify-center gap-1.5"
+              >
                   <Download className="w-3.5 h-3.5 text-gold" />
                   <span>Download Digital Credential</span>
-                </Link>
+                </button>
               </div>
             </div>
           </div>

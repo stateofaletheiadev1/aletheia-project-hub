@@ -37,7 +37,7 @@ export default function AccessibilityPage() {
           body: (
             <ul>
               <li>Some data-dense tables in the officer and portal areas are not yet optimised for small screens;</li>
-              <li>Official PDF editions of statutes are not yet available in tagged, accessible format;</li>
+              <li>Official PDF editions are not yet tagged for screen readers; the HTML page for every statute and document is the accessible version;</li>
               <li>Content is currently published in English only; translations into the other official languages are in preparation.</li>
             </ul>
           ),

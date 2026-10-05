@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useToast } from '@/components/ui/Toast';
 import Link from 'next/link';
 import { StarOfTruth } from '@/components/brand/Logo';
 import { StatusBadge } from '@/components/ui/StatusBadge';
@@ -18,94 +17,13 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
-
-interface DocumentItem {
-  id: string;
-  title: string;
-  category: 'Constitutional' | 'Statute' | 'Gazette' | 'Technical Standard';
-  code: string;
-  date: string;
-  hash: string;
-  status: 'Operational' | 'Under Development' | 'Planned';
-  description: string;
-  pages: number;
-}
-
-const DOCUMENTS: DocumentItem[] = [
-  {
-    id: 'covenant-main',
-    title: 'The Covenant of Aletheia (Full Constitution)',
-    category: 'Constitutional',
-    code: 'CONST-2026-01',
-    date: '2026-01-15',
-    hash: '0x8f2b7a4c91e3d085fa49b817e4521098ef7321ac90b34d76a218fce1b2049e91',
-    status: 'Operational',
-    description: 'The fundamental supreme organic law establishing the federal republic, rights charter, and governance architecture.',
-    pages: 48,
-  },
-  {
-    id: 'nationality-act',
-    title: 'Nationality & Naturalisation Act',
-    category: 'Statute',
-    code: 'ACT-2026-04',
-    date: '2026-02-10',
-    hash: '0x3c9902ba14ff28e67a01d5e390c88461ab209ef731478201fa8892ca3401ef62',
-    status: 'Operational',
-    description: 'Governs citizenship acquisition, civic integration, e-residency naturalisation, and revocation protocols.',
-    pages: 22,
-  },
-  {
-    id: 'passport-spec',
-    title: 'Passports & ICAO eMRTD Specifications Act',
-    category: 'Statute',
-    code: 'ACT-2026-07',
-    date: '2026-03-01',
-    hash: '0x17fa9081e7d230198aa49b8214309eec8120fa87632190847b2c01948fe21980',
-    status: 'Operational',
-    description: 'Statutory mandate for TD3 biometric travel document issuance, polycarbonate substrates, and ICAO PKD keys.',
-    pages: 18,
-  },
-  {
-    id: 'monetary-framework',
-    title: 'Monetary Architecture & AEY Reserve Act',
-    category: 'Statute',
-    code: 'ACT-2026-09',
-    date: '2026-04-18',
-    hash: '0xaa18902ef34b890123ca78091ecb87201948ba209ef182049ec8720914be8721',
-    status: 'Operational',
-    description: 'Defines the legal tender status of the Aletheian Guilder (AEY) and reserve backing invariants.',
-    pages: 34,
-  },
-  {
-    id: 'gazette-01-2026',
-    title: 'Official Gazette No. 01/2026 — Establishing Decree',
-    category: 'Gazette',
-    code: 'GAZ-2026-01',
-    date: '2026-05-01',
-    hash: '0x9920184fa9802ecb8720918ba340291ef732014890ecb8201948ea20914801fa',
-    status: 'Operational',
-    description: 'Official promulgation of inaugural executive orders, ministerial portfolios, and diplomatic notifications.',
-    pages: 12,
-  },
-  {
-    id: 'aps-01-spec',
-    title: 'Aletheia Protocol Standard 01: StableChain Consensus & Settlement',
-    category: 'Technical Standard',
-    code: 'APS-01',
-    date: '2026-06-12',
-    hash: '0x4489021fa89023ebc87201948ea20914bca890214890ec8201948ea20914801e',
-    status: 'Under Development',
-    description: 'Technical whitepaper for 500ms block finality, deterministic gas execution, and state registry verification.',
-    pages: 64,
-  },
-];
+import { REGISTER, registerPdfHref, registerReadHref } from '@/lib/documents';
 
 export default function DocumentsPage() {
-  const { notify } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
 
-  const filteredDocs = DOCUMENTS.filter((doc) => {
+  const filteredDocs = REGISTER.filter((doc) => {
     const matchesSearch =
       doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       doc.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -204,7 +122,7 @@ export default function DocumentsPage() {
                 <p className="text-xs text-navy/70 leading-relaxed">{doc.description}</p>
 
                 <div className="pt-2 flex flex-wrap items-center gap-4 text-[11px] font-mono text-navy/50">
-                  <span>Pages: {doc.pages}</span>
+                  <span>PDF · A4</span>
                   <span className="flex items-center gap-1">
                     <Hash className="w-3 h-3 text-gold" />
                     Hash: <code className="text-[10px] text-navy/70">{doc.hash.slice(0, 18)}...</code>
@@ -213,14 +131,16 @@ export default function DocumentsPage() {
               </div>
 
               <div className="flex md:flex-col gap-2 shrink-0 justify-end">
-                <button
-                  onClick={() => notify(`${doc.code} queued for publication`, 'Signed PDF editions are released through the Official Gazette once the registry archive is operational.', 'info')}
+                <a
+                  href={registerPdfHref(doc.id)}
+                  target="_blank"
+                  rel="noopener"
                   className="px-4 py-2 bg-navy text-gold text-xs font-bold uppercase tracking-wider rounded-sm hover:bg-navy-deep transition-colors flex items-center justify-center gap-1.5"
                 >
                   <Download className="w-3.5 h-3.5" /> Download PDF
-                </button>
+                </a>
                 <Link
-                  href={doc.id === 'covenant-main' ? '/constitution' : doc.id === 'passport-spec' ? '/passport' : '#'}
+                  href={registerReadHref(doc)}
                   className="px-4 py-2 border border-navy/20 text-navy text-xs font-semibold uppercase tracking-wider rounded-sm hover:border-gold hover:text-gold text-center transition-colors flex items-center justify-center gap-1"
                 >
                   <BookOpen className="w-3.5 h-3.5" /> Read Online

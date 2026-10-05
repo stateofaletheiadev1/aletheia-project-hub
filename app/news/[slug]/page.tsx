@@ -5,7 +5,7 @@ import { notFound } from 'next/navigation';
 import { StarOfTruth } from '@/components/brand/Logo';
 import { GAZETTE_POSTS, formatGazetteDate, getGazettePost } from '@/lib/gazette';
 import { unsplash } from '@/lib/imagery';
-import { ArrowLeft, ArrowRight, Calendar, CheckCircle2, Clock, PenLine } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Calendar, CheckCircle2, Clock, Download, PenLine } from 'lucide-react';
 
 export function generateStaticParams() {
   return GAZETTE_POSTS.map((p) => ({ slug: p.slug }));
@@ -85,6 +85,15 @@ export default async function GazetteArticlePage({ params }: { params: Promise<{
             <p className="font-bold text-navy">{post.signatory}</p>
             <p className="text-xs font-mono text-navy/50">Official Gazette No. {post.number}</p>
           </div>
+          <a
+            href={`/pdf/gazette/${post.slug}`}
+            target="_blank"
+            rel="noopener"
+            data-print-hide
+            className="self-start btn-sovereign-navy px-5 py-3 rounded-sm text-xs font-semibold uppercase tracking-wider flex items-center gap-2"
+          >
+            <Download className="w-3.5 h-3.5 text-gold" /> Gazette PDF
+          </a>
           <div className="self-start flex items-center gap-3 p-4 bg-navy rounded-sm border border-gold/30 text-parchment">
             <StarOfTruth size={22} />
             <div className="text-[11px] font-mono">
