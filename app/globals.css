@@ -888,7 +888,6 @@ body {
   letter-spacing: 0.04em;
 }
 
-/* ─ Navbar blur on scroll ─ */
 .nav-scrolled {
   background: rgba(255, 255, 255, 0.97) !important;
   backdrop-filter: blur(20px) saturate(1.8) !important;
@@ -896,4 +895,118 @@ body {
   box-shadow:
     0 1px 0 rgba(21, 41, 74, 0.08),
     0 4px 20px -4px rgba(21, 41, 74, 0.10) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   FEATURE CARD — Premium white card with hover gold top accent
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.feature-card {
+  position: relative;
+  background: #FFFFFF;
+  border: 1px solid rgba(21, 41, 74, 0.09);
+  box-shadow:
+    0 1px 2px rgba(0,0,0,0.04),
+    0 4px 12px -2px rgba(21, 41, 74, 0.06);
+  transition:
+    transform 280ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 280ms ease,
+    box-shadow 280ms cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+.feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, rgba(196, 154, 78, 0.65) 40%, rgba(228, 198, 137, 1) 50%, rgba(196, 154, 78, 0.65) 60%, transparent 100%);
+  opacity: 0;
+  transition: opacity 280ms ease;
+}
+.feature-card:hover::before { opacity: 1; }
+.feature-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(196, 154, 78, 0.38);
+  box-shadow:
+    0 0 0 1px rgba(196, 154, 78, 0.10),
+    0 18px 40px -8px rgba(21, 41, 74, 0.14),
+    0 0 20px -6px rgba(196, 154, 78, 0.18);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   ICON SOVEREIGN — Square icon container with gold border on hover
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.icon-sovereign {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: rgba(21, 41, 74, 0.06);
+  border: 1px solid rgba(196, 154, 78, 0.20);
+  border-radius: 4px;
+  flex-shrink: 0;
+  transition: background 200ms ease, border-color 200ms ease, box-shadow 200ms ease;
+}
+.icon-sovereign:hover,
+.group:hover .icon-sovereign {
+  background: rgba(196, 154, 78, 0.10);
+  border-color: rgba(196, 154, 78, 0.45);
+  box-shadow: 0 0 12px -4px rgba(196, 154, 78, 0.30);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   SOVEREIGN CARD DARK — Dark glassmorphic card for navy backgrounds
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.sovereign-card-dark {
+  position: relative;
+  background: rgba(14, 27, 49, 0.65);
+  border: 1px solid rgba(196, 154, 78, 0.18);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  overflow: hidden;
+  transition: border-color 280ms ease, transform 280ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 280ms ease;
+}
+.sovereign-card-dark::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 5%, rgba(196, 154, 78, 0.55) 50%, transparent 95%);
+}
+.sovereign-card-dark:hover {
+  border-color: rgba(196, 154, 78, 0.40);
+  transform: translateY(-4px);
+  box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.35), 0 0 20px -8px rgba(196, 154, 78, 0.20);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   BUTTON GHOST — Transparent ghost CTA for dark backgrounds
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.btn-sovereign-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--font-manrope), sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(244, 238, 223, 0.80);
+  background: transparent;
+  border: 1px solid rgba(196, 154, 78, 0.30);
+  transition:
+    color 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease;
+  cursor: pointer;
+}
+.btn-sovereign-ghost:hover {
+  color: #F4EEDF;
+  border-color: rgba(196, 154, 78, 0.60);
+  background: rgba(196, 154, 78, 0.06);
 }

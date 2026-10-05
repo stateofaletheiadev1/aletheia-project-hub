@@ -111,17 +111,20 @@ export default function EResidencyPage() {
     <div className="flex flex-col min-h-screen">
 
       {/* ── HERO ── */}
-      <section className="relative bg-navy text-parchment overflow-hidden pt-20 pb-28 lg:pt-32 lg:pb-40">
+      <section className="guilloche-hero relative text-parchment overflow-hidden pt-20 pb-28 lg:pt-32 lg:pb-40">
+        {/* Photographic maritime overlay */}
         <div className="absolute inset-0">
           <Image
             src="/images/hero_maritime.jpg"
             alt="Aletheia E-Residency"
             fill
-            className="object-cover opacity-15 mix-blend-luminosity"
+            className="object-cover opacity-10 mix-blend-luminosity"
             priority
           />
-          <div className="absolute inset-0 bg-gradient-to-br from-navy-deep via-navy/98 to-navy-subtle/90" />
         </div>
+        {/* Ambient orbs */}
+        <div className="orb-gold w-[420px] h-[420px] -top-20 -right-20 opacity-55 animate-orb-float-1" />
+        <div className="orb-burgundy w-[300px] h-[300px] bottom-0 left-12 opacity-40 animate-orb-float-2" />
 
         <div className="relative max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-12 gap-12 items-center">
@@ -131,8 +134,10 @@ export default function EResidencyPage() {
                 <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-gold">E-Residency Programme</span>
               </div>
 
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.07] text-parchment">
-                The world&apos;s most sovereign digital residency.
+              <h1 className="heading-hero">
+                The world&apos;s most
+                <br />
+                <span className="text-gold-metallic">sovereign</span> digital residency.
               </h1>
 
               <p className="text-base sm:text-lg text-parchment/65 leading-relaxed font-light max-w-xl">
@@ -140,11 +145,11 @@ export default function EResidencyPage() {
               </p>
 
               <div className="flex flex-wrap gap-4 pt-2">
-                <Link href="#apply" className="px-6 py-3 bg-gold text-navy font-bold text-[12px] uppercase tracking-wider rounded-[3px] hover:bg-gold-tint transition-colors flex items-center gap-2 group">
+                <Link href="#apply" className="btn-sovereign-gold px-7 py-3.5 rounded-sm flex items-center gap-2.5 group text-sm">
                   Apply Now — 500 AEY/year
-                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Link>
-                <Link href="#how-it-works" className="px-6 py-3 border border-parchment/20 text-parchment font-semibold text-[12px] uppercase tracking-wider rounded-[3px] hover:border-parchment/40 hover:bg-parchment/5 transition-all">
+                <Link href="#how-it-works" className="btn-sovereign-ghost px-6 py-3.5 rounded-sm text-sm">
                   How It Works
                 </Link>
               </div>

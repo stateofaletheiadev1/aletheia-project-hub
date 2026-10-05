@@ -119,17 +119,19 @@ export default function ADSSPage() {
     <div className="flex flex-col min-h-screen">
 
       {/* ── HERO ── */}
-      <section className="relative bg-navy text-parchment overflow-hidden pt-20 pb-28 lg:pt-32 lg:pb-40">
+      <section className="guilloche-hero relative text-parchment overflow-hidden pt-20 pb-28 lg:pt-32 lg:pb-40">
         <div className="absolute inset-0">
           <Image
             src="/images/cyber_defence.jpg"
             alt="Aletheian Defence and Security Service"
             fill
-            className="object-cover opacity-20 mix-blend-luminosity"
+            className="object-cover opacity-12 mix-blend-luminosity"
             priority
           />
-          <div className="absolute inset-0 bg-gradient-to-br from-navy-deep/98 via-navy to-navy-subtle/80" />
         </div>
+        {/* Ambient orbs */}
+        <div className="orb-gold w-[460px] h-[460px] -top-24 -left-32 opacity-50 animate-orb-float-1" />
+        <div className="orb-burgundy w-[340px] h-[340px] bottom-0 right-8 opacity-45 animate-orb-float-2" />
 
         {/* Crosshair watermark */}
         <div className="absolute inset-0 flex items-center justify-end pr-24 opacity-[0.04] pointer-events-none" aria-hidden>
@@ -152,8 +154,10 @@ export default function ADSSPage() {
               <StatusBadge status="Planned" size="sm" />
             </div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.07] text-parchment">
-              Aletheian Defence & Security Service
+            <h1 className="heading-hero">
+              Aletheian Defence
+              <br />
+              <span className="text-gold-metallic">&amp; Security Service</span>
             </h1>
 
             <p className="text-base sm:text-lg text-parchment/65 leading-relaxed font-light max-w-2xl">
@@ -161,10 +165,10 @@ export default function ADSSPage() {
             </p>
 
             <div className="flex flex-wrap gap-4 pt-2">
-              <Link href="/adss/cybersecurity" className="px-5 py-2.5 bg-gold text-navy font-bold text-[12px] uppercase tracking-wider rounded-[3px] hover:bg-gold-tint transition-colors flex items-center gap-2 group">
-                Cybersecurity Department <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+              <Link href="/adss/cybersecurity" className="btn-sovereign-gold px-7 py-3.5 rounded-sm flex items-center gap-2.5 group text-sm">
+                Cybersecurity Department <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
-              <Link href="/constitution#art22" className="px-5 py-2.5 border border-gold/25 text-parchment font-semibold text-[12px] uppercase tracking-wider rounded-[3px] hover:border-gold/50 transition-colors flex items-center gap-2">
+              <Link href="/constitution#art22" className="btn-sovereign-ghost px-6 py-3.5 rounded-sm flex items-center gap-2 text-sm">
                 Constitutional Mandate
               </Link>
             </div>

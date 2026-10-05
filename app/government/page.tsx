@@ -204,90 +204,102 @@ export default function GovernmentDirectoryPage() {
   return (
     <div className="min-h-screen bg-parchment-canvas text-navy">
       {/* 1. Header Banner */}
-      <section className="bg-navy text-parchment py-16 lg:py-20 border-b border-gold/40 relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-6">
-          <div className="inline-flex items-center gap-2.5 px-3 py-1 bg-navy-deep/80 border border-gold/40 rounded-sm">
+      <section className="guilloche-hero relative text-parchment py-24 lg:py-32 border-b border-gold/30 overflow-hidden">
+        {/* Ambient orbs */}
+        <div className="orb-gold w-[480px] h-[480px] -top-24 -right-32 opacity-50 animate-orb-float-1" />
+        <div className="orb-burgundy w-[320px] h-[320px] bottom-0 left-10 opacity-40 animate-orb-float-2" />
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-7">
+          <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 bg-navy-deep/80 border border-gold/40 rounded-sm backdrop-blur-sm">
             <HexagonCross size={18} />
-            <span className="text-xs font-semibold tracking-eyebrow uppercase text-gold">
-              INSTITUTIONAL DIRECTORY
+            <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-gold">
+              Institutional Directory
             </span>
-            <span className="text-parchment/40">|</span>
-            <span className="text-xs text-parchment/80 font-serif italic">The Nine Capped Ministries</span>
+            <span className="text-parchment/30">|</span>
+            <span className="text-[11px] text-parchment/70 font-serif italic">The Nine Capped Ministries</span>
           </div>
 
-          <div className="max-w-3xl space-y-3">
-            <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-parchment">
-              Organs of Government
+          <div className="max-w-3xl space-y-4 animate-fade-in-up">
+            <h1 className="heading-hero">
+              Organs of{' '}
+              <span className="text-gold-metallic">Government</span>
             </h1>
-            <p className="text-base sm:text-lg text-parchment/80 leading-relaxed font-light">
-              Executive authority is constitutionally capped at nine ministries under the Chancellor. Power is divided among the Covenant Assembly, the Council of the States, the High Court, and checked continuously by the Auditor-General on the ledger.
+            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">
+              Executive authority is constitutionally capped at nine ministries under the Chancellor. Power is divided among the Covenant Assembly, the Council of the States, the High Court, and checked continuously by the Auditor-General on the sovereign ledger.
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 pt-2 text-xs">
-            <span className="text-gold font-semibold uppercase tracking-wider">
+          <div className="flex flex-wrap items-center gap-3 pt-2 text-xs animate-fade-in-up delay-200">
+            <span className="text-gold font-bold uppercase tracking-[0.16em]">
               Constitutional Ceiling:
             </span>
-            <span className="bg-navy-deep px-3 py-1 border border-gold/30 rounded-sm font-mono text-gold-tint">
+            <span className="bg-navy-deep/80 backdrop-blur-sm px-3 py-1.5 border border-gold/35 rounded-sm font-mono text-gold-tint">
               9 Ministries Max (Schedule 3)
             </span>
-            <span className="text-parchment/40">|</span>
-            <span className="text-parchment/70">Sunset Review: Every 8 Years</span>
+            <span className="text-parchment/30">|</span>
+            <span className="text-parchment/65">Sunset Review: Every 8 Years</span>
           </div>
         </div>
       </section>
 
       {/* 2. Main Organs Overview */}
-      <section className="py-12 border-b border-navy/10 bg-white">
+      <section className="py-12 border-b border-navy/10 bg-parchment-canvas">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* The Covenant Assembly */}
-            <div id="assembly" className="p-6 bg-parchment-light border border-navy/15 rounded-sm space-y-3">
+            <div id="assembly" className="feature-card rounded-sm p-6 space-y-3 group">
               <div className="flex items-center justify-between">
-                <Landmark className="w-5 h-5 text-gold" />
+                <div className="icon-sovereign">
+                  <Landmark className="w-5 h-5 text-gold" />
+                </div>
                 <StatusBadge status="Planned" size="sm" />
               </div>
-              <h3 className="text-lg font-bold text-navy">The Covenant Assembly</h3>
+              <h3 className="text-base font-bold text-navy">The Covenant Assembly</h3>
               <p className="text-xs text-navy/70 leading-relaxed">
-                The primary legislative chamber consisting of 61 members elected every four years by open-list proportional representation across Antioch and the four states.
+                The primary legislative chamber of 61 members elected every four years by open-list proportional representation across Antioch and the four states.
               </p>
-              <div className="text-[11px] font-mono text-navy/60 pt-2 border-t border-navy/10">
-                Seats: 61 | Term: 4 Years | Min 5 per State
+              <div className="text-[11px] font-mono text-gold-shadow pt-2 border-t border-navy/10 font-semibold">
+                61 Seats · 4-Year Term · Min 5 per State
               </div>
             </div>
 
             {/* Council of the States */}
-            <div id="council" className="p-6 bg-parchment-light border border-navy/15 rounded-sm space-y-3">
+            <div id="council" className="feature-card rounded-sm p-6 space-y-3 group">
               <div className="flex items-center justify-between">
-                <Building className="w-5 h-5 text-gold" />
+                <div className="icon-sovereign">
+                  <Building className="w-5 h-5 text-gold" />
+                </div>
                 <StatusBadge status="Planned" size="sm" />
               </div>
-              <h3 className="text-lg font-bold text-navy">Council of the States</h3>
+              <h3 className="text-base font-bold text-navy">Council of the States</h3>
               <p className="text-xs text-navy/70 leading-relaxed">
-                Territorial review chamber comprising 15 members (3 appointed by each State Council and 3 by Antioch). Possesses suspensive review on land, energy, and currency acts.
+                Territorial review chamber comprising 15 members (3 from each State Council and 3 from Antioch). Suspensive review on land, energy, and currency acts.
               </p>
-              <div className="text-[11px] font-mono text-navy/60 pt-2 border-t border-navy/10">
-                Members: 15 | Suspensive Veto: 90 Days
+              <div className="text-[11px] font-mono text-gold-shadow pt-2 border-t border-navy/10 font-semibold">
+                15 Members · Suspensive Veto: 90 Days
               </div>
             </div>
 
             {/* The High Court */}
-            <div id="judiciary" className="p-6 bg-parchment-light border border-navy/15 rounded-sm space-y-3">
+            <div id="judiciary" className="feature-card rounded-sm p-6 space-y-3 group">
               <div className="flex items-center justify-between">
-                <Gavel className="w-5 h-5 text-gold" />
+                <div className="icon-sovereign">
+                  <Gavel className="w-5 h-5 text-gold" />
+                </div>
                 <StatusBadge status="Planned" size="sm" />
               </div>
-              <h3 className="text-lg font-bold text-navy">The High Court of Aletheia</h3>
+              <h3 className="text-base font-bold text-navy">The High Court of Aletheia</h3>
               <p className="text-xs text-navy/70 leading-relaxed">
-                The supreme judicial body exercising constitutional supremacy, administrative review, and presiding over the Court of Maritime & Commercial Disputes with automated smart-contract arbitration.
+                The supreme judicial body — constitutional supremacy, administrative review, and the Court of Maritime &amp; Commercial Disputes with smart-contract arbitration.
               </p>
-              <div className="text-[11px] font-mono text-navy/60 pt-2 border-t border-navy/10">
-                Benches: Constitutional, Civil, Commercial
+              <div className="text-[11px] font-mono text-gold-shadow pt-2 border-t border-navy/10 font-semibold">
+                Constitutional · Civil · Commercial Benches
               </div>
             </div>
           </div>
         </div>
       </section>
+
 
       {/* 3. The Nine Ministries Directory */}
       <section className="py-16">
@@ -323,37 +335,40 @@ export default function GovernmentDirectoryPage() {
             {filteredMinistries.map((ministry) => (
               <div
                 key={ministry.id}
-                className="bg-white border border-navy/15 rounded-sm p-6 space-y-4 shadow-subtle hover:shadow-institutional transition-all flex flex-col justify-between"
+                className="sovereign-card-premium rounded-sm p-6 space-y-4 flex flex-col justify-between group"
               >
+                {/* Top gold accent bar */}
+                <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-gold/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="p-2 bg-parchment-canvas rounded-sm border border-navy/10">
+                  <div className="flex items-start justify-between">
+                    <div className="icon-sovereign group-hover:border-gold/50 transition-colors">
                       {ministry.icon}
                     </div>
                     <StatusBadge status={ministry.status} size="sm" />
                   </div>
 
                   <div>
-                    <h3 className="font-bold text-navy text-base leading-snug">
+                    <h3 className="font-bold text-navy text-[15px] leading-snug">
                       {ministry.name}
                     </h3>
-                    <span className="text-xs font-mono text-gold-shadow uppercase tracking-wider block mt-0.5">
+                    <span className="text-[10px] font-mono text-gold uppercase tracking-[0.16em] block mt-1 font-bold">
                       {ministry.portfolio}
                     </span>
                   </div>
 
-                  <p className="text-xs text-navy/70 leading-relaxed">
+                  <p className="text-xs text-navy/65 leading-relaxed">
                     {ministry.mandate}
                   </p>
 
-                  <div className="space-y-1.5 pt-2 border-t border-navy/10">
-                    <span className="text-[10px] font-mono uppercase tracking-wider text-navy/50 font-bold block">
-                      Core Responsibilities:
+                  <div className="space-y-1.5 pt-2 border-t border-navy/8">
+                    <span className="text-[9px] font-bold uppercase tracking-[0.18em] text-navy/40 block">
+                      Key Responsibilities
                     </span>
-                    <ul className="space-y-1 text-[11px] text-navy/80">
+                    <ul className="space-y-1">
                       {ministry.responsibilities.map((r) => (
-                        <li key={r} className="flex items-start gap-1.5">
-                          <span className="text-gold font-bold">›</span>
+                        <li key={r} className="flex items-start gap-2 text-[11px] text-navy/75">
+                          <span className="text-gold font-bold mt-0.5 shrink-0">›</span>
                           <span>{r}</span>
                         </li>
                       ))}
@@ -361,16 +376,16 @@ export default function GovernmentDirectoryPage() {
                   </div>
                 </div>
 
-                <div className="pt-4 border-t border-navy/10 flex items-center justify-between text-xs">
-                  <span className="text-[10px] font-mono text-navy/50 truncate max-w-[140px]">
+                <div className="pt-4 border-t border-navy/8 flex items-center justify-between text-xs">
+                  <span className="text-[10px] font-mono text-navy/40 truncate max-w-[140px]">
                     {ministry.legalBasis}
                   </span>
                   <Link
                     href={ministry.serviceHref}
-                    className="font-semibold text-gold-shadow hover:text-navy transition-colors flex items-center gap-1"
+                    className="font-bold text-xs text-navy hover:text-gold transition-colors flex items-center gap-1 group/l shrink-0"
                   >
                     <span>{ministry.serviceName}</span>
-                    <ChevronRight className="w-3.5 h-3.5 text-gold" />
+                    <ChevronRight className="w-3.5 h-3.5 text-gold group-hover/l:translate-x-0.5 transition-transform" />
                   </Link>
                 </div>
               </div>
@@ -380,45 +395,55 @@ export default function GovernmentDirectoryPage() {
       </section>
 
       {/* 4. Independent Verification & Constitutional Bodies */}
-      <section className="py-12 bg-white border-t border-navy/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+      <section className="py-16 bg-navy text-parchment border-t border-gold/20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
           <div className="space-y-1">
-            <span className="text-xs font-semibold tracking-eyebrow uppercase text-gold">
-              FOURTH PILLAR OF VERIFICATION
-            </span>
-            <h2 className="text-2xl font-bold text-navy">
+            <span className="eyebrow">Fourth Pillar of Verification</span>
+            <h2 className="text-2xl sm:text-3xl font-bold text-parchment">
               Independent Constitutional Bodies
             </h2>
+            <p className="text-sm text-parchment/65 max-w-2xl">
+              These bodies operate outside the nine ministries and report directly to the Covenant Assembly.
+            </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-6 bg-parchment-canvas border border-navy/15 rounded-sm space-y-2">
+            <div className="sovereign-card-dark rounded-sm p-6 space-y-3">
               <div className="flex items-center justify-between">
-                <h4 className="font-bold text-navy text-sm">Auditor-General</h4>
+                <div className="icon-sovereign">
+                  <CheckCircle className="w-5 h-5 text-gold" />
+                </div>
                 <StatusBadge status="Under Development" size="sm" />
               </div>
-              <p className="text-xs text-navy/70 leading-relaxed">
+              <h4 className="font-bold text-parchment text-sm">Auditor-General</h4>
+              <p className="text-xs text-parchment/65 leading-relaxed">
                 Publishes autonomous cryptographic Merkle proofs of public expenditure against finalized StableChain blocks every 512-slot epoch.
               </p>
             </div>
 
-            <div className="p-6 bg-parchment-canvas border border-navy/15 rounded-sm space-y-2">
+            <div className="sovereign-card-dark rounded-sm p-6 space-y-3">
               <div className="flex items-center justify-between">
-                <h4 className="font-bold text-navy text-sm">Registry & Privacy Ombudsman</h4>
+                <div className="icon-sovereign">
+                  <Lock className="w-5 h-5 text-gold" />
+                </div>
                 <StatusBadge status="Planned" size="sm" />
               </div>
-              <p className="text-xs text-navy/70 leading-relaxed">
-                Independent guardian enforcing strict zero-knowledge identity separation and auditing that no personally identifiable information (PII) is stored on-chain.
+              <h4 className="font-bold text-parchment text-sm">Registry &amp; Privacy Ombudsman</h4>
+              <p className="text-xs text-parchment/65 leading-relaxed">
+                Independent guardian enforcing zero-knowledge identity separation and auditing that no PII is ever stored on-chain.
               </p>
             </div>
 
-            <div className="p-6 bg-parchment-canvas border border-navy/15 rounded-sm space-y-2">
+            <div className="sovereign-card-dark rounded-sm p-6 space-y-3">
               <div className="flex items-center justify-between">
-                <h4 className="font-bold text-navy text-sm">The Monetary Board</h4>
+                <div className="icon-sovereign">
+                  <Scale className="w-5 h-5 text-gold" />
+                </div>
                 <StatusBadge status="Under Development" size="sm" />
               </div>
-              <p className="text-xs text-navy/70 leading-relaxed">
-                Independent overseers of the 12 reserve invariants (I1–I12), auditing Aletheian Guilder (AEY) reserve accounts and preventing unbacked currency expansion.
+              <h4 className="font-bold text-parchment text-sm">The Monetary Board</h4>
+              <p className="text-xs text-parchment/65 leading-relaxed">
+                Independent overseers of 12 reserve invariants (I1–I12), auditing Aletheian Guilder (AEY) reserves and preventing unbacked currency expansion.
               </p>
             </div>
           </div>

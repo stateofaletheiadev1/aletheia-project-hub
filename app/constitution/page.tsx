@@ -48,44 +48,56 @@ export default function ConstitutionPage() {
   return (
     <div className="min-h-screen bg-parchment-canvas text-navy">
       {/* 1. Constitutional Hero Banner */}
-      <section className="bg-navy text-parchment py-16 lg:py-20 border-b border-gold/40 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10 pointer-events-none flex items-center justify-center">
-          <svg width="800" height="800" viewBox="0 0 100 100" fill="none">
-            <polygon points="50,0 95,27 95,85 50,112 5,85 5,27" stroke="#C49A4E" strokeWidth="0.8" />
+      {/* 1. Constitutional Hero Banner */}
+      <section className="guilloche-hero relative text-parchment py-24 lg:py-32 border-b border-gold/30 overflow-hidden">
+        {/* Ambient orbs */}
+        <div className="orb-gold w-[500px] h-[500px] -top-28 -left-36 opacity-50 animate-orb-float-1" />
+        <div className="orb-burgundy w-[360px] h-[360px] bottom-0 right-8 opacity-45 animate-orb-float-2" />
+
+        {/* Multi-ring hex watermark */}
+        <div className="absolute inset-0 opacity-[0.045] pointer-events-none flex items-center justify-center">
+          <svg width="900" height="900" viewBox="0 0 100 100" fill="none">
+            <polygon points="50,2 95,27 95,73 50,98 5,73 5,27" stroke="#C49A4E" strokeWidth="0.5" />
+            <polygon points="50,12 85,32 85,68 50,88 15,68 15,32" stroke="#C49A4E" strokeWidth="0.35" />
+            <polygon points="50,22 75,37 75,63 50,78 25,63 25,37" stroke="#C49A4E" strokeWidth="0.22" />
+            <circle cx="50" cy="50" r="45" stroke="#C49A4E" strokeWidth="0.18" />
+            <circle cx="50" cy="50" r="5" stroke="#C49A4E" strokeWidth="0.55" />
           </svg>
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-6">
-          <div className="inline-flex items-center gap-2.5 px-3 py-1 bg-navy-deep/80 border border-gold/40 rounded-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-7">
+          <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 bg-navy-deep/80 border border-gold/40 rounded-sm backdrop-blur-sm">
             <StarOfTruth size={16} />
-            <span className="text-xs font-semibold tracking-eyebrow uppercase text-gold">
-              SUPREME CONSTITUTIONAL CHARTER
+            <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-gold">
+              Supreme Constitutional Charter
             </span>
-            <span className="text-parchment/40">|</span>
-            <span className="text-xs text-parchment/80 font-serif italic">Edition 2026.3</span>
+            <span className="text-parchment/30">|</span>
+            <span className="text-[11px] text-parchment/70 font-serif italic">Edition 2026.3</span>
           </div>
 
-          <div className="max-w-3xl space-y-3">
-            <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-parchment">
-              The Covenant of Aletheia
+          <div className="max-w-3xl space-y-4 animate-fade-in-up">
+            <h1 className="heading-hero">
+              The Covenant
+              <br />
+              <span className="text-gold-metallic">of Aletheia</span>
             </h1>
-            <p className="text-base sm:text-lg text-parchment/80 leading-relaxed font-light">
+            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">
               The constitutional instrument establishing the Sovereign Covenant State of Aletheia. Every provision is an immutable public covenant binding government, constituent states, and citizens under the rule of verifiable law.
             </p>
           </div>
 
           {/* Action Row */}
-          <div className="pt-2 flex flex-wrap items-center gap-4 text-xs">
+          <div className="flex flex-wrap items-center gap-4 animate-fade-in-up delay-200">
             <button
               onClick={() => window.print()}
-              className="px-4 py-2 bg-navy-deep border border-gold/40 text-parchment hover:text-gold rounded-sm flex items-center gap-2 transition-colors"
+              className="px-5 py-2.5 bg-navy-deep/80 backdrop-blur-sm border border-gold/35 text-parchment hover:text-gold hover:border-gold/60 rounded-sm flex items-center gap-2 transition-all text-xs font-semibold uppercase tracking-wider"
             >
               <Printer className="w-3.5 h-3.5 text-gold" />
               <span>Print Official Version</span>
             </button>
-            <span className="text-parchment/40">|</span>
-            <span className="text-parchment/70 font-mono">
-              Status: Authoritative Working Draft (Planning Instrument)
+            <span className="text-parchment/30">|</span>
+            <span className="text-parchment/60 font-mono text-xs">
+              Status: Authoritative Working Draft — Planning Instrument
             </span>
           </div>
         </div>
