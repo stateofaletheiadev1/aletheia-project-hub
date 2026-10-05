@@ -122,7 +122,7 @@ export default function PassportPortalPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           
           {/* Level 1: Overt Security Features */}
-          <div className="bg-white border border-navy/15 rounded-sm p-6 space-y-4 hover:shadow-md transition-shadow">
+          <div className="feature-card rounded-sm p-6 space-y-4 group">
             <div className="w-10 h-10 rounded-sm bg-navy text-gold flex items-center justify-center">
               <EyeIcon className="w-5 h-5" />
             </div>
@@ -148,7 +148,7 @@ export default function PassportPortalPage() {
           </div>
 
           {/* Level 2: Machine Readable & Covert */}
-          <div className="bg-white border border-navy/15 rounded-sm p-6 space-y-4 hover:shadow-md transition-shadow">
+          <div className="feature-card rounded-sm p-6 space-y-4 group">
             <div className="w-10 h-10 rounded-sm bg-navy text-gold flex items-center justify-center">
               <FileCheck2 className="w-5 h-5" />
             </div>
@@ -174,7 +174,7 @@ export default function PassportPortalPage() {
           </div>
 
           {/* Level 3: Cryptographic Contactless Chip */}
-          <div className="bg-white border border-navy/15 rounded-sm p-6 space-y-4 hover:shadow-md transition-shadow">
+          <div className="feature-card rounded-sm p-6 space-y-4 group">
             <div className="w-10 h-10 rounded-sm bg-navy text-gold flex items-center justify-center">
               <Cpu className="w-5 h-5" />
             </div>
@@ -274,7 +274,7 @@ export default function PassportPortalPage() {
           
           <div className="lg:col-span-6 space-y-6">
             <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">Public Verification Registry</span>
-            <h2 className="text-3xl font-bold text-navy tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-bold text-navy tracking-tight">
               Real-Time Document Verification Portal
             </h2>
             <p className="text-sm text-navy/70 leading-relaxed">
@@ -328,7 +328,7 @@ export default function PassportPortalPage() {
 
           <div className="lg:col-span-6 bg-navy text-parchment p-8 rounded-sm border border-gold/30 space-y-6">
             <div className="flex items-center gap-3">
-              <KeyRound className="w-6 h-6 text-gold" />
+              <div className="icon-sovereign"><KeyRound className="w-5 h-5 text-gold" /></div>
               <h3 className="text-lg font-bold text-parchment">PKD & CSCA Certificate Download</h3>
             </div>
             <p className="text-xs text-parchment/70 leading-relaxed">

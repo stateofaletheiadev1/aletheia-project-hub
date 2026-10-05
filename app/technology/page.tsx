@@ -113,7 +113,7 @@ export default function TechnologyPage() {
       <section className="py-16 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
           <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">Core Public Registers</span>
-          <h2 className="text-3xl font-bold text-navy tracking-tight">The Four Sovereign State Registries</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-navy tracking-tight">The Four Sovereign State Registries</h2>
           <p className="text-xs sm:text-sm text-navy/70 leading-relaxed">
             Statutorily governed by the National Digital Administration Act 2026, eliminating arbitrary ministerial discretion through deterministic cryptographic execution.
           </p>
@@ -170,7 +170,7 @@ export default function TechnologyPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           <div className="lg:col-span-6 space-y-6">
             <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">Public Verification Sandbox</span>
-            <h2 className="text-3xl font-bold text-navy tracking-tight">Query the Immutable State Registry</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold text-navy tracking-tight">Query the Immutable State Registry</h2>
             <p className="text-sm text-navy/70 leading-relaxed">
               Authenticate any state decree, business incorporation license, land title hash, or notary signature in real time against the root validator network.
             </p>
@@ -214,7 +214,7 @@ export default function TechnologyPage() {
 
           <div className="lg:col-span-6 bg-navy text-parchment p-8 rounded-sm border border-gold/30 space-y-6">
             <div className="flex items-center gap-3">
-              <KeyRound className="w-6 h-6 text-gold" />
+              <div className="icon-sovereign"><KeyRound className="w-5 h-5 text-gold" /></div>
               <h3 className="text-lg font-bold text-parchment">Zero-Knowledge Civil Privacy (ZKP)</h3>
             </div>
             <p className="text-xs text-parchment/75 leading-relaxed">

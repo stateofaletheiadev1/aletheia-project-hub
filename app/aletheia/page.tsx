@@ -207,7 +207,7 @@ export default function AletheiaPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {/* Coat of Arms */}
-              <div className="bg-white border border-navy/15 rounded-sm p-6 space-y-4 hover:shadow-md transition-shadow">
+              <div className="feature-card rounded-sm p-6 space-y-4 group">
                 <div className="h-44 flex items-center justify-center bg-parchment-light rounded-sm border border-navy/10 relative">
                   <Image
                     src="/coat_of_arms.png"
@@ -227,7 +227,7 @@ export default function AletheiaPage() {
               </div>
 
               {/* The National Flag */}
-              <div className="bg-white border border-navy/15 rounded-sm p-6 space-y-4 hover:shadow-md transition-shadow">
+              <div className="feature-card rounded-sm p-6 space-y-4 group">
                 <div className="h-44 flex items-center justify-center bg-navy rounded-sm border border-navy/30 relative p-4">
                   <NationalFlag className="w-40 h-auto shadow-md" />
                 </div>
@@ -241,7 +241,7 @@ export default function AletheiaPage() {
               </div>
 
               {/* The Biometric Passport */}
-              <div className="bg-white border border-navy/15 rounded-sm p-6 space-y-4 hover:shadow-md transition-shadow">
+              <div className="feature-card rounded-sm p-6 space-y-4 group">
                 <div className="h-44 flex items-center justify-center bg-parchment-light rounded-sm border border-navy/10 relative p-2">
                   <Image
                     src="/passport_cover.png"
@@ -314,7 +314,7 @@ export default function AletheiaPage() {
           <div className="space-y-8">
             <div className="max-w-2xl space-y-3">
               <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">Federal Territories</span>
-              <h2 className="text-3xl font-bold text-navy tracking-tight">The Five Federated States</h2>
+              <h2 className="text-2xl sm:text-3xl font-bold text-navy tracking-tight">The Five Federated States</h2>
               <p className="text-sm text-navy/70 leading-relaxed">
                 The republic is structured into five distinct territorial states, each possessing statutory self-governance under the Supreme Federal Covenant.
               </p>
@@ -395,7 +395,7 @@ export default function AletheiaPage() {
           <div className="space-y-8">
             <div className="max-w-2xl space-y-3">
               <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">Separation of Powers</span>
-              <h2 className="text-3xl font-bold text-navy tracking-tight">Institutional Architecture</h2>
+              <h2 className="text-2xl sm:text-3xl font-bold text-navy tracking-tight">Institutional Architecture</h2>
               <p className="text-sm text-navy/70 leading-relaxed">
                 Aletheia combines parliamentary scrutiny, state representation, and algorithmic registry oversight to ensure corruption-resistant governance.
               </p>
@@ -403,7 +403,7 @@ export default function AletheiaPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="p-5 bg-white border border-navy/10 rounded-sm space-y-3">
-                <Building2 className="w-6 h-6 text-gold" />
+                <div className="icon-sovereign"><Building2 className="w-5 h-5 text-gold" /></div>
                 <h3 className="font-bold text-navy text-base">Covenant Assembly</h3>
                 <p className="text-xs text-navy/70 leading-relaxed">
                   61-member unicameral parliament elected by proportional representation to debate, amend, and enact statutory legislation.

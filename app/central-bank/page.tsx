@@ -74,7 +74,7 @@ export default function CentralBankPage() {
           
           <div className="lg:col-span-7 space-y-6">
             <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">Constitutional Monetary Law</span>
-            <h2 className="text-3xl font-bold text-navy tracking-tight">The Inviolable Reserve Invariant</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold text-navy tracking-tight">The Inviolable Reserve Invariant</h2>
             <p className="text-sm text-navy/70 leading-relaxed">
               Pursuant to Constitution Article 14, the Central Bank is legally prohibited from monetizing government deficits or creating unbacked liquidity. The monetary base is governed by mathematical algorithmic invariants published on the state ledger.
             </p>
@@ -97,7 +97,7 @@ export default function CentralBankPage() {
 
           <div className="lg:col-span-5 bg-navy text-parchment p-8 rounded-sm border border-gold/30 shadow-xl space-y-6">
             <div className="flex items-center gap-3">
-              <Scale className="w-6 h-6 text-gold" />
+              <div className="icon-sovereign"><Scale className="w-5 h-5 text-gold" /></div>
               <h3 className="text-lg font-bold text-parchment">Reserve Composition</h3>
             </div>
 

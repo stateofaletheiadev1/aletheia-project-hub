@@ -68,6 +68,14 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  /* Manrope is the sovereign typeface of Aletheia — enforce at every level */
+  font-family: var(--font-manrope), 'Manrope', ui-sans-serif, system-ui, sans-serif;
+  font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1;
+}
+
+/* Universal inheritance — no element should ever fall through to browser defaults */
+*, *::before, *::after {
+  font-family: inherit;
 }
 
 ::selection {
@@ -762,11 +770,14 @@ body {
 
 /* Heading gradient — for hero and major section headings */
 .heading-hero {
+  font-family: var(--font-manrope), 'Manrope', ui-sans-serif, system-ui, sans-serif;
   font-size: clamp(2.6rem, 6vw, 4.5rem);
   font-weight: 800;
   line-height: 1.08;
   letter-spacing: -0.03em;
   color: #F4EEDF;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* ─ Responsive section padding ─ */

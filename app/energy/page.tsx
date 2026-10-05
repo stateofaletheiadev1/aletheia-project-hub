@@ -72,22 +72,22 @@ export default function EnergyPage() {
       <section className="py-16 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
           <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">Energy Matrix</span>
-          <h2 className="text-3xl font-bold text-navy tracking-tight">The Quad-Pillar Clean Generation Stack</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-navy tracking-tight">The Quad-Pillar Clean Generation Stack</h2>
           <p className="text-xs sm:text-sm text-navy/70 leading-relaxed">
             By avoiding reliance on single-source renewables, Aletheia achieves guaranteed 99.999% baseload power availability.
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-white border border-navy/15 rounded-sm p-6 space-y-3 hover:shadow-md transition-shadow">
-            <Wind className="w-8 h-8 text-gold" />
+          <div className="feature-card rounded-sm p-6 space-y-3 group">
+            <div className="icon-sovereign"><Wind className="w-5 h-5 text-gold" /></div>
             <h3 className="text-base font-bold text-navy">Offshore Wind</h3>
             <p className="text-xs text-navy/70 leading-relaxed">
               Deepwater floating turbines moored in high-wind pelagic zones generating over 600 MW of primary electrical supply.
             </p>
           </div>
 
-          <div className="bg-white border border-navy/15 rounded-sm p-6 space-y-4 hover:shadow-md transition-shadow">
+          <div className="feature-card rounded-sm p-6 space-y-4 group">
             <Atom className="w-8 h-8 text-navy" />
             <h3 className="text-base font-bold text-navy">Small Modular Reactors</h3>
             <p className="text-xs text-navy/70 leading-relaxed">
@@ -95,7 +95,7 @@ export default function EnergyPage() {
             </p>
           </div>
 
-          <div className="bg-white border border-navy/15 rounded-sm p-6 space-y-3 hover:shadow-md transition-shadow">
+          <div className="feature-card rounded-sm p-6 space-y-3 group">
             <Waves className="w-8 h-8 text-laurel" />
             <h3 className="text-base font-bold text-navy">Wave Energy Converters</h3>
             <p className="text-xs text-navy/70 leading-relaxed">
@@ -103,8 +103,8 @@ export default function EnergyPage() {
             </p>
           </div>
 
-          <div className="bg-white border border-navy/15 rounded-sm p-6 space-y-3 hover:shadow-md transition-shadow">
-            <Droplets className="w-8 h-8 text-gold" />
+          <div className="feature-card rounded-sm p-6 space-y-3 group">
+            <div className="icon-sovereign"><Droplets className="w-5 h-5 text-gold" /></div>
             <h3 className="text-base font-bold text-navy">Green Hydrogen</h3>
             <p className="text-xs text-navy/70 leading-relaxed">
               Electrolyzer facilities consuming peak surplus generation to produce liquid hydrogen for industrial and maritime transport.

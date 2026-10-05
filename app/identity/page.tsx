@@ -71,7 +71,7 @@ export default function IdentityPage() {
 
           <div className="lg:col-span-7 space-y-6">
             <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">Heraldic Composition</span>
-            <h2 className="text-3xl font-bold text-navy tracking-tight">The Sovereign Shield & Quarters</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold text-navy tracking-tight">The Sovereign Shield & Quarters</h2>
             <p className="text-sm text-navy/70 leading-relaxed">
               Blazoned pursuant to Statute 2026-02, the arms unite European heraldic tradition with maritime and constitutional allegory.
             </p>
@@ -126,7 +126,7 @@ export default function IdentityPage() {
           
           <div className="lg:col-span-7 space-y-6">
             <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">Vexillology & Standards</span>
-            <h2 className="text-3xl font-bold text-navy tracking-tight">The Covenant Flag & Naval Ensign</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold text-navy tracking-tight">The Covenant Flag & Naval Ensign</h2>
             <p className="text-sm text-navy/70 leading-relaxed">
               The national flag displays the Star of Truth centered upon a field of Covenant Navy, bordered by bands of archival parchment. The proportions follow the classic maritime ratio of 2:3.
             </p>
@@ -181,7 +181,7 @@ export default function IdentityPage() {
 
           <div className="lg:col-span-7 space-y-6">
             <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">Diplomatic Travel Credentials</span>
-            <h2 className="text-3xl font-bold text-navy tracking-tight">The Covenant Burgundy Passport</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold text-navy tracking-tight">The Covenant Burgundy Passport</h2>
             <p className="text-sm text-navy/70 leading-relaxed">
               Issued in deep Covenant Burgundy leather with hot-stamped gold foil heraldry, the biometric travel document is the premier sovereign identity credential of Aletheian citizens.
             </p>

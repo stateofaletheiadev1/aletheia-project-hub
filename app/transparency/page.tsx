@@ -73,7 +73,7 @@ export default function TransparencyPage() {
       {/* ── TRANSPARENCY PILLARS ── */}
       <section className="py-16 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-          <div className="bg-white p-6 border border-navy/15 rounded-sm space-y-3 hover:shadow-md transition-shadow">
+          <div className="feature-card rounded-sm p-6 space-y-3 group">
             <div className="w-10 h-10 rounded-sm bg-navy text-gold flex items-center justify-center">
               <Coins className="w-5 h-5" />
             </div>
@@ -83,7 +83,7 @@ export default function TransparencyPage() {
             </p>
           </div>
 
-          <div className="bg-white p-6 border border-navy/15 rounded-sm space-y-3 hover:shadow-md transition-shadow">
+          <div className="feature-card rounded-sm p-6 space-y-3 group">
             <div className="w-10 h-10 rounded-sm bg-navy text-gold flex items-center justify-center">
               <Building className="w-5 h-5" />
             </div>
@@ -93,7 +93,7 @@ export default function TransparencyPage() {
             </p>
           </div>
 
-          <div className="bg-white p-6 border border-navy/15 rounded-sm space-y-3 hover:shadow-md transition-shadow">
+          <div className="feature-card rounded-sm p-6 space-y-3 group">
             <div className="w-10 h-10 rounded-sm bg-navy text-gold flex items-center justify-center">
               <Lock className="w-5 h-5" />
             </div>

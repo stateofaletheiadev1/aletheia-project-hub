@@ -129,7 +129,7 @@ export default function VisionPage() {
       <section className="py-16 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
           <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">Foundational Tenets</span>
-          <h2 className="text-3xl font-bold text-navy tracking-tight">Four Pillars of the Sovereign Compact</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-navy tracking-tight">Four Pillars of the Sovereign Compact</h2>
           <p className="text-xs sm:text-sm text-navy/70 leading-relaxed">
             The Covenant of Aletheia unites centuries of European constitutional wisdom with the technological possibilities of the modern era.
           </p>

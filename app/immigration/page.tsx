@@ -159,7 +159,7 @@ export default function ImmigrationPage() {
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
           <div className="max-w-2xl space-y-2">
             <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">Statutory Categories</span>
-            <h2 className="text-3xl font-bold text-navy tracking-tight">Visa & Residence Permit Schedule</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold text-navy tracking-tight">Visa & Residence Permit Schedule</h2>
             <p className="text-xs sm:text-sm text-navy/70 leading-relaxed">
               Explore visas and permits governed under the Immigration & Border Protection Act.
             </p>
