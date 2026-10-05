@@ -41,8 +41,8 @@ export const STATUTE_DATABASE: Record<string, StatuteDetail> = {
     hash: '0x14ea892018fa34091ec87201948ba209ef731204891230fca890214890ecb820',
     preamble: 'An Act providing for the official language regime of the Sovereign Covenant State, ensuring equal dignity for European languages and seamless global diplomatic representation.',
     sections: [
-      { number: 'Section 1', heading: 'Official Languages', text: 'The official languages of The Sovereign Covenant State of Aletheia are English, German, Serbian, and Italian. English shall serve as the primary procedural language for international commercial contracts.' },
-      { number: 'Section 2', heading: 'Bilingual & Multilingual State Documents', text: 'All primary constitutional texts, biometric passport inscriptions, and legal codes shall be published concurrently in the four official languages.' },
+      { number: 'Section 1', heading: 'Official Languages', text: 'The official languages of The Sovereign Covenant State of Aletheia are English, German, Dutch, Serbian, and Italian. English shall serve as the primary procedural language for international commercial contracts.' },
+      { number: 'Section 2', heading: 'Bilingual & Multilingual State Documents', text: 'All primary constitutional texts, biometric passport inscriptions, and legal codes shall be published concurrently in the five official languages.' },
       { number: 'Section 3', heading: 'Judicial Proceedings', text: 'Parties to any civil, commercial, or criminal proceeding possess the statutory right to sworn simultaneous translation without fee.' },
     ],
     signatory: 'Minister of Foreign Affairs & Justice',
@@ -126,13 +126,13 @@ export const STATUTE_DATABASE: Record<string, StatuteDetail> = {
   'adss-act': {
     slug: 'adss-act',
     code: 'ACT-2026-08',
-    title: 'Armed & Defensive Sovereign Service (ADSS) Governance Act',
+    title: 'Aletheian Defence & Security Service (ADSS) Governance Act',
     article: 'Constitution Article 18 § 4',
     date: '2026-03-20',
     hash: '0x4489021fa89023ebc87201948ea20914bca890214890ec8201948ea20914801e',
     preamble: 'An Act regulating the armed defence forces, civilian police, and coast guard services, enforcing strict civilian control and prohibiting internal domestic military policing.',
     sections: [
-      { number: 'Section 1', heading: 'Civilian Subordination', text: 'The Armed & Defensive Sovereign Service is subordinated to civilian authority. The civilian Minister of Security exercises executive direction over all operational commands.' },
+      { number: 'Section 1', heading: 'Civilian Subordination', text: 'The Aletheian Defence & Security Service is subordinated to civilian authority. The civilian Minister of Security exercises executive direction over all operational commands.' },
       { number: 'Section 2', heading: 'Prohibition of Domestic Military Policing', text: 'Military personnel and defense hardware shall never be deployed for domestic civilian crowd control or routine law enforcement.' },
       { number: 'Section 3', heading: 'Maritime Search & Rescue Mandate', text: 'The Coast Guard Directorate is statutorily bound to render immediate maritime humanitarian assistance to any vessel in distress regardless of flag or nationality.' },
     ],

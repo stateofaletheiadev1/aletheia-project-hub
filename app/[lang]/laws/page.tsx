@@ -102,7 +102,7 @@ export const STATUTES: StatuteMeta[] = [
   {
     slug: 'adss-act',
     code: 'ACT-2026-08',
-    title: 'Armed & Defensive Sovereign Service (ADSS) Governance Act',
+    title: 'Aletheian Defence & Security Service (ADSS) Governance Act',
     article: 'Constitution Article 18 § 4',
     date: '2026-03-20',
     hash: '0x4489021fa89023ebc87201948ea20914bca89021',

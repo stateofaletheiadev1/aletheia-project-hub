@@ -75,7 +75,7 @@ export default function SecurityPage() {
 
             <h1 className="heading-hero">{t("Security & Civil Defence")}</h1>
 
-            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("Civilian governance of the Armed & Defensive Sovereign Service (ADSS). Protecting territorial waters, civic liberties, and critical national infrastructure under strict parliamentary oversight.")}</p>
+            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("Civilian governance of the Aletheian Defence & Security Service (ADSS). Protecting territorial waters, civic liberties, and critical national infrastructure under strict parliamentary oversight.")}</p>
 
             <div className="flex flex-wrap gap-4 pt-2">
               <Link
@@ -195,7 +195,7 @@ export default function SecurityPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
           <StarOfTruth size={36} className="mx-auto" />
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-parchment">{t("A Nation Defended by Free Citizens")}</h2>
-          <p className="text-xs sm:text-sm text-parchment/70 max-w-xl mx-auto leading-relaxed">{t("Learn more about the civilian statutory limits and constitutional bounds of the Armed & Defensive Sovereign Service.")}</p>
+          <p className="text-xs sm:text-sm text-parchment/70 max-w-xl mx-auto leading-relaxed">{t("Learn more about the civilian statutory limits and constitutional bounds of the Aletheian Defence & Security Service.")}</p>
           <div className="flex justify-center gap-4 pt-2">
             <Link
               href="/adss"
