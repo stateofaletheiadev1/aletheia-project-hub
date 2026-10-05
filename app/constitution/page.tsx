@@ -20,6 +20,7 @@ import {
   FileText,
   ArrowRight,
 } from 'lucide-react';
+import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
 
 export default function ConstitutionPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -50,6 +51,7 @@ export default function ConstitutionPage() {
       {/* 1. Constitutional Hero Banner */}
       {/* 1. Constitutional Hero Banner */}
       <section className="guilloche-hero relative text-parchment py-24 lg:py-32 border-b border-gold/30 overflow-hidden">
+        <HeroBackdrop image="lawLibrary" />
         {/* Ambient orbs */}
         <div className="orb-gold w-[500px] h-[500px] -top-28 -left-36 opacity-50 animate-orb-float-1" />
         <div className="orb-burgundy w-[360px] h-[360px] bottom-0 right-8 opacity-45 animate-orb-float-2" />

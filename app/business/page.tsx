@@ -18,6 +18,7 @@ import {
   Globe2,
   Zap,
 } from 'lucide-react';
+import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
 
 const ENTITY_TYPES = [
   {
@@ -72,6 +73,7 @@ export default function BusinessPage() {
 
       {/* ── HERO SECTION ── */}
       <section className="relative guilloche-bg text-parchment overflow-hidden pt-24 pb-24 lg:pt-32 lg:pb-36 border-b border-gold/30">
+        <HeroBackdrop image="studioOffice" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 z-10">
           <div className="max-w-3xl space-y-6">
             <div className="flex flex-wrap items-center gap-3">
@@ -134,7 +136,7 @@ export default function BusinessPage() {
       </section>
 
       {/* ── CORPORATE FORMS DIRECTORY ── */}
-      <section className="py-16 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-16 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
           <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">Statutory Entities</span>
           <h2 className="text-3xl sm:text-4xl font-bold text-navy tracking-tight">Choose Your Enterprise Structure</h2>

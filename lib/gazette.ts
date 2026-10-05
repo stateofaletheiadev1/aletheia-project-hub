@@ -100,11 +100,11 @@ export const GAZETTE_POSTS: GazettePost[] = [
     summary:
       'Expressions of interest invited for a 1.2 GW offshore wind array to anchor the sovereign clean grid.',
     body: [
-      'The Ministry of Energy & Infrastructure invites expressions of interest from qualified developers for the first offshore wind concession off the Benedict coast.',
+      'The Ministry of Infrastructure & Energy invites expressions of interest from qualified developers for the first offshore wind concession off the Benedict coast.',
       'Concession revenue flows to the Covenant Endowment rather than general taxation, consistent with the constitutional prohibition on personal income tax.',
       'Evaluation criteria, bidder questions and the final award will be published in full in the Official Gazette.',
     ],
-    signatory: 'Minister of Energy & Infrastructure',
+    signatory: 'Minister of Infrastructure & Energy',
     image: 'offshoreWind',
     readMinutes: 3,
   },
@@ -117,11 +117,11 @@ export const GAZETTE_POSTS: GazettePost[] = [
     summary:
       'Draft charter tabled for a research university at Augustine State with faculties of medicine, law, engineering and maritime science.',
     body: [
-      'The Ministry of Education & Research has tabled a draft charter establishing the National University of Aletheia at Port Luke, Augustine State.',
+      'The Ministry of Education & Science has tabled a draft charter establishing the National University of Aletheia at Port Luke, Augustine State.',
       'The charter guarantees academic freedom, publishes all research grants on the public ledger, and reserves founding scholarships for citizens and lawful residents.',
       'The draft is open for public comment for ninety days before consideration by the Covenant Assembly.',
     ],
-    signatory: 'Minister of Education & Research',
+    signatory: 'Minister of Education & Science',
     image: 'libraryAisle',
     readMinutes: 3,
   },

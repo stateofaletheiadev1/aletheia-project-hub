@@ -6,6 +6,8 @@ import Image from 'next/image';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { StarOfTruth, HexagonCross } from '@/components/brand/Logo';
 import { NationalFlag } from '@/components/brand/Flags';
+import { unsplash, type PhotoKey } from '@/lib/imagery';
+import { GAZETTE_POSTS, formatGazetteDate } from '@/lib/gazette';
 import {
   Shield,
   FileText,
@@ -21,8 +23,15 @@ import {
   Landmark,
   Users,
   Zap,
-  Globe,
 } from 'lucide-react';
+
+const FOCUS: { href: string; title: string; kicker: string; desc?: string; image: PhotoKey; span: string; big?: boolean }[] = [
+  { href: '/infrastructure', title: 'A maritime republic', kicker: 'Ports & the North Sea', desc: 'A deepwater terminal at Port Nicholas and the sea lanes that connect Aletheia to Europe and the world.', image: 'containerShip', span: 'md:col-span-2 md:row-span-2', big: true },
+  { href: '/energy', title: 'Sovereign clean energy', kicker: 'Benedict State', image: 'offshoreWind', span: 'md:col-span-1' },
+  { href: '/education', title: 'Schools & university', kicker: 'Augustine State', image: 'libraryAisle', span: 'md:col-span-1' },
+  { href: '/healthcare', title: 'Covenant healthcare', kicker: 'Health & Social Care', image: 'clinician', span: 'md:col-span-1' },
+  { href: '/stablechain', title: 'The digital state', kicker: 'StableChain & Registries', image: 'earthNight', span: 'md:col-span-1' },
+];
 
 export default function HomePage() {
   return (
@@ -36,18 +45,20 @@ export default function HomePage() {
         style={{ minHeight: '92vh', display: 'flex', flexDirection: 'column' }}
       >
         {/* Photographic maritime backdrop */}
-        <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute inset-0 pointer-events-none animate-ken-burns" aria-hidden="true">
           <Image
-            src="/images/hero_maritime.jpg"
-            alt="North Sea Maritime Horizon — Aletheia"
+            src={unsplash('oceanWave', 2200)}
+            alt=""
             fill
-            className="object-cover object-center opacity-15 mix-blend-luminosity"
+            sizes="100vw"
+            className="object-cover object-center opacity-40"
             priority
           />
         </div>
 
         {/* Deep gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#060C14]/90 via-[#0E1B31]/80 to-[#090F1A]/90 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#060C14]/92 via-[#0E1B31]/72 to-[#090F1A]/85 pointer-events-none" />
+        <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-[#060C14] to-transparent pointer-events-none" />
 
         {/* Floating ambient orbs */}
         <div className="orb-gold w-[580px] h-[580px] -top-40 -left-48 opacity-60 animate-orb-float-1" />
@@ -301,10 +312,51 @@ export default function HomePage() {
         </div>
       </section>
 
+
+      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+          3b. THE REPUBLIC IN FOCUS — PHOTOGRAPHIC BENTO
+      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      <section className="bg-parchment-light section-lg border-b border-navy/08">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+            <div className="space-y-3 max-w-2xl">
+              <div className="eyebrow">The Republic in Focus</div>
+              <h2 className="text-4xl lg:text-5xl font-bold tracking-tight text-navy leading-[1.1]">
+                Five foundations of a<br /><span className="text-gold-metallic">covenant nation.</span>
+              </h2>
+            </div>
+            <p className="text-navy/60 max-w-md text-sm leading-relaxed font-light">
+              Sea, energy, learning, care and the digital state: the systems Aletheia is building so that a free people can flourish.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-5 md:h-[640px]">
+            {FOCUS.map((f) => (
+              <Link
+                key={f.href}
+                href={f.href}
+                className={'photo-card group relative min-h-[260px] rounded-sm border border-gold/20 shadow-institutional ' + f.span}
+              >
+                <Image src={unsplash(f.image, f.big ? 1400 : 800)} alt="" fill sizes={f.big ? '(min-width:768px) 50vw, 100vw' : '(min-width:768px) 25vw, 100vw'} className="object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#060C14]/95 via-[#0E1B31]/35 to-transparent" />
+                <div className="photo-card-body absolute inset-x-0 bottom-0 p-6 text-parchment space-y-2">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-gold-tint">{f.kicker}</span>
+                  <h3 className={(f.big ? 'text-3xl' : 'text-xl') + ' font-bold leading-tight flex items-center gap-2'}>
+                    {f.title}
+                    <ArrowRight className="w-4 h-4 text-gold opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
+                  </h3>
+                  {f.big && <p className="text-sm text-parchment/70 max-w-md font-light">{f.desc}</p>}
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
           4. THE COVENANT — EDITORIAL NARRATIVE
       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-      <section className="bg-parchment-light section-xl border-b border-navy/08">
+      <section className="bg-parchment-light section-xl border-b border-navy/08 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-14 items-center">
 
@@ -354,11 +406,12 @@ export default function HomePage() {
             </div>
 
             <div className="lg:col-span-6 space-y-5">
-              <div className="relative h-72 sm:h-80 rounded-sm overflow-hidden border border-gold/20 shadow-elevated gold-glow">
+              <div className="photo-card relative h-72 sm:h-80 rounded-sm overflow-hidden border border-gold/20 shadow-elevated gold-glow">
                 <Image
-                  src="/images/civic_assembly.jpg"
-                  alt="Covenant Assembly Hall — Aletheia Legislature"
+                  src={unsplash('chamber', 1200)}
+                  alt="A semicircular parliamentary chamber"
                   fill
+                  sizes="(min-width:1024px) 50vw, 100vw"
                   className="object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-navy-deep/95 via-navy/30 to-transparent" />
@@ -497,7 +550,7 @@ export default function HomePage() {
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
           6. CITIZENS & SOCIETY — MEMBERSHIP BY COVENANT
       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-      <section className="bg-parchment-light section-xl border-b border-navy/08">
+      <section className="bg-parchment-light section-xl border-b border-navy/08 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-14 items-center">
             <div className="lg:col-span-5 flex justify-center">
@@ -637,7 +690,7 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="sovereign-card-premium rounded-sm overflow-hidden flex flex-col">
+            <div className="photo-card sovereign-card-premium rounded-sm overflow-hidden flex flex-col">
               <div className="relative h-48 overflow-hidden">
                 <Image src="/images/cyber_defence.jpg" alt="High-Assurance Cyber Defence Operations" fill className="object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-navy-deep/90 via-navy/40 to-transparent" />
@@ -659,9 +712,11 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="sovereign-card-premium rounded-sm overflow-hidden flex flex-col">
-              <div className="h-48 bg-gradient-to-br from-navy to-navy-deep flex items-center justify-center">
-                <Shield className="w-14 h-14 text-gold/25" />
+            <div className="photo-card sovereign-card-premium rounded-sm overflow-hidden flex flex-col">
+              <div className="relative h-48 overflow-hidden">
+                <Image src={unsplash('europeanTown', 800)} alt="A quiet European town street at dusk" fill sizes="(min-width:768px) 33vw, 100vw" className="object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-navy-deep/90 via-navy/30 to-transparent" />
+                <div className="absolute bottom-3 left-4"><span className="text-[10px] font-mono text-gold uppercase tracking-wider">Civilian Command</span></div>
               </div>
               <div className="p-6 space-y-3 flex-1 flex flex-col">
                 <div className="flex items-center justify-between">
@@ -681,9 +736,11 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="sovereign-card-premium rounded-sm overflow-hidden flex flex-col">
-              <div className="h-48 bg-gradient-to-br from-laurel-deep to-laurel flex items-center justify-center">
-                <Globe className="w-14 h-14 text-parchment/20" />
+            <div className="photo-card sovereign-card-premium rounded-sm overflow-hidden flex flex-col">
+              <div className="relative h-48 overflow-hidden">
+                <Image src={unsplash('flight', 800)} alt="Aircraft wing above the clouds" fill sizes="(min-width:768px) 33vw, 100vw" className="object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-navy-deep/90 via-navy/30 to-transparent" />
+                <div className="absolute bottom-3 left-4"><span className="text-[10px] font-mono text-gold uppercase tracking-wider">Paperless Borders</span></div>
               </div>
               <div className="p-6 space-y-3 flex-1 flex flex-col">
                 <div className="flex items-center justify-between">
@@ -702,6 +759,41 @@ export default function HomePage() {
                 </Link>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+
+      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+          8b. LATEST FROM THE OFFICIAL GAZETTE
+      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      <section className="bg-parchment-light section-lg border-b border-navy/08">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div className="space-y-3">
+              <div className="eyebrow">Official Gazette</div>
+              <h2 className="text-4xl font-bold tracking-tight text-navy">Latest dispatches</h2>
+            </div>
+            <Link href="/news" className="inline-flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-navy hover:text-gold transition-colors group shrink-0">
+              <span>All bulletins</span>
+              <ArrowRight className="w-4 h-4 text-gold group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {GAZETTE_POSTS.slice(0, 3).map((post) => (
+              <Link key={post.slug} href={'/news/' + post.slug} className="photo-card group sovereign-card-premium rounded-sm flex flex-col">
+                <div className="relative h-48">
+                  <Image src={unsplash(post.image, 800)} alt="" fill sizes="(min-width:768px) 33vw, 100vw" className="object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-navy-deep/75 to-transparent" />
+                  <span className="absolute bottom-3 left-4 px-2 py-0.5 bg-navy-deep/80 backdrop-blur-sm text-parchment font-mono text-[10px] font-bold rounded-sm border border-gold/30">{post.number}</span>
+                </div>
+                <div className="photo-card-body p-6 space-y-2 flex-1 flex flex-col">
+                  <span className="text-[10px] font-bold text-gold-shadow uppercase tracking-[0.16em]">{post.category}</span>
+                  <h3 className="text-lg font-bold text-navy leading-snug group-hover:text-gold-shadow transition-colors flex-1">{post.title}</h3>
+                  <span className="text-[11px] font-mono text-navy/50">{formatGazetteDate(post.date)}</span>
+                </div>
+              </Link>
+            ))}
           </div>
         </div>
       </section>

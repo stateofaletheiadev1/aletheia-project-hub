@@ -16,6 +16,7 @@ import {
   FileCheck,
   Compass,
 } from 'lucide-react';
+import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
 
 export default function IdentityPage() {
   return (
@@ -23,6 +24,7 @@ export default function IdentityPage() {
 
       {/* ── HERO ── */}
       <section className="guilloche-hero relative text-parchment overflow-hidden pt-24 pb-20 lg:pt-32 lg:pb-28 border-b border-gold/30">
+        <HeroBackdrop image="highlands" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl space-y-5">
             <div className="flex items-center gap-3">
@@ -45,7 +47,7 @@ export default function IdentityPage() {
       </section>
 
       {/* ── 1. THE COAT OF ARMS ── */}
-      <section className="py-16 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-b border-navy/10">
+      <section className="py-16 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-b border-navy/10 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           
           <div className="lg:col-span-5 flex justify-center">
@@ -121,7 +123,7 @@ export default function IdentityPage() {
       </section>
 
       {/* ── 2. THE NATIONAL FLAG ── */}
-      <section className="py-16 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-b border-navy/10">
+      <section className="py-16 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-b border-navy/10 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           
           <div className="lg:col-span-7 space-y-6">
@@ -160,7 +162,7 @@ export default function IdentityPage() {
       </section>
 
       {/* ── 3. THE PASSPORT SPECIMEN ── */}
-      <section className="py-16 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-16 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           
           <div className="lg:col-span-5 flex justify-center">

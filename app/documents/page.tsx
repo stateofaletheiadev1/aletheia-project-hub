@@ -17,6 +17,7 @@ import {
   Filter,
   CheckCircle2,
 } from 'lucide-react';
+import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
 
 interface DocumentItem {
   id: string;
@@ -118,6 +119,7 @@ export default function DocumentsPage() {
 
       {/* ── HERO SECTION ── */}
       <section className="guilloche-hero relative text-parchment overflow-hidden pt-24 pb-20 lg:pt-32 lg:pb-28 border-b border-gold/30">
+        <HeroBackdrop image="paperwork" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl space-y-5">
             <div className="flex items-center gap-3">
@@ -176,7 +178,7 @@ export default function DocumentsPage() {
       </section>
 
       {/* ── DOCUMENTS LIST ── */}
-      <section className="py-12 lg:py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-12 lg:py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="space-y-4">
           {filteredDocs.map((doc) => (
             <div

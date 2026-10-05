@@ -24,6 +24,7 @@ import {
   Gavel,
   Lock,
 } from 'lucide-react';
+import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
 
 interface Ministry {
   id: string;
@@ -205,6 +206,7 @@ export default function GovernmentDirectoryPage() {
     <div className="min-h-screen bg-parchment-canvas text-navy">
       {/* 1. Header Banner */}
       <section className="guilloche-hero relative text-parchment py-24 lg:py-32 border-b border-gold/30 overflow-hidden">
+        <HeroBackdrop image="chamber" />
         {/* Ambient orbs */}
         <div className="orb-gold w-[480px] h-[480px] -top-24 -right-32 opacity-50 animate-orb-float-1" />
         <div className="orb-burgundy w-[320px] h-[320px] bottom-0 left-10 opacity-40 animate-orb-float-2" />

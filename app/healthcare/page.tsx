@@ -35,7 +35,7 @@ const PATHWAY = [
 ];
 
 const SERVICES: { icon: typeof Hospital; title: string; desc: string; status: NationalStatus }[] = [
-  { icon: Hospital, title: 'Augustine Medical Campus', desc: 'Teaching hospital, trauma centre and biomedical research park at Port Luke.', status: 'Planned' },
+  { icon: Hospital, title: 'St. Luke National Research Hospital', desc: 'Teaching hospital and trauma centre at the heart of the Augustine Medical Campus, Port Luke.', status: 'Planned' },
   { icon: Stethoscope, title: 'Family Medicine Network', desc: 'Primary-care clinics integrated into every residential canton of Antioch.', status: 'Planned' },
   { icon: Activity, title: 'National Health Registry', desc: 'Consent ledger and patient-held record standard (HL7 FHIR R5).', status: 'Under Development' },
   { icon: LifeBuoy, title: 'Maritime Medical Rescue', desc: 'Helicopter and vessel-borne emergency care with the ADSS Coast Guard.', status: 'Planned' },
@@ -45,7 +45,7 @@ export default function HealthcarePage() {
   return (
     <div className="flex flex-col bg-parchment-canvas">
       <PageHero
-        eyebrow="Ministry of Health & Social Care"
+        eyebrow="Ministry of Health & Social Well-being"
         status="Planned"
         image="pharma"
         title={<>Care that is <span className="text-gold-metallic">owed</span>, not sold.</>}

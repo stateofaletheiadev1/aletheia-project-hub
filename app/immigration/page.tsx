@@ -157,7 +157,7 @@ export default function ImmigrationPage() {
       </section>
 
       {/* ── PERMITS DIRECTORY ── */}
-      <section className="py-16 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-16 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
           <div className="max-w-2xl space-y-2">
             <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">Statutory Categories</span>

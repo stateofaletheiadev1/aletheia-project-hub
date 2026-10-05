@@ -2,7 +2,6 @@
 
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { StarOfTruth } from '@/components/brand/Logo';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import {
@@ -18,6 +17,7 @@ import {
   Cpu,
   Anchor,
 } from 'lucide-react';
+import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
 
 const VISION_PILLARS = [
   {
@@ -79,15 +79,7 @@ export default function VisionPage() {
 
       {/* ── HERO ── */}
       <section className="guilloche-hero relative text-parchment overflow-hidden pt-24 pb-24 lg:pt-32 lg:pb-36 border-b border-gold/30">
-        <div className="absolute inset-0">
-          <Image
-            src="/images/civic_assembly.jpg"
-            alt="National Vision"
-            fill
-            className="object-cover opacity-20 mix-blend-luminosity"
-            priority
-          />
-        </div>
+        <HeroBackdrop image="cloudSummit" />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl space-y-6">
@@ -126,7 +118,7 @@ export default function VisionPage() {
       </section>
 
       {/* ── CORE VISION PILLARS ── */}
-      <section className="py-16 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-16 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
           <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">Foundational Tenets</span>
           <h2 className="text-2xl sm:text-3xl font-bold text-navy tracking-tight">Four Pillars of the Sovereign Compact</h2>
@@ -193,7 +185,7 @@ export default function VisionPage() {
       </section>
 
       {/* ── CALL TO ACTION ── */}
-      <section className="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
+      <section className="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4 w-full">
         <StarOfTruth size={36} className="mx-auto" />
         <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-navy">
           Help Shape the Future of Aletheia

@@ -20,6 +20,7 @@ import {
   Building2,
   Lock,
 } from 'lucide-react';
+import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
 
 const SECTIONS = [
   { id: 'foundations', label: 'Foundations & Covenant' },
@@ -37,15 +38,7 @@ export default function AletheiaPage() {
 
       {/* ── HERO SECTION ── */}
       <section className="guilloche-hero relative text-parchment overflow-hidden pt-24 pb-28 lg:pt-32 lg:pb-36 border-b border-gold/30">
-        <div className="absolute inset-0">
-          <Image
-            src="/images/civic_assembly.jpg"
-            alt="The Sovereign Covenant State of Aletheia"
-            fill
-            className="object-cover opacity-20 mix-blend-luminosity"
-            priority
-          />
-        </div>
+        <HeroBackdrop image="coastSunrise" />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl space-y-6">
@@ -118,7 +111,7 @@ export default function AletheiaPage() {
       </section>
 
       {/* ── MAIN CONTENT CONTAINER WITH INTERACTIVE TAB SELECTION ── */}
-      <section className="py-16 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-16 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         
         {/* Navigation Tabs */}
         <div className="flex flex-wrap gap-2 border-b border-navy/15 pb-4 mb-12">

@@ -315,7 +315,7 @@ export default function DevelopmentPage() {
             </div>
             <h2 className="text-4xl lg:text-5xl font-bold tracking-tight leading-[1.1]">Food security for a maritime republic.</h2>
             <p className="text-parchment/72 leading-[1.85] font-light">
-              The Ministry of Agriculture &amp; Fisheries plans a resilient food system for Benedict State: protected-climate agriculture powered
+              The Ministry of Agriculture &amp; Environment plans a resilient food system for Benedict State: protected-climate agriculture powered
               by surplus wind, sustainable North Sea aquaculture, and desalinated irrigation.
             </p>
           </div>

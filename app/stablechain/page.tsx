@@ -18,6 +18,7 @@ import {
   Activity,
   FileCheck2,
 } from 'lucide-react';
+import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
 
 export default function StableChainPage() {
   const [blockHeight, setBlockHeight] = useState(4829104);
@@ -36,6 +37,7 @@ export default function StableChainPage() {
 
       {/* ── HERO ── */}
       <section className="guilloche-hero relative text-parchment overflow-hidden border-b border-gold/30" style={{ minHeight: '64vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+        <HeroBackdrop image="ledgerBlocks" />
         {/* Animated orbs */}
         <div className="orb-navy w-[600px] h-[600px] -top-32 -right-40 opacity-70 animate-orb-float-1" />
         <div className="orb-gold w-[380px] h-[380px] bottom-0 -left-16 opacity-40 animate-orb-float-2" />
@@ -135,7 +137,7 @@ export default function StableChainPage() {
       </section>
 
       {/* ── TECHNICAL ADVANTAGES ── */}
-      <section className="py-16 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-16 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
           <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">Protocol Engineering</span>
           <h2 className="text-3xl font-bold text-navy tracking-tight">Built for Constitutional Governance</h2>
@@ -190,13 +192,13 @@ export default function StableChainPage() {
           </div>
 
           <div className="space-y-3 font-mono text-xs bg-navy-deep p-4 rounded-sm border border-navy/50">
-            <div className="flex justify-between border-b border-parchment/10 pb-2">
+            <div className="flex flex-col sm:flex-row sm:justify-between gap-1 border-b border-parchment/10 pb-2">
               <span className="text-gold">Public Read API (Transparency):</span>
-              <span className="text-parchment/80">https://api.stablechain.aletheia.gov/v1/public</span>
+              <span className="text-parchment/80 break-all">https://api.stablechain.aletheia.gov/v1/public</span>
             </div>
-            <div className="flex justify-between border-b border-parchment/10 pb-2 pt-1">
+            <div className="flex flex-col sm:flex-row sm:justify-between gap-1 border-b border-parchment/10 pb-2 pt-1">
               <span className="text-gold">Live Block Explorer:</span>
-              <span className="text-parchment/80">https://explorer.stablechain.aletheia.gov</span>
+              <span className="text-parchment/80 break-all">https://explorer.stablechain.aletheia.gov</span>
             </div>
             <div className="flex justify-between pt-1">
               <span className="text-gold">EVM Chain ID:</span>

@@ -22,6 +22,7 @@ import {
   QrCode,
   Fingerprint,
 } from 'lucide-react';
+import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
 
 export default function PassportPortalPage() {
   const { notify } = useToast();
@@ -46,6 +47,7 @@ export default function PassportPortalPage() {
 
       {/* ── HERO SECTION ── */}
       <section className="guilloche-hero relative text-parchment overflow-hidden pt-24 pb-24 lg:pt-32 lg:pb-32 border-b border-gold/30">
+        <HeroBackdrop image="flight" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             
@@ -110,7 +112,7 @@ export default function PassportPortalPage() {
       </section>
 
       {/* ── SECURITY LAYERS & ARCHITECTURE ── */}
-      <section className="py-16 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-16 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="text-center max-w-3xl mx-auto mb-16 space-y-3">
           <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">Physical & Cryptographic Integrity</span>
           <h2 className="text-3xl sm:text-4xl font-bold text-navy tracking-tight">
@@ -271,7 +273,7 @@ export default function PassportPortalPage() {
       </section>
 
       {/* ── PUBLIC DIRECTORY & DOCUMENT STATUS CHECKER ── */}
-      <section className="py-16 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-16 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           
           <div className="lg:col-span-6 space-y-6">

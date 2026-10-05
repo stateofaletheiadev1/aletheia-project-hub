@@ -224,7 +224,7 @@ export function Footer() {
         </div>
 
         {/* Sub-footer Copyright & Languages */}
-        <div className="mt-14 pt-8 border-t border-parchment/10 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-parchment/60">
+        <div className="mt-14 pt-8 border-t border-parchment/10 flex flex-col xl:flex-row items-center justify-between gap-x-8 gap-y-4 text-xs text-parchment/60 text-center xl:text-left xl:[&>*]:shrink-0">
           <div className="flex items-center gap-2">
             <StarOfTruth size={16} />
             <span>

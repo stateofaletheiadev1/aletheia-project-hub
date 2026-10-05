@@ -15,6 +15,7 @@ import {
   KeyRound,
   CheckCircle2,
 } from 'lucide-react';
+import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
 
 export default function ContactPage() {
   const [submitted, setSubmitted] = useState(false);
@@ -30,6 +31,7 @@ export default function ContactPage() {
 
       {/* ── HERO ── */}
       <section className="guilloche-hero relative text-parchment overflow-hidden pt-24 pb-20 lg:pt-32 lg:pb-28 border-b border-gold/30">
+        <HeroBackdrop image="laptopPhone" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl space-y-4">
             <div className="flex items-center gap-3">
@@ -52,7 +54,7 @@ export default function ContactPage() {
       </section>
 
       {/* ── MISSIONS & OFFICES ── */}
-      <section className="py-16 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-16 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           
           {/* Left: Contact Form */}

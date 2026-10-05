@@ -18,6 +18,7 @@ import {
   MapPin,
   Lock,
 } from 'lucide-react';
+import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
 
 const DIPLOMATIC_PILLARS = [
   {
@@ -71,6 +72,7 @@ export default function MinistryForeignAffairsPage() {
 
       {/* ── HERO ── */}
       <section className="guilloche-hero relative text-parchment overflow-hidden pt-24 pb-20 lg:pt-32 lg:pb-28 border-b border-gold/30">
+        <HeroBackdrop image="assembly" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl space-y-5">
             <div className="flex items-center gap-3">
@@ -108,7 +110,7 @@ export default function MinistryForeignAffairsPage() {
       </section>
 
       {/* ── STATUTORY RESPONSIBILITIES ── */}
-      <section className="py-16 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-16 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
           <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">Ministerial Mandate</span>
           <h2 className="text-3xl font-bold text-navy tracking-tight">Four Strategic Pillars of External Action</h2>

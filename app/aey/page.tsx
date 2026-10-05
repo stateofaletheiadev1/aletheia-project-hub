@@ -23,6 +23,7 @@ import {
   Layers,
   Cpu,
 } from 'lucide-react';
+import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
 
 const DIGITAL_PAYMENT_INSTRUMENTS = [
   {
@@ -77,6 +78,7 @@ export default function AeyCurrencyPage() {
 
       {/* ── HERO ── */}
       <section className="guilloche-hero relative text-parchment overflow-hidden border-b border-gold/30" style={{ minHeight: '72vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+        <HeroBackdrop image="cardPayment" />
         {/* Ambient orbs */}
         <div className="orb-gold w-[520px] h-[520px] -top-32 -left-40 opacity-55 animate-orb-float-1" />
         <div className="orb-burgundy w-[380px] h-[380px] bottom-0 right-8 opacity-45 animate-orb-float-2" />
@@ -197,7 +199,7 @@ export default function AeyCurrencyPage() {
       </section>
 
       {/* ── 100% CASHLESS DIGITAL ARCHITECTURE ── */}
-      <section className="py-16 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-16 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
           <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">100% Sovereign Cashless State</span>
           <h2 className="text-3xl font-bold text-navy tracking-tight">Frictionless Digital Rails &amp; Sovereign Cryptographic Velocity</h2>

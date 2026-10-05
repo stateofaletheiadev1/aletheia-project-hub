@@ -16,6 +16,7 @@ import {
   ArrowRight,
   TrendingUp,
 } from 'lucide-react';
+import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
 
 export default function TransparencyPage() {
   const [filterType, setFilterType] = useState('all');
@@ -25,6 +26,7 @@ export default function TransparencyPage() {
 
       {/* ── HERO ── */}
       <section className="guilloche-hero relative text-parchment overflow-hidden pt-24 pb-20 lg:pt-32 lg:pb-28 border-b border-gold/30">
+        <HeroBackdrop image="analytics" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl space-y-5">
             <div className="flex items-center gap-3">
@@ -71,7 +73,7 @@ export default function TransparencyPage() {
       </section>
 
       {/* ── TRANSPARENCY PILLARS ── */}
-      <section className="py-16 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-16 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
           <div className="feature-card rounded-sm p-6 space-y-3 group">
             <div className="w-10 h-10 rounded-sm bg-navy text-gold flex items-center justify-center">

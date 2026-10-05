@@ -1433,6 +1433,8 @@ body {
 
 /* Anchored sections clear the 64px sticky navbar */
 html { scroll-behavior: smooth; }
+/* Decorative orbs and glows must never create sideways scrolling on phones */
+body { overflow-x: clip; }
 [id] { scroll-margin-top: 88px; }
 
 /* Slow photographic drift for hero backdrops */

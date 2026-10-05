@@ -20,6 +20,7 @@ import {
   Building2,
   FileText,
 } from 'lucide-react';
+import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
 
 const INVARIANTS = [
   { id: '1', label: 'Supply Cap', rule: 'Total AEY in circulation ≤ 125% of reserve value at any epoch.' },
@@ -76,6 +77,7 @@ export default function EconomyPage() {
 
       {/* ── HERO ── */}
       <section className="relative guilloche-bg text-parchment overflow-hidden pt-24 pb-32 lg:pt-36 lg:pb-44">
+        <HeroBackdrop image="towers" />
         {/* Ambient orbs */}
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-gold/8 rounded-full blur-[150px]" />

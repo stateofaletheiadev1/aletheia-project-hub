@@ -40,7 +40,7 @@ export default function EducationPage() {
   return (
     <div className="flex flex-col bg-parchment-canvas">
       <PageHero
-        eyebrow="Ministry of Education & Research"
+        eyebrow="Ministry of Education & Science"
         status="Planned"
         image="libraryAisle"
         title={<>A republic is only as wise as its <span className="text-gold-metallic">schools.</span></>}
