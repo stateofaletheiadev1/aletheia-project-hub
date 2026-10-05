@@ -175,7 +175,7 @@ export default function StableChainPage() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-parchment/10 pb-4">
             <div className="flex items-center gap-3">
               <Lock className="w-6 h-6 text-gold" />
-              <h3 className="text-lg font-bold text-parchment">Sovereign Mainnet — Closed State Infrastructure</h3>
+              <h3 className="text-lg font-bold text-parchment">Sovereign Mainnet â€” Closed State Infrastructure</h3>
             </div>
             <span className="text-xs font-mono text-gold">Protocol Version: APS-01 v1.2</span>
           </div>
@@ -200,7 +200,7 @@ export default function StableChainPage() {
             </div>
             <div className="flex justify-between pt-1">
               <span className="text-gold">EVM Chain ID:</span>
-              <span className="text-parchment/80">9104 — Aletheia StableChain Mainnet</span>
+              <span className="text-parchment/80">9104 â€” Aletheia StableChain Mainnet</span>
             </div>
           </div>
 
@@ -209,11 +209,11 @@ export default function StableChainPage() {
               <span>APS-01 Technical Specification</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
-            <span className="text-parchment/20">·</span>
+            <span className="text-parchment/20">Â·</span>
             <Link href="/transparency" className="text-sm font-semibold text-parchment/60 hover:text-parchment transition-colors">
               Public Audit Portal
             </Link>
-            <span className="text-parchment/20">·</span>
+            <span className="text-parchment/20">Â·</span>
             <Link href="/government" className="text-sm font-semibold text-parchment/60 hover:text-parchment transition-colors">
               Ministry of Digital State
             </Link>
