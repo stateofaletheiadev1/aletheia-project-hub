@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { AdminShell } from '@/components/layout/AdminShell';
 import {
   Users, UserCheck, Building2, Stamp, Globe2,
   CheckCircle2, XCircle, AlertTriangle, Clock, ArrowRight,
-  TrendingUp, ShieldCheck, Activity, Eye,
+  TrendingUp, ShieldCheck, Activity, Eye, Zap, Lock,
+  BarChart2, FileSearch, ArrowUpRight,
 } from 'lucide-react';
 
 const PENDING_QUEUE = [
@@ -18,87 +19,169 @@ const PENDING_QUEUE = [
 ];
 
 const STAT_CARDS = [
-  { label: 'Total Citizens', value: '2,841', delta: '+12 this month', icon: Users, color: '#C49A4E', bg: 'rgba(196,154,78,0.10)' },
-  { label: 'Pending Approvals', value: '48', delta: '12 urgent', icon: Clock, color: '#E4A628', bg: 'rgba(228,166,40,0.10)' },
-  { label: 'Companies Registered', value: '394', delta: '+5 this week', icon: Building2, color: '#3D8664', bg: 'rgba(61,134,100,0.10)' },
-  { label: 'Active Visas', value: '1,204', delta: '7 expiring soon', icon: Stamp, color: '#9B59B6', bg: 'rgba(155,89,182,0.10)' },
+  { label: 'Total Citizens', value: '2,841', delta: '+12 this month', trend: '+0.4%', icon: Users, accent: '#C49A4E', barWidth: '72' },
+  { label: 'Pending Approvals', value: '48', delta: '12 urgent', trend: '+8', icon: Clock, accent: '#E4A628', barWidth: '55' },
+  { label: 'Companies Registered', value: '394', delta: '+5 this week', trend: '+1.3%', icon: Building2, accent: '#3D8664', barWidth: '88' },
+  { label: 'Active Visas', value: '1,204', delta: '7 expiring soon', trend: '+2.1%', icon: Stamp, accent: '#8B5CF6', barWidth: '65' },
 ];
 
-const RISK_COLOR: Record<string, string> = { Low: '#3D8664', Medium: '#E4A628', High: '#C0392B', Verified: '#3D8664' };
+const RISK_COLOR: Record<string, { bg: string; text: string; border: string }> = {
+  Low:      { bg: 'rgba(61,134,100,0.12)', text: '#3D8664', border: 'rgba(61,134,100,0.28)' },
+  Medium:   { bg: 'rgba(228,166,40,0.12)', text: '#E4A628', border: 'rgba(228,166,40,0.28)' },
+  High:     { bg: 'rgba(192,57,43,0.12)',  text: '#E05A6A', border: 'rgba(192,57,43,0.28)' },
+  Verified: { bg: 'rgba(61,134,100,0.12)', text: '#3D8664', border: 'rgba(61,134,100,0.28)' },
+};
+
+const QUICK_ACTIONS = [
+  { label: 'Citizenship Approvals', href: '/admin/citizenship', count: 12, icon: UserCheck, urgent: true, desc: 'Applications pending review' },
+  { label: 'Visa Applications', href: '/admin/immigration', count: 7, icon: Stamp, urgent: false, desc: 'Border crossings pending' },
+  { label: 'E-Residency Queue', href: '/admin/e-residency', count: 24, icon: Globe2, urgent: false, desc: 'Digital identity applications' },
+  { label: 'Company Formations', href: '/admin/companies', count: 5, icon: Building2, urgent: false, desc: 'Corporate registry submissions' },
+];
+
+const RECENT_ACTIVITY = [
+  { time: '08:42', action: 'APP-90412 submitted — E-Residency (Thorne-Vance)', type: 'info' },
+  { time: '08:31', action: 'Citizenship APP-90407 approved — Ref. no. CT-2891', type: 'success' },
+  { time: '08:14', action: 'Security alert cleared — Threat vector neutralised', type: 'success' },
+  { time: '07:55', action: 'Visa APP-90400 flagged for secondary review', type: 'warning' },
+];
 
 export default function AdminCommandConsolePage() {
   const [queue, setQueue] = useState(PENDING_QUEUE);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => { const t = setTimeout(() => setMounted(true), 50); return () => clearTimeout(t); }, []);
 
   const approve = (id: string) => setQueue(q => q.filter(a => a.id !== id));
-  const reject = (id: string) => setQueue(q => q.filter(a => a.id !== id));
+  const reject  = (id: string) => setQueue(q => q.filter(a => a.id !== id));
 
   return (
     <AdminShell>
-      <div className="p-6 lg:p-8 space-y-8">
+      <div className="p-6 lg:p-8 space-y-8" style={{ minHeight: '100%' }}>
 
-        {/* Welcome bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        {/* ── Page Header ── */}
+        <div className={`flex flex-col sm:flex-row sm:items-start justify-between gap-4 transition-all duration-500 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
           <div>
-            <h1 className="text-xl font-bold text-parchment">Command Dashboard</h1>
-            <p className="text-[12px] text-parchment/45 mt-0.5 font-mono">
-              ADSS Internal Console · {new Date().toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: '#F4EEDF' }}>
+              Command Dashboard
+            </h1>
+            <p className="text-[12px] font-mono mt-1" style={{ color: 'rgba(244,238,223,0.35)' }}>
+              ADSS Internal Console ·&nbsp;
+              {new Date().toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
             </p>
           </div>
-          <div className="flex items-center gap-2 px-3 py-2 rounded-sm text-[11px] font-mono"
-            style={{ background: 'rgba(61,134,100,0.12)', border: '1px solid rgba(61,134,100,0.25)', color: '#3D8664' }}>
-            <Activity className="w-3.5 h-3.5" />
-            <span>All systems operational</span>
+          <div className="flex items-center gap-2 px-4 py-2 rounded-sm text-[11px] font-mono shrink-0"
+            style={{ background: 'rgba(61,134,100,0.10)', border: '1px solid rgba(61,134,100,0.22)', color: '#3D8664' }}>
+            <div className="live-dot" />
+            <span className="font-bold tracking-wide">All systems operational</span>
           </div>
         </div>
 
-        {/* KPI stat cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {STAT_CARDS.map(({ label, value, delta, icon: Icon, color, bg }) => (
-            <div key={label} className="rounded-sm p-5 space-y-3" style={{ background: '#111827', border: '1px solid rgba(196,154,78,0.12)' }}>
+        {/* ── KPI Stat Cards ── */}
+        <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 transition-all duration-500 delay-100 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+          {STAT_CARDS.map(({ label, value, delta, trend, icon: Icon, accent, barWidth }) => (
+            <div key={label} className="kpi-card rounded-sm p-5 space-y-4 group">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold tracking-wider uppercase" style={{ color: 'rgba(244,238,223,0.45)' }}>{label}</span>
-                <div className="w-8 h-8 rounded-sm flex items-center justify-center" style={{ background: bg }}>
-                  <Icon style={{ width: '16px', height: '16px', color }} />
+                <span className="text-[10px] font-bold tracking-[0.18em] uppercase" style={{ color: 'rgba(244,238,223,0.40)' }}>{label}</span>
+                <div className="w-9 h-9 rounded-sm flex items-center justify-center transition-transform group-hover:scale-110" style={{ background: `${accent}18`, border: `1px solid ${accent}28` }}>
+                  <Icon className="w-4 h-4" style={{ color: accent }} />
                 </div>
               </div>
-              <div className="text-3xl font-extrabold font-mono" style={{ color: '#F4EEDF' }}>{value}</div>
-              <div className="text-[10px] font-mono" style={{ color: 'rgba(244,238,223,0.35)' }}>{delta}</div>
+              <div>
+                <div className="kpi-value">{value}</div>
+                <div className="text-[10px] font-mono mt-1" style={{ color: 'rgba(244,238,223,0.35)' }}>{delta}</div>
+              </div>
+              <div className="space-y-1.5">
+                <div className="progress-bar-sovereign">
+                  <div className="progress-bar-sovereign-fill" style={{ width: `${barWidth}%`, background: `linear-gradient(90deg, ${accent}80, ${accent})` }} />
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[9px] font-mono" style={{ color: 'rgba(244,238,223,0.25)' }}>Capacity</span>
+                  <span className="text-[9px] font-bold font-mono" style={{ color: accent }}>{trend}</span>
+                </div>
+              </div>
             </div>
           ))}
         </div>
 
-        {/* Quick access tiles */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {[
-            { label: 'Citizenship Approvals', href: '/admin/citizenship', count: 12, icon: UserCheck, urgent: true },
-            { label: 'Visa Applications', href: '/admin/immigration', count: 7, icon: Stamp, urgent: false },
-            { label: 'E-Residency Queue', href: '/admin/e-residency', count: 24, icon: Globe2, urgent: false },
-            { label: 'Company Formations', href: '/admin/companies', count: 5, icon: Building2, urgent: false },
-          ].map(({ label, href, count, icon: Icon, urgent }) => (
-            <Link key={href} href={href}
-              className="flex flex-col gap-3 p-4 rounded-sm transition-all group"
-              style={{ background: '#111827', border: `1px solid ${urgent ? 'rgba(196,154,78,0.35)' : 'rgba(196,154,78,0.12)'}` }}
-            >
-              <div className="flex items-center justify-between">
-                <Icon style={{ width: '18px', height: '18px', color: '#C49A4E' }} />
-                {urgent && <span className="text-[8px] font-bold px-1.5 py-0.5 rounded-sm" style={{ background: 'rgba(196,154,78,0.2)', color: '#C49A4E' }}>URGENT</span>}
-              </div>
-              <div>
-                <div className="text-2xl font-extrabold font-mono" style={{ color: '#F4EEDF' }}>{count}</div>
-                <div className="text-[10px] mt-0.5" style={{ color: 'rgba(244,238,223,0.45)' }}>{label}</div>
-              </div>
-              <div className="flex items-center gap-1 text-[10px] font-semibold" style={{ color: '#C49A4E' }}>
-                Review <ArrowRight style={{ width: '10px', height: '10px' }} />
-              </div>
-            </Link>
-          ))}
+        {/* ── Quick Action Tiles + Activity Feed ── */}
+        <div className={`grid grid-cols-1 lg:grid-cols-3 gap-6 transition-all duration-500 delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+
+          {/* Quick actions (2/3 width) */}
+          <div className="lg:col-span-2 space-y-3">
+            <h2 className="text-[11px] font-bold tracking-[0.18em] uppercase" style={{ color: 'rgba(244,238,223,0.30)' }}>Action Queue</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {QUICK_ACTIONS.map(({ label, href, count, icon: Icon, urgent, desc }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  className="shell-card-dark quick-action-tile rounded-sm p-5 flex flex-col gap-4 group"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="w-10 h-10 rounded-sm flex items-center justify-center transition-all group-hover:scale-105" style={{ background: urgent ? 'rgba(196,154,78,0.15)' : 'rgba(196,154,78,0.08)', border: `1px solid ${urgent ? 'rgba(196,154,78,0.40)' : 'rgba(196,154,78,0.18)'}` }}>
+                      <Icon className="w-5 h-5 text-gold" />
+                    </div>
+                    {urgent && (
+                      <span className="text-[8px] font-extrabold px-2 py-1 rounded-sm tracking-wider" style={{ background: 'rgba(196,154,78,0.15)', border: '1px solid rgba(196,154,78,0.35)', color: '#C49A4E' }}>
+                        URGENT
+                      </span>
+                    )}
+                  </div>
+                  <div>
+                    <div className="text-2xl font-extrabold font-mono" style={{ color: '#F4EEDF' }}>{count}</div>
+                    <div className="text-[11px] font-semibold mt-0.5" style={{ color: 'rgba(244,238,223,0.70)' }}>{label}</div>
+                    <div className="text-[10px] mt-0.5" style={{ color: 'rgba(244,238,223,0.35)' }}>{desc}</div>
+                  </div>
+                  <div className="flex items-center gap-1 text-[11px] font-bold transition-all group-hover:gap-2" style={{ color: '#C49A4E' }}>
+                    Review <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* Activity feed (1/3 width) */}
+          <div className="shell-card-dark rounded-sm overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid rgba(196,154,78,0.10)' }}>
+              <h2 className="text-[12px] font-bold" style={{ color: '#F4EEDF' }}>Live Activity</h2>
+              <Link href="/admin/activity" className="text-[10px] font-bold transition-colors flex items-center gap-1" style={{ color: 'rgba(196,154,78,0.60)' }}>
+                View all <ArrowUpRight className="w-3 h-3" />
+              </Link>
+            </div>
+            <div className="p-4 space-y-4">
+              {RECENT_ACTIVITY.map(({ time, action, type }) => (
+                <div key={time} className="flex gap-3">
+                  <div className="flex flex-col items-center shrink-0 mt-0.5">
+                    <div
+                      className="w-2 h-2 rounded-full shrink-0"
+                      style={{ background: type === 'success' ? '#3D8664' : type === 'warning' ? '#E4A628' : '#C49A4E' }}
+                    />
+                    <div className="w-px flex-1 mt-1" style={{ background: 'rgba(196,154,78,0.10)' }} />
+                  </div>
+                  <div className="pb-3 min-w-0">
+                    <p className="text-[11px] leading-snug" style={{ color: 'rgba(244,238,223,0.65)' }}>{action}</p>
+                    <p className="text-[9px] font-mono mt-0.5" style={{ color: 'rgba(244,238,223,0.28)' }}>{time} UTC</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
-        {/* Pending applications table */}
-        <div className="rounded-sm overflow-hidden" style={{ background: '#111827', border: '1px solid rgba(196,154,78,0.12)' }}>
-          <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid rgba(196,154,78,0.10)' }}>
-            <h2 className="text-[13px] font-bold text-parchment">Pending Registry Queue</h2>
-            <span className="text-[11px] font-mono" style={{ color: 'rgba(196,154,78,0.7)' }}>{queue.length} awaiting action</span>
+        {/* ── Pending Registry Queue Table ── */}
+        <div className={`shell-card-dark rounded-sm overflow-hidden transition-all duration-500 delay-300 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+          <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid rgba(196,154,78,0.10)' }}>
+            <div>
+              <h2 className="text-[13px] font-extrabold" style={{ color: '#F4EEDF' }}>Pending Registry Queue</h2>
+              <p className="text-[10px] font-mono mt-0.5" style={{ color: 'rgba(196,154,78,0.55)' }}>{queue.length} awaiting action</p>
+            </div>
+            <Link
+              href="/admin/citizens"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-[11px] font-bold transition-all"
+              style={{ background: 'rgba(196,154,78,0.08)', border: '1px solid rgba(196,154,78,0.20)', color: '#C49A4E' }}
+            >
+              <FileSearch className="w-3.5 h-3.5" /> Full Registry
+            </Link>
           </div>
 
           <div className="overflow-x-auto">
@@ -106,50 +189,53 @@ export default function AdminCommandConsolePage() {
               <thead>
                 <tr style={{ borderBottom: '1px solid rgba(196,154,78,0.08)' }}>
                   {['App ID', 'Applicant / Entity', 'Type', 'Nationality', 'Date', 'Risk', 'Actions'].map(h => (
-                    <th key={h} className="px-4 py-3 text-left font-bold tracking-wider uppercase" style={{ color: 'rgba(244,238,223,0.30)', fontSize: '9px' }}>{h}</th>
+                    <th key={h} className="px-5 py-3.5 text-left font-extrabold tracking-[0.16em] uppercase" style={{ color: 'rgba(196,154,78,0.40)', fontSize: '9px' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {queue.map(app => (
-                  <tr key={app.id} className="group" style={{ borderBottom: '1px solid rgba(196,154,78,0.06)' }}>
-                    <td className="px-4 py-3 font-mono" style={{ color: '#C49A4E' }}>{app.id}</td>
-                    <td className="px-4 py-3 font-semibold" style={{ color: '#F4EEDF' }}>{app.name}</td>
-                    <td className="px-4 py-3" style={{ color: 'rgba(244,238,223,0.60)' }}>{app.type}</td>
-                    <td className="px-4 py-3 font-mono font-bold" style={{ color: 'rgba(244,238,223,0.50)' }}>{app.nationality}</td>
-                    <td className="px-4 py-3 font-mono" style={{ color: 'rgba(244,238,223,0.40)' }}>{app.date}</td>
-                    <td className="px-4 py-3">
-                      <span className="px-2 py-0.5 rounded-sm text-[9px] font-bold font-mono"
-                        style={{ background: `${RISK_COLOR[app.risk]}18`, color: RISK_COLOR[app.risk], border: `1px solid ${RISK_COLOR[app.risk]}35` }}>
-                        {app.risk} · {app.riskScore}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <button onClick={() => approve(app.id)} className="flex items-center gap-1 px-2.5 py-1 rounded-sm text-[10px] font-bold transition-all"
-                          style={{ background: 'rgba(61,134,100,0.15)', color: '#3D8664', border: '1px solid rgba(61,134,100,0.25)' }}>
-                          <CheckCircle2 className="w-3 h-3" /> Approve
-                        </button>
-                        <button onClick={() => reject(app.id)} className="flex items-center gap-1 px-2.5 py-1 rounded-sm text-[10px] font-bold transition-all"
-                          style={{ background: 'rgba(112,24,36,0.15)', color: '#fca5a5', border: '1px solid rgba(112,24,36,0.25)' }}>
-                          <XCircle className="w-3 h-3" /> Reject
-                        </button>
-                        <button className="p-1 rounded-sm" style={{ color: 'rgba(244,238,223,0.35)' }}>
-                          <Eye className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                {queue.map(app => {
+                  const rc = RISK_COLOR[app.risk] ?? RISK_COLOR.Low;
+                  return (
+                    <tr key={app.id} className="premium-tr group">
+                      <td className="px-5 py-4 font-mono font-bold" style={{ color: '#C49A4E' }}>{app.id}</td>
+                      <td className="px-5 py-4 font-semibold" style={{ color: '#F0E9D8' }}>{app.name}</td>
+                      <td className="px-5 py-4" style={{ color: 'rgba(244,238,223,0.55)' }}>{app.type}</td>
+                      <td className="px-5 py-4 font-mono font-bold" style={{ color: 'rgba(244,238,223,0.45)' }}>{app.nationality}</td>
+                      <td className="px-5 py-4 font-mono" style={{ color: 'rgba(244,238,223,0.38)' }}>{app.date}</td>
+                      <td className="px-5 py-4">
+                        <span className="px-2 py-0.5 rounded-sm text-[9px] font-bold font-mono" style={{ background: rc.bg, color: rc.text, border: `1px solid ${rc.border}` }}>
+                          {app.risk} · {app.riskScore}
+                        </span>
+                      </td>
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-2">
+                          <button onClick={() => approve(app.id)} className="flex items-center gap-1 px-2.5 py-1 rounded-sm text-[10px] font-bold transition-all hover:scale-105"
+                            style={{ background: 'rgba(61,134,100,0.12)', color: '#3D8664', border: '1px solid rgba(61,134,100,0.25)' }}>
+                            <CheckCircle2 className="w-3 h-3" /> Approve
+                          </button>
+                          <button onClick={() => reject(app.id)} className="flex items-center gap-1 px-2.5 py-1 rounded-sm text-[10px] font-bold transition-all hover:scale-105"
+                            style={{ background: 'rgba(112,24,36,0.12)', color: '#fca5a5', border: '1px solid rgba(112,24,36,0.25)' }}>
+                            <XCircle className="w-3 h-3" /> Reject
+                          </button>
+                          <button className="p-1.5 rounded-sm transition-colors hover:bg-white/5"
+                            style={{ color: 'rgba(244,238,223,0.30)' }}>
+                            <Eye className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
 
           {queue.length === 0 && (
-            <div className="py-12 text-center">
-              <ShieldCheck style={{ width: '32px', height: '32px', color: '#3D8664', margin: '0 auto 12px' }} />
-              <p className="text-sm font-semibold" style={{ color: 'rgba(244,238,223,0.6)' }}>All applications processed</p>
-              <p className="text-[11px] mt-1" style={{ color: 'rgba(244,238,223,0.3)' }}>Queue is clear — no pending items</p>
+            <div className="py-14 text-center">
+              <ShieldCheck className="w-10 h-10 mx-auto mb-3" style={{ color: '#3D8664' }} />
+              <p className="text-sm font-bold" style={{ color: 'rgba(244,238,223,0.55)' }}>Queue Cleared</p>
+              <p className="text-[11px] mt-1" style={{ color: 'rgba(244,238,223,0.28)' }}>All applications have been processed</p>
             </div>
           )}
         </div>

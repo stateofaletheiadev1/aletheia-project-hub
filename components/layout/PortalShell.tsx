@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { StarOfTruth } from '@/components/brand/Logo';
 import {
   LayoutDashboard, User, FileText, Building2, CreditCard,
   Download, ShieldCheck, Bell, Settings, LogOut, ChevronRight,
-  Menu, X, Fingerprint, Globe2, Clock, Home, ArrowLeft,
+  Menu, X, Fingerprint, Globe2, Clock, Home, Search, Sparkles,
 } from 'lucide-react';
 
 interface NavItem {
@@ -27,35 +27,35 @@ const NAV_SECTIONS: NavSection[] = [
     title: 'My Dashboard',
     items: [
       { label: 'Overview', href: '/portal' },
-      { label: 'Notifications', href: '/portal/notifications', badge: '3', badgeColor: 'bg-gold/20 text-gold' },
+      { label: 'Notifications', href: '/portal/notifications', badge: '3', badgeColor: 'bg-gold/12 text-gold border border-gold/20' },
     ],
   },
   {
     title: 'Identity & Status',
     items: [
-      { label: 'My Digital Identity', href: '/portal/identity', badge: null },
-      { label: 'Residency Status', href: '/portal/residency', badge: null },
-      { label: 'Biometric Credentials', href: '/portal/biometrics', badge: null },
+      { label: 'My Digital Identity', href: '/portal/identity' },
+      { label: 'Residency Status', href: '/portal/residency' },
+      { label: 'Biometric Credentials', href: '/portal/biometrics' },
     ],
   },
   {
     title: 'Documents',
     items: [
-      { label: 'My Documents', href: '/portal/documents', badge: null },
-      { label: 'Applications', href: '/portal/apply', badge: '1 Pending', badgeColor: 'bg-gold/20 text-gold' },
+      { label: 'My Documents', href: '/portal/documents' },
+      { label: 'Applications', href: '/portal/apply', badge: '1 Pending', badgeColor: 'bg-gold/12 text-gold border border-gold/20' },
     ],
   },
   {
     title: 'Business',
     items: [
-      { label: 'My Companies', href: '/portal/companies', badge: null },
-      { label: 'AEY Wallet', href: '/portal/wallet', badge: null },
+      { label: 'My Companies', href: '/portal/companies' },
+      { label: 'AEY Wallet', href: '/portal/wallet' },
     ],
   },
   {
     title: 'Account',
     items: [
-      { label: 'Profile Settings', href: '/portal/settings', badge: null },
+      { label: 'Profile Settings', href: '/portal/settings' },
     ],
   },
 ];
@@ -80,11 +80,14 @@ export function PortalShell({ children, userName, userStatus }: { children: Reac
   const pathname = usePathname();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const [user, setUser] = useState({
     name: userName || 'Dr. Elena Vasquez',
     status: userStatus || 'E-Resident · Verified',
     initials: 'EV',
   });
+
+  useEffect(() => { setMounted(true); }, []);
 
   React.useEffect(() => {
     const sess = getUserSession();
@@ -102,86 +105,112 @@ export function PortalShell({ children, userName, userStatus }: { children: Reac
     router.push('/portal/login');
   };
 
-  return (
-    <div className="flex h-screen overflow-hidden" style={{ background: '#F6F3EC', fontFamily: 'var(--font-manrope), Manrope, sans-serif' }}>
+  const currentLabel = NAV_SECTIONS.flatMap(s => s.items).find(i => i.href === pathname)?.label ?? 'Dashboard';
 
+  return (
+    <div
+      className="flex h-screen overflow-hidden"
+      style={{ background: '#F2EFE6', fontFamily: 'var(--font-manrope), Manrope, sans-serif' }}
+    >
+      {/* Mobile overlay */}
       {sidebarOpen && (
-        <div className="fixed inset-0 bg-black/40 z-20 lg:hidden" onClick={() => setSidebarOpen(false)} />
+        <div
+          className="fixed inset-0 z-20 lg:hidden"
+          style={{ background: 'rgba(21,41,74,0.55)', backdropFilter: 'blur(4px)' }}
+          onClick={() => setSidebarOpen(false)}
+        />
       )}
 
-      {/* LEFT SIDEBAR */}
-      <aside className={`fixed lg:static inset-y-0 left-0 z-30 w-64 flex flex-col transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
-        style={{ background: '#15294A', borderRight: '1px solid rgba(196,154,78,0.18)' }}>
+      {/* ─── LEFT SIDEBAR ─── */}
+      <aside
+        className={`fixed lg:static inset-y-0 left-0 z-30 w-[260px] flex flex-col transition-transform duration-300 ease-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
+        style={{
+          background: 'linear-gradient(180deg, #15294A 0%, #112240 50%, #0D1B35 100%)',
+          borderRight: '1px solid rgba(196,154,78,0.16)',
+        }}
+      >
+        {/* Top gold accent line */}
+        <div className="absolute top-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(196,154,78,0.70), transparent)' }} />
+        <div className="absolute top-0 left-0 right-0 h-28 pointer-events-none" style={{ background: 'radial-gradient(ellipse at 50% -10%, rgba(196,154,78,0.10) 0%, transparent 70%)' }} />
 
-        {/* Logo & Return Link */}
+        {/* Logo row */}
         <Link
           href="/"
-          className="flex items-center gap-2.5 px-5 py-4 shrink-0 hover:bg-white/5 transition-colors group"
+          className="relative flex items-center gap-3 px-5 py-[18px] shrink-0 group transition-all hover:bg-white/[0.03]"
           title="Return to Main Sovereign Website"
-          style={{ borderBottom: '1px solid rgba(196,154,78,0.18)' }}
+          style={{ borderBottom: '1px solid rgba(196,154,78,0.12)' }}
         >
-          <StarOfTruth size={20} />
-          <div>
-            <div className="text-[10px] font-bold tracking-[0.22em] uppercase text-gold group-hover:text-gold-tint transition-colors flex items-center gap-1.5">
-              <span>Aletheia</span>
-              <span className="text-[9px] font-normal text-parchment/40">· ← Home</span>
+          <div className="w-8 h-8 shrink-0 rounded-sm flex items-center justify-center" style={{ background: 'linear-gradient(135deg, rgba(196,154,78,0.22), rgba(196,154,78,0.06))', border: '1px solid rgba(196,154,78,0.30)' }}>
+            <StarOfTruth size={16} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-[10px] font-bold tracking-[0.22em] uppercase text-gold group-hover:text-gold-tint transition-colors">
+              Aletheia Portal
             </div>
-            <div className="text-[9px] tracking-wide" style={{ color: 'rgba(244,238,223,0.4)' }}>Civic Services Portal</div>
+            <div className="text-[9px] tracking-wide" style={{ color: 'rgba(244,238,223,0.38)' }}>Civic Services · Secure Access</div>
+          </div>
+          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+            <Home className="w-3 h-3" style={{ color: 'rgba(196,154,78,0.65)' }} />
           </div>
           <button
             type="button"
-            className="ml-auto lg:hidden"
-            style={{ color: 'rgba(244,238,223,0.4)' }}
-            onClick={(e) => {
-              e.preventDefault();
-              setSidebarOpen(false);
-            }}
+            className="ml-auto lg:hidden hover:text-parchment/70 transition-colors"
+            style={{ color: 'rgba(244,238,223,0.40)' }}
+            onClick={(e) => { e.preventDefault(); setSidebarOpen(false); }}
           >
             <X className="w-4 h-4" />
           </button>
         </Link>
 
-        {/* User badge */}
-        <div className="mx-3 my-3 px-3 py-3 rounded-sm" style={{ background: 'rgba(14,27,49,0.5)', border: '1px solid rgba(196,154,78,0.18)' }}>
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-sm font-bold text-navy" style={{ background: 'linear-gradient(135deg, #E4C689, #C49A4E)' }}>
+        {/* User Identity Badge */}
+        <div className="mx-4 my-4 px-4 py-3.5 rounded-sm shrink-0 relative overflow-hidden" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(196,154,78,0.18)' }}>
+          <div className="absolute top-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(196,154,78,0.45), transparent)' }} />
+          <div className="flex items-center gap-3">
+            <div
+              className="w-10 h-10 rounded-sm flex items-center justify-center shrink-0 text-[13px] font-extrabold text-navy"
+              style={{ background: 'linear-gradient(135deg, #F0D88A, #C49A4E)', boxShadow: '0 0 14px rgba(196,154,78,0.28)' }}
+            >
               {user.initials}
             </div>
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <div className="text-[12px] font-bold truncate" style={{ color: '#F4EEDF' }}>{user.name}</div>
-              <div className="text-[9px] truncate" style={{ color: 'rgba(244,238,223,0.45)' }}>{user.status}</div>
+              <div className="text-[9px] truncate mt-0.5" style={{ color: 'rgba(244,238,223,0.42)' }}>{user.status}</div>
             </div>
           </div>
-          <div className="mt-2 flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#2F6B4F' }} />
-            <span className="text-[9px] font-mono font-bold" style={{ color: '#3D8664' }}>IDENTITY VERIFIED</span>
+          <div className="mt-2.5 flex items-center gap-2">
+            <div className="live-dot" />
+            <span className="text-[9px] font-mono font-bold tracking-wider" style={{ color: '#3D8664' }}>IDENTITY VERIFIED</span>
           </div>
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 overflow-y-auto px-3 py-2 space-y-4">
-          {NAV_SECTIONS.map(({ title, items }) => (
-            <div key={title}>
-              <div className="text-[9px] font-bold tracking-[0.22em] uppercase px-2 mb-1.5" style={{ color: 'rgba(244,238,223,0.25)' }}>{title}</div>
+        <nav className="flex-1 overflow-y-auto px-3 py-1 space-y-5" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(196,154,78,0.10) transparent' }}>
+          {NAV_SECTIONS.map(({ title, items }, sIdx) => (
+            <div key={title} className={mounted ? 'animate-sidebar-reveal' : ''} style={{ animationDelay: `${sIdx * 35}ms` }}>
+              <div className="sidebar-section-title">{title}</div>
               <div className="space-y-0.5">
                 {items.map(({ label, href, badge, badgeColor }) => {
                   const Icon = NAV_ICONS[href] || LayoutDashboard;
                   const active = pathname === href;
                   return (
-                    <Link key={href} href={href} onClick={() => setSidebarOpen(false)}
-                      style={{
-                        display: 'flex', alignItems: 'center', gap: '10px',
-                        padding: '8px 12px', borderRadius: '2px',
-                        fontSize: '12px', fontWeight: 500, transition: 'all 150ms',
-                        color: active ? '#C49A4E' : 'rgba(244,238,223,0.55)',
-                        background: active ? 'rgba(196,154,78,0.10)' : 'transparent',
-                        borderLeft: active ? '2px solid #C49A4E' : '2px solid transparent',
-                        textDecoration: 'none',
-                      }}
+                    <Link
+                      key={href}
+                      href={href}
+                      onClick={() => setSidebarOpen(false)}
+                      className={`flex items-center gap-2.5 px-3 py-2 rounded-sm text-[12px] font-medium transition-all group/item relative overflow-hidden ${active ? 'nav-item-active' : ''}`}
+                      style={active ? {} : { color: 'rgba(244,238,223,0.48)' }}
                     >
-                      <Icon style={{ width: '16px', height: '16px', flexShrink: 0, color: active ? '#C49A4E' : 'rgba(244,238,223,0.35)' }} />
-                      <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
-                      {badge && <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-sm shrink-0 ${badgeColor}`}>{badge}</span>}
+                      {!active && (
+                        <span className="absolute inset-0 opacity-0 group-hover/item:opacity-100 transition-opacity rounded-sm" style={{ background: 'rgba(196,154,78,0.05)' }} />
+                      )}
+                      <Icon
+                        className="w-4 h-4 shrink-0 relative z-10 transition-colors"
+                        style={{ color: active ? '#C49A4E' : 'rgba(244,238,223,0.30)' }}
+                      />
+                      <span className="flex-1 truncate relative z-10 group-hover/item:text-parchment/80 transition-colors">{label}</span>
+                      {badge && (
+                        <span className={`sidebar-badge relative z-10 ${badgeColor}`}>{badge}</span>
+                      )}
                     </Link>
                   );
                 })}
@@ -190,75 +219,90 @@ export function PortalShell({ children, userName, userStatus }: { children: Reac
           ))}
         </nav>
 
-        {/* Return to Public Website & Logout */}
-        <div className="px-3 py-3 shrink-0 space-y-1.5" style={{ borderTop: '1px solid rgba(196,154,78,0.18)' }}>
+        {/* Footer links */}
+        <div className="px-3 py-3 shrink-0 space-y-1" style={{ borderTop: '1px solid rgba(196,154,78,0.12)' }}>
           <Link
             href="/"
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-sm text-[12px] font-medium transition-colors hover:bg-white/10 text-gold"
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-sm text-[12px] font-semibold transition-all hover:bg-white/[0.04] group/home"
+            style={{ color: 'rgba(196,154,78,0.70)' }}
           >
-            <Home className="w-4 h-4 shrink-0 text-gold" />
-            <span>Back to Main Website</span>
+            <Home className="w-4 h-4 shrink-0 transition-transform group-hover/home:-translate-x-0.5" />
+            <span>Return to Public Platform</span>
           </Link>
           <button
             type="button"
             onClick={handleLogout}
-            style={{
-              width: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-              padding: '8px 12px',
-              borderRadius: '2px',
-              fontSize: '12px',
-              fontWeight: 500,
-              color: 'rgba(252,165,165,0.85)',
-              background: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-              textAlign: 'left',
-            }}
-            className="hover:bg-red-500/10 transition-colors"
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-sm text-[12px] font-semibold transition-all hover:bg-red-500/8 text-left group/logout"
+            style={{ color: 'rgba(252,165,165,0.65)' }}
           >
-            <LogOut style={{ width: '16px', height: '16px', flexShrink: 0 }} />
+            <LogOut className="w-4 h-4 shrink-0 transition-transform group-hover/logout:translate-x-0.5" />
             <span>Sign Out</span>
           </button>
         </div>
       </aside>
 
-      {/* MAIN AREA */}
+      {/* ─── MAIN CONTENT AREA ─── */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+
         {/* Topbar */}
-        <header className="h-14 flex items-center justify-between px-5 shrink-0" style={{ background: 'rgba(255,255,255,0.9)', borderBottom: '1px solid rgba(21,41,74,0.10)', backdropFilter: 'blur(12px)' }}>
+        <header
+          className="h-14 flex items-center justify-between px-5 shrink-0"
+          style={{
+            background: 'rgba(255,255,255,0.92)',
+            borderBottom: '1px solid rgba(21,41,74,0.08)',
+            backdropFilter: 'blur(20px) saturate(1.5)',
+            WebkitBackdropFilter: 'blur(20px) saturate(1.5)',
+            boxShadow: '0 1px 0 rgba(21,41,74,0.06)',
+          }}
+        >
           <div className="flex items-center gap-3">
-            <button className="lg:hidden" style={{ color: 'rgba(21,41,74,0.5)' }} onClick={() => setSidebarOpen(true)}>
+            <button
+              className="lg:hidden transition-colors"
+              style={{ color: 'rgba(21,41,74,0.50)' }}
+              onClick={() => setSidebarOpen(true)}
+            >
               <Menu className="w-5 h-5" />
             </button>
-            <div className="hidden sm:flex items-center gap-1.5 text-[11px] font-mono" style={{ color: 'rgba(21,41,74,0.4)' }}>
-              <span style={{ color: '#15294A', fontWeight: 700 }}>Portal</span>
-              <ChevronRight className="w-3 h-3" />
-              <span>{NAV_SECTIONS.flatMap(s => s.items).find(i => i.href === pathname)?.label ?? 'Dashboard'}</span>
+
+            {/* Breadcrumb */}
+            <div className="hidden sm:flex items-center gap-1.5 text-[11px] font-mono">
+              <span className="font-extrabold" style={{ color: '#15294A' }}>Portal</span>
+              <ChevronRight className="w-3 h-3" style={{ color: 'rgba(21,41,74,0.30)' }} />
+              <span style={{ color: 'rgba(21,41,74,0.55)' }}>{currentLabel}</span>
             </div>
           </div>
+
           <div className="flex items-center gap-3">
+            {/* Return to main website */}
             <Link
               href="/"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-sm bg-white border border-[#15294A]/15 text-[#15294A] text-xs font-semibold hover:border-gold hover:text-gold transition-colors shadow-sm"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-xs font-semibold transition-all btn-shimmer"
+              style={{ background: '#FFFFFF', border: '1px solid rgba(21,41,74,0.12)', color: '#15294A', boxShadow: '0 1px 3px rgba(21,41,74,0.06)' }}
               title="Return to Sovereign National Website"
             >
-              <Home className="w-3.5 h-3.5 text-gold" />
-              <span className="hidden sm:inline">Back to Main Website</span>
+              <Home className="w-3.5 h-3.5" style={{ color: '#C49A4E' }} />
+              <span>Main Website</span>
             </Link>
-            <button className="relative" style={{ color: 'rgba(21,41,74,0.4)' }}>
+
+            {/* Notifications */}
+            <button className="relative p-1.5 rounded-sm transition-colors hover:bg-navy/5" style={{ color: 'rgba(21,41,74,0.45)' }}>
               <Bell className="w-4 h-4" />
-              <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full flex items-center justify-center text-[7px] font-bold text-white" style={{ background: '#C49A4E' }}>3</span>
+              <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full flex items-center justify-center text-[7px] font-extrabold text-white" style={{ background: 'linear-gradient(135deg, #C49A4E, #8F6A2A)' }}>3</span>
             </button>
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-sm text-[10px] font-bold" style={{ background: 'rgba(47,107,79,0.10)', border: '1px solid rgba(47,107,79,0.25)', color: '#2F6B4F' }}>
-              <ShieldCheck className="w-3 h-3" /> Verified
+
+            {/* Verified badge */}
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold status-pill-green">
+              <ShieldCheck className="w-3 h-3" />
+              Verified
             </div>
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto" style={{ background: '#F6F3EC' }}>
+        {/* Page content */}
+        <main
+          className="flex-1 overflow-y-auto"
+          style={{ background: '#F2EFE6', scrollbarWidth: 'thin', scrollbarColor: 'rgba(21,41,74,0.10) transparent' }}
+        >
           {children}
         </main>
       </div>

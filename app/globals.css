@@ -1021,3 +1021,408 @@ body {
   border-color: rgba(196, 154, 78, 0.60);
   background: rgba(196, 154, 78, 0.06);
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   PREMIUM UPGRADE — FULL VISUAL SYSTEM v2
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ─ New keyframes ─ */
+@keyframes shimmerX {
+  0%   { transform: translateX(-100%) skewX(-15deg); }
+  100% { transform: translateX(300%) skewX(-15deg); }
+}
+@keyframes ripple {
+  0%   { transform: scale(0); opacity: 0.6; }
+  100% { transform: scale(4); opacity: 0; }
+}
+@keyframes fadeInRight {
+  from { opacity: 0; transform: translateX(-16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes textReveal {
+  from { opacity: 0; transform: translateY(20px); clip-path: inset(0 0 100% 0); }
+  to   { opacity: 1; transform: translateY(0); clip-path: inset(0 0 0% 0); }
+}
+@keyframes dashFlow {
+  to { stroke-dashoffset: -48; }
+}
+@keyframes breathe {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50%       { transform: scale(1.08); opacity: 1; }
+}
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes popIn {
+  0%   { opacity: 0; transform: scale(0.85) translateY(6px); }
+  70%  { transform: scale(1.04) translateY(-2px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50%       { background-position: 100% 50%; }
+}
+@keyframes numberCount {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes lineGrow {
+  from { width: 0; opacity: 0; }
+  to   { width: 100%; opacity: 1; }
+}
+@keyframes iconPop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.18) rotate(-4deg); }
+  70%  { transform: scale(0.94) rotate(2deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+@keyframes sidebarReveal {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.animate-shimmer-x      { animation: shimmerX 1.8s ease-in-out infinite; }
+.animate-fade-in-right   { animation: fadeInRight 0.5s var(--ease-sovereign) both; }
+.animate-slide-in-left   { animation: slideInLeft 0.4s var(--ease-sovereign) both; }
+.animate-pop-in          { animation: popIn 0.45s var(--ease-sovereign) both; }
+.animate-breathe         { animation: breathe 4s ease-in-out infinite; }
+.animate-number-count    { animation: numberCount 0.6s var(--ease-sovereign) both; }
+.animate-sidebar-reveal  { animation: sidebarReveal 0.35s var(--ease-sovereign) both; }
+
+/* ─ Ultra-glass surfaces ─ */
+.glass-ultra-dark {
+  background: rgba(9, 14, 24, 0.92);
+  backdrop-filter: blur(32px) saturate(1.8) brightness(0.9);
+  -webkit-backdrop-filter: blur(32px) saturate(1.8) brightness(0.9);
+  border: 1px solid rgba(196, 154, 78, 0.16);
+}
+.glass-ultra-light {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(28px) saturate(1.6) brightness(1.02);
+  -webkit-backdrop-filter: blur(28px) saturate(1.6) brightness(1.02);
+  border: 1px solid rgba(21, 41, 74, 0.09);
+  box-shadow: 0 4px 24px -6px rgba(21, 41, 74, 0.09);
+}
+
+/* ─ Premium Admin Shell Card ─ */
+.shell-card-dark {
+  position: relative;
+  background: rgba(17, 24, 39, 0.90);
+  border: 1px solid rgba(196, 154, 78, 0.13);
+  border-radius: 2px;
+  overflow: hidden;
+  transition: border-color 220ms ease, box-shadow 220ms ease, transform 220ms var(--ease-sovereign);
+}
+.shell-card-dark::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 5%, rgba(196, 154, 78, 0.55) 50%, transparent 95%);
+  opacity: 0;
+  transition: opacity 220ms ease;
+}
+.shell-card-dark:hover {
+  border-color: rgba(196, 154, 78, 0.30);
+  box-shadow: 0 8px 32px -8px rgba(0, 0, 0, 0.45), 0 0 20px -8px rgba(196, 154, 78, 0.18);
+  transform: translateY(-2px);
+}
+.shell-card-dark:hover::before { opacity: 1; }
+
+/* ─ Premium Portal Shell Card ─ */
+.shell-card-light {
+  position: relative;
+  background: #ffffff;
+  border: 1px solid rgba(21, 41, 74, 0.08);
+  border-radius: 2px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(21, 41, 74, 0.04), 0 4px 12px -4px rgba(21, 41, 74, 0.06);
+  transition: border-color 220ms ease, box-shadow 220ms ease, transform 220ms var(--ease-sovereign);
+}
+.shell-card-light:hover {
+  border-color: rgba(196, 154, 78, 0.35);
+  box-shadow: 0 8px 32px -8px rgba(21, 41, 74, 0.12), 0 0 16px -6px rgba(196, 154, 78, 0.16);
+  transform: translateY(-3px);
+}
+.shell-card-light::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #C49A4E, transparent);
+  opacity: 0;
+  transition: opacity 220ms ease;
+}
+.shell-card-light:hover::after { opacity: 1; }
+
+/* ─ Shimmer loading skeleton ─ */
+.skeleton {
+  background: linear-gradient(90deg, rgba(196, 154, 78, 0.05) 25%, rgba(196, 154, 78, 0.12) 50%, rgba(196, 154, 78, 0.05) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+  border-radius: 2px;
+}
+
+/* ─ Sidebar nav item active indicator ─ */
+.nav-item-active {
+  position: relative;
+  color: #C49A4E !important;
+  background: rgba(196, 154, 78, 0.10) !important;
+}
+.nav-item-active::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, #E4C689, #C49A4E, #8F6A2A);
+  border-radius: 0 2px 2px 0;
+}
+
+/* ─ KPI metric card ─ */
+.kpi-card {
+  position: relative;
+  overflow: hidden;
+  background: rgba(15, 22, 38, 0.95);
+  border: 1px solid rgba(196, 154, 78, 0.15);
+  transition: all 260ms var(--ease-sovereign);
+}
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(196, 154, 78, 0.06) 0%, transparent 60%);
+  pointer-events: none;
+}
+.kpi-card:hover {
+  border-color: rgba(196, 154, 78, 0.32);
+  box-shadow: 0 12px 36px -8px rgba(0, 0, 0, 0.4), 0 0 18px -6px rgba(196, 154, 78, 0.20);
+  transform: translateY(-3px);
+}
+.kpi-value {
+  font-size: 2rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  background: linear-gradient(135deg, #FBE5B2, #E4C689, #C49A4E);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ─ Hover shimmer reveal on premium buttons ─ */
+.btn-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.btn-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -60%;
+  width: 40%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.18), transparent);
+  transform: skewX(-15deg);
+  transition: none;
+  opacity: 0;
+}
+.btn-shimmer:hover::after {
+  animation: shimmerX 0.7s ease;
+  opacity: 1;
+}
+
+/* ─ Login page cinematic background ─ */
+.login-cinematic {
+  background-color: #060C14;
+  background-image:
+    radial-gradient(ellipse 70% 60% at 20% 20%,  rgba(196, 154, 78, 0.22) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 80% at 80% 80%,  rgba(112, 24, 36, 0.18) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 50% at 60% 40%,  rgba(21, 41, 74, 0.50) 0%, transparent 65%),
+    repeating-linear-gradient(55deg,
+      rgba(196, 154, 78, 0.025) 0px, rgba(196, 154, 78, 0.025) 1px,
+      transparent 1px, transparent 10px),
+    repeating-linear-gradient(-55deg,
+      rgba(196, 154, 78, 0.018) 0px, rgba(196, 154, 78, 0.018) 1px,
+      transparent 1px, transparent 10px);
+}
+
+/* ─ Portal login background ─ */
+.portal-login-bg {
+  background-color: #F0EDE4;
+  background-image:
+    radial-gradient(ellipse 60% 50% at 80% 20%, rgba(196, 154, 78, 0.14) 0%, transparent 65%),
+    radial-gradient(ellipse 50% 70% at 10% 90%, rgba(21, 41, 74, 0.08) 0%, transparent 55%),
+    repeating-linear-gradient(45deg,
+      rgba(21, 41, 74, 0.014) 0px, rgba(21, 41, 74, 0.014) 1px,
+      transparent 1px, transparent 16px);
+}
+
+/* ─ Gradient text shift animation ─ */
+.text-gradient-shift {
+  background: linear-gradient(135deg, #FBE5B2 0%, #E4C689 25%, #C49A4E 50%, #E4C689 75%, #FBE5B2 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradientShift 5s ease infinite;
+}
+
+/* ─ Sidebar badge pill ─ */
+.sidebar-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 3px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
+}
+
+/* ─ Activity timeline dot ─ */
+.timeline-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  position: relative;
+}
+.timeline-dot::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+  opacity: 0.3;
+  animation: pulseGold 2.5s ease-in-out infinite;
+}
+
+/* ─ Admin topbar gradient ─ */
+.admin-topbar {
+  background: linear-gradient(90deg, rgba(11, 15, 26, 0.98) 0%, rgba(14, 27, 49, 0.96) 100%);
+  border-bottom: 1px solid rgba(196, 154, 78, 0.12);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+}
+
+/* ─ Status pill ─ */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.status-pill-green {
+  background: rgba(47, 107, 79, 0.15);
+  border: 1px solid rgba(47, 107, 79, 0.30);
+  color: #3D8664;
+}
+.status-pill-gold {
+  background: rgba(196, 154, 78, 0.12);
+  border: 1px solid rgba(196, 154, 78, 0.30);
+  color: #C49A4E;
+}
+.status-pill-red {
+  background: rgba(112, 24, 36, 0.15);
+  border: 1px solid rgba(112, 24, 36, 0.30);
+  color: #E05A6A;
+}
+
+/* ─ Image overlay text readability ─ */
+.image-overlay-dark {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(9, 14, 24, 0.90) 0%, rgba(9, 14, 24, 0.50) 50%, rgba(9, 14, 24, 0.25) 100%);
+}
+
+/* ─ Premium table rows ─ */
+.premium-tr {
+  transition: background 150ms ease;
+  border-bottom: 1px solid rgba(196, 154, 78, 0.07);
+}
+.premium-tr:hover {
+  background: rgba(196, 154, 78, 0.04);
+}
+.premium-tr:last-child {
+  border-bottom: none;
+}
+
+/* ─ Quick action tile ─ */
+.quick-action-tile {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 240ms var(--ease-sovereign);
+}
+.quick-action-tile::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 0%, rgba(196, 154, 78, 0.12), transparent 70%);
+  opacity: 0;
+  transition: opacity 240ms ease;
+}
+.quick-action-tile:hover { transform: translateY(-4px) scale(1.02); }
+.quick-action-tile:hover::before { opacity: 1; }
+
+/* ─ Glow pulse for live indicators ─ */
+.live-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #3D8664;
+  position: relative;
+}
+.live-dot::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 1.5px solid #3D8664;
+  animation: pulseGold 2s ease-in-out infinite;
+}
+
+/* ─ Sidebar group header ─ */
+.sidebar-section-title {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.20em;
+  text-transform: uppercase;
+  color: rgba(196, 154, 78, 0.45);
+  padding: 0 12px;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sidebar-section-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(196, 154, 78, 0.12);
+}
+
+/* ─ Progress bar sovereign ─ */
+.progress-bar-sovereign {
+  position: relative;
+  height: 4px;
+  background: rgba(196, 154, 78, 0.10);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.progress-bar-sovereign-fill {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  background: linear-gradient(90deg, #C49A4E, #E4C689, #C49A4E);
+  background-size: 200% 100%;
+  animation: shimmer 2s linear infinite;
+  border-radius: 2px;
+  transition: width 0.8s var(--ease-sovereign);
+}
+
