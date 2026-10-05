@@ -1,24 +1,25 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useI18n } from '@/components/i18n/I18nProvider';
 
 interface CountUpProps {
   value: number;
-  /** Formats the in-flight number; defaults to en-GB grouping. */
+  /** 'aey-compact' renders 2.45B (or the reader's locale equivalent). */
   format?: 'number' | 'aey-compact';
   durationMs?: number;
 }
 
-function render(n: number, format: CountUpProps['format']) {
-  if (format === 'aey-compact') {
-    if (n >= 1e9) return `${(n / 1e9).toFixed(2)}B`;
-    if (n >= 1e6) return `${(n / 1e6).toFixed(1)}M`;
+function render(n: number, format: CountUpProps['format'], intl: string) {
+  if (format === 'aey-compact' && n >= 1e6) {
+    return new Intl.NumberFormat(intl, { notation: 'compact', maximumFractionDigits: n >= 1e9 ? 2 : 1 }).format(n);
   }
-  return Math.round(n).toLocaleString('en-GB');
+  return Math.round(n).toLocaleString(intl);
 }
 
 /** Counts up to `value` once scrolled into view. Server-renders the final value. */
 export function CountUp({ value, format = 'number', durationMs = 1600 }: CountUpProps) {
+  const { intl } = useI18n();
   const ref = useRef<HTMLSpanElement>(null);
   const [shown, setShown] = useState(value);
 
@@ -30,12 +31,11 @@ export function CountUp({ value, format = 'number', durationMs = 1600 }: CountUp
       if (!entry.isIntersecting) return;
       io.disconnect();
       const start = performance.now();
-      const tick = (t: number) => {
-        const p = Math.min(1, (t - start) / durationMs);
+      const tick = (time: number) => {
+        const p = Math.min(1, (time - start) / durationMs);
         setShown(value * (1 - Math.pow(1 - p, 3)));
         if (p < 1) raf = requestAnimationFrame(tick);
       };
-      setShown(0);
       raf = requestAnimationFrame(tick);
     }, { threshold: 0.4 });
     io.observe(el);
@@ -43,8 +43,8 @@ export function CountUp({ value, format = 'number', durationMs = 1600 }: CountUp
   }, [value, durationMs]);
 
   return (
-    <span ref={ref} className="tabular-nums" aria-label={render(value, format)}>
-      <span aria-hidden="true">{render(shown, format)}</span>
+    <span ref={ref} className="tabular-nums" aria-label={render(value, format, intl)}>
+      <span aria-hidden="true">{render(shown, format, intl)}</span>
     </span>
   );
 }

@@ -31,7 +31,7 @@ function spec(kind: PortalDocumentKind, u: UserSession): Omit<OfficialPdfSpec, '
         kind: 'Certificate of E-Residency',
         title: 'Certificate of Digital Residency',
         meta: [...holder, ['Status', u.status], ['Issued', today()], SPECIMEN],
-        lead: `The General Secretariat of State certifies that ${u.name} has been admitted as an e-resident of the Covenant State of Aletheia under the Digital E-Residency & Virtual Jurisdiction Act.`,
+        lead: `The General Secretariat of State certifies that ${u.name} has been admitted as an e-resident of the Sovereign Covenant State of Aletheia under the Digital E-Residency & Virtual Jurisdiction Act.`,
         sections: [
           { heading: 'Rights conferred', paragraphs: ['Digital legal identity; the capacity to establish and administer enterprises registered in Aletheia; access to the Aletheia Payment Network; remote execution of contracts under Aletheian law.'] },
           { heading: 'Limitations', paragraphs: ['E-residency confers no right of physical residence, no entitlement to healthcare, and no right to vote. It is not a travel document.'] },
@@ -57,7 +57,7 @@ function spec(kind: PortalDocumentKind, u: UserSession): Omit<OfficialPdfSpec, '
         kind: 'Fiscal Status Attestation',
         title: 'Declaration of Fiscal Status',
         meta: [...holder, ['Attested', today()], SPECIMEN],
-        lead: `The Ministry of Treasury & Finance attests that ${u.name} is registered with the Covenant State and that no personal income tax is levied by the Republic, by constitutional prohibition.`,
+        lead: `The Ministry of Treasury & Finance attests that ${u.name} is registered with the Sovereign Covenant State and that no personal income tax is levied by the Sovereign Covenant State, by constitutional prohibition.`,
         sections: [
           { heading: 'Important', paragraphs: ['E-residency does not by itself establish tax residence for the purposes of any other jurisdiction. Holders remain responsible for their obligations where they live.'] },
         ],
@@ -72,10 +72,10 @@ function spec(kind: PortalDocumentKind, u: UserSession): Omit<OfficialPdfSpec, '
         sections: [
           {
             paragraphs: [
-              '1. Country: The Covenant State of Aletheia',
+              '1. Country: The Sovereign Covenant State of Aletheia',
               '2. This public document has been signed by the General Secretariat of State',
               '3. Acting in the capacity of Registrar of Persons',
-              '4. Bears the seal of the Covenant State',
+              '4. Bears the seal of the Sovereign Covenant State',
               '5. Certified at Antioch',
               `6. On ${today()}`,
               '7. By the High Court Notarial Bureau',

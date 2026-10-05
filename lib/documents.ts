@@ -29,7 +29,7 @@ export const REGISTER: RegisterDocument[] = [
     date: '2026-01-15',
     hash: '0x8f2b7a4c91e3d085fa49b817e4521098ef7321ac90b34d76a218fce1b2049e91',
     status: 'Operational',
-    description: 'The fundamental supreme organic law establishing the federal republic, rights charter, and governance architecture.',
+    description: 'The fundamental supreme organic law establishing the Sovereign Covenant State, rights charter, and governance architecture.',
     source: { kind: 'constitution' },
   },
   {
@@ -53,7 +53,7 @@ export const REGISTER: RegisterDocument[] = [
     status: 'Operational',
     description: 'Regulations for TD3 biometric travel document issuance, polycarbonate substrates, and ICAO PKD keys.',
     body: {
-      lead: 'Regulations made under the Nationality & Naturalisation Act prescribing the form, security and issuance of the passport of the Covenant State of Aletheia.',
+      lead: 'Regulations made under the Nationality & Naturalisation Act prescribing the form, security and issuance of the passport of the Sovereign Covenant State of Aletheia.',
       sections: [
         { number: 'Regulation 1', heading: 'Standard', paragraphs: ['The passport of Aletheia shall be a machine-readable travel document conforming to ICAO Doc 9303, Part 4 (TD3 size), issued as an electronic machine-readable travel document (eMRTD).'] },
         { number: 'Regulation 2', heading: 'Form and appearance', paragraphs: ['The cover shall be Covenant Burgundy and bear the national arms in gold foil, with the words "The Sovereign Covenant State of Aletheia" and "Passport" in the five official languages.', 'The data page shall be laser-engraved polycarbonate with a tactile surface relief, a ghost image and micro-text bearing the opening words of Article 1 of the Covenant.'] },
@@ -85,14 +85,14 @@ export const REGISTER: RegisterDocument[] = [
     status: 'Operational',
     description: 'Official promulgation of inaugural executive orders, ministerial portfolios, and diplomatic notifications.',
     body: {
-      lead: 'The Chancellor of the Republic, acting under Article 23 of the Covenant, promulgates the following decrees establishing the institutions of the executive.',
+      lead: 'The Chancellor of the Sovereign Covenant State, acting under Article 23 of the Covenant, promulgates the following decrees establishing the institutions of the executive.',
       sections: [
         { number: 'Decree 1', heading: 'Establishment of the Ministries', paragraphs: ['The following nine ministries are established, and no other: Treasury & Finance; Digital State & Registries; Security & Civil Defence; Foreign Affairs & Justice; Health & Social Well-being; Education & Science; Maritime Affairs & Ports; Infrastructure & Energy; Agriculture & Environment.'] },
         { number: 'Decree 2', heading: 'Independent constitutional bodies', paragraphs: ['The Auditor-General, the Registry & Privacy Ombudsman and the Monetary Board are constituted as independent bodies reporting to the Covenant Assembly and not subject to ministerial direction.'] },
         { number: 'Decree 3', heading: 'The Official Gazette', paragraphs: ['The Official Gazette is established as the sole authoritative channel for the promulgation of statutes, decrees and appointments. Each entry shall be signed and its hash inscribed on the public ledger.'] },
-        { number: 'Decree 4', heading: 'Diplomatic notification', paragraphs: ['The Ministry of Foreign Affairs & Justice is directed to notify foreign governments and international organisations of the establishment of the Covenant State and of its intention to pursue bilateral covenants of friendship and recognition.'] },
+        { number: 'Decree 4', heading: 'Diplomatic notification', paragraphs: ['The Ministry of Foreign Affairs & Justice is directed to notify foreign governments and international organisations of the establishment of the Sovereign Covenant State and of its intention to pursue bilateral covenants of friendship and recognition.'] },
       ],
-      signatory: 'Chancellor of the Republic',
+      signatory: 'Chancellor of the Sovereign Covenant State',
     },
   },
   {
@@ -105,7 +105,7 @@ export const REGISTER: RegisterDocument[] = [
     status: 'Under Development',
     description: 'Technical standard for 500 ms slot finality, deterministic fees, and state registry verification.',
     body: {
-      lead: 'This standard specifies the consensus, settlement and verification rules of StableChain, the national ledger of the Covenant State. Draft for engineering review; normative language follows RFC 2119.',
+      lead: 'This standard specifies the consensus, settlement and verification rules of StableChain, the national ledger of the Sovereign Covenant State. Draft for engineering review; normative language follows RFC 2119.',
       sections: [
         { number: '1.', heading: 'Scope', paragraphs: ['APS-01 governs block production, finality, fee determination and the verification of state registry records. It does not govern the monetary policy of the AEY, which is set by the Monetary Architecture & Reserve Backing Act.'] },
         { number: '2.', heading: 'Validator set', paragraphs: ['Consensus SHALL be operated by state-authorised validators partitioned across at least three physically separate facilities. The validator set and each validator public key SHALL be published in the State Key Directory.', 'A change to the validator set REQUIRES a signed decree published in the Official Gazette at least one epoch before it takes effect.'] },

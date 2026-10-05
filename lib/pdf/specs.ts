@@ -19,14 +19,14 @@ function longDate(iso: string) {
 export function constitutionSpec(): Spec {
   return {
     code: 'CONST-2026-01',
-    kind: 'The Supreme Law of the Republic',
+    kind: 'The Supreme Law of the Sovereign Covenant State',
     title: 'The Covenant of Aletheia',
     meta: [
       ['Promulgated', longDate('2026-01-15')],
       ['Edition', '2026.3 — authoritative working text'],
       ['Articles', `${CONSTITUTION_DATA.length} published provisions`],
     ],
-    lead: 'We, the founding members of the Covenant State of Aletheia, ordain this Covenant so that the public power of the Republic shall be lawful, limited, and provable — Veritas in Foedere.',
+    lead: 'We, the founding members of the Sovereign Covenant State of Aletheia, ordain this Covenant so that the public power of the Sovereign Covenant State shall be lawful, limited, and provable — Veritas in Foedere.',
     sections: CONSTITUTION_DATA.map((a) => ({
       number: `Article ${a.number}`,
       heading: `${a.title}  (${a.part})`,
@@ -111,7 +111,7 @@ export function bondSpec(b: BondTranche): Spec {
     ],
     lead: 'This memorandum summarises the principal terms of the tranche for information only. It is not an offer of securities; subscriptions are accepted solely under the formal prospectus issued by the Ministry of Treasury & Finance.',
     sections: [
-      { number: '1.', heading: 'Issuer', paragraphs: ['The Covenant State of Aletheia, acting through the Ministry of Treasury & Finance, with the full faith of the Covenant Endowment.'] },
+      { number: '1.', heading: 'Issuer', paragraphs: ['The Sovereign Covenant State of Aletheia, acting through the Ministry of Treasury & Finance, with the full faith of the Covenant Endowment.'] },
       { number: '2.', heading: 'Use of proceeds', paragraphs: [`Proceeds are ring-fenced for: ${b.purpose}. Every disbursement is receipted on the public ledger and summarised quarterly by the Auditor-General.`] },
       { number: '3.', heading: 'Denomination and settlement', paragraphs: ['Bonds are denominated in Aletheian Guilders (AEY), at par with the euro, and settle on StableChain. Coupons are payable in EUR or AEY at the holder\'s election.'] },
       { number: '4.', heading: 'Governing law', paragraphs: ['The bonds are governed by English commercial law. Disputes are resolved before the Court of Maritime & Commercial Disputes of Aletheia, with recourse to international arbitration.'] },

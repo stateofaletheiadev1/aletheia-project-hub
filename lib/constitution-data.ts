@@ -31,15 +31,15 @@ export const CONSTITUTION_DATA: ConstitutionalArticle[] = [
     part: 'Part I: Foundational Principles & Sovereignty',
     title: 'Nature of the Sovereign Covenant State',
     status: 'Operational',
-    summary: 'Establishes Aletheia as a compact maritime republic founded upon truth, public proof, and covenant law.',
+    summary: 'Establishes Aletheia as a compact maritime nation founded upon truth, public proof, and covenant law.',
     clauses: [
       {
         number: '1(1)',
-        text: 'The Sovereign Covenant State of Aletheia is an independent, European-oriented maritime republic whose supreme authority resides in the Covenant ratified by its citizens and constituent states.',
+        text: 'The Sovereign Covenant State of Aletheia is an independent, European-oriented maritime nation whose supreme authority resides in the Covenant ratified by its citizens and constituent states.',
       },
       {
         number: '1(2)',
-        text: 'The Republic adopts as its governing method the principle of Aletheia — truth that is unhidden — whereby all public records, statutes, land titles, and financial appropriations shall be provable by cryptographic verification.',
+        text: 'The Sovereign Covenant State adopts as its governing method the principle of Aletheia — truth that is unhidden — whereby all public records, statutes, land titles, and financial appropriations shall be provable by cryptographic verification.',
       },
       {
         number: '1(3)',
@@ -97,11 +97,11 @@ export const CONSTITUTION_DATA: ConstitutionalArticle[] = [
     clauses: [
       {
         number: '7(1)',
-        text: 'The territory of the Republic comprises the Federal District of Antioch and the four constituent maritime states: St. Barbara State, Augustine State, Benedict State, and St. Brendan State.',
+        text: 'The territory of the Sovereign Covenant State comprises the Federal District of Antioch and the four constituent maritime states: St. Barbara State, Augustine State, Benedict State, and St. Brendan State.',
       },
       {
         number: '7(2)',
-        text: 'The Federal District of Antioch is the perpetual capital city and seat of the sovereign legislative, executive, and judicial authorities of the Republic.',
+        text: 'The Federal District of Antioch is the perpetual capital city and seat of the sovereign legislative, executive, and judicial authorities of the Sovereign Covenant State.',
       },
       {
         number: '7(3)',
@@ -136,7 +136,7 @@ export const CONSTITUTION_DATA: ConstitutionalArticle[] = [
       },
       {
         number: '8(2)',
-        text: 'Citizenship is a civic covenant and shall never be auctioned or conferred without the Covenant Oath. The Republic may confer citizenship upon persons who make a qualifying investment in the development of the Republic, as prescribed by statute, subject to enhanced due diligence, a clean criminal record and the public Covenant Oath.',
+        text: 'Citizenship is a civic covenant and shall never be auctioned or conferred without the Covenant Oath. The Sovereign Covenant State may confer citizenship upon persons who make a qualifying investment in the development of the Sovereign Covenant State, as prescribed by statute, subject to enhanced due diligence, a clean criminal record and the public Covenant Oath.',
       },
       {
         number: '8(3)',
@@ -167,7 +167,7 @@ export const CONSTITUTION_DATA: ConstitutionalArticle[] = [
     clauses: [
       {
         number: '11(1)',
-        text: 'The Republic may confer e-residency upon approved international applicants who undergo biometric identity verification and background vetting.',
+        text: 'The Sovereign Covenant State may confer e-residency upon approved international applicants who undergo biometric identity verification and background vetting.',
       },
       {
         number: '11(2)',
@@ -175,7 +175,7 @@ export const CONSTITUTION_DATA: ConstitutionalArticle[] = [
       },
       {
         number: '11(3)',
-        text: 'E-residency does not confer physical residency, the right to enter territorial land, or political voting franchise within the Republic.',
+        text: 'E-residency does not confer physical residency, the right to enter territorial land, or political voting franchise within the Sovereign Covenant State.',
       },
     ],
     crossReferences: ['art-8', 'art-38', 'art-40'],
@@ -202,7 +202,7 @@ export const CONSTITUTION_DATA: ConstitutionalArticle[] = [
     clauses: [
       {
         number: '16(1)',
-        text: 'The sovereign unit of account of the Republic is the Aletheian Guilder (AEY), issued on the StableChain and redeemable against certified reserves.',
+        text: 'The sovereign unit of account of the Sovereign Covenant State is the Aletheian Guilder (AEY), issued on the StableChain and redeemable against certified reserves.',
       },
       {
         number: '16(2)',
@@ -268,7 +268,7 @@ export const CONSTITUTION_DATA: ConstitutionalArticle[] = [
     clauses: [
       {
         number: '46(1)',
-        text: 'The defence and public safety of the Republic are entrusted to the Aletheian Defence & Security Service (ADSS), acting under the supreme command of the Minister of Security.',
+        text: 'The defence and public safety of the Sovereign Covenant State are entrusted to the Aletheian Defence & Security Service (ADSS), acting under the supreme command of the Minister of Security.',
       },
       {
         number: '46(2)',

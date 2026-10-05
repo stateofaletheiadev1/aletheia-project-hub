@@ -89,7 +89,7 @@ export const MAIN_NAVIGATION: NavItem[] = [
       {
         group: 'The National Register',
         items: [
-          { title: 'Registry & Revenue', href: '/registry', desc: 'Citizens, e-residents, and funds raised to build the republic' },
+          { title: 'Registry & Revenue', href: '/registry', desc: 'Citizens, e-residents, and funds raised to build the Sovereign Covenant State' },
           { title: 'E-Residency', href: '/e-residency', desc: 'Digital state access for global founders' },
           { title: 'Immigration & Residence', href: '/immigration', desc: 'Visas and residence permits — the path to naturalisation' },
         ],

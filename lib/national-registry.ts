@@ -82,13 +82,13 @@ export function totalRaised(s: RegistrySnapshot): number {
   return s.revenue.reduce((sum, r) => sum + r.amount, 0);
 }
 
-/** Compact AEY formatting: 2.45B AEY, 612M AEY, 6.2M AEY. */
-export function compactAey(amount: number): string {
-  if (amount >= 1e9) return `${(amount / 1e9).toFixed(2).replace(/\.?0+$/, '')}B AEY`;
-  if (amount >= 1e6) return `${(amount / 1e6).toFixed(1).replace(/\.0$/, '')}M AEY`;
-  return `${amount.toLocaleString('en-GB')} AEY`;
+/** Compact AEY formatting in the reader's locale: 2.45B AEY, 2,45 Mrd. AEY, 612M AEY. */
+export function compactAey(amount: number, intl = 'en-GB'): string {
+  if (amount < 1e6) return `${amount.toLocaleString(intl)} AEY`;
+  const compact = new Intl.NumberFormat(intl, { notation: 'compact', maximumFractionDigits: amount >= 1e9 ? 2 : 1 }).format(amount);
+  return `${compact} AEY`;
 }
 
-export function monthLabel(ym: string): string {
-  return new Date(`${ym}-15T12:00:00Z`).toLocaleDateString('en-GB', { month: 'short', year: '2-digit', timeZone: 'UTC' });
+export function monthLabel(ym: string, intl = 'en-GB'): string {
+  return new Date(`${ym}-15T12:00:00Z`).toLocaleDateString(intl, { month: 'short', year: '2-digit', timeZone: 'UTC' });
 }

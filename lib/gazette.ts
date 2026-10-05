@@ -71,7 +71,7 @@ export const GAZETTE_POSTS: GazettePost[] = [
       'Executive Order 2026-14 mandates public availability of the Country Signing CA (CSCA) root certificate to facilitate automated e-Gate passage for Aletheian passport holders.',
       'The directory will also publish validator keys for StableChain state nodes and the signing keys of the Official Gazette, so any citizen can verify a decree independently.',
     ],
-    signatory: 'Chancellor of the Republic',
+    signatory: 'Chancellor of the Sovereign Covenant State',
     image: 'circuitGlow',
     readMinutes: 2,
   },
@@ -131,8 +131,8 @@ export function getGazettePost(slug: string): GazettePost | undefined {
   return GAZETTE_POSTS.find((p) => p.slug === slug);
 }
 
-export function formatGazetteDate(iso: string): string {
-  return new Date(`${iso}T12:00:00Z`).toLocaleDateString('en-GB', {
+export function formatGazetteDate(iso: string, intl = 'en-GB'): string {
+  return new Date(`${iso}T12:00:00Z`).toLocaleDateString(intl, {
     day: 'numeric',
     month: 'long',
     year: 'numeric',

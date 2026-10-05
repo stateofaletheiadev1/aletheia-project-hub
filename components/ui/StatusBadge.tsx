@@ -1,3 +1,6 @@
+'use client';
+
+import { useI18n } from '@/components/i18n/I18nProvider';
 import React from 'react';
 import { NationalStatus, STATUS_CONFIG } from '@/lib/status';
 
@@ -9,6 +12,7 @@ interface StatusBadgeProps {
 }
 
 export function StatusBadge({ status, size = 'sm', showDot = true, className = '' }: StatusBadgeProps) {
+  const { tx } = useI18n();
   const config = STATUS_CONFIG[status] || STATUS_CONFIG['Vision'];
 
   const sizeClasses = {
@@ -20,16 +24,16 @@ export function StatusBadge({ status, size = 'sm', showDot = true, className = '
   return (
     <span
       className={`inline-flex items-center gap-1.5 font-medium rounded-sm border uppercase font-sans whitespace-nowrap shrink-0 ${config.badgeClass} ${sizeClasses[size]} ${className}`}
-      title={config.description}
+      title={tx(config.description)}
     >
-      {showDot && (
+      {tx(showDot && (
         <span
           className="w-1.5 h-1.5 rounded-full shrink-0"
           style={{ backgroundColor: config.dotColor }}
           aria-hidden="true"
         />
-      )}
-      <span className="whitespace-nowrap">{status}</span>
+      ))}
+      <span className="whitespace-nowrap">{tx(status)}</span>
     </span>
   );
 }

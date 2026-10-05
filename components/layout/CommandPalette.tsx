@@ -1,8 +1,9 @@
 'use client';
 
+import { useI18n } from '@/components/i18n/I18nProvider';
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import Link from '@/components/i18n/Link';
+import { useRouter } from '@/lib/i18n/navigation';
 import { Search, X, FileText, Landmark, Shield, Cpu, BookOpen, ArrowRight } from 'lucide-react';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 
@@ -43,7 +44,7 @@ const SEARCH_DATABASE: SearchItem[] = [
   { title: 'Immigration Officer Workbench', category: 'Security', href: '/admin/immigration', desc: 'Secure administrative case management for immigration officers.' },
   // Society, public services & information
   { title: 'Apply for Citizenship', category: 'Service', href: '/citizenship/apply', desc: 'Check eligibility for naturalisation or the Covenant Investor route.', status: 'Under Development' },
-  { title: 'National Registry & Revenue', category: 'Economy', href: '/registry', desc: 'Registrations by programme and funds raised to build the republic.' },
+  { title: 'National Registry & Revenue', category: 'Economy', href: '/registry', desc: 'Registrations by programme and funds raised to build the Sovereign Covenant State.' },
   { title: 'Life in Aletheia', category: 'Service', href: '/society', desc: 'Languages, culture, civic calendar, and maritime heritage.' },
   { title: 'Health & Social Care', category: 'Service', href: '/healthcare', desc: 'Universal covenant healthcare and the National Health Registry.', status: 'Planned' },
   { title: 'Education & Research', category: 'Service', href: '/education', desc: 'Bilingual schools, the National University, scholarships.', status: 'Planned' },
@@ -53,6 +54,7 @@ const SEARCH_DATABASE: SearchItem[] = [
 ];
 
 export function CommandPalette({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  const { t, tx } = useI18n();
   const router = useRouter();
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -100,14 +102,14 @@ export function CommandPalette({ isOpen, onClose }: { isOpen: boolean; onClose: 
               setQuery(e.target.value);
               setSelectedIndex(0);
             }}
-            placeholder="Search the Constitution, 9 Ministries, Laws, or Services..."
+            placeholder={t("Search the Constitution, 9 Ministries, Laws, or Services...")}
             className="w-full py-4 text-base bg-transparent text-navy placeholder:text-navy/40 focus:outline-none font-sans"
             autoFocus
           />
           <button
             onClick={onClose}
             className="p-1.5 text-navy/50 hover:text-navy rounded-sm"
-            aria-label="Close search"
+            aria-label={t("Close search")}
           >
             <X className="w-5 h-5" />
           </button>
@@ -115,10 +117,8 @@ export function CommandPalette({ isOpen, onClose }: { isOpen: boolean; onClose: 
 
         {/* Search Results List */}
         <div className="max-h-[60vh] overflow-y-auto p-2 divide-y divide-navy/5">
-          {filtered.length === 0 ? (
-            <div className="p-8 text-center text-sm text-navy/60">
-              No official provisions or records found matching &ldquo;{query}&rdquo;.
-            </div>
+          {tx(filtered.length === 0 ? (
+            <div className="p-8 text-center text-sm text-navy/60">{t("No official provisions or records found matching “")}{tx(query)}{t("”.")}</div>
           ) : (
             filtered.map((item, idx) => (
               <Link
@@ -130,26 +130,26 @@ export function CommandPalette({ isOpen, onClose }: { isOpen: boolean; onClose: 
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] font-mono uppercase tracking-wider text-gold font-semibold px-1.5 py-0.5 bg-navy/5 border border-navy/10 rounded-sm">
-                      {item.category}
+                      {tx(item.category)}
                     </span>
                     <h4 className="text-sm font-semibold text-navy group-hover:text-gold transition-colors">
-                      {item.title}
+                      {tx(item.title)}
                     </h4>
                   </div>
-                  {item.status && <StatusBadge status={item.status} size="sm" />}
+                  {tx(item.status && <StatusBadge status={item.status} size="sm" />)}
                 </div>
                 <p className="text-xs text-navy/70 line-clamp-1 mt-1 font-normal">
-                  {item.desc}
+                  {tx(item.desc)}
                 </p>
               </Link>
             ))
-          )}
+          ))}
         </div>
 
         {/* Footer shortcuts */}
         <div className="p-3 bg-parchment-light border-t border-navy/10 flex items-center justify-between text-[11px] text-navy/60 font-mono">
-          <span>Navigate with mouse or Tab</span>
-          <span>ESC to close</span>
+          <span>{t("Navigate with mouse or Tab")}</span>
+          <span>{t("ESC to close")}</span>
         </div>
       </div>
     </div>

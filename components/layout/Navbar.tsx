@@ -1,8 +1,10 @@
 'use client';
 
+import { useI18n } from '@/components/i18n/I18nProvider';
+import { LanguageLinks, LanguageMenu } from '@/components/i18n/LanguageSwitcher';
 import React, { useState, useEffect, useRef } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import Link from '@/components/i18n/Link';
+import { usePathname } from '@/lib/i18n/navigation';
 import Image from 'next/image';
 import { MAIN_NAVIGATION } from '@/lib/navigation';
 import { StatusBadge } from '@/components/ui/StatusBadge';
@@ -34,7 +36,7 @@ const NAV_LABELS: Record<string, string> = {
 const EDITORIAL: Record<string, { title: string; desc: string; href: string; tag: string }> = {
   Aletheia: {
     title: 'National Blueprint 2026.3',
-    desc: 'Complete architectural specification of the sovereign maritime republic.',
+    desc: 'Complete architectural specification of the Sovereign Covenant State.',
     href: '/aletheia',
     tag: 'FOUNDATIONAL DECREE',
   },
@@ -65,11 +67,11 @@ const EDITORIAL: Record<string, { title: string; desc: string; href: string; tag
 };
 
 export function Navbar() {
+  const { t, tx } = useI18n();
   const pathname = usePathname();
   const [activeMenu, setActiveMenu]   = useState<string | null>(null);
   const [mobileOpen, setMobileOpen]   = useState(false);
   const [scrolled,   setScrolled]     = useState(false);
-  const [langOpen,   setLangOpen]     = useState(false);
   const [searchOpen, setSearchOpen]   = useState(false);
   const closeRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -83,14 +85,14 @@ export function Navbar() {
   /* route changes → close everything */
   useEffect(() => {
     setActiveMenu(null); setMobileOpen(false);
-    setSearchOpen(false); setLangOpen(false);
+    setSearchOpen(false);
   }, [pathname]);
 
   /* keyboard */
   useEffect(() => {
     const fn = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); setSearchOpen(true); }
-      if (e.key === 'Escape') { setActiveMenu(null); setMobileOpen(false); setLangOpen(false); }
+      if (e.key === 'Escape') { setActiveMenu(null); setMobileOpen(false); }
     };
     window.addEventListener('keydown', fn);
     return () => window.removeEventListener('keydown', fn);
@@ -122,79 +124,35 @@ export function Navbar() {
           {/* left: branding sentence */}
           <div className="flex items-center gap-3 text-[10px] leading-none">
             <span className="flex items-center gap-1.5 font-bold tracking-[0.16em] uppercase text-[#C49A4E]">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#C49A4E] animate-pulse" />
-              Digital Platform
-            </span>
+              <span className="w-1.5 h-1.5 rounded-full bg-[#C49A4E] animate-pulse" />{t("Digital Platform")}</span>
             <span className="text-white/20">|</span>
-            <span className="text-white/45 tracking-wide">
-              The Covenant State of Aletheia
-            </span>
+            <span className="text-white/45 tracking-wide">{t("The Sovereign Covenant State of Aletheia")}</span>
             <span className="text-white/20">|</span>
-            <span className="italic font-serif text-[#C49A4E]/70">Veritas in Foedere</span>
+            <span className="italic font-serif text-[#C49A4E]/70">{t("Veritas in Foedere")}</span>
           </div>
 
           {/* right: utilities */}
           <div className="flex items-center gap-4 text-[10px] text-white/40 leading-none">
             <button
               onClick={() => setSearchOpen(true)}
-              aria-label="Search the platform (Ctrl or Command + K)"
+              aria-label={t("Search the platform (Ctrl or Command + K)")}
               className="flex items-center gap-1 hover:text-[#C49A4E] transition-colors"
             >
               <Search className="w-2.5 h-2.5" /> ⌘K
             </button>
             <span className="text-white/15">|</span>
-            <Link href="/transparency" className="hover:text-[#C49A4E] transition-colors">
-              Public Ledger Audit
-            </Link>
+            <Link href="/transparency" className="hover:text-[#C49A4E] transition-colors">{t("Public Ledger Audit")}</Link>
             <span className="text-white/15">|</span>
 
             {/* language */}
-            <div className="relative">
-              <button
-                onClick={() => setLangOpen(v => !v)}
-                aria-haspopup="true"
-                aria-expanded={langOpen}
-                aria-label="Choose language"
-                className="flex items-center gap-1 hover:text-[#C49A4E] transition-colors"
-              >
-                <Globe className="w-2.5 h-2.5" /> EN <ChevronDown className="w-2 h-2" />
-              </button>
-              {langOpen && (
-                <div className="absolute right-0 top-full mt-1 w-44 bg-[#0E1B31] border border-[#C49A4E]/30 shadow-2xl z-50">
-                  <div className="px-3 py-1.5 text-[9px] uppercase tracking-widest text-[#C49A4E]/50 border-b border-white/10">
-                    5 Official Languages
-                  </div>
-                  {[
-                    { code: 'en', label: 'English (Working)' },
-                    { code: 'de', label: 'Deutsch' },
-                    { code: 'nl', label: 'Nederlands' },
-                    { code: 'sr', label: 'Српски' },
-                    { code: 'it', label: 'Italiano' },
-                  ].map(l => (
-                    <button
-                      key={l.code}
-                      onClick={() => setLangOpen(false)}
-                      className={`w-full text-left px-3 py-1.5 text-[10px] transition-colors flex items-center justify-between ${
-                        l.code === 'en'
-                          ? 'text-[#C49A4E] bg-white/5'
-                          : 'text-white/55 hover:text-[#C49A4E] hover:bg-white/5'
-                      }`}
-                    >
-                      {l.label}
-                      {l.code === 'en' && <span className="text-[#C49A4E] text-[8px]">●</span>}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            <LanguageMenu />
 
             <span className="text-white/15">|</span>
             <Link
               href="/admin/login"
               className="flex items-center gap-1 text-[#C49A4E]/70 hover:text-[#C49A4E] transition-colors font-semibold"
             >
-              <Shield className="w-2.5 h-2.5" /> Officer Portal
-            </Link>
+              <Shield className="w-2.5 h-2.5" />{' '}{t("Officer Portal")}</Link>
           </div>
         </div>
       </div>
@@ -218,29 +176,25 @@ export function Navbar() {
             {/* ── LOGO ───────────────────────────────────────────── */}
             <Link
               href="/"
-              aria-label="Aletheia Home"
+              aria-label={t("Aletheia Home")}
               className="flex items-center gap-2.5 shrink-0 group"
             >
               <Image
                 src="/coat_of_arms_transparent.png"
-                alt="Arms of Aletheia"
+                alt={t("Arms of Aletheia")}
                 width={36}
                 height={42}
                 className="object-contain drop-shadow-sm"
                 priority
               />
               <div className="flex flex-col leading-none">
-                <span className="text-[15px] font-bold tracking-[0.18em] uppercase text-[#15294A] group-hover:text-[#15294A] whitespace-nowrap">
-                  ALETHEIA
-                </span>
-                <span className="text-[8.5px] font-semibold tracking-[0.16em] uppercase text-[#C49A4E] whitespace-nowrap mt-0.5">
-                  Covenant State
-                </span>
+                <span className="text-[15px] font-bold tracking-[0.18em] uppercase text-[#15294A] group-hover:text-[#15294A] whitespace-nowrap">{t("ALETHEIA")}</span>
+                <span className="text-[8.5px] font-semibold tracking-[0.16em] uppercase text-[#C49A4E] whitespace-nowrap mt-0.5">{t("Sovereign Covenant State")}</span>
               </div>
             </Link>
 
             {/* ── DESKTOP NAV ────────────────────────────────────── */}
-            <nav className="hidden xl:flex items-center" aria-label="Primary">
+            <nav className="hidden xl:flex items-center" aria-label={t("Primary")}>
               {MAIN_NAVIGATION.map(item => {
                 const hasDropdown = !!(item.children?.length);
                 const label       = NAV_LABELS[item.label] ?? item.label;
@@ -274,21 +228,21 @@ export function Navbar() {
                       }`}
                     >
                       {/* active indicator */}
-                      {isActive && (
+                      {tx(isActive && (
                         <span className="absolute bottom-0 left-3 right-3 h-[2px] bg-[#C49A4E] rounded-full" />
-                      )}
-                      {label}
-                      {hasDropdown && (
+                      ))}
+                      {tx(label)}
+                      {tx(hasDropdown && (
                         <ChevronDown
                           className={`ml-0.5 w-3 h-3 text-[#15294A]/30 transition-transform duration-150 ${
                             activeMenu === item.label ? 'rotate-180' : ''
                           }`}
                         />
-                      )}
+                      ))}
                     </Link>
 
                     {/* ── MEGA-MENU ─────────────────────────────── */}
-                    {hasDropdown && activeMenu === item.label && (
+                    {tx(hasDropdown && activeMenu === item.label && (
                       <div
                         className="animate-fade-in absolute left-1/2 -translate-x-1/2 top-[calc(100%+2px)] w-[680px] bg-white border border-[#15294A]/[0.08] shadow-[0_12px_48px_-12px_rgba(21,41,74,0.18)] rounded-[4px] overflow-hidden z-50"
                         onMouseEnter={() => enter(item.label)}
@@ -301,7 +255,7 @@ export function Navbar() {
                             {item.children?.map(group => (
                               <div key={group.group}>
                                 <p className="text-[9.5px] font-bold tracking-[0.18em] uppercase text-[#C49A4E] mb-2.5 mt-1">
-                                  {group.group}
+                                  {tx(group.group)}
                                 </p>
                                 {group.items.map(sub => (
                                   <Link
@@ -312,14 +266,14 @@ export function Navbar() {
                                     <div className="flex-1 min-w-0">
                                       <div className="flex items-center gap-1.5 flex-wrap">
                                         <span className="text-[12px] font-semibold text-[#15294A] group-hover/l:text-[#C49A4E] transition-colors leading-none">
-                                          {sub.title}
+                                          {tx(sub.title)}
                                         </span>
-                                        {sub.status && (
+                                        {tx(sub.status && (
                                           <StatusBadge status={sub.status} size="sm" />
-                                        )}
+                                        ))}
                                       </div>
                                       <p className="text-[10.5px] text-[#15294A]/45 mt-0.5 line-clamp-1 leading-snug">
-                                        {sub.desc}
+                                        {tx(sub.desc)}
                                       </p>
                                     </div>
                                   </Link>
@@ -332,37 +286,36 @@ export function Navbar() {
                           <div className="col-span-4 bg-[#15294A] p-5 flex flex-col justify-between">
                             <div className="space-y-2">
                               <span className="text-[9px] font-bold tracking-[0.22em] uppercase text-[#C49A4E]/75 block">
-                                {EDITORIAL[item.label]?.tag ?? 'FEATURED'}
+                                {tx(EDITORIAL[item.label]?.tag ?? 'FEATURED')}
                               </span>
                               <h5 className="text-[13px] font-bold text-[#F4EEDF] leading-snug">
-                                {EDITORIAL[item.label]?.title ?? item.label}
+                                {tx(EDITORIAL[item.label]?.title ?? item.label)}
                               </h5>
                               <p className="text-[10.5px] text-[#F4EEDF]/55 leading-relaxed">
-                                {EDITORIAL[item.label]?.desc ?? item.description}
+                                {tx(EDITORIAL[item.label]?.desc ?? item.description)}
                               </p>
                             </div>
                             <Link
                               href={EDITORIAL[item.label]?.href ?? item.href}
                               className="inline-flex items-center gap-1.5 mt-5 pt-3 border-t border-[#F4EEDF]/[0.08] text-[10px] font-bold text-[#C49A4E] hover:text-[#E4C689] transition-colors uppercase tracking-[0.14em]"
-                            >
-                              View details <ArrowRight className="w-3 h-3" />
+                            >{t("View details")}{' '}<ArrowRight className="w-3 h-3" />
                             </Link>
                           </div>
 
                         </div>
                       </div>
-                    )}
+                    ))}
                   </div>
                 );
               })}
             </nav>
 
             {/* ── ACTION CLUSTER ────────────────────────────────── */}
-            <div className="hidden md:flex items-center gap-2 shrink-0">
+            <div className="hidden xl:flex items-center gap-2 shrink-0">
               <button
                 onClick={() => setSearchOpen(true)}
-                title="Search (⌘K)"
-                aria-label="Search the platform"
+                title={t("Search (⌘K)")}
+                aria-label={t("Search the platform")}
                 className="p-2 rounded-[3px] text-[#15294A]/45 hover:text-[#15294A] hover:bg-[#15294A]/[0.04] transition-colors"
               >
                 <Search className="w-4 h-4" />
@@ -374,15 +327,13 @@ export function Navbar() {
                 href="/portal/login"
                 className="flex items-center gap-1.5 px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-wider text-[#15294A] bg-white border border-[#C49A4E]/40 rounded-sm hover:border-[#C49A4E] hover:bg-[#FAF7F0] transition-all whitespace-nowrap shadow-sm"
               >
-                <UserCheck className="w-3.5 h-3.5 text-[#C49A4E]" />
-                Sign In
-              </Link>
+                <UserCheck className="w-3.5 h-3.5 text-[#C49A4E]" />{t("Sign In")}</Link>
 
               <Link
                 href="/e-residency"
                 className="btn-sovereign-gold flex items-center gap-1.5 px-4 py-1.5 text-[11px] rounded-sm transition-all whitespace-nowrap group"
               >
-                <span>Apply</span>
+                <span>{t("Apply")}</span>
                 <ArrowRight className="w-3 h-3 text-[#0E1B31] group-hover:translate-x-0.5 transition-transform" />
               </Link>
             </div>
@@ -391,7 +342,7 @@ export function Navbar() {
             <div className="flex items-center gap-1 xl:hidden">
               <button
                 onClick={() => setSearchOpen(true)}
-                aria-label="Search the platform"
+                aria-label={t("Search the platform")}
                 className="p-2 text-[#15294A]/50 hover:text-[#15294A] hover:bg-[#15294A]/[0.04] rounded-[3px]"
               >
                 <Search className="w-5 h-5" />
@@ -399,10 +350,10 @@ export function Navbar() {
               <button
                 onClick={() => setMobileOpen(v => !v)}
                 className="p-2 text-[#15294A]/50 hover:text-[#15294A] hover:bg-[#15294A]/[0.04] rounded-[3px]"
-                aria-label={mobileOpen ? 'Close navigation' : 'Open navigation'}
+                aria-label={tx(mobileOpen ? 'Close navigation' : 'Open navigation')}
                 aria-expanded={mobileOpen}
               >
-                {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                {tx(mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />)}
               </button>
             </div>
 
@@ -410,7 +361,7 @@ export function Navbar() {
         </div>
 
         {/* ── MOBILE DRAWER ────────────────────────────────────── */}
-        {mobileOpen && (
+        {tx(mobileOpen && (
           <div className="xl:hidden bg-white border-t border-[#15294A]/[0.07] max-h-[80vh] overflow-y-auto">
             <div className="max-w-screen-xl mx-auto px-4 py-3 space-y-0.5">
               {MAIN_NAVIGATION.map(item => (
@@ -424,10 +375,10 @@ export function Navbar() {
                         : 'text-[#15294A]/65 hover:bg-[#15294A]/[0.04] hover:text-[#15294A]'
                     }`}
                   >
-                    {NAV_LABELS[item.label] ?? item.label}
-                    {item.children && <ChevronDown className="w-3.5 h-3.5 text-[#15294A]/25" />}
+                    {tx(NAV_LABELS[item.label] ?? item.label)}
+                    {tx(item.children && <ChevronDown className="w-3.5 h-3.5 text-[#15294A]/25" />)}
                   </Link>
-                  {item.children && (
+                  {tx(item.children && (
                     <div className="pl-3 py-1 space-y-0.5">
                       {item.children.flatMap(g => g.items).map(sub => (
                         <Link
@@ -436,33 +387,33 @@ export function Navbar() {
                           onClick={() => setMobileOpen(false)}
                           className="flex items-center justify-between px-3 py-1.5 text-[12px] text-[#15294A]/55 hover:text-[#15294A] hover:bg-[#15294A]/[0.04] rounded-[3px] transition-colors"
                         >
-                          {sub.title}
-                          {sub.status && <StatusBadge status={sub.status} size="sm" />}
+                          {tx(sub.title)}
+                          {tx(sub.status && <StatusBadge status={sub.status} size="sm" />)}
                         </Link>
                       ))}
                     </div>
-                  )}
+                  ))}
                 </div>
               ))}
+            </div>
+            <div className="border-t border-[#15294A]/[0.07] px-4 py-3 text-[13px]">
+              <span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-[#C49A4E] mb-2">{t("Language")}</span>
+              <LanguageLinks tone="light" onSwitch={() => setMobileOpen(false)} />
             </div>
             <div className="border-t border-[#15294A]/[0.07] px-4 py-4 flex flex-col gap-2">
               <Link
                 href="/e-residency"
                 onClick={() => setMobileOpen(false)}
                 className="w-full py-2.5 text-center text-[13px] font-bold text-[#F4EEDF] bg-[#15294A] border border-[#C49A4E]/25 rounded-[3px]"
-              >
-                Apply for E-Residency
-              </Link>
+              >{t("Apply for E-Residency")}</Link>
               <Link
                 href="/portal/login"
                 onClick={() => setMobileOpen(false)}
                 className="w-full py-2.5 text-center text-[13px] font-semibold text-[#15294A] border border-[#15294A]/15 rounded-[3px]"
-              >
-                Citizen Sign In
-              </Link>
+              >{t("Citizen Sign In")}</Link>
             </div>
           </div>
-        )}
+        ))}
       </header>
 
       <CommandPalette isOpen={searchOpen} onClose={() => setSearchOpen(false)} />

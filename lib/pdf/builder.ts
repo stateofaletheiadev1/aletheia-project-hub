@@ -1,7 +1,7 @@
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage, type PDFImage } from 'pdf-lib';
 
 /**
- * Official document renderer for the Covenant State. Pure pdf-lib, so the same
+ * Official document renderer for the Sovereign Covenant State. Pure pdf-lib, so the same
  * code produces PDFs in route handlers (server) and in the citizen portal
  * (browser). Every official PDF goes through `renderOfficialPdf`.
  */
@@ -83,7 +83,7 @@ function wrap(text: string, font: PDFFont, size: number, width: number): string[
 export async function renderOfficialPdf(spec: OfficialPdfSpec): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
   doc.setTitle(toWinAnsi(`${spec.code} — ${spec.title}`));
-  doc.setAuthor('The Covenant State of Aletheia');
+  doc.setAuthor('The Sovereign Covenant State of Aletheia');
   doc.setCreator('stateofaletheia.org');
   doc.setProducer('Aletheia Official Gazette');
   doc.setSubject(toWinAnsi(spec.subject ?? spec.kind));
@@ -125,7 +125,7 @@ export async function renderOfficialPdf(spec: OfficialPdfSpec): Promise<Uint8Arr
     page.drawImage(arms, { x: MARGIN_X, y: TOP - dims.height + 10, width: dims.width, height: dims.height });
   }
   const headX = MARGIN_X + (arms ? 68 : 0);
-  page.drawText('THE COVENANT STATE OF ALETHEIA', { x: headX, y: TOP - 8, size: 12, font: sansBold, color: NAVY });
+  page.drawText('THE SOVEREIGN COVENANT STATE OF ALETHEIA', { x: headX, y: TOP - 8, size: 12, font: sansBold, color: NAVY });
   page.drawText('Veritas in Foedere  ·  Official Gazette', { x: headX, y: TOP - 24, size: 9, font: serifItalic, color: GOLD_DARK });
   const codeW = sansBold.widthOfTextAtSize(toWinAnsi(spec.code), 10);
   page.drawText(toWinAnsi(spec.code), { x: A4[0] - MARGIN_X - codeW, y: TOP - 8, size: 10, font: sansBold, color: GOLD_DARK });

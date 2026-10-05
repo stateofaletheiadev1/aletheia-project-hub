@@ -1,5 +1,6 @@
 'use client';
 
+import { useI18n } from '@/components/i18n/I18nProvider';
 import { useState } from 'react';
 
 interface MonthlyColumnsProps {
@@ -14,6 +15,7 @@ interface MonthlyColumnsProps {
  * directly, a per-column hover tooltip, and a table view for screen readers.
  */
 export function MonthlyColumns({ title, unit, data }: MonthlyColumnsProps) {
+  const { t, tx, intl } = useI18n();
   const [active, setActive] = useState<number | null>(null);
   const max = Math.max(...data.map((d) => d.value));
   const niceMax = Math.ceil(max / 500) * 500 || 1;
@@ -23,17 +25,17 @@ export function MonthlyColumns({ title, unit, data }: MonthlyColumnsProps) {
   return (
     <figure className="space-y-4">
       <figcaption className="flex items-baseline justify-between gap-4">
-        <span className="text-sm font-bold text-navy">{title}</span>
-        <span className="text-[11px] font-mono text-navy/50">per month · {unit}</span>
+        <span className="text-sm font-bold text-navy">{tx(title)}</span>
+        <span className="text-[11px] font-mono text-navy/50">{t("per month ·")}{' '}{tx(unit)}</span>
       </figcaption>
 
       <div className="relative h-56 pl-10" aria-hidden="true">
-        {ticks.map((t) => (
-          <div key={t} className="absolute left-10 right-0 flex items-center" style={{ bottom: `${(t / niceMax) * 100}%` }}>
+        {ticks.map((tick) => (
+          <div key={tick} className="absolute left-10 right-0 flex items-center" style={{ bottom: `${(tick / niceMax) * 100}%` }}>
             <span className="absolute -left-10 w-8 text-right text-[10px] font-mono text-navy/40 -translate-y-1/2">
-              {t >= 1000 ? `${t / 1000}k` : t}
+              {tx(tick >= 1000 ? `${tick / 1000}k` : tick)}
             </span>
-            <div className={`w-full h-px ${t === 0 ? 'bg-navy/25' : 'bg-navy/[0.07]'}`} />
+            <div className={`w-full h-px ${tick === 0 ? 'bg-navy/25' : 'bg-navy/[0.07]'}`} />
           </div>
         ))}
 
@@ -52,19 +54,19 @@ export function MonthlyColumns({ title, unit, data }: MonthlyColumnsProps) {
                   className={`w-full max-w-[24px] rounded-t-[4px] transition-colors duration-200 ${on ? 'bg-gold' : i === last ? 'bg-navy' : 'bg-navy-subtle/80'}`}
                   style={{ height: `${h}%` }}
                 />
-                {i === last && active === null && (
+                {tx(i === last && active === null && (
                   <span className="absolute text-[11px] font-bold text-navy -translate-y-full pb-1" style={{ bottom: `${h}%` }}>
-                    {d.value.toLocaleString('en-GB')}
+                    {d.value.toLocaleString(intl)}
                   </span>
-                )}
-                {on && (
+                ))}
+                {tx(on && (
                   <div className="absolute z-10 -translate-y-full pb-2 pointer-events-none" style={{ bottom: `${h}%` }}>
                     <div className="bg-navy-deep text-parchment rounded-sm px-3 py-2 shadow-elevated whitespace-nowrap border border-gold/30">
-                      <div className="text-[10px] uppercase tracking-wider text-parchment/55">{d.label}</div>
-                      <div className="text-sm font-bold">{d.value.toLocaleString('en-GB')} <span className="text-[10px] font-normal text-parchment/60">{unit}</span></div>
+                      <div className="text-[10px] uppercase tracking-wider text-parchment/55">{tx(d.label)}</div>
+                      <div className="text-sm font-bold">{d.value.toLocaleString(intl)} <span className="text-[10px] font-normal text-parchment/60">{tx(unit)}</span></div>
                     </div>
                   </div>
-                )}
+                ))}
               </div>
             );
           })}
@@ -74,18 +76,18 @@ export function MonthlyColumns({ title, unit, data }: MonthlyColumnsProps) {
       <div className="pl-10 flex gap-[2px]" aria-hidden="true">
         {data.map((d, i) => (
           <span key={d.label} className="flex-1 text-center text-[9px] font-mono text-navy/45">
-            {i % 2 === last % 2 ? d.label : ''}
+            {tx(i % 2 === last % 2 ? d.label : '')}
           </span>
         ))}
       </div>
 
       <details className="text-xs text-navy/60">
-        <summary className="cursor-pointer font-semibold hover:text-navy">View as table</summary>
+        <summary className="cursor-pointer font-semibold hover:text-navy">{t("View as table")}</summary>
         <table className="sovereign-table mt-3 text-xs">
-          <thead><tr><th className="text-left">Month</th><th className="text-right">{unit}</th></tr></thead>
+          <thead><tr><th className="text-left">{t("Month")}</th><th className="text-right">{tx(unit)}</th></tr></thead>
           <tbody>
             {data.map((d) => (
-              <tr key={d.label}><td>{d.label}</td><td className="text-right tabular-nums">{d.value.toLocaleString('en-GB')}</td></tr>
+              <tr key={d.label}><td>{tx(d.label)}</td><td className="text-right tabular-nums">{d.value.toLocaleString(intl)}</td></tr>
             ))}
           </tbody>
         </table>

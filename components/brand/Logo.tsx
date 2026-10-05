@@ -1,6 +1,6 @@
 import React from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
+import Link from '@/components/i18n/Link';
 
 interface LogoProps {
   variant?: 'full' | 'symbol' | 'horizontal' | 'seal';
@@ -124,7 +124,7 @@ export function Logo({
             isDark ? 'text-gold/80' : 'text-gold'
           } ${dimensions.sub}`}
         >
-          Covenant State
+          Sovereign Covenant State
         </span>
       </div>
     </Link>

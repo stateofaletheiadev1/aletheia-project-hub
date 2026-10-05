@@ -1,3 +1,6 @@
+'use client';
+
+import { useI18n } from '@/components/i18n/I18nProvider';
 import type { ReactNode } from 'react';
 import { StarOfTruth } from '@/components/brand/Logo';
 import { StatusBadge } from '@/components/ui/StatusBadge';
@@ -17,6 +20,7 @@ interface PageHeroProps {
 
 /** Standard cinematic hero for public pages: photograph, eyebrow, headline, lead, actions. */
 export function PageHero({ eyebrow, title, lead, image, status, imagePosition, children }: PageHeroProps) {
+  const { tx } = useI18n();
   return (
     <section className="guilloche-hero relative overflow-hidden text-parchment border-b border-gold/30">
       <HeroBackdrop image={image} position={imagePosition} />
@@ -27,18 +31,18 @@ export function PageHero({ eyebrow, title, lead, image, status, imagePosition, c
           <div className="flex flex-wrap items-center gap-3 animate-fade-in-up">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 border border-gold/35 bg-navy-deep/70 rounded-sm backdrop-blur-sm">
               <StarOfTruth size={14} />
-              <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-gold">{eyebrow}</span>
+              <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-gold">{tx(eyebrow)}</span>
             </div>
-            {status && <StatusBadge status={status} size="sm" />}
+            {tx(status && <StatusBadge status={status} size="sm" />)}
           </div>
 
-          <h1 className="heading-hero animate-fade-in-up delay-100">{title}</h1>
+          <h1 className="heading-hero animate-fade-in-up delay-100">{tx(title)}</h1>
 
           <p className="text-base sm:text-lg text-parchment/75 leading-relaxed font-light max-w-2xl animate-fade-in-up delay-200">
-            {lead}
+            {tx(lead)}
           </p>
 
-          {children && <div className="flex flex-wrap gap-4 pt-2 animate-fade-in-up delay-300">{children}</div>}
+          {tx(children && <div className="flex flex-wrap gap-4 pt-2 animate-fade-in-up delay-300">{tx(children)}</div>)}
         </div>
       </div>
     </section>

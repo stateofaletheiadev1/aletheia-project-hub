@@ -1,4 +1,4 @@
-/** Codified statutes of the Covenant State — source of truth for /laws/[slug]. */
+/** Codified statutes of the Sovereign Covenant State — source of truth for /laws/[slug]. */
 
 export interface StatuteDetail {
   slug: string;
@@ -39,7 +39,7 @@ export const STATUTE_DATABASE: Record<string, StatuteDetail> = {
     article: 'Constitution Article 2 § 2',
     date: '2026-01-28',
     hash: '0x14ea892018fa34091ec87201948ba209ef731204891230fca890214890ecb820',
-    preamble: 'An Act providing for the official language regime of the Republic, ensuring equal dignity for European languages and seamless global diplomatic representation.',
+    preamble: 'An Act providing for the official language regime of the Sovereign Covenant State, ensuring equal dignity for European languages and seamless global diplomatic representation.',
     sections: [
       { number: 'Section 1', heading: 'Official Languages', text: 'The official languages of The Sovereign Covenant State of Aletheia are English, German, Serbian, and Italian. English shall serve as the primary procedural language for international commercial contracts.' },
       { number: 'Section 2', heading: 'Bilingual & Multilingual State Documents', text: 'All primary constitutional texts, biometric passport inscriptions, and legal codes shall be published concurrently in the four official languages.' },
@@ -57,7 +57,7 @@ export const STATUTE_DATABASE: Record<string, StatuteDetail> = {
     preamble: 'An Act defining the maritime territorial limits, contiguous zone, and Exclusive Economic Zone of Aletheia in strict compliance with the United Nations Convention on the Law of the Sea.',
     sections: [
       { number: 'Section 1', heading: 'Territorial Sea Limit', text: 'The sovereignty of Aletheia extends to a territorial sea baseline of 12 nautical miles, encompassing all civil platforms, breakwaters, and natural baselines.' },
-      { number: 'Section 2', heading: 'Exclusive Economic Zone', text: 'The republic claims an Exclusive Economic Zone (EEZ) extending up to 200 nautical miles for the purpose of exploring, conserving, and managing marine pelagic resources, wave energy generation, and offshore wind.' },
+      { number: 'Section 2', heading: 'Exclusive Economic Zone', text: 'The Sovereign Covenant State claims an Exclusive Economic Zone (EEZ) extending up to 200 nautical miles for the purpose of exploring, conserving, and managing marine pelagic resources, wave energy generation, and offshore wind.' },
       { number: 'Section 3', heading: 'Right of Innocent Passage', text: 'Foreign civilian and merchant vessels enjoy the right of innocent passage through territorial waters pursuant to international maritime conventions.' },
     ],
     signatory: 'Minister of Territorial Development & ADSS Maritime Admiral',
@@ -76,7 +76,7 @@ export const STATUTE_DATABASE: Record<string, StatuteDetail> = {
       { number: 'Section 2A', heading: 'Covenant Investor Citizenship', text: 'A person aged eighteen or over who makes a qualifying investment — a National Development Contribution of 250,000 AEY, or a subscription of 500,000 AEY in Covenant Development Bonds held for five years — may be granted citizenship without a period of residence, upon clearing enhanced due diligence on identity and source of funds, holding no serious criminal conviction in the preceding ten years, and swearing the public Covenant Oath. Spouses and dependent children may be included upon a further qualifying amount for each.' },
       { number: 'Section 3', heading: 'Biometric Passport Right', text: 'Every confirmed citizen possesses an inalienable statutory right to an ICAO Doc 9303 compliant biometric passport issued in Covenant Burgundy.' },
     ],
-    signatory: 'Chancellor of the Republic & Registrar General',
+    signatory: 'Chancellor of the Sovereign Covenant State & Registrar General',
   },
   'e-residency-act': {
     slug: 'e-residency-act',
@@ -85,10 +85,10 @@ export const STATUTE_DATABASE: Record<string, StatuteDetail> = {
     article: 'Constitution Article 9 § 4',
     date: '2026-02-22',
     hash: '0x55902148ea20914801fa8892ca3401ef6291a0123ca78091ecb87201948ba209e',
-    preamble: 'An Act establishing the digital identity framework of the Republic, empowering international entrepreneurs to form companies, execute contracts, and utilize state settlement rails.',
+    preamble: 'An Act establishing the digital identity framework of the Sovereign Covenant State, empowering international entrepreneurs to form companies, execute contracts, and utilize state settlement rails.',
     sections: [
       { number: 'Section 1', heading: 'Digital Identity Inscription', text: 'E-Residency is a cryptographic digital identity conferring legal capacity to sign contracts and form commercial entities under Aletheian jurisdiction.' },
-      { number: 'Section 2', heading: 'Physical Rights Exclusion', text: 'E-Residency expressly conveys no right to enter, physically reside, work as an employee, or claim citizenship or travel documents of the republic.' },
+      { number: 'Section 2', heading: 'Physical Rights Exclusion', text: 'E-Residency expressly conveys no right to enter, physically reside, work as an employee, or claim citizenship or travel documents of the Sovereign Covenant State.' },
       { number: 'Section 3', heading: 'Tax Neutrality', text: 'E-residents operating foreign-sourced digital businesses through an Aletheian corporate vehicle are subject to zero personal income tax in Aletheia.' },
     ],
     signatory: 'Minister of Digital State & Registrar of Companies',
@@ -102,7 +102,7 @@ export const STATUTE_DATABASE: Record<string, StatuteDetail> = {
     hash: '0xaa18902ef34b890123ca78091ecb87201948ba209ef182049ec8720914be8721',
     preamble: 'An Act establishing the Aletheian Guilder (AEY) as the sole legal tender, guaranteeing 100% reserve backing and prohibiting inflationary monetization.',
     sections: [
-      { number: 'Section 1', heading: 'Legal Tender & Unit of Account', text: 'The Aletheian Guilder (AEY) is the statutory currency of the republic, maintained at a fixed 1:1 parity with the European Euro.' },
+      { number: 'Section 1', heading: 'Legal Tender & Unit of Account', text: 'The Aletheian Guilder (AEY) is the statutory currency of the Sovereign Covenant State, maintained at a fixed 1:1 parity with the European Euro.' },
       { number: 'Section 2', heading: 'The 100% Reserve Floor', text: 'The Central Bank is prohibited from issuing AEY without matching segregated reserves of physical gold (London Good Delivery), tier-1 European debt, or liquid SDR claims.' },
       { number: 'Section 3', heading: 'Par Redemption', text: 'Holders of AEY may demand unconditional redemption in physical Euros or gold at statutory parity without discount or fee.' },
     ],
@@ -121,7 +121,7 @@ export const STATUTE_DATABASE: Record<string, StatuteDetail> = {
       { number: 'Section 2', heading: 'Parliamentary Confirmation', text: 'All ministerial nominees must be examined and confirmed by a majority vote of the Covenant Assembly.' },
       { number: 'Section 3', heading: 'Statutory Transparency', text: 'All executive orders and ministerial determinations must be signed with official cryptographic keys and published in the Official Gazette within 24 hours of enactment.' },
     ],
-    signatory: 'Chancellor of the Republic & Speaker of the Covenant Assembly',
+    signatory: 'Chancellor of the Sovereign Covenant State & Speaker of the Covenant Assembly',
   },
   'adss-act': {
     slug: 'adss-act',

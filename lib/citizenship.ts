@@ -39,13 +39,14 @@ export const INVESTMENT_OPTIONS: InvestmentOption[] = [
     perDependant: 50_000,
     refundable: true,
     holdYears: 5,
-    desc: 'Subscription to sovereign infrastructure bonds held for at least five years. The principal is returned at maturity; the capital builds the Republic in the meantime.',
+    desc: 'Subscription to sovereign infrastructure bonds held for at least five years. The principal is returned at maturity; the capital builds the Sovereign Covenant State in the meantime.',
   },
 ];
 
+// Literal (not templated) so the i18n extractor can find them; keep in step with the constants above.
 export const NATURALISATION_CRITERIA = [
-  `Aged ${MINIMUM_AGE} or over`,
-  `${NATURALISATION_RESIDENCE_YEARS} years of lawful, continuous physical residence in Aletheia`,
+  'Aged 18 or over',
+  '5 years of lawful, continuous physical residence in Aletheia',
   'Civic proficiency in English and one further official language',
   'Completion of the Civic Integration Programme and Covenant knowledge test',
   'No serious criminal conviction in the past 10 years',
@@ -53,7 +54,7 @@ export const NATURALISATION_CRITERIA = [
 ];
 
 export const INVESTOR_CRITERIA = [
-  `Aged ${MINIMUM_AGE} or over`,
+  'Aged 18 or over',
   'Qualifying investment under one of the two options',
   'Enhanced due diligence: identity, source of funds, sanctions and anti-money-laundering screening',
   'No serious criminal conviction in the past 10 years',
@@ -61,8 +62,8 @@ export const INVESTOR_CRITERIA = [
   'The public Covenant Oath',
 ];
 
-export function formatAey(amount: number): string {
-  return `${amount.toLocaleString('en-GB')} AEY`;
+export function formatAey(amount: number, intl = 'en-GB'): string {
+  return `${amount.toLocaleString(intl)} AEY`;
 }
 
 /** Total qualifying investment for an applicant with a given number of dependants. */
