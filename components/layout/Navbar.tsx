@@ -104,6 +104,13 @@ export function Navbar() {
     closeRef.current = setTimeout(() => setActiveMenu(null), 140);
   };
 
+  // Hide public navigation ONLY when inside logged-in Portal or Officer Admin environments (NOT on login pages)
+  const isLoginPage = pathname === '/portal/login' || pathname === '/admin/login' || pathname === '/officer/login' || pathname === '/login';
+  const isPortalOrAdmin = !isLoginPage && (pathname?.startsWith('/portal') || pathname?.startsWith('/admin') || pathname?.startsWith('/officer'));
+  if (isPortalOrAdmin) {
+    return null;
+  }
+
   return (
     <>
       {/* ════════════════════════════════════════════════════════════
@@ -179,7 +186,7 @@ export function Navbar() {
 
             <span className="text-white/15">|</span>
             <Link
-              href="/admin"
+              href="/admin/login"
               className="flex items-center gap-1 text-[#C49A4E]/70 hover:text-[#C49A4E] transition-colors font-semibold"
             >
               <Shield className="w-2.5 h-2.5" /> Officer Portal

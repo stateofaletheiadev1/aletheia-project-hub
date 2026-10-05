@@ -18,6 +18,8 @@ import {
   Fingerprint,
 } from 'lucide-react';
 
+import { setOfficerSession } from '@/lib/auth';
+
 export default function AdminLoginPage() {
   const router = useRouter();
   const [authMode, setAuthMode] = useState<'smartcard' | 'totp'>('smartcard');
@@ -29,10 +31,16 @@ export default function AdminLoginPage() {
   const handleLogin = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setIsVerifying(true);
+    setOfficerSession({
+      id: officerId || 'SEC-OFFICER-0091',
+      name: officerId.toLowerCase().includes('thorne') ? 'Duty Officer Thorne' : 'Cmdr. S. Okafor',
+      role: 'ADSS Senior Registry Officer',
+      clearance: 'Level 4 Clearance (National Registry)',
+    });
     setTimeout(() => {
       setIsVerifying(false);
       router.push('/admin');
-    }, 900);
+    }, 800);
   };
 
   const handleDemoAdminSignIn = () => {
@@ -199,6 +207,15 @@ export default function AdminLoginPage() {
 
             <div className="text-center text-[10px] font-mono text-parchment/40">
               Session is encrypted with Post-Quantum ML-KEM TLS 1.3
+            </div>
+
+            <div className="text-center pt-2">
+              <Link
+                href="/"
+                className="text-[11px] font-mono text-gold/70 hover:text-gold transition-colors inline-flex items-center gap-1"
+              >
+                ← Return to Official State Platform
+              </Link>
             </div>
           </div>
 

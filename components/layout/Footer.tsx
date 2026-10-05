@@ -1,10 +1,22 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 import { StarOfTruth } from '@/components/brand/Logo';
 import { NationalFlag, StateEnsign } from '@/components/brand/Flags';
 
 export function Footer() {
+  const pathname = usePathname();
+
+  // Hide public footer ONLY when inside logged-in Portal or Officer Admin environments (NOT on login pages)
+  const isLoginPage = pathname === '/portal/login' || pathname === '/admin/login' || pathname === '/officer/login' || pathname === '/login';
+  const isPortalOrAdmin = !isLoginPage && (pathname?.startsWith('/portal') || pathname?.startsWith('/admin') || pathname?.startsWith('/officer'));
+  if (isPortalOrAdmin) {
+    return null;
+  }
+
   return (
     <footer className="bg-navy text-parchment border-t border-gold/40 mt-auto">
       {/* Platform Status Legal Notice (Mandatory per §3.4) */}

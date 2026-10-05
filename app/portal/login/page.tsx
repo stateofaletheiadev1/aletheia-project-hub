@@ -18,6 +18,8 @@ import {
   AlertCircle,
 } from 'lucide-react';
 
+import { setUserSession } from '@/lib/auth';
+
 export default function CitizenPortalLoginPage() {
   const router = useRouter();
   const [authMethod, setAuthMethod] = useState<'passkey' | 'credentials' | 'qr'>('passkey');
@@ -28,10 +30,17 @@ export default function CitizenPortalLoginPage() {
   const handleAuthenticate = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setIsAuthenticating(true);
+    setUserSession({
+      id: credentialId || 'ALE-ERES-2026-004928',
+      name: 'Dr. Elena Vasquez',
+      role: 'E-Resident · Founder',
+      status: 'E-Resident · Verified',
+      avatarInitials: 'EV',
+    });
     setTimeout(() => {
       setIsAuthenticating(false);
       router.push('/portal');
-    }, 900);
+    }, 800);
   };
 
   const handleDemoSignIn = () => {
@@ -226,6 +235,15 @@ export default function CitizenPortalLoginPage() {
               <span>Don&apos;t have an e-residency?</span>
               <Link href="/portal/apply" className="font-bold text-gold hover:underline">
                 Apply for E-Residency →
+              </Link>
+            </div>
+
+            <div className="text-center pt-2 border-t border-navy/5">
+              <Link
+                href="/"
+                className="text-[11px] text-navy/60 hover:text-navy transition-colors inline-flex items-center gap-1 font-medium"
+              >
+                ← Return to Official State Platform
               </Link>
             </div>
           </div>

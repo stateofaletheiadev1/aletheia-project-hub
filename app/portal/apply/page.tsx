@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { PortalShell } from '@/components/layout/PortalShell';
 import { StarOfTruth } from '@/components/brand/Logo';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import {
@@ -54,25 +55,35 @@ export default function ApplicationWizardPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-parchment-canvas">
+    <PortalShell>
+      <div className="p-6 lg:p-8 space-y-6">
 
-      {/* ── HEADER ── */}
-      <section className="bg-navy text-parchment pt-24 pb-16 border-b border-gold/20">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1 border border-gold/30 bg-navy-deep/80 rounded-sm">
-            <StarOfTruth size={14} />
-            <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-gold">Digital State Gateway</span>
+        {/* ── HEADER ── */}
+        <div className="p-6 bg-navy text-parchment rounded-sm space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1 border border-gold/30 bg-navy-deep/80 rounded-sm mb-2">
+                <StarOfTruth size={14} />
+                <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-gold">Civic Application Gateway</span>
+              </div>
+              <h1 className="text-2xl font-bold tracking-tight text-parchment">
+                Application Wizard
+              </h1>
+              <p className="text-xs text-parchment/70 font-light">
+                Statutory e-residency &amp; digital identity application under Covenant State Charter
+              </p>
+            </div>
+
+            <Link
+              href="/portal"
+              className="px-3.5 py-1.5 border border-gold/30 text-parchment font-semibold text-xs rounded-sm hover:border-gold transition-colors font-mono self-start sm:self-auto"
+            >
+              ← Back to Dashboard
+            </Link>
           </div>
 
-          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-parchment">
-            Aletheia E-Residency Application
-          </h1>
-          <p className="text-xs sm:text-sm text-parchment/70 font-light max-w-xl mx-auto leading-relaxed">
-            Begin your journey to global enterprise and digital state access under the Sovereign Covenant.
-          </p>
-
           {/* Stepper Progress Bar */}
-          <div className="pt-6 max-w-2xl mx-auto">
+          <div className="pt-2 max-w-xl">
             <div className="grid grid-cols-4 gap-2 text-center text-xs font-mono">
               {[
                 { num: 1, label: 'Identity' },
@@ -87,22 +98,20 @@ export default function ApplicationWizardPage() {
                     }`}
                   />
                   <span
-                    className={`text-[11px] uppercase ${
+                    className={`text-[10px] uppercase block ${
                       currentStep >= s.num ? 'text-gold font-bold' : 'text-parchment/40'
                     }`}
                   >
-                    Step {s.num}: {s.label}
+                    {s.num}. {s.label}
                   </span>
                 </div>
               ))}
             </div>
           </div>
         </div>
-      </section>
 
-      {/* ── WIZARD CONTAINER ── */}
-      <section className="py-12 lg:py-16 max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-        <div className="bg-white border border-navy/15 rounded-sm p-8 shadow-sm space-y-8">
+        {/* ── WIZARD CONTAINER ── */}
+        <div className="bg-white border border-navy/15 rounded-sm p-8 shadow-sm space-y-8 max-w-3xl mx-auto w-full">
           
           {!submitted ? (
             <div>
@@ -373,8 +382,7 @@ export default function ApplicationWizardPage() {
           )}
 
         </div>
-      </section>
-
-    </div>
+      </div>
+    </PortalShell>
   );
 }

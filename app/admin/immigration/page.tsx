@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { AdminShell } from '@/components/layout/AdminShell';
 import { StarOfTruth } from '@/components/brand/Logo';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import {
@@ -81,47 +82,36 @@ export default function ImmigrationTerminalPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-parchment-canvas">
+    <AdminShell>
+      <div className="p-6 lg:p-8 space-y-6">
 
-      {/* ── BORDER TERMINAL HEADER ── */}
-      <section className="bg-navy text-parchment pt-24 pb-16 border-b border-gold/20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-            
-            <div className="space-y-3">
-              <div className="flex items-center gap-3">
-                <div className="inline-flex items-center gap-2 px-3 py-1 border border-gold/30 bg-navy-deep/80 rounded-sm">
-                  <StarOfTruth size={14} />
-                  <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-gold">ADSS Border Inspection</span>
-                </div>
-                <span className="px-2 py-0.5 bg-navy-deep text-gold border border-gold/40 rounded-sm text-[10px] font-mono font-bold">
-                  TERMINAL: ST-BRENDAN-E-GATE-04
-                </span>
-              </div>
-
-              <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-parchment">
-                Immigration & e-Gate Verification Terminal
+        {/* ── BORDER TERMINAL HEADER ── */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gold/15 pb-5">
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-2.5">
+              <h1 className="text-xl font-bold text-parchment">
+                Immigration &amp; e-Gate Terminal
               </h1>
-              <p className="text-xs sm:text-sm text-parchment/70 font-light">
-                Automated biometric border clearance, ICAO Doc 9303 MRZ scanner, and travel authorization validation.
-              </p>
+              <span className="px-2 py-0.5 bg-navy-deep text-gold border border-gold/30 rounded-sm text-[10px] font-mono font-bold">
+                ST-BRENDAN-E-GATE-04
+              </span>
             </div>
+            <p className="text-xs text-parchment/60 font-mono">
+              Biometric border clearance, ICAO Doc 9303 MRZ scanner, and travel authorization validation
+            </p>
+          </div>
 
-            <div className="flex items-center gap-3 shrink-0">
-              <Link
-                href="/admin"
-                className="px-4 py-2 border border-gold/30 text-parchment font-semibold text-xs uppercase tracking-wider rounded-sm hover:border-gold/60 transition-colors"
-              >
-                Admin Command Console
-              </Link>
-            </div>
-
+          <div className="flex items-center gap-3 shrink-0">
+            <Link
+              href="/admin"
+              className="px-3.5 py-1.5 border border-gold/30 text-parchment font-semibold text-xs uppercase tracking-wider rounded-sm hover:border-gold/60 transition-colors font-mono"
+            >
+              Command Overview →
+            </Link>
           </div>
         </div>
-      </section>
 
-      {/* ── WORKSTATION VIEW ── */}
-      <section className="py-12 lg:py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* ── WORKSTATION VIEW ── */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           
           {/* Left Column: Scanner Control & Verification Logic */}
@@ -307,8 +297,7 @@ export default function ImmigrationTerminalPage() {
           </div>
 
         </div>
-      </section>
-
-    </div>
+      </div>
+    </AdminShell>
   );
 }
