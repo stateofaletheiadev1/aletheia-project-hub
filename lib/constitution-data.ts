@@ -136,7 +136,7 @@ export const CONSTITUTION_DATA: ConstitutionalArticle[] = [
       },
       {
         number: '8(2)',
-        text: 'Citizenship is a civic covenant, not a commercial commodity. Citizenship shall never be sold, auctioned, or granted in exchange for passive capital investment without lawful naturalisation.',
+        text: 'Citizenship is a civic covenant and shall never be auctioned or conferred without the Covenant Oath. The Republic may confer citizenship upon persons who make a qualifying investment in the development of the Republic, as prescribed by statute, subject to enhanced due diligence, a clean criminal record and the public Covenant Oath.',
       },
       {
         number: '8(3)',

@@ -26,12 +26,12 @@ export default function TermsPage() {
         },
         {
           id: 'no-offer',
-          heading: 'No offer of securities or citizenship',
+          heading: 'Investment and citizenship',
           body: (
             <p>
-              Nothing on this platform constitutes an offer to sell securities, bonds or any financial instrument, nor an offer of
-              citizenship. Citizenship is not for sale. Any investment information is descriptive and subject to a formal prospectus where
-              required by law.
+              Nothing on this platform constitutes an offer to sell securities, bonds or any financial instrument. Bond subscriptions are made
+              only under a formal prospectus. Citizenship through the Covenant Investor route is conferred solely by the Immigration
+              Directorate after due diligence and the Covenant Oath; an eligibility result on this site is guidance, not a grant.
             </p>
           ),
         },

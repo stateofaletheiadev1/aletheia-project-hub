@@ -77,6 +77,24 @@ export const MAIN_NAVIGATION: NavItem[] = [
     label: 'Citizenship',
     href: '/citizenship',
     description: 'Membership by covenant: rights, obligations, and naturalisation path',
+    children: [
+      {
+        group: 'Membership by Covenant',
+        items: [
+          { title: 'Citizenship Standards', href: '/citizenship', desc: 'Rights, obligations, and the five pathways to citizenship' },
+          { title: 'Apply for Citizenship', href: '/citizenship/apply', desc: 'Eligibility checker for naturalisation and the investor route', status: 'Under Development' },
+          { title: 'The Aletheian Passport', href: '/passport', desc: 'ICAO Doc 9303 eMRTD in Covenant Burgundy' },
+        ],
+      },
+      {
+        group: 'The National Register',
+        items: [
+          { title: 'Registry & Revenue', href: '/registry', desc: 'Citizens, e-residents, and funds raised to build the republic' },
+          { title: 'E-Residency', href: '/e-residency', desc: 'Digital state access for global founders' },
+          { title: 'Immigration & Residence', href: '/immigration', desc: 'Visas and residence permits — the path to naturalisation' },
+        ],
+      },
+    ],
   },
   {
     label: 'E-Residency',

@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { INVESTMENT_OPTIONS, formatAey } from '@/lib/citizenship';
 import { useToast } from '@/components/ui/Toast';
 import Link from 'next/link';
 import { PortalShell } from '@/components/layout/PortalShell';
@@ -36,6 +37,27 @@ export default function ApplicationWizardPage() {
   const [keyGenerated, setKeyGenerated] = useState(false);
   const [generatedKeyHash, setGeneratedKeyHash] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  // Which programme the applicant arrived for (?route=naturalisation|investor&option=...).
+  const [route, setRoute] = useState<'e-residency' | 'naturalisation' | 'investor'>('e-residency');
+  const [investOption, setInvestOption] = useState<string | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const r = params.get('route');
+    if (r === 'naturalisation' || r === 'investor') {
+      setRoute(r);
+      if (r === 'investor') {
+        setInvestOption(params.get('option'));
+        setFormData((f) => ({ ...f, purpose: 'investor' }));
+      }
+    }
+  }, []);
+
+  const investment = INVESTMENT_OPTIONS.find((o) => o.id === investOption) ?? INVESTMENT_OPTIONS[0];
+  const routeTitle =
+    route === 'investor' ? 'Citizenship — Covenant Investor route'
+    : route === 'naturalisation' ? 'Citizenship — Naturalisation by residence'
+    : 'Statutory e-residency & digital identity application under Covenant State Charter';
 
   const handleNext = () => {
     if (currentStep === 3 && !keyGenerated) {
@@ -71,9 +93,12 @@ export default function ApplicationWizardPage() {
               <h1 className="text-2xl font-bold tracking-tight text-parchment">
                 Application Wizard
               </h1>
-              <p className="text-xs text-parchment/70 font-light">
-                Statutory e-residency &amp; digital identity application under Covenant State Charter
-              </p>
+              <p className="text-xs text-parchment/70 font-light">{routeTitle}</p>
+              {route === 'investor' && (
+                <p className="mt-2 text-[11px] text-gold-tint">
+                  {investment.title} · {formatAey(investment.amount)} · enhanced due diligence applies
+                </p>
+              )}
             </div>
 
             <Link

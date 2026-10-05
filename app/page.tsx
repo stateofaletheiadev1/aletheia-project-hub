@@ -576,8 +576,9 @@ export default function HomePage() {
                   <span className="text-navy/60 font-light">transparent standards for all.</span>
                 </h2>
                 <p className="text-navy/62 text-base leading-relaxed font-light max-w-xl">
-                  Citizenship is not a commercial product. Aletheia maintains an unambiguous distinction
-                  between digital e-residency, physical residency, and full sovereign citizenship.
+                  Citizenship is a covenant, never an auction. Aletheia keeps a clear distinction between
+                  digital e-residency, physical residency, and full citizenship — earned by residence or by
+                  investing in the Republic, and always sealed by the Covenant Oath.
                 </p>
               </div>
 
@@ -585,7 +586,7 @@ export default function HomePage() {
                 {[
                   { icon: Cpu, title: 'E-Residency', status: 'Under Development' as const, desc: 'Digital identity, 15-minute company formation, APN settlement account, remote contract execution. Conveys no physical residence or voting rights.' },
                   { icon: Users, title: 'Lawful Residence', status: 'Planned' as const, desc: '5-year renewable permit to live, work, and study in Aletheia with access to healthcare and education. Local municipal voting rights after 2 years.' },
-                  { icon: Shield, title: 'Citizenship & Passport', status: 'Planned' as const, desc: 'Conferred by birth or naturalisation after 5 years PR, civic proficiency in English and one other official language, and the public Covenant Oath.' },
+                  { icon: Shield, title: 'Citizenship & Passport', status: 'Planned' as const, desc: 'Conferred by birth, by naturalisation after 5 years of residence, or through the Covenant Investor route — always with due diligence and the public Covenant Oath.' },
                 ].map(({ icon: Icon, title, status, desc }) => (
                   <div key={title} className="sovereign-card-premium p-5 rounded-sm flex items-start gap-4 group">
                     <div className="p-2.5 bg-navy text-gold rounded-sm flex-shrink-0 mt-0.5 group-hover:bg-navy-subtle transition-colors">
@@ -603,8 +604,8 @@ export default function HomePage() {
               </div>
 
               <div className="flex flex-wrap items-center gap-3 pt-2">
-                <Link href="/citizenship" className="btn-sovereign-navy px-6 py-3 rounded-sm text-xs font-semibold uppercase tracking-wider">
-                  Citizenship Standards
+                <Link href="/citizenship/apply" className="btn-sovereign-navy px-6 py-3 rounded-sm text-xs font-semibold uppercase tracking-wider">
+                  Apply for Citizenship
                 </Link>
                 <Link href="/passport" className="px-6 py-3 border border-navy/20 text-navy text-xs font-semibold uppercase tracking-wider rounded-sm hover:bg-parchment-canvas hover:border-navy/35 transition-all duration-200">
                   ICAO Passport Specification

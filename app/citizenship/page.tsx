@@ -17,6 +17,7 @@ import {
   Award,
   BookOpen,
   Landmark,
+  Coins,
 } from 'lucide-react';
 
 const RIGHTS = [
@@ -47,9 +48,15 @@ const PATHWAYS = [
   },
   {
     title: 'Naturalisation by Residence',
-    desc: 'After 3 years of continuous physical residence on Aletheian territory, residents may apply for full citizenship through the standard naturalisation process.',
+    desc: 'After 5 years of lawful, continuous physical residence on Aletheian territory, residents may apply for full citizenship through the standard naturalisation process.',
     status: 'Planned' as const,
     detail: 'Available upon territorial establishment. Physical residence required.',
+  },
+  {
+    title: 'Covenant Investor Citizenship',
+    desc: 'Applicants who invest in building the Republic — a 250,000 AEY National Development Contribution or 500,000 AEY in Covenant Development Bonds — may be granted citizenship without a residence period.',
+    status: 'Under Development' as const,
+    detail: 'Enhanced due diligence and the Covenant Oath required. See Apply for Citizenship.',
   },
   {
     title: 'Naturalisation by Covenant',
@@ -111,12 +118,12 @@ export default function CitizenshipPage() {
             </div>
 
             <div className="flex flex-wrap gap-4 pt-2">
-              <Link href="/e-residency" className="btn-sovereign-gold px-8 py-3.5 rounded-sm flex items-center gap-2.5 group text-sm">
-                <span>Begin with E-Residency</span>
+              <Link href="/citizenship/apply" className="btn-sovereign-gold px-8 py-3.5 rounded-sm flex items-center gap-2.5 group text-sm">
+                <span>Apply for Citizenship</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
-              <Link href="/constitution" className="btn-sovereign-ghost px-8 py-3.5 rounded-sm text-sm">
-                Read the Covenant
+              <Link href="/e-residency" className="btn-sovereign-ghost px-8 py-3.5 rounded-sm text-sm">
+                Begin with E-Residency
               </Link>
             </div>
 
@@ -124,7 +131,7 @@ export default function CitizenshipPage() {
             <div className="pt-6 border-t border-parchment/10 grid grid-cols-3 gap-8">
               {[
                 { num: '5', label: 'Official Languages' },
-                { num: '4', label: 'Citizenship Pathways' },
+                { num: '5', label: 'Citizenship Pathways' },
                 { num: '8', label: 'Guaranteed Rights' },
               ].map((s) => (
                 <div key={s.label} className="space-y-1">
@@ -162,7 +169,7 @@ export default function CitizenshipPage() {
           <div className="mb-14 max-w-2xl">
             <span className="label-sovereign block mb-3">Naturalisation Framework</span>
             <h2 className="text-4xl sm:text-5xl font-bold tracking-tight text-navy leading-tight">
-              Four pathways to{' '}
+              Five pathways to{' '}
               <span className="text-gold-metallic">full citizenship.</span>
             </h2>
             <div className="rule-gold mt-5 max-w-xs" />
@@ -179,8 +186,9 @@ export default function CitizenshipPage() {
                     <div className="icon-sovereign">
                       {idx === 0 && <Award className="w-5 h-5 text-gold" />}
                       {idx === 1 && <Landmark className="w-5 h-5 text-gold" />}
-                      {idx === 2 && <Star className="w-5 h-5 text-gold" />}
-                      {idx === 3 && <Globe className="w-5 h-5 text-gold" />}
+                      {idx === 2 && <Coins className="w-5 h-5 text-gold" />}
+                      {idx === 3 && <Star className="w-5 h-5 text-gold" />}
+                      {idx === 4 && <Globe className="w-5 h-5 text-gold" />}
                     </div>
                     <span className="text-[10px] font-bold uppercase tracking-widest text-gold/70">
                       Pathway {String(idx + 1).padStart(2, '0')}

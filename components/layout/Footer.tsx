@@ -141,6 +141,16 @@ export function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/citizenship/apply" className="hover:text-gold transition-colors">
+                  Apply for Citizenship
+                </Link>
+              </li>
+              <li>
+                <Link href="/registry" className="hover:text-gold transition-colors">
+                  National Registry &amp; Revenue
+                </Link>
+              </li>
+              <li>
                 <Link href="/e-residency" className="hover:text-gold transition-colors">
                   E-Residency Programme
                 </Link>

@@ -72,7 +72,8 @@ export const STATUTE_DATABASE: Record<string, StatuteDetail> = {
     preamble: 'An Act setting forth the rights, duties, and acquisition criteria for Aletheian citizenship, defining naturalisation by physical residence and covenant awards.',
     sections: [
       { number: 'Section 1', heading: 'Citizenship by Covenant', text: 'Citizenship is a voluntary civic covenant. No person shall be compelled into citizenship, nor stripped of nationality for political expression.' },
-      { number: 'Section 2', heading: 'Naturalisation Requirements', text: 'Lawful permanent residents who have resided physically in Aletheian territory for three continuous years and demonstrated knowledge of the Covenant are entitled to apply for full naturalisation.' },
+      { number: 'Section 2', heading: 'Naturalisation Requirements', text: 'Lawful permanent residents who have resided physically in Aletheian territory for five continuous years and demonstrated knowledge of the Covenant are entitled to apply for full naturalisation.' },
+      { number: 'Section 2A', heading: 'Covenant Investor Citizenship', text: 'A person aged eighteen or over who makes a qualifying investment — a National Development Contribution of 250,000 AEY, or a subscription of 500,000 AEY in Covenant Development Bonds held for five years — may be granted citizenship without a period of residence, upon clearing enhanced due diligence on identity and source of funds, holding no serious criminal conviction in the preceding ten years, and swearing the public Covenant Oath. Spouses and dependent children may be included upon a further qualifying amount for each.' },
       { number: 'Section 3', heading: 'Biometric Passport Right', text: 'Every confirmed citizen possesses an inalienable statutory right to an ICAO Doc 9303 compliant biometric passport issued in Covenant Burgundy.' },
     ],
     signatory: 'Chancellor of the Republic & Registrar General',

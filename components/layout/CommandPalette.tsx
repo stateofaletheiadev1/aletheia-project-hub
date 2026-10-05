@@ -41,6 +41,15 @@ const SEARCH_DATABASE: SearchItem[] = [
   { title: 'Aletheian Cybersecurity Department', category: 'Security', href: '/adss/cybersecurity', desc: 'Critical infrastructure protection, threat intel, vulnerability disclosure.', status: 'Operational' },
   { title: 'Civilian Police Directorate', category: 'Security', href: '/adss#police', desc: 'Community safety and lawful criminal investigation.', status: 'Planned' },
   { title: 'Immigration Officer Workbench', category: 'Security', href: '/admin/immigration', desc: 'Secure administrative case management for immigration officers.' },
+  // Society, public services & information
+  { title: 'Apply for Citizenship', category: 'Service', href: '/citizenship/apply', desc: 'Check eligibility for naturalisation or the Covenant Investor route.', status: 'Under Development' },
+  { title: 'National Registry & Revenue', category: 'Economy', href: '/registry', desc: 'Registrations by programme and funds raised to build the republic.' },
+  { title: 'Life in Aletheia', category: 'Service', href: '/society', desc: 'Languages, culture, civic calendar, and maritime heritage.' },
+  { title: 'Health & Social Care', category: 'Service', href: '/healthcare', desc: 'Universal covenant healthcare and the National Health Registry.', status: 'Planned' },
+  { title: 'Education & Research', category: 'Service', href: '/education', desc: 'Bilingual schools, the National University, scholarships.', status: 'Planned' },
+  { title: 'Official Gazette', category: 'Government', href: '/news', desc: 'Decrees, appointments, and engineering bulletins.', status: 'Operational' },
+  { title: 'Frequently Asked Questions', category: 'Service', href: '/faq', desc: 'Plain answers on membership, money, data, and status.' },
+  { title: 'Privacy Notice', category: 'Service', href: '/privacy', desc: 'How personal data is protected — never written to the ledger.' },
 ];
 
 export function CommandPalette({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
