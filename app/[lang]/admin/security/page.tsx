@@ -1,16 +1,10 @@
 'use client';
 
 import React from 'react';
-import Link from '@/components/i18n/Link';
 import { AdminShell } from '@/components/layout/AdminShell';
 import {
   ShieldAlert,
-  ShieldCheck,
   Cpu,
-  Lock,
-  Radio,
-  Server,
-  AlertTriangle,
   Activity,
   CheckCircle2,
 } from 'lucide-react';

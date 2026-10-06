@@ -1,3 +1,6 @@
+'use client';
+
+import { useI18n } from '@/components/i18n/I18nProvider';
 import React from 'react';
 import Image from 'next/image';
 
@@ -15,17 +18,18 @@ export function NationalFlag({
   className = '',
   bordered = true,
 }: Omit<FlagProps, 'variant'>) {
+  const { t } = useI18n();
   return (
     <div
       className={`relative inline-block overflow-hidden ${
         bordered ? 'border border-gold/30 shadow-subtle' : ''
       } ${className}`}
       style={{ width, height }}
-      title="National Flag of Aletheia (Option A: Nordic Cross with Star of Truth)"
+      title={t("National Flag of Aletheia (Option A: Nordic Cross with Star of Truth)")}
     >
       <Image
         src="/flag_a.png"
-        alt="National Flag of Aletheia"
+        alt={t("National Flag of Aletheia")}
         width={width}
         height={height}
         className="w-full h-full object-cover"
@@ -40,17 +44,18 @@ export function StateEnsign({
   className = '',
   bordered = true,
 }: Omit<FlagProps, 'variant'>) {
+  const { t } = useI18n();
   return (
     <div
       className={`relative inline-block overflow-hidden ${
         bordered ? 'border border-gold/30 shadow-subtle' : ''
       } ${className}`}
       style={{ width, height }}
-      title="State & Civil Ensign of Aletheia (Option B: Golden-Edged Triband with Central Hexagon)"
+      title={t("State & Civil Ensign of Aletheia (Option B: Golden-Edged Triband with Central Hexagon)")}
     >
       <Image
         src="/flag_b.png"
-        alt="State and Civil Ensign of Aletheia"
+        alt={t("State and Civil Ensign of Aletheia")}
         width={width}
         height={height}
         className="w-full h-full object-cover"

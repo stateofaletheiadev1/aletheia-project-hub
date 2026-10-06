@@ -1,14 +1,29 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
+import { useHydrated } from '@/lib/use-hydrated';
 import Link from '@/components/i18n/Link';
 import { usePathname, useRouter } from '@/lib/i18n/navigation';
 import { StarOfTruth } from '@/components/brand/Logo';
 import {
-  LayoutDashboard, Users, UserCheck, UserX, Stamp,
-  Building2, ShieldAlert, FileSearch, Globe2, Activity,
-  Settings, LogOut, ChevronRight, Bell, Search, Menu, X,
-  Lock, Home, Shield, Cpu, Zap,
+  LayoutDashboard,
+  Users,
+  UserCheck,
+  UserX,
+  Stamp,
+  Building2,
+  ShieldAlert,
+  FileSearch,
+  Globe2,
+  Activity,
+  Settings,
+  LogOut,
+  ChevronRight,
+  Bell,
+  Search,
+  Menu,
+  X,
+  Home,
 } from 'lucide-react';
 
 const NAV_SECTIONS = [
@@ -75,25 +90,16 @@ export function AdminShell({ children, officialName, officialRole }: { children:
   const pathname = usePathname();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
-  const [officer, setOfficer] = useState({
-    name: officialName || 'Cmdr. S. Okafor',
-    role: officialRole || 'ADSS Senior Registry Officer',
-    initials: 'SO',
-  });
-
-  useEffect(() => { setMounted(true); }, []);
-
-  React.useEffect(() => {
-    const sess = getOfficerSession();
-    if (sess) {
-      setOfficer({
-        name: officialName || sess.name,
-        role: officialRole || sess.role,
-        initials: (officialName || sess.name).split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase(),
-      });
-    }
-  }, [officialName, officialRole]);
+  const mounted = useHydrated();
+  const officer = useMemo(() => {
+    const sess = mounted ? getOfficerSession() : null;
+    const name = officialName || sess?.name || 'Cmdr. S. Okafor';
+    return {
+      name,
+      role: officialRole || sess?.role || 'ADSS Senior Registry Officer',
+      initials: name.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase(),
+    };
+  }, [mounted, officialName, officialRole]);
 
   const handleLogout = () => {
     clearOfficerSession();

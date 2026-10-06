@@ -6,17 +6,11 @@ import Link from '@/components/i18n/Link';
 import { StarOfTruth } from '@/components/brand/Logo';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import {
-  Cpu,
   ShieldCheck,
   Zap,
   Lock,
   ArrowRight,
-  Server,
   Layers,
-  CheckCircle2,
-  Code,
-  Terminal,
-  Activity,
   FileCheck2,
 } from 'lucide-react';
 import { HeroBackdrop } from '@/components/ui/HeroBackdrop';

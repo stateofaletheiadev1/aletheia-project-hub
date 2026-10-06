@@ -3,20 +3,7 @@
 import React, { useState } from 'react';
 import Link from '@/components/i18n/Link';
 import { AdminShell } from '@/components/layout/AdminShell';
-import {
-  Globe2,
-  CheckCircle2,
-  XCircle,
-  Clock,
-  ShieldCheck,
-  Search,
-  Filter,
-  Eye,
-  KeyRound,
-  Download,
-  X,
-  Cpu,
-} from 'lucide-react';
+import { Globe2, CheckCircle2, X } from 'lucide-react';
 
 interface EResidencyApp {
   id: string;

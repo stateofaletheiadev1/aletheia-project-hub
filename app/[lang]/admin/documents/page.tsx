@@ -1,17 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
-import Link from '@/components/i18n/Link';
 import { AdminShell } from '@/components/layout/AdminShell';
 import {
-  FileSearch,
   CheckCircle2,
-  XCircle,
   FileText,
-  Download,
-  Eye,
-  ShieldCheck,
-  Search,
   X,
   Stamp,
 } from 'lucide-react';

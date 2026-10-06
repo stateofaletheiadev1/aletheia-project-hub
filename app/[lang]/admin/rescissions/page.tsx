@@ -4,15 +4,8 @@ import React, { useState } from 'react';
 import Link from '@/components/i18n/Link';
 import { AdminShell } from '@/components/layout/AdminShell';
 import {
-  UserX,
   AlertTriangle,
   Scale,
-  ShieldAlert,
-  CheckCircle2,
-  XCircle,
-  FileText,
-  Search,
-  ArrowRight,
   Gavel,
   X,
 } from 'lucide-react';

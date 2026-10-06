@@ -6,15 +6,9 @@ import Link from '@/components/i18n/Link';
 import { StarOfTruth } from '@/components/brand/Logo';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import {
-  Compass,
-  Shield,
   Scale,
-  Award,
   Globe,
-  Building,
-  CheckCircle2,
   ArrowRight,
-  TrendingUp,
   Cpu,
   Anchor,
 } from 'lucide-react';

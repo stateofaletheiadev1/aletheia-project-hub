@@ -8,7 +8,13 @@
     "start": "next start",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "typecheck": "next typegen && tsc --noEmit"
+    "typecheck": "next typegen && tsc --noEmit",
+    "i18n:extract": "node scripts/i18n/extract.mjs",
+    "i18n:check": "node scripts/i18n/extract.mjs && node scripts/i18n/check.mjs",
+    "test:smoke": "node tests/smoke.mjs",
+    "test:layout": "node tests/layout-audit.mjs",
+    "test:i18n": "node tests/i18n-audit.mjs http://localhost:3123 de && node tests/i18n-audit.mjs http://localhost:3123 nl && node tests/i18n-audit.mjs http://localhost:3123 sr && node tests/i18n-audit.mjs http://localhost:3123 it && node tests/switcher.mjs",
+    "test": "npm run test:smoke && npm run test:layout && npm run test:i18n"
   },
   "dependencies": {
     "clsx": "^2.1.1",

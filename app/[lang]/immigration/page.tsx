@@ -10,17 +10,10 @@ import { StatusBadge } from '@/components/ui/StatusBadge';
 import {
   ShieldCheck,
   Plane,
-  Building,
   Clock,
   CheckCircle2,
   AlertTriangle,
   ArrowRight,
-  FileText,
-  CreditCard,
-  Search,
-  Filter,
-  Users,
-  Compass,
 } from 'lucide-react';
 
 const VISA_TYPES = [
@@ -250,7 +243,7 @@ export default function ImmigrationPage() {
             <div className="lg:col-span-8 space-y-4">
               <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">{t("Long-Term Settlement")}</span>
               <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-parchment">{t("From Lawful Residence to Full Covenant Citizenship")}</h2>
-              <p className="text-xs sm:text-sm text-parchment/70 leading-relaxed max-w-2xl">{t("Permanent residents who have completed three continuous years of physical settlement and the Civic Integration Programme are entitled to petition for full sovereign citizenship and an Aletheian biometric passport.")}</p>
+              <p className="text-xs sm:text-sm text-parchment/70 leading-relaxed max-w-2xl">{t("Permanent residents who have completed five continuous years of physical settlement and the Civic Integration Programme are entitled to petition for full sovereign citizenship and an Aletheian biometric passport.")}</p>
             </div>
             <div className="lg:col-span-4 flex flex-col sm:flex-row lg:flex-col gap-3 justify-end">
               <Link

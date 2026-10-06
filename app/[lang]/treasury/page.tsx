@@ -8,13 +8,7 @@ import { StatusBadge } from '@/components/ui/StatusBadge';
 import {
   Coins,
   TrendingUp,
-  ShieldCheck,
-  Building2,
-  PieChart,
-  ArrowRight,
-  CheckCircle2,
   Lock,
-  LineChart,
   Landmark,
 } from 'lucide-react';
 import { HeroBackdrop } from '@/components/ui/HeroBackdrop';

@@ -48,7 +48,7 @@ export function getUserSession(): UserSession {
   try {
     const raw = sessionStorage.getItem(USER_SESSION_KEY) || localStorage.getItem(USER_SESSION_KEY);
     if (raw) return JSON.parse(raw);
-  } catch (e) {
+  } catch {
     // fallback
   }
   return DEFAULT_USER;
@@ -75,7 +75,7 @@ export function getOfficerSession(): OfficerSession {
   try {
     const raw = sessionStorage.getItem(OFFICER_SESSION_KEY) || localStorage.getItem(OFFICER_SESSION_KEY);
     if (raw) return JSON.parse(raw);
-  } catch (e) {
+  } catch {
     // fallback
   }
   return DEFAULT_OFFICER;

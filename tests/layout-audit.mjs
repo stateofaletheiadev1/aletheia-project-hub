@@ -9,14 +9,14 @@
 import { chromium } from 'playwright';
 
 const BASE = process.argv[2] ?? 'http://localhost:3123';
-const WIDTHS = [390, 768, 1024, 1440];
+const WIDTHS = [390, 768, 1024, 1280, 1440];
 const PAGES = [
   '/', '/aletheia', '/vision', '/identity', '/society', '/healthcare', '/education', '/transparency', '/news',
   '/news/public-key-directory', '/documents', '/contact', '/faq', '/government', '/government/ministry-of-foreign-affairs',
   '/government/ministry-of-maritime', '/constitution', '/laws', '/laws/adss-act', '/citizenship', '/citizenship/apply',
   '/registry', '/e-residency', '/immigration', '/passport', '/development', '/infrastructure', '/energy', '/economy',
   '/treasury', '/central-bank', '/aey', '/stablechain', '/business', '/invest', '/technology', '/security', '/adss',
-  '/adss/cybersecurity', '/privacy', '/terms', '/accessibility', '/portal/login', '/de', '/sr/citizenship',
+  '/adss/cybersecurity', '/privacy', '/terms', '/accessibility', '/portal/login', '/de', '/nl', '/sr', '/it', '/sr/citizenship', '/de/citizenship/apply', '/nl/registry',
 ];
 
 const AUDIT = () => {

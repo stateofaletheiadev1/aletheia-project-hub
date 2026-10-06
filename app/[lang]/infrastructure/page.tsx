@@ -6,17 +6,7 @@ import Link from '@/components/i18n/Link';
 import Image from 'next/image';
 import { StarOfTruth } from '@/components/brand/Logo';
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import {
-  Anchor,
-  Building,
-  Shield,
-  Radio,
-  CheckCircle2,
-  ArrowRight,
-  Compass,
-  Wrench,
-  Globe2,
-} from 'lucide-react';
+import { CheckCircle2, ArrowRight } from 'lucide-react';
 
 const INFRA_PROJECTS = [
   {

@@ -4,17 +4,7 @@ import { useI18n } from '@/components/i18n/I18nProvider';
 import React from 'react';
 import Link from '@/components/i18n/Link';
 import { PortalShell } from '@/components/layout/PortalShell';
-import {
-  Building2,
-  CheckCircle2,
-  FileText,
-  CreditCard,
-  Users,
-  Download,
-  Plus,
-  ArrowRight,
-  ShieldCheck,
-} from 'lucide-react';
+import { Download, Plus } from 'lucide-react';
 
 export default function PortalMyCompaniesPage() {
   const { t } = useI18n();

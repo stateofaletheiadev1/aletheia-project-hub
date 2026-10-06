@@ -1,23 +1,16 @@
 'use client';
 
 import { useI18n } from '@/components/i18n/I18nProvider';
-import React, { useState } from 'react';
+import React from 'react';
 import { useToast } from '@/components/ui/Toast';
 import Link from '@/components/i18n/Link';
 import { StarOfTruth } from '@/components/brand/Logo';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import {
-  ShieldAlert,
   Lock,
-  Terminal,
   Server,
-  AlertTriangle,
-  ArrowRight,
-  CheckCircle2,
   Bug,
-  KeyRound,
   Activity,
-  FileCode,
   Radio,
 } from 'lucide-react';
 import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
@@ -52,7 +45,6 @@ const ADVISORIES = [
 export default function CybersecurityPage() {
   const { t, tx } = useI18n();
   const { notify } = useToast();
-  const [reported, setReported] = useState(false);
 
   return (
     <div className="flex flex-col min-h-screen bg-parchment-canvas">

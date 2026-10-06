@@ -12,8 +12,6 @@ import {
   Globe,
   Shield,
   FileText,
-  Users,
-  Clock,
   Star,
   Award,
   BookOpen,

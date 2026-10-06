@@ -21,16 +21,22 @@ export function useRouter() {
   };
 }
 
-/** Switches language on the current page and remembers the choice. */
+/**
+ * Switches language on the current page and remembers the choice.
+ *
+ * Uses a full document navigation rather than router.push: unprefixed English
+ * URLs are redirected by the proxy according to the cookie, and the client
+ * router caches those redirects — a soft navigation back to English could
+ * replay a stale "/x → /de/x" redirect. A language change replaces <html lang>,
+ * metadata and every string anyway, so a fresh document is the correct unit.
+ */
 export function useSwitchLocale() {
-  const router = useNextRouter();
   const path = usePathname();
   return useCallback(
     (next: Locale) => {
       document.cookie = `${LOCALE_COOKIE}=${next}; path=/; max-age=31536000; samesite=lax`;
-      const hash = window.location.hash;
-      router.push(localizeHref(path, next) + window.location.search + hash);
+      window.location.assign(localizeHref(path, next) + window.location.search + window.location.hash);
     },
-    [router, path],
+    [path],
   );
 }

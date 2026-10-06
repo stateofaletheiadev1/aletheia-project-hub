@@ -5,16 +5,7 @@ import React from 'react';
 import { downloadPortalDocument } from '@/lib/pdf/portal';
 import Link from '@/components/i18n/Link';
 import { PortalShell } from '@/components/layout/PortalShell';
-import {
-  Globe2,
-  ShieldCheck,
-  Calendar,
-  CheckCircle2,
-  Download,
-  Building2,
-  FileText,
-  ArrowRight,
-} from 'lucide-react';
+import { CheckCircle2, Download, ArrowRight } from 'lucide-react';
 
 export default function PortalResidencyStatusPage() {
   const { t, tx } = useI18n();

@@ -24,10 +24,10 @@ const PILLARS = [
 ];
 
 const CALENDAR = [
-  { date: '20 January', name: 'Covenant Day', desc: 'Anniversary of the Covenant’s promulgation. Public reading of the Preamble in every canton.' },
-  { date: '16 May', name: 'St. Brendan’s Day', desc: 'Festival of the sea: blessing of the fleet and the maritime regatta at Port Nicholas.' },
-  { date: '28 August', name: 'Feast of St. Augustine', desc: 'Day of learning: universities and libraries open their doors to all.' },
-  { date: '4 December', name: 'St. Barbara’s Day', desc: 'Honouring those who serve in the ADSS, emergency services and civil defence.' },
+  { month: 1, day: 20, name: 'Covenant Day', desc: 'Anniversary of the Covenant’s promulgation. Public reading of the Preamble in every canton.' },
+  { month: 5, day: 16, name: 'St. Brendan’s Day', desc: 'Festival of the sea: blessing of the fleet and the maritime regatta at Port Nicholas.' },
+  { month: 8, day: 28, name: 'Feast of St. Augustine', desc: 'Day of learning: universities and libraries open their doors to all.' },
+  { month: 12, day: 4, name: 'St. Barbara’s Day', desc: 'Honouring those who serve in the ADSS, emergency services and civil defence.' },
 ];
 
 const GALLERY: { image: PhotoKey; alt: string }[] = [
@@ -41,7 +41,7 @@ const GALLERY: { image: PhotoKey; alt: string }[] = [
 ];
 
 export default function SocietyPage() {
-  const { t, tx } = useI18n();
+  const { t, tx, intl } = useI18n();
   return (
     <div className="flex flex-col bg-parchment-canvas">
       <PageHero
@@ -149,7 +149,7 @@ export default function SocietyPage() {
             {CALENDAR.map((c) => (
               <div key={c.name} className="sovereign-card-premium rounded-sm overflow-hidden">
                 <div className="bg-navy px-6 py-4 border-b border-gold/30">
-                  <span className="text-gold font-mono text-sm font-bold">{tx(c.date)}</span>
+                  <span className="text-gold font-mono text-sm font-bold">{new Date(Date.UTC(2026, c.month - 1, c.day)).toLocaleDateString(intl, { day: 'numeric', month: 'long', timeZone: 'UTC' })}</span>
                 </div>
                 <div className="p-6 space-y-2">
                   <h3 className="text-lg font-bold text-navy">{tx(c.name)}</h3>

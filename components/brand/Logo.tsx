@@ -1,3 +1,6 @@
+'use client';
+
+import { useI18n } from '@/components/i18n/I18nProvider';
 import React from 'react';
 import Image from 'next/image';
 import Link from '@/components/i18n/Link';
@@ -10,6 +13,7 @@ interface LogoProps {
 }
 
 export function StarOfTruth({ size = 28, className = '' }: { size?: number; className?: string }) {
+  const { t } = useI18n();
   return (
     <svg
       width={size}
@@ -18,7 +22,7 @@ export function StarOfTruth({ size = 28, className = '' }: { size?: number; clas
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={`shrink-0 ${className}`}
-      aria-label="Star of Truth (Aletheia)"
+      aria-label={t("Star of Truth (Aletheia)")}
     >
       {/* 8-pointed star with central annulus */}
       <path
@@ -32,6 +36,7 @@ export function StarOfTruth({ size = 28, className = '' }: { size?: number; clas
 }
 
 export function HexagonCross({ size = 32, className = '' }: { size?: number; className?: string }) {
+  const { t } = useI18n();
   return (
     <svg
       width={size}
@@ -40,7 +45,7 @@ export function HexagonCross({ size = 32, className = '' }: { size?: number; cla
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={`shrink-0 ${className}`}
-      aria-label="Federal Inescutcheon of Antioch"
+      aria-label={t("Federal Inescutcheon of Antioch")}
     >
       {/* Hexagon */}
       <polygon
@@ -71,6 +76,7 @@ export function Logo({
   theme = 'light',
   className = '',
 }: LogoProps) {
+  const { t } = useI18n();
   const dimensions = {
     sm: { img: 32, text: 'text-sm', sub: 'text-[8.5px]' },
     md: { img: 38, text: 'text-[15px]', sub: 'text-[9px]' },
@@ -85,7 +91,7 @@ export function Logo({
       <div className={`relative inline-block ${className}`}>
         <Image
           src="/coat_of_arms_transparent.png"
-          alt="Aletheia Arms"
+          alt={t("Aletheia Arms")}
           width={dimensions.img}
           height={dimensions.img * 1.17}
           className="object-contain"
@@ -99,12 +105,12 @@ export function Logo({
     <Link
       href="/"
       className={`group inline-flex items-center gap-3 tracking-tight transition-opacity hover:opacity-90 ${className}`}
-      aria-label="Aletheia Home"
+      aria-label={t("Aletheia Home")}
     >
       <div className="relative shrink-0 flex items-center justify-center">
         <Image
           src="/coat_of_arms_transparent.png"
-          alt="Coat of Arms of the Sovereign Covenant State of Aletheia"
+          alt={t("Coat of Arms of the Sovereign Covenant State of Aletheia")}
           width={dimensions.img}
           height={Math.round(dimensions.img * 1.17)}
           className="object-contain drop-shadow-sm"
@@ -116,16 +122,12 @@ export function Logo({
           className={`font-bold tracking-[0.18em] uppercase font-sans leading-none ${
             isDark ? 'text-parchment' : 'text-navy'
           } ${dimensions.text}`}
-        >
-          ALETHEIA
-        </span>
+        >{t("ALETHEIA")}</span>
         <span
           className={`tracking-[0.14em] uppercase font-semibold whitespace-nowrap leading-none ${
             isDark ? 'text-gold/80' : 'text-gold'
           } ${dimensions.sub}`}
-        >
-          Sovereign Covenant State
-        </span>
+        >{t("Sovereign Covenant State")}</span>
       </div>
     </Link>
   );

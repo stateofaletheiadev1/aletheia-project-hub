@@ -48,9 +48,11 @@ const isProse = (s) => {
   if (/\b[a-z-]+:[a-z]/.test(v) && !/\s[A-Z]/.test(v) && !/^[A-Z]/.test(v)) return false; // variant-prefixed classes
   if (/must be used within/.test(v)) return false; // developer errors
   if (!v.includes(' ') && /^[a-z]/.test(v) && /[-[/]/.test(v)) return false; // single utility class
+  if (/^[a-z]+[A-Z][A-Za-z]*$/.test(v)) return false; // camelCase identifiers
+  if (/^\(min-width:|^\d+vw$/.test(v)) return false; // responsive image `sizes`
   if (/^-?\d[\d\s.%-]*px/.test(v) || /^main\s/.test(v)) return false; // CSS lengths, selectors
   if (/(rgba?|hsla?|blur|saturate|calc|var|url|radial-gradient|linear-gradient|cubic-bezier|translate3d)\(/.test(v)) return false;
-  if (/^(main|body|html|\.|\[)/.test(v) && /[.\[]/.test(v)) return false; // DOM selectors
+  if (/^(main|body|html|\.|\[)/.test(v) && /[.\[]/.test(v) && !/[A-Za-z]{2,} [a-z]{2,} [a-z]{2,}/.test(v)) return false; // DOM selectors (not sentence fragments)
   if (/\.(pdf|png|jpe?g|svg|webp|json|cer)$/i.test(v)) return false;   // file names
   const css = v.split(' ').filter((w) => /^(-?[a-z]+:)*-?(p[xytrbl]?|m[xytrbl]?|text|bg|border|rounded|flex|grid|w|h|min|max|gap|space|font|leading|tracking|shadow|opacity|z|top|left|right|bottom|inset|col|row|items|justify|self|place|overflow|transition|duration|ease|animate|from|via|to|ring|divide|object|aspect|fill|stroke|translate|scale|rotate|blur|backdrop|order|shrink|grow|basis|line|sr|not|group|peer|hover|focus|lg|md|sm|xl|block|inline|hidden|absolute|relative|fixed|sticky|uppercase|italic|underline|truncate|whitespace|break|cursor|pointer|select|outline|list|decoration|tabular|mix|filter)\b/.test(w));
   if (css.length >= 2 && css.length >= v.split(' ').length / 2) return false;
@@ -59,9 +61,9 @@ const isProse = (s) => {
 
 const found = new Map(); // normalized → first location
 
-function add(text, file, node, sf) {
+function add(text, file, node, sf, explicit = false) {
   const v = text.replace(/\s+/g, ' ').trim();
-  if (!isProse(v)) return;
+  if (explicit ? !/\p{L}/u.test(v) : !isProse(v)) return; // explicit t() calls are always translatable
   if (!found.has(v)) {
     const { line } = sf.getLineAndCharacterOfPosition(node.getStart());
     found.set(v, `${path.relative(ROOT, file).replace(/\\/g, '/')}:${line + 1}`);
@@ -76,7 +78,7 @@ function scan(file, mode) {
     // t("…") anywhere
     if (ts.isCallExpression(node) && ts.isIdentifier(node.expression) && node.expression.text === 't') {
       const a = node.arguments[0];
-      if (a && (ts.isStringLiteral(a) || ts.isNoSubstitutionTemplateLiteral(a))) add(a.text, file, a, sf);
+      if (a && (ts.isStringLiteral(a) || ts.isNoSubstitutionTemplateLiteral(a))) add(a.text, file, a, sf, true);
     }
 
     if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
@@ -85,7 +87,9 @@ function scan(file, mode) {
         ts.isImportDeclaration(p) || ts.isExportDeclaration(p) || ts.isExternalModuleReference(p) ||
         (ts.isCallExpression(p) && ts.isIdentifier(p.expression) && ['t', 'require', 'import'].includes(p.expression.text)) ||
         (ts.isPropertyAssignment(p) && p.name === node) ||
-        (ts.isPropertyAssignment(p) && NON_TEXT_KEYS.has(p.name.getText().replace(/['"]/g, ''))) ||
+        (ts.isPropertyAssignment(p) && NON_TEXT_KEYS.has(p.name.getText().replace(/['"]/g, '')) &&
+          // `type` / `kind` / `source` sometimes hold displayed labels ("Fiscal Status Attestation")
+          !(['type', 'kind', 'source'].includes(p.name.getText()) && /^[A-Z][a-z]+( [A-Za-z&]+)+$/.test(node.text))) ||
         (ts.isJsxAttribute(p) && NON_TEXT_ATTRS.has(p.name.getText())) ||
         (ts.isJsxExpression(p) && ts.isJsxAttribute(p.parent) && NON_TEXT_ATTRS.has(p.parent.name.getText())) ||
         ts.isLiteralTypeNode(p) || ts.isElementAccessExpression(p) ||

@@ -7,12 +7,6 @@ import {
   UserCheck,
   CheckCircle2,
   XCircle,
-  Clock,
-  ShieldAlert,
-  FileCheck,
-  AlertTriangle,
-  Sparkles,
-  ArrowRight,
   Eye,
   X,
 } from 'lucide-react';

@@ -3,18 +3,14 @@
 import { useI18n } from '@/components/i18n/I18nProvider';
 import React, { useState } from 'react';
 import Link from '@/components/i18n/Link';
-import Image from 'next/image';
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import { StarOfTruth, HexagonCross } from '@/components/brand/Logo';
+import { HexagonCross } from '@/components/brand/Logo';
 import {
   Landmark,
   Shield,
   Scale,
   Building,
-  Users,
   CheckCircle,
-  ArrowRight,
-  ExternalLink,
   ChevronRight,
   Cpu,
   Coins,
@@ -297,7 +293,7 @@ export default function GovernmentDirectoryPage() {
               {(['All', 'Under Development', 'Planned'] as const).map((s) => (
                 <button
                   key={s}
-                  onClick={() => setFilter(s as any)}
+                  onClick={() => setFilter(s)}
                   className={`px-3 py-1.5 text-xs rounded-sm transition-colors ${
                     filter === s
                       ? 'bg-navy text-parchment font-semibold'
@@ -389,7 +385,7 @@ export default function GovernmentDirectoryPage() {
                 <StatusBadge status="Under Development" size="sm" />
               </div>
               <h4 className="font-bold text-parchment text-sm">{t("Auditor-General")}</h4>
-              <p className="text-xs text-parchment/65 leading-relaxed">{t("Publishes autonomous cryptographic Merkle proofs of public expenditure against finalized StableChain blocks every 512-slot epoch.")}</p>
+              <p className="text-xs text-parchment/65 leading-relaxed">{t("Publishes autonomous cryptographic Merkle proofs of public expenditure against finalized StableChain blocks every 12-hour ledger epoch.")}</p>
             </div>
 
             <div className="sovereign-card-dark rounded-sm p-6 space-y-3">

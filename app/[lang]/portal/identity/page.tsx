@@ -8,14 +8,9 @@ import { PortalShell } from '@/components/layout/PortalShell';
 import { StarOfTruth } from '@/components/brand/Logo';
 import {
   Fingerprint,
-  ShieldCheck,
   Copy,
-  CheckCircle2,
   QrCode,
   Download,
-  KeyRound,
-  ExternalLink,
-  Lock,
 } from 'lucide-react';
 
 export default function PortalDigitalIdentityPage() {

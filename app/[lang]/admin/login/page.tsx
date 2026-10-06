@@ -5,10 +5,8 @@ import Link from '@/components/i18n/Link';
 import { useRouter } from '@/lib/i18n/navigation';
 import { StarOfTruth } from '@/components/brand/Logo';
 import {
-  ShieldAlert,
   Lock,
   KeyRound,
-  CheckCircle2,
   AlertTriangle,
   ArrowRight,
   Sparkles,
@@ -17,7 +15,6 @@ import {
   Eye,
   EyeOff,
   Zap,
-  Server,
 } from 'lucide-react';
 
 import { setOfficerSession } from '@/lib/auth';

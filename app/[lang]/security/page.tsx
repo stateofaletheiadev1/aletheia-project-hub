@@ -7,16 +7,9 @@ import { StarOfTruth } from '@/components/brand/Logo';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import {
   ShieldAlert,
-  Anchor,
-  Radio,
-  Lock,
   ArrowRight,
   CheckCircle2,
-  AlertTriangle,
   Siren,
-  LifeBuoy,
-  PhoneCall,
-  Eye,
 } from 'lucide-react';
 import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
 

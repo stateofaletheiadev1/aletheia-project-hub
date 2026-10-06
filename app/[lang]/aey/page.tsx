@@ -3,26 +3,14 @@
 import { useI18n } from '@/components/i18n/I18nProvider';
 import React, { useState } from 'react';
 import Link from '@/components/i18n/Link';
-import Image from 'next/image';
 import { StarOfTruth } from '@/components/brand/Logo';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import {
   CreditCard,
-  Smartphone,
-  ShieldCheck,
-  TrendingUp,
-  Lock,
   ArrowRight,
   CheckCircle2,
-  RefreshCw,
-  Landmark,
   Scale,
   Zap,
-  FileCheck2,
-  HelpCircle,
-  QrCode,
-  Layers,
-  Cpu,
 } from 'lucide-react';
 import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
 
@@ -309,7 +297,7 @@ export default function AeyCurrencyPage() {
                   <label className="text-[11px] font-bold text-navy uppercase tracking-wider block">{t("Source Currency")}</label>
                   <select
                     value={sourceCurrency}
-                    onChange={(e) => setSourceCurrency(e.target.value as any)}
+                    onChange={(e) => setSourceCurrency(e.target.value as typeof sourceCurrency)}
                     className="w-full px-3 py-2 text-xs border border-navy/20 rounded-sm focus:outline-none focus:border-navy bg-white"
                   >
                     <option value="EUR">{t("EUR — European Euro")}</option>

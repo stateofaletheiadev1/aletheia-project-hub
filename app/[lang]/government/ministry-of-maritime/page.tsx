@@ -12,13 +12,7 @@ import {
   Compass,
   Ship,
   Waves,
-  ShieldCheck,
-  FileCheck2,
   ArrowRight,
-  CheckCircle2,
-  Globe2,
-  Radio,
-  Building2,
 } from 'lucide-react';
 
 const MARITIME_DIVISIONS = [

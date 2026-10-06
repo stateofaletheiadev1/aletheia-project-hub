@@ -125,7 +125,7 @@ function TerritoryMap() {
       <rect width="400" height="400" fill="#0B1626" />
       <rect width="400" height="400" fill="url(#map-hex)" />
       {regions.map((r) => (
-        <a key={r.id} href={`#${r.id}`} className="group cursor-pointer" aria-label={t('{name} State', { name: r.label })}>
+        <a key={r.id} href={`#${r.id}`} className="group cursor-pointer" aria-label={t('{name} State', { name: t(r.label) })}>
           <path d={r.d} className="fill-[#15294A] stroke-[#C49A4E]/50 transition-all duration-300 group-hover:fill-[#1C3660] group-hover:stroke-[#E4C689] group-focus:fill-[#1C3660]" strokeWidth="1.2" />
           <text x={r.tx} y={r.ty} textAnchor="middle" className="fill-[#F4EEDF] text-[13px] font-bold tracking-wide pointer-events-none">{tx(r.label)}</text>
           <text x={r.tx} y={r.ty + 16} textAnchor="middle" className="fill-[#C49A4E] text-[9px] uppercase tracking-[0.2em] pointer-events-none">{t("State")}</text>

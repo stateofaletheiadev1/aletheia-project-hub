@@ -60,7 +60,7 @@ export default function CitizenshipApplyPage() {
                   <div key={o.id} className="p-4 bg-navy/60 border border-gold/20 rounded-sm">
                     <span className="block text-[10px] uppercase tracking-wider text-gold/80">{tx(o.title)}</span>
                     <span className="block text-xl font-extrabold text-gold-tint tabular-nums mt-1">{formatAey(o.amount, intl)}</span>
-                    <span className="block text-[11px] text-parchment/55 mt-1">{tx(o.refundable ? `Held ${o.holdYears} years, then returned` : 'One-time, funds the build-out')}</span>
+                    <span className="block text-[11px] text-parchment/55 mt-1">{o.refundable ? t('Held {years} years, then returned', { years: o.holdYears ?? 0 }) : t('One-time, funds the build-out')}</span>
                   </div>
                 ))}
               </div>

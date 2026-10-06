@@ -3,11 +3,11 @@
 import { useI18n } from '@/components/i18n/I18nProvider';
 import React from 'react';
 import Image from 'next/image';
+import Link from '@/components/i18n/Link';
 import { Logo, StarOfTruth, HexagonCross } from '@/components/brand/Logo';
 import { NationalFlag, StateEnsign } from '@/components/brand/Flags';
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import { ALETHEIA_TOKENS } from '@/lib/tokens';
-import { Shield, BookOpen, Layers, CheckCircle, ArrowRight, ExternalLink } from 'lucide-react';
+import { Shield, BookOpen, Layers, CheckCircle, ArrowRight } from 'lucide-react';
 
 export default function DesignSystemSpecimenPage() {
   const { t, tx } = useI18n();
@@ -265,13 +265,13 @@ export default function DesignSystemSpecimenPage() {
           <p className="text-sm text-parchment/70 max-w-xl">{t("Tokens, Manrope typography, exact pixel values, and heraldic components verified against all uploaded assets.")}</p>
         </div>
         <div className="flex items-center gap-3 shrink-0">
-          <a
+          <Link
             href="/"
             className="px-5 py-2.5 bg-gold text-navy font-semibold text-xs uppercase tracking-wider hover:bg-gold-tint transition-all rounded-sm shadow-subtle flex items-center gap-2"
           >
             <span>{t("Proceed to Home Page")}</span>
             <ArrowRight className="w-4 h-4" />
-          </a>
+          </Link>
         </div>
       </div>
     </div>

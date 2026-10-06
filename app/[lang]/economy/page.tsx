@@ -7,7 +7,6 @@ import Image from 'next/image';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { StarOfTruth } from '@/components/brand/Logo';
 import {
-  Coins,
   TrendingUp,
   Lock,
   Database,

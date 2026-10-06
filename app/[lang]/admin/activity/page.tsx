@@ -1,21 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import Link from '@/components/i18n/Link';
 import { AdminShell } from '@/components/layout/AdminShell';
-import {
-  Activity,
-  ShieldCheck,
-  CheckCircle2,
-  Stamp,
-  UserCheck,
-  Building2,
-  Clock,
-  Filter,
-  Search,
-  Cpu,
-  Globe2,
-} from 'lucide-react';
+import { Activity } from 'lucide-react';
 
 interface ActivityLog {
   id: string;

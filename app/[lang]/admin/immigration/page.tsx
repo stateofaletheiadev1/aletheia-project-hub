@@ -2,24 +2,12 @@
 
 import React, { useState } from 'react';
 import Link from '@/components/i18n/Link';
-import Image from 'next/image';
 import { AdminShell } from '@/components/layout/AdminShell';
-import { StarOfTruth } from '@/components/brand/Logo';
-import { StatusBadge } from '@/components/ui/StatusBadge';
 import {
-  ShieldCheck,
   CheckCircle2,
-  XCircle,
   AlertTriangle,
   Search,
   ScanLine,
-  UserCheck,
-  Plane,
-  Anchor,
-  ArrowRight,
-  Terminal,
-  Cpu,
-  Fingerprint,
 } from 'lucide-react';
 
 interface TravelerRecord {

@@ -6,19 +6,10 @@ import Link from '@/components/i18n/Link';
 import { StarOfTruth } from '@/components/brand/Logo';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import {
-  Cpu,
-  ShieldCheck,
   KeyRound,
-  FileCheck2,
-  Lock,
-  Server,
-  Terminal,
-  Layers,
   ArrowRight,
   CheckCircle2,
   Search,
-  Database,
-  Fingerprint,
 } from 'lucide-react';
 import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
 

@@ -1,30 +1,21 @@
 'use client';
 
 import { useI18n } from '@/components/i18n/I18nProvider';
-import React, { useState } from 'react';
-import { useToast } from '@/components/ui/Toast';
+import React from 'react';
 import Link from '@/components/i18n/Link';
 import { StarOfTruth } from '@/components/brand/Logo';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import {
-  TrendingUp,
   Building2,
-  ShieldCheck,
-  Coins,
-  ArrowRight,
-  CheckCircle2,
   Anchor,
   Zap,
   Globe2,
-  Scale,
 } from 'lucide-react';
 import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
 import { BOND_TRANCHES } from '@/lib/bonds';
 
 export default function InvestPage() {
   const { t, tx } = useI18n();
-  const { notify } = useToast();
-  const [selectedBond, setSelectedBond] = useState('sdb-2029');
 
   return (
     <div className="flex flex-col min-h-screen bg-parchment-canvas">

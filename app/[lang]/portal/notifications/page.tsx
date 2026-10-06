@@ -4,17 +4,7 @@ import { useI18n } from '@/components/i18n/I18nProvider';
 import React, { useState } from 'react';
 import Link from '@/components/i18n/Link';
 import { PortalShell } from '@/components/layout/PortalShell';
-import {
-  Bell,
-  CheckCircle2,
-  Clock,
-  ShieldCheck,
-  FileText,
-  CreditCard,
-  Building2,
-  Trash2,
-  ArrowRight,
-} from 'lucide-react';
+import { Bell, ArrowRight } from 'lucide-react';
 
 interface NotificationItem {
   id: string;

@@ -1,27 +1,20 @@
 'use client';
 
 import { useI18n } from '@/components/i18n/I18nProvider';
-import React, { useState } from 'react';
+import React from 'react';
 import Link from '@/components/i18n/Link';
 import { StarOfTruth } from '@/components/brand/Logo';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import {
-  ShieldCheck,
-  CheckCircle2,
-  FileText,
-  Search,
-  ExternalLink,
   Coins,
   Building,
   Lock,
   ArrowRight,
-  TrendingUp,
 } from 'lucide-react';
 import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
 
 export default function TransparencyPage() {
   const { t } = useI18n();
-  const [filterType, setFilterType] = useState('all');
 
   return (
     <div className="flex flex-col min-h-screen bg-parchment-canvas">

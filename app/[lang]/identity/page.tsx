@@ -7,16 +7,7 @@ import Image from 'next/image';
 import { StarOfTruth, HexagonCross } from '@/components/brand/Logo';
 import { NationalFlag } from '@/components/brand/Flags';
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import {
-  Download,
-  Shield,
-  Award,
-  BookOpen,
-  ArrowRight,
-  CheckCircle2,
-  FileCheck,
-  Compass,
-} from 'lucide-react';
+import { ArrowRight, CheckCircle2 } from 'lucide-react';
 import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
 
 export default function IdentityPage() {
@@ -175,7 +166,7 @@ export default function IdentityPage() {
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="w-4 h-4 text-laurel shrink-0 mt-0.5" />
-                <span><strong>{t("Multilingual Typography:")}</strong>{' '}{t("Inscribed in English, German, Serbian, and Italian.")}</span>
+                <span><strong>{t("Multilingual Typography:")}</strong>{' '}{t("Inscribed in English, German, Dutch, Serbian, and Italian.")}</span>
               </li>
             </ul>
 

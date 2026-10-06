@@ -1,22 +1,12 @@
 'use client';
 
 import React, { useState } from 'react';
-import Link from '@/components/i18n/Link';
 import { AdminShell } from '@/components/layout/AdminShell';
-import {
-  Settings,
-  Lock,
-  KeyRound,
-  ShieldCheck,
-  CheckCircle2,
-  Cpu,
-  UserCheck,
-} from 'lucide-react';
+import { Lock, CheckCircle2, UserCheck } from 'lucide-react';
 
 export default function AdminSettingsConsolePage() {
   const [saved, setSaved] = useState(false);
   const [timeoutMinutes, setTimeoutMinutes] = useState('30');
-  const [mfaEnforced, setMfaEnforced] = useState(true);
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();

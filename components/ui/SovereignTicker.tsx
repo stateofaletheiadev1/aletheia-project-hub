@@ -3,11 +3,11 @@
 import { useI18n } from '@/components/i18n/I18nProvider';
 import React, { useState, useEffect } from 'react';
 import Link from '@/components/i18n/Link';
-import { ShieldCheck, Activity, Lock, Cpu, Globe2, Sparkles } from 'lucide-react';
+import { ShieldCheck, Activity, Lock } from 'lucide-react';
 
 export function SovereignTicker() {
-  const { t, tx } = useI18n();
-  const [epoch, setEpoch] = useState(8421902);
+  const { t, tx, intl } = useI18n();
+  const epoch = 8421902;
   const [latency, setLatency] = useState(482);
 
   useEffect(() => {
@@ -31,7 +31,7 @@ export function SovereignTicker() {
             <span className="font-bold tracking-wider text-[10px] uppercase">{t("SOVEREIGN NETWORK PULSE")}</span>
           </div>
           <span className="hidden sm:inline text-white/20">|</span>
-          <span className="hidden sm:inline text-[#F4EEDF]/60">{t("StableChain Epoch")}{' '}<span className="text-[#C49A4E] font-bold">{epoch.toLocaleString()}</span>
+          <span className="hidden sm:inline text-[#F4EEDF]/60">{t("StableChain Epoch")}{' '}<span className="text-[#C49A4E] font-bold">{epoch.toLocaleString(intl)}</span>
           </span>
         </div>
 

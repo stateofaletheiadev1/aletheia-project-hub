@@ -39,7 +39,7 @@ export default function AccessibilityPage() {
             <ul>
               <li>{t("Some data-dense tables in the officer and portal areas are not yet optimised for small screens;")}</li>
               <li>{t("Official PDF editions are not yet tagged for screen readers; the HTML page for every statute and document is the accessible version;")}</li>
-              <li>{t("Content is currently published in English only; translations into the other official languages are in preparation.")}</li>
+              <li>{t("Officer administration screens are published in English only, the working language of state administration; all public pages are available in the five official languages.")}</li>
             </ul>
           ),
         },

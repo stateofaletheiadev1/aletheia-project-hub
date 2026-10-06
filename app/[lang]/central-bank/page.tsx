@@ -5,18 +5,7 @@ import React from 'react';
 import Link from '@/components/i18n/Link';
 import { StarOfTruth } from '@/components/brand/Logo';
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import {
-  Landmark,
-  ShieldCheck,
-  TrendingUp,
-  Coins,
-  Lock,
-  ArrowRight,
-  CheckCircle2,
-  FileCheck2,
-  BarChart3,
-  Scale,
-} from 'lucide-react';
+import { Scale } from 'lucide-react';
 import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
 
 export default function CentralBankPage() {
@@ -53,7 +42,7 @@ export default function CentralBankPage() {
               <p className="text-xs text-parchment/70 uppercase tracking-wide">{t("AEY Peg to Euro Target")}</p>
             </div>
             <div className="space-y-1">
-              <span className="text-2xl font-bold text-gold">{t("&ge; 100%")}</span>
+              <span className="text-2xl font-bold text-gold">{t("≥ 100%")}</span>
               <p className="text-xs text-parchment/70 uppercase tracking-wide">{t("Constitutional Reserve Floor")}</p>
             </div>
             <div className="space-y-1">

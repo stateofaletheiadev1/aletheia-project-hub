@@ -10,13 +10,7 @@ import { StatusBadge } from '@/components/ui/StatusBadge';
 import {
   ArrowRight,
   Shield,
-  Compass,
-  Anchor,
-  BookOpen,
-  Award,
-  Globe2,
   CheckCircle2,
-  FileText,
   ChevronRight,
   Building2,
   Lock,

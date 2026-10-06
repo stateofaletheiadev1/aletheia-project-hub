@@ -18,7 +18,7 @@ const TRANSLATABLE_ATTRS = new Set([
   'subtitle', 'description', 'caption', 'summary', 'kicker', 'desc',
 ]);
 
-const ENTITIES = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ', ldquo: '“', rdquo: '”', lsquo: '‘', rsquo: '’', mdash: '—', ndash: '–', hellip: '…', middot: '·', copy: '©', rarr: '→', larr: '←', bull: '•', sect: '§', times: '×', euro: '€', deg: '°' };
+const ENTITIES = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ', ldquo: '“', rdquo: '”', lsquo: '‘', rsquo: '’', mdash: '—', ndash: '–', hellip: '…', middot: '·', copy: '©', rarr: '→', larr: '←', bull: '•', ge: '≥', le: '≤', sect: '§', times: '×', euro: '€', deg: '°' };
 
 function decode(text) {
   return text.replace(/&(#x?[0-9a-f]+|\w+);/gi, (m, e) => {

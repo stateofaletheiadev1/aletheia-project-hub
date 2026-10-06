@@ -2,17 +2,12 @@
 
 import { useI18n } from '@/components/i18n/I18nProvider';
 import React, { useState } from 'react';
-import Link from '@/components/i18n/Link';
 import { PortalShell } from '@/components/layout/PortalShell';
 import {
-  ShieldCheck,
   Fingerprint,
-  KeyRound,
   CheckCircle2,
   RefreshCw,
-  Cpu,
   Lock,
-  Smartphone,
   Eye,
 } from 'lucide-react';
 

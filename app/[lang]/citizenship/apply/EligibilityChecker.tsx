@@ -1,7 +1,7 @@
 'use client';
 
 import { useI18n } from '@/components/i18n/I18nProvider';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import Link from '@/components/i18n/Link';
 import {
   INVESTMENT_OPTIONS,
@@ -22,7 +22,7 @@ interface Check {
 }
 
 function YesNo({ id, label, value, onChange }: { id: string; label: string; value: boolean | null; onChange: (v: boolean) => void }) {
-  const { tx, intl } = useI18n();
+  const { tx } = useI18n();
   return (
     <fieldset className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 py-4 border-b border-navy/[0.07]">
       <legend className="sr-only">{tx(label)}</legend>
@@ -69,7 +69,7 @@ export function EligibilityChecker() {
   const option = INVESTMENT_OPTIONS.find((o) => o.id === optionId)!;
   const total = investmentTotal(option, dependants);
 
-  const checks: Check[] = useMemo(() => {
+  const checks: Check[] = (() => {
     const shared: Check[] = [
       { label: t('Aged {age} or over', { age: MINIMUM_AGE }), met: adult === true, hint: 'Applicants under 18 are included through a parent’s application.' },
       { label: 'No serious criminal conviction in 10 years', met: cleanRecord === true, hint: 'Serious convictions bar every route to citizenship.' },
@@ -96,7 +96,7 @@ export function EligibilityChecker() {
       shared[1],
       shared[2],
     ];
-  }, [route, adult, cleanRecord, oath, years, languages, integration, diligence, total]);
+  })();
 
   const answered = route === 'naturalisation'
     ? [adult, languages, integration, cleanRecord, oath].every((v) => v !== null)

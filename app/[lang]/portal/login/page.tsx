@@ -6,8 +6,17 @@ import Link from '@/components/i18n/Link';
 import { useRouter } from '@/lib/i18n/navigation';
 import { StarOfTruth } from '@/components/brand/Logo';
 import {
-  Fingerprint, KeyRound, QrCode, ShieldCheck, ArrowRight,
-  Lock, CheckCircle2, Sparkles, Smartphone, Eye, EyeOff, Zap,
+  Fingerprint,
+  KeyRound,
+  QrCode,
+  ShieldCheck,
+  ArrowRight,
+  Lock,
+  CheckCircle2,
+  Sparkles,
+  Eye,
+  EyeOff,
+  Zap,
 } from 'lucide-react';
 
 import { setUserSession } from '@/lib/auth';

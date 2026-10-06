@@ -15,7 +15,6 @@ import {
   Menu,
   X,
   ChevronDown,
-  Globe,
   Shield,
   ArrowRight,
   UserCheck,
@@ -82,11 +81,13 @@ export function Navbar() {
     return () => window.removeEventListener('scroll', fn);
   }, []);
 
-  /* route changes → close everything */
-  useEffect(() => {
+  /* route changes → close everything (state adjusted during render, not in an effect) */
+  const [lastPath, setLastPath] = useState(pathname);
+  if (pathname !== lastPath) {
+    setLastPath(pathname);
     setActiveMenu(null); setMobileOpen(false);
     setSearchOpen(false);
-  }, [pathname]);
+  }
 
   /* keyboard */
   useEffect(() => {
@@ -221,7 +222,7 @@ export function Navbar() {
                       aria-haspopup={hasDropdown ? 'true' : undefined}
                       aria-expanded={hasDropdown ? activeMenu === item.label : undefined}
                       aria-current={pathname === item.href ? 'page' : undefined}
-                      className={`relative flex items-center gap-0.5 px-3 py-2 text-[13px] font-medium whitespace-nowrap rounded-[3px] transition-colors ${
+                      className={`relative flex items-center gap-0.5 px-1.5 2xl:px-3 py-2 text-[12.5px] 2xl:text-[13px] font-medium whitespace-nowrap rounded-[3px] transition-colors ${
                         isActive
                           ? 'text-[#15294A]'
                           : 'text-[#15294A]/60 hover:text-[#15294A] hover:bg-[#15294A]/[0.04]'
@@ -229,7 +230,7 @@ export function Navbar() {
                     >
                       {/* active indicator */}
                       {tx(isActive && (
-                        <span className="absolute bottom-0 left-3 right-3 h-[2px] bg-[#C49A4E] rounded-full" />
+                        <span className="absolute bottom-0 left-1.5 right-1.5 2xl:left-3 2xl:right-3 h-[2px] bg-[#C49A4E] rounded-full" />
                       ))}
                       {tx(label)}
                       {tx(hasDropdown && (
@@ -321,13 +322,14 @@ export function Navbar() {
                 <Search className="w-4 h-4" />
               </button>
 
-              <div className="w-px h-5 bg-[#15294A]/10 mx-1" />
+              <div className="hidden 2xl:block w-px h-5 bg-[#15294A]/10 mx-1" />
 
               <Link
                 href="/portal/login"
-                className="flex items-center gap-1.5 px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-wider text-[#15294A] bg-white border border-[#C49A4E]/40 rounded-sm hover:border-[#C49A4E] hover:bg-[#FAF7F0] transition-all whitespace-nowrap shadow-sm"
+                title={t("Sign In")}
+                className="flex items-center gap-1.5 px-2.5 2xl:px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-wider text-[#15294A] bg-white border border-[#C49A4E]/40 rounded-sm hover:border-[#C49A4E] hover:bg-[#FAF7F0] transition-all whitespace-nowrap shadow-sm"
               >
-                <UserCheck className="w-3.5 h-3.5 text-[#C49A4E]" />{t("Sign In")}</Link>
+                <UserCheck className="w-3.5 h-3.5 text-[#C49A4E]" aria-hidden="true" /><span className="sr-only 2xl:not-sr-only">{t("Sign In")}</span></Link>
 
               <Link
                 href="/e-residency"

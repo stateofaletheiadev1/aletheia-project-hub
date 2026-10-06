@@ -1,26 +1,22 @@
 'use client';
 
 import { useI18n } from '@/components/i18n/I18nProvider';
-import React, { useEffect, useState } from 'react';
+import React, { useState, useSyncExternalStore } from 'react';
 import { INVESTMENT_OPTIONS, formatAey } from '@/lib/citizenship';
 import { useToast } from '@/components/ui/Toast';
 import Link from '@/components/i18n/Link';
 import { PortalShell } from '@/components/layout/PortalShell';
 import { StarOfTruth } from '@/components/brand/Logo';
-import { StatusBadge } from '@/components/ui/StatusBadge';
 import {
-  User,
-  ShieldCheck,
   CheckCircle2,
   ArrowRight,
   ArrowLeft,
   Upload,
   KeyRound,
-  FileCheck,
-  AlertTriangle,
-  Lock,
   Sparkles,
 } from 'lucide-react';
+
+const noopSubscribe = () => () => {};
 
 export default function ApplicationWizardPage() {
   const { t, tx, intl } = useI18n();
@@ -40,20 +36,15 @@ export default function ApplicationWizardPage() {
   const [generatedKeyHash, setGeneratedKeyHash] = useState('');
   const [submitted, setSubmitted] = useState(false);
   // Which programme the applicant arrived for (?route=naturalisation|investor&option=...).
-  const [route, setRoute] = useState<'e-residency' | 'naturalisation' | 'investor'>('e-residency');
-  const [investOption, setInvestOption] = useState<string | null>(null);
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const r = params.get('route');
-    if (r === 'naturalisation' || r === 'investor') {
-      setRoute(r);
-      if (r === 'investor') {
-        setInvestOption(params.get('option'));
-        setFormData((f) => ({ ...f, purpose: 'investor' }));
-      }
-    }
-  }, []);
+  const search = useSyncExternalStore(noopSubscribe, () => window.location.search, () => '');
+  const params = new URLSearchParams(search);
+  const routeParam = params.get('route');
+  const route: 'e-residency' | 'naturalisation' | 'investor' =
+    routeParam === 'naturalisation' || routeParam === 'investor' ? routeParam : 'e-residency';
+  const investOption = route === 'investor' ? params.get('option') : null;
+  // Investor applicants default to the investor purpose until they choose otherwise.
+  const [purposeTouched, setPurposeTouched] = useState(false);
+  const purpose = !purposeTouched && route === 'investor' ? 'investor' : formData.purpose;
 
   const investment = INVESTMENT_OPTIONS.find((o) => o.id === investOption) ?? INVESTMENT_OPTIONS[0];
   const routeTitle =
@@ -262,7 +253,7 @@ export default function ApplicationWizardPage() {
                       <label
                         key={opt.id}
                         className={`p-4 border rounded-sm flex items-start gap-3 cursor-pointer transition-colors block ${
-                          formData.purpose === opt.id
+                          purpose === opt.id
                             ? 'border-navy bg-navy/5 shadow-xs'
                             : 'border-navy/15 hover:border-navy/40'
                         }`}
@@ -271,8 +262,8 @@ export default function ApplicationWizardPage() {
                           type="radio"
                           name="purpose"
                           value={opt.id}
-                          checked={formData.purpose === opt.id}
-                          onChange={(e) => setFormData({ ...formData, purpose: e.target.value })}
+                          checked={purpose === opt.id}
+                          onChange={(e) => { setPurposeTouched(true); setFormData({ ...formData, purpose: e.target.value }); }}
                           className="mt-0.5"
                         />
                         <div>

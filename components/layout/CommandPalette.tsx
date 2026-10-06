@@ -3,8 +3,7 @@
 import { useI18n } from '@/components/i18n/I18nProvider';
 import React, { useState, useEffect } from 'react';
 import Link from '@/components/i18n/Link';
-import { useRouter } from '@/lib/i18n/navigation';
-import { Search, X, FileText, Landmark, Shield, Cpu, BookOpen, ArrowRight } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 
 interface SearchItem {
@@ -55,9 +54,7 @@ const SEARCH_DATABASE: SearchItem[] = [
 
 export function CommandPalette({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const { t, tx } = useI18n();
-  const router = useRouter();
   const [query, setQuery] = useState('');
-  const [selectedIndex, setSelectedIndex] = useState(0);
 
   const filtered = SEARCH_DATABASE.filter(item =>
     item.title.toLowerCase().includes(query.toLowerCase()) ||
@@ -73,7 +70,7 @@ export function CommandPalette({ isOpen, onClose }: { isOpen: boolean; onClose: 
         else {
           // Open
           setQuery('');
-          setSelectedIndex(0);
+          
         }
       }
       if (e.key === 'Escape' && isOpen) {
@@ -100,7 +97,7 @@ export function CommandPalette({ isOpen, onClose }: { isOpen: boolean; onClose: 
             value={query}
             onChange={e => {
               setQuery(e.target.value);
-              setSelectedIndex(0);
+              
             }}
             placeholder={t("Search the Constitution, 9 Ministries, Laws, or Services...")}
             className="w-full py-4 text-base bg-transparent text-navy placeholder:text-navy/40 focus:outline-none font-sans"
@@ -120,7 +117,7 @@ export function CommandPalette({ isOpen, onClose }: { isOpen: boolean; onClose: 
           {tx(filtered.length === 0 ? (
             <div className="p-8 text-center text-sm text-navy/60">{t("No official provisions or records found matching “")}{tx(query)}{t("”.")}</div>
           ) : (
-            filtered.map((item, idx) => (
+            filtered.map((item) => (
               <Link
                 key={item.title + item.href}
                 href={item.href}

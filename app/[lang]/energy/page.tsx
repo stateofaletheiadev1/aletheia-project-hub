@@ -6,16 +6,10 @@ import Link from '@/components/i18n/Link';
 import { StarOfTruth } from '@/components/brand/Logo';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import {
-  Zap,
   Wind,
   Waves,
   Atom,
-  TrendingUp,
-  ShieldCheck,
-  CheckCircle2,
-  ArrowRight,
   Droplets,
-  Activity,
 } from 'lucide-react';
 import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
 
@@ -86,7 +80,7 @@ export default function EnergyPage() {
           <div className="feature-card rounded-sm p-6 space-y-4 group">
             <Atom className="w-8 h-8 text-navy" />
             <h3 className="text-base font-bold text-navy">{t("Small Modular Reactors")}</h3>
-            <p className="text-xs text-navy/70 leading-relaxed">{t("Walk-away safe Generation IV SMRs located in St. Barbara State providing non-intermittent baseline power.")}</p>
+            <p className="text-xs text-navy/70 leading-relaxed">{t("Walk-away safe Generation IV SMRs located in Benedict State providing non-intermittent baseline power.")}</p>
           </div>
 
           <div className="feature-card rounded-sm p-6 space-y-3 group">

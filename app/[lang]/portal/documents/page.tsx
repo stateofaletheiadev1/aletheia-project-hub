@@ -3,17 +3,12 @@
 import { useI18n } from '@/components/i18n/I18nProvider';
 import React, { useState } from 'react';
 import { downloadPortalDocument, type PortalDocumentKind } from '@/lib/pdf/portal';
-import Link from '@/components/i18n/Link';
 import { PortalShell } from '@/components/layout/PortalShell';
 import {
   FileText,
   Download,
-  Eye,
   CheckCircle2,
-  ShieldCheck,
-  Building2,
   Stamp,
-  Globe2,
   X,
 } from 'lucide-react';
 

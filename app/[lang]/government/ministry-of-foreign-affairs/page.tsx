@@ -3,7 +3,6 @@
 import { useI18n } from '@/components/i18n/I18nProvider';
 import React from 'react';
 import Link from '@/components/i18n/Link';
-import Image from 'next/image';
 import { StarOfTruth } from '@/components/brand/Logo';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import {
@@ -11,13 +10,7 @@ import {
   Scale,
   ShieldCheck,
   FileText,
-  Building2,
-  CheckCircle2,
   ArrowRight,
-  BookOpen,
-  Mail,
-  MapPin,
-  Lock,
 } from 'lucide-react';
 import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
 

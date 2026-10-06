@@ -2,17 +2,12 @@
 
 import { useI18n } from '@/components/i18n/I18nProvider';
 import React, { useState } from 'react';
-import Link from '@/components/i18n/Link';
 import { StarOfTruth } from '@/components/brand/Logo';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import {
   Mail,
   MapPin,
-  Phone,
-  Globe2,
-  ShieldCheck,
   Send,
-  Building,
   KeyRound,
   CheckCircle2,
 } from 'lucide-react';

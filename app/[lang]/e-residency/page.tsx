@@ -15,8 +15,6 @@ import {
   Building2,
   Cpu,
   Lock,
-  FileText,
-  Users,
   Clock,
   Star,
   ChevronDown,
@@ -97,7 +95,7 @@ const FAQS = [
   },
   {
     q: 'Is my data private?',
-    a: 'Aletheia operates under a constitutional data sovereignty framework. Your personal data is stored on-chain in encrypted form. Only you and authorised judicial processes can decrypt personal records. The state cannot access your business data without a High Court order.',
+    a: 'Aletheia operates under a constitutional data sovereignty framework. Your personal data is stored off-ledger in encrypted form; the public ledger holds only cryptographic hashes. Only you and authorised judicial processes can decrypt personal records. The state cannot access your business data without a High Court order.',
   },
   {
     q: 'How does business tax work?',

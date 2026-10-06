@@ -3,19 +3,7 @@
 import React, { useState } from 'react';
 import Link from '@/components/i18n/Link';
 import { AdminShell } from '@/components/layout/AdminShell';
-import {
-  Building2,
-  CheckCircle2,
-  XCircle,
-  Search,
-  Filter,
-  Eye,
-  FileCheck,
-  CreditCard,
-  X,
-  ShieldCheck,
-  ArrowRight,
-} from 'lucide-react';
+import { Building2, CheckCircle2, X } from 'lucide-react';
 
 interface Company {
   id: string;

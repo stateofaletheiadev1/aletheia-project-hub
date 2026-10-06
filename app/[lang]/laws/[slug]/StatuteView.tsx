@@ -5,7 +5,7 @@ import Link from '@/components/i18n/Link';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
 import { StatuteActions } from './StatuteActions';
-import { STATUTE_DATABASE, getStatute } from '@/lib/statutes';
+import { getStatute } from '@/lib/statutes';
 import { ArrowLeft, Calendar, Hash, ShieldCheck } from 'lucide-react';
 
 export function StatuteView({ slug }: { slug: string }) {
@@ -70,7 +70,7 @@ export function StatuteView({ slug }: { slug: string }) {
               <div key={idx} className="space-y-2 border-b border-navy/5 pb-6 last:border-0">
                 <div className="flex items-center gap-2">
                   <span className="px-2 py-0.5 bg-navy/5 text-navy font-mono text-[10px] font-bold rounded-sm">
-                    {tx(sec.number)}
+                    {/^Section \d+$/.test(sec.number) ? t('Section {n}', { n: sec.number.slice(8) }) : tx(sec.number)}
                   </span>
                   <h3 className="text-base font-bold text-navy">{tx(sec.heading)}</h3>
                 </div>

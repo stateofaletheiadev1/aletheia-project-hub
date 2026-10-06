@@ -3,23 +3,16 @@
 import { useI18n } from '@/components/i18n/I18nProvider';
 import React, { useState } from 'react';
 import Link from '@/components/i18n/Link';
-import { CONSTITUTION_DATA, ConstitutionalArticle } from '@/lib/constitution-data';
+import { CONSTITUTION_DATA } from '@/lib/constitution-data';
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import { StarOfTruth, HexagonCross } from '@/components/brand/Logo';
+import { StarOfTruth } from '@/components/brand/Logo';
 import {
   Search,
   BookOpen,
-  Filter,
   Share2,
-  ExternalLink,
   Printer,
   Download,
-  ChevronRight,
-  Shield,
-  Landmark,
-  Scale,
   Check,
-  FileText,
   ArrowRight,
 } from 'lucide-react';
 import { HeroBackdrop } from '@/components/ui/HeroBackdrop';

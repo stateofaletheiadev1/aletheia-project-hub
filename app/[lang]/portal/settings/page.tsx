@@ -2,19 +2,8 @@
 
 import { useI18n } from '@/components/i18n/I18nProvider';
 import React, { useState } from 'react';
-import Link from '@/components/i18n/Link';
 import { PortalShell } from '@/components/layout/PortalShell';
-import {
-  Settings,
-  User,
-  ShieldCheck,
-  KeyRound,
-  CheckCircle2,
-  Lock,
-  Globe2,
-  Mail,
-  Bell,
-} from 'lucide-react';
+import { User, CheckCircle2, Bell } from 'lucide-react';
 import { getUserSession, setUserSession } from '@/lib/auth';
 
 export default function PortalSettingsPage() {

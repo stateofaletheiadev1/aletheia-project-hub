@@ -9,13 +9,10 @@ import {
   FileText,
   Download,
   Search,
-  ExternalLink,
   ShieldCheck,
   Calendar,
   Hash,
   BookOpen,
-  Filter,
-  CheckCircle2,
 } from 'lucide-react';
 import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
 import { REGISTER, registerPdfHref, registerReadHref } from '@/lib/documents';

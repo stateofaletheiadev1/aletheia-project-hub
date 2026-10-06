@@ -8,20 +8,12 @@ import Image from 'next/image';
 import { StarOfTruth } from '@/components/brand/Logo';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import {
-  ShieldCheck,
   Cpu,
   KeyRound,
   FileCheck2,
-  Lock,
-  Globe2,
   CheckCircle2,
-  ArrowRight,
-  ExternalLink,
   Search,
   AlertCircle,
-  HelpCircle,
-  QrCode,
-  Fingerprint,
 } from 'lucide-react';
 import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
 

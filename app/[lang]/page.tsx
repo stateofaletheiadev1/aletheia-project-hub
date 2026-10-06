@@ -455,12 +455,12 @@ export default function HomePage() {
               <p className="text-sm text-navy/62 leading-relaxed">{t("Antioch is engineered as the civic heart of Aletheia: six radial avenues connecting three concentric rings to a central hexagonal plaza housing the Assembly, the High Court, and state validator vaults.")}</p>
               <div className="space-y-2.5 pt-2 border-t border-navy/08">
                 {[
-                  { key: 'Radial Avenues', val: '6 Continental Axes' },
-                  { key: 'Circumferential Rings', val: 'Ring I, II & III' },
-                  { key: 'Geocoding Standard', val: 'APS-44 Hex Grid' },
-                ].map(({ key, val }) => (
-                  <div key={key} className="flex items-center justify-between text-xs">
-                    <span className="text-navy/55 font-medium">{tx(key)}</span>
+                  { label: 'Radial Avenues', val: '6 Continental Axes' },
+                  { label: 'Circumferential Rings', val: 'Ring I, II & III' },
+                  { label: 'Geocoding Standard', val: 'APS-44 Hex Grid' },
+                ].map(({ label, val }) => (
+                  <div key={label} className="flex items-center justify-between text-xs">
+                    <span className="text-navy/55 font-medium">{tx(label)}</span>
                     <span className="font-mono text-navy font-semibold">{tx(val)}</span>
                   </div>
                 ))}

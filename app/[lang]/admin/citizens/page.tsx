@@ -4,19 +4,11 @@ import React, { useState } from 'react';
 import Link from '@/components/i18n/Link';
 import { AdminShell } from '@/components/layout/AdminShell';
 import {
-  Users,
   Search,
-  Filter,
-  CheckCircle2,
-  XCircle,
-  AlertTriangle,
   Eye,
   ShieldCheck,
-  FileText,
-  Download,
   X,
   UserCheck,
-  Globe2,
 } from 'lucide-react';
 
 interface Citizen {
@@ -101,7 +93,7 @@ const INITIAL_CITIZENS: Citizen[] = [
 ];
 
 export default function AdminCitizenRegistryPage() {
-  const [citizens, setCitizens] = useState<Citizen[]>(INITIAL_CITIZENS);
+  const citizens = INITIAL_CITIZENS;
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState('ALL');
   const [selectedCitizen, setSelectedCitizen] = useState<Citizen | null>(null);

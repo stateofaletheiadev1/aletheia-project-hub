@@ -5,20 +5,7 @@ import React, { useState } from 'react';
 import Link from '@/components/i18n/Link';
 import { StarOfTruth } from '@/components/brand/Logo';
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import {
-  Building2,
-  Clock,
-  ShieldCheck,
-  CreditCard,
-  CheckCircle2,
-  ArrowRight,
-  TrendingUp,
-  Coins,
-  FileCheck,
-  ChevronRight,
-  Globe2,
-  Zap,
-} from 'lucide-react';
+import { Building2, CheckCircle2, ArrowRight } from 'lucide-react';
 import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
 
 const ENTITY_TYPES = [
@@ -144,7 +131,12 @@ export default function BusinessPage() {
           {ENTITY_TYPES.map((entity) => (
             <div
               key={entity.id}
-              className={`sovereign-card rounded-sm p-7 flex flex-col justify-between transition-all bg-white relative overflow-hidden group ${
+              role="button"
+              tabIndex={0}
+              aria-pressed={selectedEntity === entity.id}
+              onClick={() => setSelectedEntity(entity.id)}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedEntity(entity.id); } }}
+              className={`sovereign-card cursor-pointer rounded-sm p-7 flex flex-col justify-between transition-all bg-white relative overflow-hidden group ${
                 selectedEntity === entity.id
                   ? 'border-gold shadow-xl ring-1 ring-gold/40'
                   : 'border-navy/15 hover:border-gold/50'

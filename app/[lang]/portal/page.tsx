@@ -5,10 +5,17 @@ import React, { useState, useEffect } from 'react';
 import Link from '@/components/i18n/Link';
 import { PortalShell } from '@/components/layout/PortalShell';
 import {
-  ShieldCheck, Building2, FileText, CreditCard, Clock,
-  Download, CheckCircle2, AlertCircle, Copy, ArrowRight,
-  Globe2, User, Fingerprint, Activity, Zap, ArrowUpRight,
-  TrendingUp, Lock,
+  ShieldCheck,
+  Building2,
+  CreditCard,
+  Clock,
+  Download,
+  CheckCircle2,
+  ArrowRight,
+  Globe2,
+  User,
+  Fingerprint,
+  ArrowUpRight,
 } from 'lucide-react';
 
 const TIMELINE = [

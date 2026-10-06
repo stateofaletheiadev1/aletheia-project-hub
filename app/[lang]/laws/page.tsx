@@ -6,13 +6,10 @@ import Link from '@/components/i18n/Link';
 import { StarOfTruth } from '@/components/brand/Logo';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import {
-  Scale,
   BookOpen,
   Search,
-  FileText,
   Calendar,
   ArrowRight,
-  ShieldCheck,
   Hash,
 } from 'lucide-react';
 import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
@@ -46,7 +43,7 @@ export const STATUTES: StatuteMeta[] = [
     article: 'Constitution Article 2 § 2',
     date: '2026-01-28',
     hash: '0x14ea892018fa34091ec87201948ba209ef731204',
-    summary: 'Designates English, German, Serbian, and Italian as official national languages, regulating statutory translations, gazette publications, and diplomatic passports.',
+    summary: 'Designates English, German, Dutch, Serbian, and Italian as official national languages, regulating statutory translations, gazette publications, and diplomatic passports.',
     pages: 14,
   },
   {

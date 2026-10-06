@@ -17,7 +17,7 @@ import { ArrowRight, Building2, Coins, Info, Landmark, Users } from 'lucide-reac
 
 /** Horizontal bar list: one navy series, every row labelled (few rows, ranked). */
 function BarList({ rows, max, format }: { rows: { label: string; value: number; note?: string; href?: string }[]; max: number; format: (n: number) => string }) {
-  const { tx, intl } = useI18n();
+  const { tx } = useI18n();
   return (
     <ul className="space-y-4">
       {rows.map((r) => {

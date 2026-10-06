@@ -2,19 +2,14 @@
 
 import { useI18n } from '@/components/i18n/I18nProvider';
 import React, { useState } from 'react';
-import Link from '@/components/i18n/Link';
 import { PortalShell } from '@/components/layout/PortalShell';
 import {
   CreditCard,
   Send,
   ArrowDownLeft,
   ArrowUpRight,
-  ShieldCheck,
   CheckCircle2,
-  Copy,
-  QrCode,
   X,
-  TrendingUp,
 } from 'lucide-react';
 
 interface Transaction {

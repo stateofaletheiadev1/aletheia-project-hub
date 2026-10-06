@@ -1,14 +1,27 @@
 'use client';
 
 import { useI18n } from '@/components/i18n/I18nProvider';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
+import { useHydrated } from '@/lib/use-hydrated';
 import Link from '@/components/i18n/Link';
-import { usePathname } from '@/lib/i18n/navigation';
+import { usePathname, useRouter } from '@/lib/i18n/navigation';
 import { StarOfTruth } from '@/components/brand/Logo';
 import {
-  LayoutDashboard, User, FileText, Building2, CreditCard,
-  Download, ShieldCheck, Bell, Settings, LogOut, ChevronRight,
-  Menu, X, Fingerprint, Globe2, Clock, Home, Search, Sparkles,
+  LayoutDashboard,
+  FileText,
+  Building2,
+  CreditCard,
+  ShieldCheck,
+  Bell,
+  Settings,
+  LogOut,
+  ChevronRight,
+  Menu,
+  X,
+  Fingerprint,
+  Globe2,
+  Clock,
+  Home,
 } from 'lucide-react';
 
 interface NavItem {
@@ -74,7 +87,6 @@ const NAV_ICONS: Record<string, React.ComponentType<{ className?: string; style?
   '/portal/settings': Settings,
 };
 
-import { useRouter } from 'next/navigation';
 import { getUserSession, clearUserSession } from '@/lib/auth';
 
 export function PortalShell({ children, userName, userStatus }: { children: React.ReactNode; userName?: string; userStatus?: string }) {
@@ -82,25 +94,15 @@ export function PortalShell({ children, userName, userStatus }: { children: Reac
   const pathname = usePathname();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
-  const [user, setUser] = useState({
-    name: userName || 'Dr. Elena Vasquez',
-    status: userStatus || 'E-Resident · Verified',
-    initials: 'EV',
-  });
-
-  useEffect(() => { setMounted(true); }, []);
-
-  React.useEffect(() => {
-    const sess = getUserSession();
-    if (sess) {
-      setUser({
-        name: userName || sess.name,
-        status: userStatus || sess.status,
-        initials: sess.avatarInitials || 'EV',
-      });
-    }
-  }, [userName, userStatus]);
+  const mounted = useHydrated();
+  const user = useMemo(() => {
+    const sess = mounted ? getUserSession() : null;
+    return {
+      name: userName || sess?.name || 'Dr. Elena Vasquez',
+      status: userStatus || sess?.status || 'E-Resident · Verified',
+      initials: sess?.avatarInitials || 'EV',
+    };
+  }, [mounted, userName, userStatus]);
 
   const handleLogout = () => {
     clearUserSession();
