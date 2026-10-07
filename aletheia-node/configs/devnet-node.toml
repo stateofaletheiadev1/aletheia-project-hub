@@ -1,0 +1,9 @@
+# Example devnet node configuration (Section 59). Paths are relative to the working directory.
+[node]
+data_dir = "devnet-data"
+genesis = "genesis/devnet.toml"
+listen = "127.0.0.1:7771"
+node_key_file = "configs/devnet-node.key"
+
+[devnet]
+produce_every_ms = 500

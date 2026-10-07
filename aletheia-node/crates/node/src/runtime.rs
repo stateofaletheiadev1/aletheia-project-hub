@@ -54,7 +54,7 @@ pub struct Node {
     chain_handle: chain::ChainHandle,
     submissions: mpsc::Sender<Submission>,
     tip: watch::Receiver<LastFinalized>,
-    sync: JoinHandle<Result<(), AletheiaError>>,
+    sync: Option<JoinHandle<Result<(), AletheiaError>>>,
     chain: std::thread::JoinHandle<Result<(), AletheiaError>>,
 }
 
@@ -104,6 +104,7 @@ impl Node {
         } else {
             Ledger::init(&config.data_dir, &config.genesis, store)?
         };
+        ledger.check_next_height_supported()?;
         let tip = ledger.tip();
         let network = *ledger.network();
         let (chain, chain_thread) = chain::spawn(ledger)?;
@@ -144,7 +145,7 @@ impl Node {
             chain_handle,
             submissions: submit_tx,
             tip: tip_rx,
-            sync,
+            sync: Some(sync),
             chain: chain_thread,
         })
     }
@@ -155,6 +156,23 @@ impl Node {
 
     pub fn tip(&self) -> LastFinalized {
         *self.tip.borrow()
+    }
+
+    /// Resolves when the node stops on its own: a fail-stop error (including the clean halt
+    /// before an unsupported protocol version) or the network closing. Call [`Node::shutdown`]
+    /// afterwards to drain the chain thread.
+    pub async fn stopped(&mut self) -> Result<(), AletheiaError> {
+        let Some(sync) = self.sync.as_mut() else {
+            return Ok(());
+        };
+        let result = sync.await.unwrap_or_else(|e| {
+            Err(AletheiaError::new(
+                ErrorCode::StoIo,
+                format!("sync task ended abnormally: {e}"),
+            ))
+        });
+        self.sync = None;
+        result
     }
 
     /// The finalized block at `height`, read from this node's own archive.
@@ -219,8 +237,10 @@ impl Node {
             chain,
             ..
         } = self;
-        sync.abort();
-        let _ = sync.await;
+        if let Some(sync) = sync {
+            sync.abort();
+            let _ = sync.await;
+        }
         // The chain thread stops once every handle to it is gone.
         drop(submissions);
         drop(chain_handle);

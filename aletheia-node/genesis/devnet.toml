@@ -1,0 +1,12 @@
+# Devnet genesis (spec Section 43). Not a production genesis: those are built in a documented
+# ceremony with independent builders comparing genesis_id.
+[chain]
+chain_id = 7771
+network = "devnet"
+protocol_version = 1
+genesis_time_ms = 1767225600000
+slot_duration_ms = 500
+
+[fees]
+eu_price_aey = "1000000000"
+eu_price_alnt = "1"

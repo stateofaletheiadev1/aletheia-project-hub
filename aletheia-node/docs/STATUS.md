@@ -45,6 +45,17 @@ partly written; see the end of this file.
 | State sync over the network (JMT chunks) | 42.4 | yes | **no** (snapshots exist locally; serving them is next) | no | no | no | no |
 | Peer exchange, keepalive pings, peer-version reporting | 36 | yes | **no** | no | no | no | no |
 
+## apps/aletheiad
+
+| Item | Spec | State |
+| --- | --- | --- |
+| Strict TOML config, plaintext keys refused outside devnet/regtest | 46A.2, 19.2 | Implemented; exit 78 on refusal |
+| Start-up order and operator log lines | 46A.2, 46A.4 | Implemented for the components that exist (no signer, consensus or RPC yet) |
+| Exit codes 0 / 64 / 70 / 75 / 78 | 46A.1, 44.4 | Implemented; `docs/operations/exit-codes.md` |
+| Crash recovery on real RocksDB | 24.3 | Verified by hand: killed at height 8, restarted at height 8 and continued |
+| Graceful SIGTERM shutdown order | 46A.3 | Implemented; not yet exercised on Linux (Windows `timeout` kills without a signal) |
+| Binary compressed logs, systemd notify and watchdog, metrics | 45, 46.5, 47 | **Not yet**: stderr lines stand in for the log backend |
+
 ## Phase 4 exit criteria (spec Section 62)
 
 | Criterion | State |

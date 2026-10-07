@@ -12,6 +12,7 @@ members = [
   "crates/state",
   "crates/monetary",
   "crates/node",
+  "apps/aletheiad",
   "tests/conformance",
   "tests/harness",
   "tests/determinism",

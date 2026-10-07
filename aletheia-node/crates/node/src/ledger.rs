@@ -549,6 +549,13 @@ impl<S: KvStore> Ledger<S> {
         }
     }
 
+    /// Start-up step 6 (Section 46A.2): this binary must support the protocol version the
+    /// schedule assigns to `tip + 1`, or the node stops cleanly with exit status 75.
+    pub fn check_next_height_supported(&self) -> Result<(), AletheiaError> {
+        let records = Records::new(self.network);
+        rules_for_height(&records, &self.tip_view(), self.tip.height.next()?).map(|_| ())
+    }
+
     /// A finalized block by height, read and verified from the archive (block sync serves
     /// these to peers).
     pub fn read_block(&self, height: Height) -> Result<Option<Proposal>, AletheiaError> {
