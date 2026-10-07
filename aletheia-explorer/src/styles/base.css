@@ -1,0 +1,144 @@
+/* Page, grid and rhythm (spec 41A.5). Depth comes from paper tone, never box-shadow; rules
+   are hairlines, not boxes. Every vertical gap is a multiple of the 8 px baseline. */
+:root {
+  --baseline: 8px;
+  --content-max: 1240px;
+  --margin-outer: 24px;
+  --row-comfortable: 44px;
+  --row-dense: 36px;
+  --ease: cubic-bezier(0.2, 0.7, 0.1, 1);
+  --duration: 200ms;
+}
+
+@media (min-width: 720px) {
+  :root {
+    --margin-outer: 40px;
+  }
+}
+
+@media (min-width: 1100px) {
+  :root {
+    --margin-outer: clamp(64px, 6vw, 96px);
+  }
+}
+
+html {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+body {
+  margin: 0;
+}
+
+a {
+  color: var(--ledger-green);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+}
+
+/* Brass is finality, and focus: a focus ring is a promise of action (41A.4, 41A.17). */
+:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 2px;
+}
+
+.page {
+  box-sizing: border-box;
+  max-width: calc(var(--content-max) + 2 * var(--margin-outer));
+  margin-inline: auto;
+  padding-inline: var(--margin-outer);
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: calc(3 * var(--baseline));
+}
+
+/* The margin column holds folio numbers, timestamps and section marks, as in a printed
+   report. It collapses above the content on narrow screens. */
+.margin-column {
+  grid-column: 1 / -1;
+}
+
+.content-column {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 1100px) {
+  .margin-column {
+    grid-column: 1 / span 2;
+  }
+
+  .content-column {
+    grid-column: 3 / -1;
+  }
+}
+
+.rule {
+  border: 0;
+  border-top: var(--hairline);
+  margin-block: calc(3 * var(--baseline));
+}
+
+/* Ledger tables: ruled rows, right-aligned tabular numbers, sticky header. */
+.ledger {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.ledger th {
+  position: sticky;
+  top: 0;
+  background: var(--paper);
+  border-bottom: 1px solid var(--rule-strong);
+  text-align: left;
+}
+
+.ledger td,
+.ledger th {
+  height: var(--row-comfortable);
+  padding-inline: var(--baseline);
+  border-bottom: var(--hairline);
+}
+
+.ledger .number {
+  text-align: right;
+}
+
+.ledger.dense td {
+  height: var(--row-dense);
+}
+
+.ledger.dense tbody tr:nth-child(even) {
+  background: var(--vellum);
+}
+
+/* New rows fade their ink in; they never slide (41A.11). */
+.ledger tr.entering {
+  animation: ink-in var(--duration) var(--ease);
+}
+
+@keyframes ink-in {
+  from {
+    color: transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0s !important;
+    transition-duration: 0s !important;
+  }
+}
+
+@media print {
+  html {
+    background: white;
+  }
+
+  :root {
+    --grain-opacity: 0;
+  }
+}

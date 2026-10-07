@@ -1,0 +1,78 @@
+/* Type scale and text roles (spec 41A.3). Each step was set on printed proofs, not generated
+   from a ratio; change one only with a new proof. */
+:root {
+  --font: "Manrope", system-ui, sans-serif; /* system-ui covers the first paint only */
+
+  --text-folio: clamp(4rem, 2.4rem + 6vw, 7.5rem);
+  --text-display: clamp(2.25rem, 1.6rem + 2.4vw, 3.5rem);
+  --text-title: 1.75rem;
+  --text-heading: 1.25rem;
+  --text-body: 1rem;
+  --text-small: 0.875rem;
+  --text-caption: 0.75rem;
+
+  --leading-tight: 1.05;
+  --leading-body: 1.6;
+}
+
+body {
+  font-family: var(--font);
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  font-feature-settings: "tnum" 1;
+  font-optical-sizing: auto;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+  hanging-punctuation: first;
+}
+
+.label {
+  font-size: var(--text-caption);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.value {
+  font-size: var(--text-body);
+  font-weight: 500;
+  color: var(--ink);
+}
+
+/* Identifiers are grouped in fours with U+2009 inserted by the formatter as separate,
+   unselectable spans, so copying yields the exact canonical string (41A.3). */
+.identifier {
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.identifier .gap {
+  user-select: none;
+}
+
+.folio-number {
+  font-size: var(--text-folio);
+  font-weight: 200; /* very light, very large: the page's signature */
+  letter-spacing: -0.035em;
+  line-height: var(--leading-tight);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* The precision tail of an amount: sub-cent digits at 80 % size in faint ink (41A.7). */
+.amount-tail {
+  font-size: 0.8em;
+  color: var(--ink-faint);
+}

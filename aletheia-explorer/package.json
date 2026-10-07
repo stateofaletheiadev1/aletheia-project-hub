@@ -1,0 +1,11 @@
+{
+  "name": "aletheia-explorer",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=24" },
+  "scripts": {
+    "test": "node --test tests/*.test.ts",
+    "tokens": "node scripts/tokens.mjs",
+    "check": "node scripts/tokens.mjs --check && node scripts/check-contrast.mjs && node --test tests/*.test.ts"
+  }
+}
