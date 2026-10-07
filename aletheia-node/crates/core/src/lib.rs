@@ -27,6 +27,7 @@ pub mod error_codes;
 pub mod ids;
 pub mod monetary;
 pub mod network;
+pub mod registry;
 mod text_id;
 pub mod tx;
 pub mod types;

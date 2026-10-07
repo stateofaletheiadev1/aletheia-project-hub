@@ -376,6 +376,7 @@ pub enum ParamId {
     FeeSchedule,
     ChainTiming,
     MonetaryPolicy,
+    GovernancePolicy,
 }
 
 impl ParamId {
@@ -384,6 +385,7 @@ impl ParamId {
             ParamId::FeeSchedule => 1,
             ParamId::ChainTiming => 2,
             ParamId::MonetaryPolicy => 3,
+            ParamId::GovernancePolicy => 4,
         }
     }
 }

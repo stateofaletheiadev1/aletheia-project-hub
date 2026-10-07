@@ -213,6 +213,7 @@ fn check_field_ranges(
                 Ok(())
             };
         }
+        Payload::Registry(_) => return Ok(()),
         #[cfg(feature = "test-protocol-v2")]
         Payload::TestRemark(_) => return Ok(()),
     };

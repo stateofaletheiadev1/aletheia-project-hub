@@ -159,6 +159,19 @@ error_codes! {
     VmContractAborted = 13111, "VM_CONTRACT_ABORTED", Reject;
     VmInternal = 13112, "VM_INTERNAL", FailStop;
     VmStorageValueTooLarge = 13113, "VM_STORAGE_VALUE_TOO_LARGE", Reject;
+    RegNotAuthorized = 14001, "REG_NOT_AUTHORIZED", Reject;
+    RegIssuerUnknown = 14002, "REG_ISSUER_UNKNOWN", Reject;
+    RegOutOfScope = 14003, "REG_OUT_OF_SCOPE", Reject;
+    RegAlreadyExists = 14004, "REG_ALREADY_EXISTS", Reject;
+    RegNotFound = 14005, "REG_NOT_FOUND", Reject;
+    RegInvalidTransition = 14006, "REG_INVALID_TRANSITION", Reject;
+    RegParcelLocked = 14007, "REG_PARCEL_LOCKED", Reject;
+    RegCosignRequired = 14008, "REG_COSIGN_REQUIRED", Reject;
+    GovNotCouncil = 14009, "GOV_NOT_COUNCIL", Reject;
+    GovProposalState = 14010, "GOV_PROPOSAL_STATE", Reject;
+    GovAlreadyVoted = 14011, "GOV_ALREADY_VOTED", Reject;
+    GovOutOfBounds = 14012, "GOV_OUT_OF_BOUNDS", Reject;
+    GovNoCouncil = 14013, "GOV_NO_COUNCIL", Reject;
 }
 
 #[cfg(test)]

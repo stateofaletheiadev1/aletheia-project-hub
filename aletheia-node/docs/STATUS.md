@@ -4,7 +4,7 @@ Spec Section 1.2: one row per module. "Implemented" means code exists on `main`.
 means unit and property tests run in `cargo test --workspace`. Nothing below is described as
 done unless it is.
 
-Current phase: **Phase 9 (Arno VM)**: conformance vectors and sandbox escape tests met; the 7-day fuzz campaign is the scheduled `node:fuzz-vm` job (not yet run). Phases 6-8 met. Phase 5 (DSP) runs in real nodes and its simulator suite is green at 25 seeds; the 10k-seed run, the 24-hour chaos run, epoch-boundary activation and the signer daemon remain. Phase 4 exit criteria met in-process; Phase 3 met except the 1M-block replay. Phase 1 still lacks the 24-hour fuzz campaign; Phase 2 lacks the Linux dm-log-writes power-loss replay. Phase 0 documents are
+Current phase: **Phase 10 (native registries)**, exit criteria met (table below). Phase 9 met except the 7-day fuzz campaign (scheduled `node:fuzz-vm` job, not yet run); Phases 6-8 met.
 partly written; see the end of this file.
 
 ## crates/core
@@ -133,6 +133,25 @@ partly written; see the end of this file.
 | Bytecode format and verifier (`vm/opcode.rs`, `package.rs`, `verifier.rs`) | 27, APS-0014 | yes (+ ADR-046) | yes | one test per rule, property | `arnobc_verify` | rustdoc | no |
 | `arno` command: check, compile, inspect | 26 | yes | yes | by hand | n/a | usage text | n/a |
 | SSA IR with CSE, `arno fmt`, `arno-test` | 26 | yes | **no**: code is generated from the checked tree with fixed registers; formatter and test runner not yet built | no | no | no | no |
+
+## Phase 10: native registries and governance
+
+| Module | APS | Specified | Implemented | Tested | Fuzzed | Documented | Benchmarked |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Payloads and digests (`core/registry.rs`) | APS-0022..0026 (+ E-26) | yes | yes | via registry tests | via transaction decoding | rustdoc | n/a |
+| Identity and credentials, revocation bitmaps | 31 (+ ADR-048) | yes | yes | permissions, scope, rotation, final revocation, inactive issuer | n/a | rustdoc | no |
+| Residence with history and computed expiry | 32 | yes | yes | permissions, scope, transitions, history | n/a | rustdoc | no |
+| Land: parcels, encumbrances, co-signed transfers, history | 33 | yes | yes | controller-only transfers, locks, co-signature (and replay), history proofs | n/a | rustdoc | no |
+| Governance: council, proposals, timelocks, designated actions | 35 | yes | yes | threshold, timelock, rejection, expiry, bounds, capacity, upgrade scheduling | n/a | rustdoc | n/a |
+| Separate `identity`, `residence`, `land`, `governance` crates (Section 5.5) | 5.5 | yes | **no**: implemented as modules of `execution`, beside the other native modules | n/a | n/a | n/a | n/a |
+| Emergency validator suspension (timelock class 0) | 35 | yes | **no**: needs the validator registry operations | no | no | no | no |
+
+## Phase 10 exit criteria (spec Section 62)
+
+| Criterion | State |
+| --- | --- |
+| Permission tests | Met: every registry operation is refused for every party but the one permitted (issuer, authority, controller, holder, council member), including deactivated issuers, out-of-scope schemas and classes, replayed co-signatures and outsiders proposing or voting (`tests/harness/tests/registry.rs`). |
+| History proofs | Met: land and residence history entries are read back and proven with JMT state proofs against the block's state root; forged entries and false absence claims fail verification. |
 
 ## Phase 9: the Arno VM
 

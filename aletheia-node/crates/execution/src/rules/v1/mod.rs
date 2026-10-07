@@ -17,6 +17,7 @@ pub mod balances;
 pub mod contract;
 pub mod limits;
 pub mod monetary;
+pub mod registry;
 pub mod transfer;
 
 use aletheia_core::{AceEncode, AceWriter, AletheiaError, ErrorCode, Payload};
@@ -214,6 +215,9 @@ pub fn run_payload(
         Payload::ContractCall(call) => contract::call(
             records, overlay, verified, call, ctx, meter, events, touched,
         ),
+        Payload::Registry(op) => {
+            registry::apply(records, overlay, verified, op, ctx, meter, events)
+        }
         #[cfg(feature = "test-protocol-v2")]
         Payload::TestRemark(_) => Err(invalid(
             ErrorCode::TxTypeNotActive,
@@ -285,6 +289,7 @@ pub fn touched_balances(
             }
             &[]
         }
+        Payload::Registry(_) => &[],
         #[cfg(feature = "test-protocol-v2")]
         Payload::TestRemark(_) => &[],
     };

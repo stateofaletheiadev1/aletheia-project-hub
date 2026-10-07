@@ -19,6 +19,22 @@ pub const TX_TYPES: &[TxType] = &[
     TxType::RESERVE_ATTESTATION,
     TxType::CONTRACT_DEPLOY,
     TxType::CONTRACT_CALL,
+    TxType::new(48),
+    TxType::new(49),
+    TxType::new(50),
+    TxType::new(51),
+    TxType::new(52),
+    TxType::new(53),
+    TxType::new(56),
+    TxType::new(57),
+    TxType::new(59),
+    TxType::new(60),
+    TxType::new(61),
+    TxType::new(62),
+    TxType::new(63),
+    TxType::new(80),
+    TxType::new(81),
+    TxType::new(82),
 ];
 
 pub const TX_LIMITS: TxLimits = TxLimits {
@@ -42,3 +58,6 @@ pub const TRANSFER_EU: u64 = 2_000;
 pub const MONETARY_EU: u64 = 5_000;
 /// Each Ed25519 signature a monetary operation verifies (authority, agent, attestor).
 pub const SIGNATURE_EU: u64 = 3_000;
+
+/// A registry or governance operation.
+pub const REGISTRY_EU: u64 = 3_000;

@@ -118,6 +118,8 @@ pub enum Payload {
     ReserveAttestation(Box<crate::monetary::ReserveAttestation>),
     ContractDeploy(Box<crate::monetary::ContractDeploy>),
     ContractCall(Box<crate::monetary::ContractCall>),
+    /// Identity, residence, land and governance (types 48-63, 80-82).
+    Registry(Box<crate::registry::RegistryOp>),
     /// Test-only opaque note, at most 256 bytes (feature `test-protocol-v2`).
     #[cfg(feature = "test-protocol-v2")]
     TestRemark(Vec<u8>),
@@ -136,6 +138,7 @@ impl Payload {
             Payload::ReserveAttestation(_) => TxType::RESERVE_ATTESTATION,
             Payload::ContractDeploy(_) => TxType::CONTRACT_DEPLOY,
             Payload::ContractCall(_) => TxType::CONTRACT_CALL,
+            Payload::Registry(op) => TxType(op.tx_type()),
             #[cfg(feature = "test-protocol-v2")]
             Payload::TestRemark(_) => TxType::TEST_REMARK,
         }
@@ -154,6 +157,7 @@ impl Payload {
             Payload::ReserveAttestation(attestation) => attestation.encode(out),
             Payload::ContractDeploy(deploy) => deploy.encode(out),
             Payload::ContractCall(call) => call.encode(out),
+            Payload::Registry(op) => op.encode_content(out),
             #[cfg(feature = "test-protocol-v2")]
             Payload::TestRemark(note) => out.bytes(note),
         }
@@ -180,6 +184,15 @@ impl Payload {
                 .map(|deploy| Payload::ContractDeploy(Box::new(deploy))),
             TxType::CONTRACT_CALL => crate::monetary::ContractCall::decode(input)
                 .map(|call| Payload::ContractCall(Box::new(call))),
+            TxType(registry) if crate::registry::RegistryOp::TX_TYPES.contains(&registry) => {
+                match crate::registry::RegistryOp::decode_content(registry, input) {
+                    Some(op) => op.map(|op| Payload::Registry(Box::new(op))),
+                    None => Err(AletheiaError::new(
+                        ErrorCode::DecodeNonCanonical,
+                        "not a registry type".to_owned(),
+                    )),
+                }
+            }
             #[cfg(feature = "test-protocol-v2")]
             TxType::TEST_REMARK => input
                 .bytes(MAX_MEMO_BYTES)

@@ -52,6 +52,23 @@ pub struct GenesisConfig {
     pub validators: Vec<ValidatorEntry>,
     /// The monetary authority and AEY policy. Without it nothing can be minted or redeemed.
     pub monetary: Option<MonetarySection>,
+    /// The governance council. Without it nothing can be governed: no issuers can be
+    /// registered and parameters stay as genesis set them.
+    pub governance: Option<GovernanceSection>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct GovernanceSection {
+    /// Council member addresses (`AL:` text).
+    pub council: Vec<String>,
+    pub threshold: u8,
+    /// Slots per governance epoch (timelocks count these); defaults to 512.
+    pub epoch_slots: Option<u64>,
+    pub voting_epochs: u64,
+    pub execution_window_epochs: u64,
+    /// AEY base units a single proposal may add to the authorized capacity (decimal).
+    pub max_aey_capacity_increase: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -264,6 +281,7 @@ pub struct GenesisState {
     /// Validator-index order.
     pub validators: Vec<ValidatorRecord>,
     pub monetary: Option<MonetaryGenesis>,
+    pub governance: Option<crate::registry_model::GovernancePolicy>,
 }
 
 fn config_error(detail: String) -> AletheiaError {
@@ -405,6 +423,45 @@ impl GenesisConfig {
             .as_ref()
             .map(|section| section.to_genesis(aey_supply))
             .transpose()?;
+        let governance = self
+            .governance
+            .as_ref()
+            .map(|section| -> Result<crate::registry_model::GovernancePolicy, AletheiaError> {
+                let council = section
+                    .council
+                    .iter()
+                    .map(|text| {
+                        Address::parse(text, network_kind)
+                            .map_err(|e| config_error(format!("council address {text}: {}", e.detail())))
+                    })
+                    .collect::<Result<Vec<_>, _>>()?;
+                let distinct: std::collections::BTreeSet<_> = council.iter().collect();
+                if council.is_empty()
+                    || distinct.len() != council.len()
+                    || section.threshold == 0
+                    || usize::from(section.threshold) > council.len()
+                    || council.len() > usize::try_from(aletheia_core::registry::MAX_COUNCIL).unwrap_or(32)
+                {
+                    return Err(config_error(
+                        "the council needs 1 to 32 distinct members and a threshold between 1 and their number".to_owned(),
+                    ));
+                }
+                if section.epoch_slots == Some(0) || section.voting_epochs == 0 || section.execution_window_epochs == 0 {
+                    return Err(config_error("governance periods must be positive".to_owned()));
+                }
+                Ok(crate::registry_model::GovernancePolicy {
+                    council,
+                    threshold: section.threshold,
+                    epoch_slots: section.epoch_slots.unwrap_or(crate::registry_model::DEFAULT_EPOCH_SLOTS),
+                    voting_epochs: section.voting_epochs,
+                    execution_window_epochs: section.execution_window_epochs,
+                    max_aey_capacity_increase: within_supply_bound(parse_units(
+                        &section.max_aey_capacity_increase,
+                        "max_aey_capacity_increase",
+                    )?)?,
+                })
+            })
+            .transpose()?;
         Ok(GenesisState {
             chain_id,
             network_kind,
@@ -417,6 +474,7 @@ impl GenesisConfig {
             allocations,
             validators,
             monetary,
+            governance,
         })
     }
 }
@@ -478,6 +536,7 @@ impl AceEncode for GenesisState {
         out.list(&self.allocations);
         out.list(&self.validators);
         out.option(self.monetary.as_ref());
+        out.option(self.governance.as_ref());
     }
 }
 
@@ -492,6 +551,7 @@ impl AceDecode for GenesisState {
             allocations: input.sorted_list(MAX_ALLOCATIONS)?,
             validators: input.list(MAX_VALIDATOR_RECORDS)?,
             monetary: input.option()?,
+            governance: input.option()?,
         })
     }
 }
@@ -597,6 +657,12 @@ impl GenesisState {
             overlay.put(
                 records.param_key(ParamId::MonetaryPolicy),
                 monetary.policy.to_ace_bytes(),
+            );
+        }
+        if let Some(governance) = &self.governance {
+            overlay.put(
+                records.param_key(ParamId::GovernancePolicy),
+                governance.to_ace_bytes(),
             );
         }
         for allocation in &self.allocations {

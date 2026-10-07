@@ -175,10 +175,12 @@ pub enum DomainTag {
     ValidatorSet,
     ReserveAttestation,
     Redemption,
+    ParcelTransfer,
+    GovernanceProposal,
 }
 
 impl DomainTag {
-    pub const ALL: [DomainTag; 27] = [
+    pub const ALL: [DomainTag; 29] = [
         DomainTag::TxId,
         DomainTag::TxWitness,
         DomainTag::TxSignature,
@@ -206,6 +208,8 @@ impl DomainTag {
         DomainTag::ValidatorSet,
         DomainTag::ReserveAttestation,
         DomainTag::Redemption,
+        DomainTag::ParcelTransfer,
+        DomainTag::GovernanceProposal,
     ];
 
     pub const fn as_str(self) -> &'static str {
@@ -240,6 +244,8 @@ impl DomainTag {
             DomainTag::ValidatorSet => "ALETHEIA/VALSET/v1",
             DomainTag::ReserveAttestation => "ALETHEIA/RESERVE-ATTEST/v1",
             DomainTag::Redemption => "ALETHEIA/REDEEM/v1",
+            DomainTag::ParcelTransfer => "ALETHEIA/PARCEL-TRANSFER/v1",
+            DomainTag::GovernanceProposal => "ALETHEIA/GOV-PROPOSAL/v1",
         }
     }
 
