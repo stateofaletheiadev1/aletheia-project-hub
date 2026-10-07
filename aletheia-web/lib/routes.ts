@@ -47,7 +47,7 @@ export const PUBLIC_ROUTES = {
   '/treasury': { title: 'Treasury & Endowment', description: 'The sovereign endowment, public balance sheet and revenue model of a state without income tax.', priority: 0.7, changeFrequency: 'monthly' },
   '/central-bank': { title: 'Central Bank & Reserve', description: 'The Monetary Board, reserve invariants and settlement policy of the Central Bank of Aletheia.', priority: 0.7, changeFrequency: 'monthly' },
   '/aey': { title: 'The Aletheian Guilder (AEY)', description: 'The sovereign unit of account: 1:1 EUR parity backed by provable, fully audited reserves.', priority: 0.8, changeFrequency: 'monthly' },
-  '/aey/paper-currency': { title: 'AEY Paper Currency Prototype', description: 'Prototype banknote designs for the Aletheian Guilder: the 1, 5, 10, 20 and 100 AEY notes, front and back.', priority: 0.6, changeFrequency: 'monthly' },
+  '/aey/paper-currency': { title: 'AEY Paper Currency', description: 'The AEY banknote series: 1, 5, 10, 20 and 100 AEY notes, legal tender alongside StableChain AEY and exchangeable for EUR, GBP and USD.', priority: 0.6, changeFrequency: 'monthly' },
   '/stablechain': { title: 'Aletheia StableChain', description: 'National ledger infrastructure: 500 ms finality, provable reserves and fixed settlement fees.', priority: 0.8, changeFrequency: 'monthly' },
   '/business': { title: 'Business Platform', description: '15-minute digital incorporation, commercial licensing and the corporate registry of Aletheia.', priority: 0.8, changeFrequency: 'monthly' },
   '/invest': { title: 'Sovereign Investment', description: 'Covenant development bonds, infrastructure funds and strategic partnerships with Aletheia.', priority: 0.7, changeFrequency: 'monthly' },

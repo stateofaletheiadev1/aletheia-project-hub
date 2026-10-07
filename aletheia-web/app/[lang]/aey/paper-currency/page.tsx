@@ -8,11 +8,14 @@ import { StarOfTruth } from '@/components/brand/Logo';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import {
   ArrowLeft,
+  ArrowLeftRight,
   ArrowRight,
+  Banknote,
   ChevronLeft,
   ChevronRight,
   Eye,
   Fingerprint,
+  Globe,
   Info,
   Layers,
   Maximize2,
@@ -20,6 +23,7 @@ import {
   ScanLine,
   ShieldCheck,
   X,
+  Zap,
 } from 'lucide-react';
 
 type Side = 'front' | 'back';
@@ -35,7 +39,7 @@ interface BanknoteSpec {
   backInscription: string;
 }
 
-/** Prototype series as rendered in currency-proto/, lowest to highest denomination. */
+/** Banknote series as designed in currency-proto/, lowest to highest denomination. */
 const BANKNOTES: BanknoteSpec[] = [
   {
     value: 1,
@@ -112,6 +116,27 @@ const SECURITY_FEATURES = [
   },
 ];
 
+const TENDER_FORMS = [
+  {
+    icon: Banknote,
+    eyebrow: 'Paper',
+    title: 'AEY Banknotes',
+    body: 'Engraved notes for everyday cash payments in the Republic, for holders who want physical money rather than crypto, and for sale to nations, institutions and collectors.',
+  },
+  {
+    icon: Zap,
+    eyebrow: 'Digital',
+    title: 'StableChain AEY',
+    body: 'The same guilder as a digital balance on the Aletheia StableChain: 500 ms finality, citizen cards and wallets, and enterprise settlement.',
+  },
+  {
+    icon: Globe,
+    eyebrow: 'Exchange',
+    title: 'EUR, GBP & USD Abroad',
+    body: 'Outside the Republic, banknotes or StableChain AEY are exchanged for euros, pounds sterling or US dollars through the Central Bank and its accredited exchange partners.',
+  },
+];
+
 const noteSrc = (value: number, side: Side, thumb = false) =>
   `/images/currency/aey-${value}-${side}${thumb ? '-thumb' : ''}.webp`;
 
@@ -153,15 +178,15 @@ export default function AeyPaperCurrencyPage() {
               <div className="flex flex-wrap items-center gap-3">
                 <div className="inline-flex items-center gap-2 px-3.5 py-1.5 border border-gold/40 bg-navy-deep/80 rounded-sm backdrop-blur-sm">
                   <StarOfTruth size={14} />
-                  <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-gold">{t("Banknote Design Prototype")}</span>
+                  <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-gold">{t("AEY Banknote Series")}</span>
                 </div>
-                <StatusBadge status="Proposed" size="sm" />
+                <StatusBadge status="Planned" size="sm" />
               </div>
 
               <h1 className="heading-hero">{t("The AEY")}<br />
                 <span className="text-gold-metallic">{t("Paper Series")}</span></h1>
 
-              <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light max-w-xl">{t("Prototype designs for a commemorative paper series of the Aletheian Guilder: five denominations engraved with the saints, scientists and founding states of the Covenant.")}</p>
+              <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light max-w-xl">{t("The Aletheian Guilder in paper: five engraved denominations that sit alongside digital AEY on the StableChain as legal tender in the Republic, and can be exchanged for EUR, GBP or USD abroad.")}</p>
 
               <div className="flex flex-wrap gap-4 pt-2">
                 <a
@@ -174,7 +199,7 @@ export default function AeyPaperCurrencyPage() {
                 <Link
                   href="/aey"
                   className="btn-sovereign-ghost px-6 py-3.5 rounded-sm flex items-center gap-2 text-sm"
-                >{t("Back to the Digital AEY")}</Link>
+                >{t("Back to the AEY Overview")}</Link>
               </div>
             </div>
 
@@ -209,8 +234,8 @@ export default function AeyPaperCurrencyPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 md:divide-x divide-gold/15 gap-y-2">
             {[
               { value: '5', label: 'Denominations', sublabel: '1 · 5 · 10 · 20 · 100 AEY' },
-              { value: '1168 × 784', label: 'Design Proportion', sublabel: 'Landscape · both faces engraved' },
-              { value: '2025 A', label: 'Prototype Series', sublabel: 'Issued at Novalis' },
+              { value: 'EUR · GBP · USD', label: 'Exchangeable Abroad', sublabel: 'Notes or StableChain AEY' },
+              { value: '2025 A', label: 'Banknote Series', sublabel: 'Issued at Novalis' },
               { value: '1:1', label: 'EUR Parity', sublabel: 'Same reserve as digital AEY' },
             ].map(({ value, label, sublabel }) => (
               <div key={label} className="px-6 py-4 text-center first:pl-0 last:pr-0 space-y-0.5">
@@ -223,11 +248,11 @@ export default function AeyPaperCurrencyPage() {
         </div>
       </section>
 
-      {/* ── PROTOTYPE NOTICE ── */}
+      {/* ── ISSUE NOTICE ── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full pt-10">
         <div className="flex items-start gap-3 p-4 bg-white border border-gold/40 border-l-4 border-l-gold rounded-sm text-xs text-navy/80 leading-relaxed">
           <Info className="w-4 h-4 text-gold shrink-0 mt-0.5" />
-          <p><strong className="text-navy">{t("Design prototype — not legal tender.")}</strong>{' '}{t("Aletheia remains a cashless state under the Cashless State & Digital Settlement Act 2026. These notes are concept artwork for review by the Monetary Board and are not issued, redeemable or accepted in payment.")}</p>
+          <p><strong className="text-navy">{t("Series 2025 A — planned issue.")}</strong>{' '}{t("These designs are approved for the first AEY banknote series under the Currency & Digital Settlement Act 2026. Once issued by the Central Bank, the notes are legal tender alongside digital AEY; issue dates will be announced in the Official Gazette.")}</p>
         </div>
       </div>
 
@@ -340,7 +365,7 @@ export default function AeyPaperCurrencyPage() {
           {/* Note specification */}
           <aside className="lg:col-span-4 bg-white border border-navy/15 rounded-sm p-7 space-y-6 shadow-sm">
             <div className="space-y-1">
-              <span className="text-[11px] font-mono text-gold uppercase tracking-wider block">{t("Series 2025 A · Prototype")}</span>
+              <span className="text-[11px] font-mono text-gold uppercase tracking-wider block">{t("Series 2025 A")}</span>
               <h3 className="text-2xl font-bold text-navy">{note.value}{' '}{t("AEY")}</h3>
               <p className="text-xs text-navy/60">{tx(note.words)}</p>
             </div>
@@ -380,7 +405,7 @@ export default function AeyPaperCurrencyPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl mb-12 space-y-3">
             <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">{t("The Complete Series")}</span>
-            <h2 className="text-3xl font-bold text-navy tracking-tight">{t("All Ten Faces of the Prototype Series")}</h2>
+            <h2 className="text-3xl font-bold text-navy tracking-tight">{t("All Ten Faces of the Series")}</h2>
             <p className="text-xs sm:text-sm text-navy/70 leading-relaxed">{t("Every denomination is shown front and back exactly as engraved. Select any face to enlarge it.")}</p>
           </div>
 
@@ -417,11 +442,58 @@ export default function AeyPaperCurrencyPage() {
         </div>
       </section>
 
+      {/* ── PAPER OR STABLECHAIN ── */}
+      <section className="py-16 lg:py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+        <div className="text-center max-w-2xl mx-auto mb-12 space-y-3">
+          <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">{t("Paper or StableChain")}</span>
+          <h2 className="text-3xl font-bold text-navy tracking-tight">{t("One Guilder, Two Forms of Legal Tender")}</h2>
+          <p className="text-xs sm:text-sm text-navy/70 leading-relaxed">{t("Many nations, institutions and individuals still prefer physical currency to crypto. The AEY banknote gives them a tangible, reserve-backed guilder, while StableChain AEY serves instant digital settlement.")}</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {TENDER_FORMS.map(({ icon: Icon, eyebrow, title, body }) => (
+            <div key={title} className="bg-white border border-navy/15 rounded-sm p-7 space-y-4 hover:shadow-md transition-shadow">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-sm bg-navy text-gold flex items-center justify-center">
+                  <Icon className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-[11px] font-mono text-gold uppercase tracking-wider block">{tx(eyebrow)}</span>
+                  <h3 className="text-base font-bold text-navy">{tx(title)}</h3>
+                </div>
+              </div>
+              <p className="text-xs text-navy/70 leading-relaxed">{tx(body)}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-8 bg-navy text-parchment rounded-sm border border-gold/30 p-6 sm:p-8 relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-gold to-transparent" />
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr_auto_1fr] gap-4 md:gap-6 items-center text-center">
+            <div className="stat-tile p-4 rounded-sm space-y-1">
+              <span className="text-[10px] font-bold tracking-[0.14em] uppercase text-gold/70 block">{t("In the Republic")}</span>
+              <span className="text-sm font-bold text-parchment block">{t("AEY Banknotes")}</span>
+            </div>
+            <ArrowLeftRight className="w-5 h-5 text-gold mx-auto rotate-90 md:rotate-0" aria-hidden="true" />
+            <div className="stat-tile p-4 rounded-sm space-y-1">
+              <span className="text-[10px] font-bold tracking-[0.14em] uppercase text-gold/70 block">{t("In the Republic")}</span>
+              <span className="text-sm font-bold text-parchment block">{t("StableChain AEY")}</span>
+            </div>
+            <ArrowRight className="w-5 h-5 text-gold mx-auto rotate-90 md:rotate-0" aria-hidden="true" />
+            <div className="stat-tile p-4 rounded-sm space-y-1">
+              <span className="text-[10px] font-bold tracking-[0.14em] uppercase text-gold/70 block">{t("Abroad")}</span>
+              <span className="text-sm font-bold font-mono text-parchment block">EUR · GBP · USD</span>
+            </div>
+          </div>
+          <p className="mt-5 text-[11px] font-mono text-parchment/55 text-center leading-relaxed">{t("Notes and StableChain AEY convert 1:1 at par. EUR at the fixed constitutional parity; GBP and USD at the Central Bank reference rate.")}</p>
+        </div>
+      </section>
+
       {/* ── SECURITY FEATURES ── */}
       <section className="py-16 lg:py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="text-center max-w-2xl mx-auto mb-12 space-y-3">
           <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">{t("Anti-Counterfeit Design")}</span>
-          <h2 className="text-3xl font-bold text-navy tracking-tight">{t("Security Features in the Prototype")}</h2>
+          <h2 className="text-3xl font-bold text-navy tracking-tight">{t("Security Features")}</h2>
           <p className="text-xs sm:text-sm text-navy/70 leading-relaxed">{t("The engraving carries the same guarantees as the digital AEY: provable backing and verifiable provenance.")}</p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -441,14 +513,14 @@ export default function AeyPaperCurrencyPage() {
       <section className="bg-navy text-parchment py-16 border-t border-gold/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
           <Layers className="w-9 h-9 text-gold mx-auto" />
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-parchment">{t("One Guilder, Digital by Law")}</h2>
-          <p className="text-xs sm:text-sm text-parchment/70 max-w-xl mx-auto leading-relaxed">{t("Every AEY in circulation today settles on the Aletheia StableChain. Explore the digital currency and the reserve that backs it.")}</p>
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-parchment">{t("One Guilder, Paper or Digital")}</h2>
+          <p className="text-xs sm:text-sm text-parchment/70 max-w-xl mx-auto leading-relaxed">{t("Every AEY, engraved or on the Aletheia StableChain, is backed by the same audited reserve. Explore the digital currency and the reserve behind both.")}</p>
           <div className="flex flex-wrap justify-center gap-4 pt-2">
             <Link
               href="/aey"
               className="inline-flex items-center gap-2 px-6 py-2.5 bg-gold text-navy font-bold text-xs uppercase tracking-wider rounded-sm hover:bg-gold-tint transition-all"
             >
-              <ArrowLeft className="w-3.5 h-3.5" />{t("Back to the Digital AEY")}
+              <ArrowLeft className="w-3.5 h-3.5" />{t("Back to the AEY Overview")}
             </Link>
             <Link
               href="/central-bank"
@@ -523,7 +595,7 @@ function Lightbox({ index, side, onChange, onClose }: LightboxProps) {
     >
       <div className="flex items-center justify-between px-4 sm:px-8 py-4 text-parchment" onClick={(e) => e.stopPropagation()}>
         <div>
-          <span className="text-[10px] font-mono uppercase tracking-wider text-gold block">{t("Series 2025 A · Prototype")}</span>
+          <span className="text-[10px] font-mono uppercase tracking-wider text-gold block">{t("Series 2025 A")}</span>
           <span className="text-sm font-bold">{note.value}{' '}{t("AEY")} · {faceLabel}</span>
         </div>
         <div className="flex items-center gap-3">

@@ -16,14 +16,22 @@ import {
 } from 'lucide-react';
 import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
 
-const DIGITAL_PAYMENT_INSTRUMENTS = [
+const PAYMENT_INSTRUMENTS = [
+  {
+    instrument: 'AEY Banknotes (Paper Series)',
+    formFactor: 'Engraved Paper Notes: 1, 5, 10, 20 & 100 AEY',
+    rail: 'Hand-to-Hand / Accredited Banks',
+    velocity: 'Immediate Hand-to-Hand',
+    fee: '0.00 AEY (Exchange 1:1 to Digital)',
+    security: 'Latent images, microprint, guilloche and dual serials; convertible 1:1 to digital AEY',
+  },
   {
     instrument: 'Citizen Biometric Card (e-Purse)',
     formFactor: 'Polycarbonate Contactless Card (EAL6+ Secure Element)',
     rail: 'Contactless NFC POS / Automated Kiosks',
     velocity: '< 300 ms Tap Finality',
     fee: '0.00 AEY (Free Domestic)',
-    security: 'Dual-factor biometric match-on-card, air-gapped NFC cryptograms, zero paper risk',
+    security: 'Dual-factor biometric match-on-card, air-gapped NFC cryptograms',
   },
   {
     instrument: 'Aletheia Sovereign Wallet',
@@ -107,7 +115,7 @@ export default function AeyCurrencyPage() {
               <h1 className="heading-hero">{t("The Aletheian")}<br />
                 <span className="text-gold-metallic">{t("Guilder")}</span>{' '}{t("(AEY)")}</h1>
 
-              <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light max-w-2xl">{t("The official constitutional digital currency of The Sovereign Covenant State of Aletheia. Pegged 1:1 to the Euro, backed by provable 100% segregated reserves, and settled exclusively on the Aletheia StableChain.")}{' '}<strong className="text-parchment/90">{t("Zero paper currency. Zero counterfeiting risk.")}</strong>
+              <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light max-w-2xl">{t("The official constitutional currency of The Sovereign Covenant State of Aletheia. Pegged 1:1 to the Euro, backed by provable 100% segregated reserves, and issued in two forms: engraved AEY banknotes and digital AEY on the Aletheia StableChain.")}{' '}<strong className="text-parchment/90">{t("One reserve. Paper or digital. Exchangeable worldwide.")}</strong>
               </p>
 
               <div className="flex flex-wrap gap-4 pt-2">
@@ -141,7 +149,7 @@ export default function AeyCurrencyPage() {
                   {[
                     { label: 'Reserve Backing', value: '100%', mono: true },
                     { label: 'Block Finality', value: '500ms', mono: true },
-                    { label: 'Cashless Economy', value: '100%', mono: false },
+                    { label: 'Legal Tender', value: 'Paper + Digital', mono: false },
                     { label: 'EUR Parity', value: 'Fixed 1:1', mono: false },
                   ].map(({ label, value, mono }) => (
                     <div key={label} className="stat-tile p-3 rounded-sm text-center space-y-1">
@@ -152,7 +160,7 @@ export default function AeyCurrencyPage() {
                 </div>
 
                 <div className="relative z-10 pt-3 border-t border-parchment/10">
-                  <p className="text-[10px] font-mono text-parchment/40 text-center tracking-wider">{t("CASHLESS STATE ACT 2026 · CONSTITUTIONAL ART. 14 § 3")}</p>
+                  <p className="text-[10px] font-mono text-parchment/40 text-center tracking-wider [text-wrap:balance]">{t("CURRENCY & DIGITAL SETTLEMENT ACT 2026 · CONSTITUTIONAL ART. 14 § 3")}</p>
                 </div>
               </div>
             </div>
@@ -166,7 +174,7 @@ export default function AeyCurrencyPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 md:divide-x divide-gold/15 gap-y-2">
             {[
               { value: '1.0000', label: 'AEY / EUR Parity', sublabel: 'Fixed · Constitutional Art. 14' },
-              { value: '100%', label: 'Cashless Rails', sublabel: 'Zero paper currency by law' },
+              { value: '2', label: 'Forms of Legal Tender', sublabel: 'Banknotes & StableChain' },
               { value: '100%', label: 'Segregated Reserves', sublabel: 'Daily cryptographic proof' },
               { value: '500ms', label: 'Block Finality', sublabel: 'Deterministic slot settlement' },
             ].map(({ value, label, sublabel }) => (
@@ -180,12 +188,12 @@ export default function AeyCurrencyPage() {
         </div>
       </section>
 
-      {/* ── 100% CASHLESS DIGITAL ARCHITECTURE ── */}
+      {/* ── DUAL LEGAL TENDER: PAPER & DIGITAL ── */}
       <section className="py-16 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
-          <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">{t("100% Sovereign Cashless State")}</span>
+          <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">{t("Paper & Digital Legal Tender")}</span>
           <h2 className="text-3xl font-bold text-navy tracking-tight">{t("Frictionless Digital Rails & Sovereign Cryptographic Velocity")}</h2>
-          <p className="text-xs sm:text-sm text-navy/70 leading-relaxed">{t("Aletheia is a completely cashless nation. All legal tender is purely digital, settled deterministically on the Aletheia StableChain ledger with zero paper currency friction, zero counterfeiting risk, and instant biometric settlement.")}</p>
+          <p className="text-xs sm:text-sm text-navy/70 leading-relaxed">{t("Inside the Republic the AEY circulates as engraved banknotes and as digital balances on the Aletheia StableChain: one unit, one reserve, interchangeable at par. Abroad, either form can be exchanged for EUR, GBP or USD.")}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
@@ -207,7 +215,7 @@ export default function AeyCurrencyPage() {
             <div className="space-y-3 pt-2 border-t border-navy/10 text-xs">
               <div className="flex items-start gap-2">
                 <CheckCircle2 className="w-4 h-4 text-laurel shrink-0 mt-0.5" />
-                <span><strong>{t("100% Cashless Mandate:")}</strong>{' '}{t("Paper banknotes and coins are permanently eliminated from public and private commerce.")}</span>
+                <span><strong>{t("Interchangeable with Banknotes:")}</strong>{' '}{t("Card balances and AEY banknotes convert 1:1 at accredited banks and Central Bank redemption agents.")}</span>
               </div>
               <div className="flex items-start gap-2">
                 <CheckCircle2 className="w-4 h-4 text-laurel shrink-0 mt-0.5" />
@@ -252,12 +260,12 @@ export default function AeyCurrencyPage() {
 
         </div>
 
-        {/* ── CASHLESS PAYMENT INSTRUMENTS REGISTRY ── */}
+        {/* ── NATIONAL PAYMENT INSTRUMENTS REGISTRY ── */}
         <div className="bg-white border border-navy/15 rounded-sm p-8 shadow-sm space-y-6">
           <div className="max-w-2xl space-y-2">
             <span className="text-xs font-bold text-gold uppercase tracking-wider">{t("Sovereign Settlement Taxonomy")}</span>
-            <h3 className="text-2xl font-bold text-navy">{t("National Cashless Payment Instruments")}</h3>
-            <p className="text-xs text-navy/70">{t("Pursuant to the Cashless State & Digital Settlement Act 2026, issued under the direct supervision of the Monetary Board.")}</p>
+            <h3 className="text-2xl font-bold text-navy">{t("National Payment Instruments")}</h3>
+            <p className="text-xs text-navy/70">{t("Pursuant to the Currency & Digital Settlement Act 2026, issued under the direct supervision of the Monetary Board.")}</p>
           </div>
 
           <div className="overflow-x-auto">
@@ -272,7 +280,7 @@ export default function AeyCurrencyPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-navy/10">
-                {DIGITAL_PAYMENT_INSTRUMENTS.map((inst) => (
+                {PAYMENT_INSTRUMENTS.map((inst) => (
                   <tr key={inst.instrument} className="hover:bg-parchment-light/60">
                     <td className="p-3 font-bold text-navy">{tx(inst.instrument)}</td>
                     <td className="p-3 text-navy/80">{tx(inst.formFactor)}</td>
@@ -351,16 +359,16 @@ export default function AeyCurrencyPage() {
 
       </section>
 
-      {/* ── PAPER SERIES PROTOTYPE ── */}
+      {/* ── AEY BANKNOTE SERIES ── */}
       <section className="bg-white border-y border-navy/10 py-16 lg:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           <div className="lg:col-span-5 space-y-5">
             <div className="flex items-center gap-3">
-              <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">{t("Banknote Design Prototype")}</span>
-              <StatusBadge status="Proposed" size="sm" />
+              <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">{t("AEY Banknote Series")}</span>
+              <StatusBadge status="Planned" size="sm" />
             </div>
             <h2 className="text-3xl font-bold text-navy tracking-tight">{t("The AEY Paper Series")}</h2>
-            <p className="text-sm text-navy/70 leading-relaxed">{t("See what an Aletheian Guilder banknote looks like. Five prototype denominations — 1, 5, 10, 20 and 100 AEY — engraved front and back with the saints, scientists and founding states of the Covenant. Concept artwork only; the AEY remains a fully digital currency.")}</p>
+            <p className="text-sm text-navy/70 leading-relaxed">{t("Not every nation or buyer wants crypto. The AEY is also issued on paper: five engraved denominations — 1, 5, 10, 20 and 100 AEY — backed by the same reserve as StableChain AEY. Spend notes or digital AEY inside the Republic, and exchange either for EUR, GBP or USD abroad.")}</p>
             <Link
               href="/aey/paper-currency"
               className="btn-sovereign-gold inline-flex px-7 py-3.5 rounded-sm items-center gap-2.5 group text-sm"
@@ -385,7 +393,7 @@ export default function AeyCurrencyPage() {
                 >
                   <Image
                     src={`/images/currency/aey-${value}-front.webp`}
-                    alt={i === 1 ? t("Prototype 100 AEY banknote, front") : ''}
+                    alt={i === 1 ? t("100 AEY banknote, front") : ''}
                     width={1168}
                     height={784}
                     loading="lazy"
@@ -416,7 +424,7 @@ export default function AeyCurrencyPage() {
             <Link
               href="/aey/paper-currency"
               className="px-6 py-2.5 border border-gold/30 text-parchment font-semibold text-xs uppercase tracking-wider rounded-sm hover:border-gold/60 transition-colors"
-            >{t("Paper Currency Prototype")}</Link>
+            >{t("AEY Paper Currency")}</Link>
           </div>
         </div>
       </section>

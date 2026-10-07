@@ -140,6 +140,7 @@ export const MAIN_NAVIGATION: NavItem[] = [
           { title: 'Treasury & Endowment', href: '/treasury', desc: 'Tax-free revenue model, public receipts, and sovereign reserves' },
           { title: 'Central Bank & Reserve', href: '/central-bank', desc: 'Monetary Board, reserve invariants, and settlement policies' },
           { title: 'The Aletheian Guilder (AEY)', href: '/aey', desc: 'The sovereign unit of account backed by provable 100% reserves' },
+          { title: 'AEY Paper Currency', href: '/aey/paper-currency', desc: 'Engraved banknotes, legal tender alongside StableChain AEY', status: 'Planned' },
           { title: 'Aletheia StableChain', href: '/stablechain', desc: 'Cryptographic ledger infrastructure (500ms slots, zero gas volatility)', status: 'Under Development' },
         ],
       },
