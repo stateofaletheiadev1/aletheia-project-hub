@@ -1,6 +1,6 @@
 [package]
 name = "aletheia-node"
-description = "The node: ledger (finalize path and crash recovery); supervision tree, networking and consensus wiring follow."
+description = "The node: ledger (finalize path, speculative execution, crash recovery), chain thread, mempool, sync and DSP consensus wiring."
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -8,10 +8,12 @@ rust-version.workspace = true
 publish.workspace = true
 
 [dependencies]
+aletheia-consensus.workspace = true
 aletheia-core.workspace = true
 aletheia-crypto.workspace = true
 aletheia-execution.workspace = true
 aletheia-p2p.workspace = true
+aletheia-signer.workspace = true
 aletheia-state.workspace = true
 aletheia-storage.workspace = true
 tokio = { version = "1", features = ["rt-multi-thread", "sync", "time", "macros"] }

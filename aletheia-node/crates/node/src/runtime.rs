@@ -1,8 +1,9 @@
 //! Assembling a running node (spec Sections 46A.1-46A.3).
 //!
 //! Start-up order: open or initialize the ledger (lock, WAL recovery, tip verification) →
-//! check the producer is allowed on this network → start the chain thread → start P2P with
-//! the verified tip → start the sync service. Shutdown reverses it: stop the async side, let
+//! decide the block source (DSP when state records validators, otherwise the devnet producer
+//! where allowed) → restore consensus safety data (WAL max-merged with the signer's marks) →
+//! start the chain thread → start P2P with the verified tip → start the sync service. Shutdown reverses it: stop the async side, let
 //! the chain thread drain its queue, then the ledger writes its checkpoint and releases the
 //! data-directory lock.
 
@@ -11,7 +12,7 @@ use std::path::PathBuf;
 use std::time::Duration;
 
 use aletheia_core::{AletheiaError, ErrorCode, Hash32, Height, SignedTransaction};
-use aletheia_crypto::Ed25519SigningKey;
+use aletheia_crypto::{BlsSecretKey, Ed25519SigningKey};
 use aletheia_execution::GenesisState;
 use aletheia_execution::rules::MAX_SUPPORTED_VERSION;
 use aletheia_p2p::network::start as start_network;
@@ -23,6 +24,7 @@ use tokio::task::JoinHandle;
 
 use crate::chain;
 use crate::channels::SUBMIT_QUEUE;
+use crate::consensus::{ConsensusDriver, NodeSigner, validator_set};
 use crate::ledger::Ledger;
 use crate::mempool::Mempool;
 use crate::sync::{Submission, SyncService};
@@ -33,8 +35,12 @@ pub struct NodeConfig {
     pub listen: SocketAddr,
     pub peers: Vec<DialTarget>,
     pub node_key: Ed25519SigningKey,
-    /// Devnet and regtest only, with the `devnet-producer` feature: produce a block this often.
+    /// Devnet and regtest only, with the `devnet-producer` feature, on a genesis without
+    /// validators: produce a block this often.
     pub produce_every: Option<Duration>,
+    /// The BLS consensus key of a validator; its node key must be in the validator set. A node
+    /// without one follows consensus as an observer.
+    pub consensus_key: Option<BlsSecretKey>,
 }
 
 impl core::fmt::Debug for NodeConfig {
@@ -45,6 +51,7 @@ impl core::fmt::Debug for NodeConfig {
             .field("peers", &self.peers.len())
             .field("node_key", &self.node_key.public_key())
             .field("produce_every", &self.produce_every)
+            .field("validator", &self.consensus_key.is_some())
             .finish_non_exhaustive()
     }
 }
@@ -92,10 +99,81 @@ fn check_producer(config: &NodeConfig) -> Result<(), AletheiaError> {
     Ok(())
 }
 
+/// DSP when the finalized state records an epoch-0 validator set: the engine resumes at the
+/// tip with safety data no lower than the WAL's or the signer's.
+fn consensus_driver<S: KvStore>(
+    config: &NodeConfig,
+    consensus_key: Option<BlsSecretKey>,
+    ledger: &Ledger<S>,
+) -> Result<Option<ConsensusDriver>, AletheiaError> {
+    let epoch = aletheia_core::Epoch::new(0);
+    let Some(records) = ledger.validator_records(epoch.get())? else {
+        if consensus_key.is_some() {
+            return Err(config_error(
+                "a consensus key was given, but genesis has no validators".to_owned(),
+            ));
+        }
+        return Ok(None);
+    };
+    if config.produce_every.is_some() {
+        return Err(config_error(
+            "this chain has validators and runs DSP; the devnet producer is refused".to_owned(),
+        ));
+    }
+    let network = *ledger.network();
+    let set = validator_set(&network, epoch, &records)?;
+    let index = set.index_of(&config.node_key.public_key().to_bytes());
+    let (me, signer) = match (index, consensus_key) {
+        (Some(index), Some(key)) => {
+            let registered = set.member(index).map(|m| m.consensus_key.to_bytes());
+            if registered != Some(key.public_key().to_bytes()) {
+                return Err(config_error(format!(
+                    "the consensus key is not the one registered for validator {index}"
+                )));
+            }
+            let signer = aletheia_signer::LocalSigner::open(key, &config.data_dir.join("signer"))?;
+            (
+                Some(index),
+                NodeSigner::Validator(std::sync::Arc::new(std::sync::Mutex::new(signer))),
+            )
+        }
+        (Some(index), None) => {
+            return Err(config_error(format!(
+                "this node key is validator {index}, but no consensus key was given"
+            )));
+        }
+        (None, Some(_)) => {
+            return Err(config_error(
+                "a consensus key was given, but this node key is not in the validator set"
+                    .to_owned(),
+            ));
+        }
+        (None, None) => (None, NodeSigner::Observer),
+    };
+    let safety = ledger
+        .safety()
+        .unwrap_or_else(|| aletheia_consensus::SafetyData::genesis(epoch))
+        .max_merge(&signer.floor(epoch));
+    let finalized = aletheia_consensus::FinalizedTip {
+        hash: ledger.tip().hash,
+        height: ledger.tip().height,
+        round: ledger.tip_round()?,
+    };
+    Ok(Some(ConsensusDriver::new(
+        network,
+        set,
+        signer,
+        me,
+        safety,
+        finalized,
+        Duration::from_millis(config.genesis.timing.slot_duration_ms),
+    )))
+}
+
 impl Node {
     /// Opens (or initializes from genesis) the data directory and starts every component.
     pub async fn start<S: KvStore + 'static>(
-        config: NodeConfig,
+        mut config: NodeConfig,
         store: S,
     ) -> Result<Node, AletheiaError> {
         check_producer(&config)?;
@@ -107,6 +185,8 @@ impl Node {
         ledger.check_next_height_supported()?;
         let tip = ledger.tip();
         let network = *ledger.network();
+        let consensus_key = config.consensus_key.take();
+        let consensus = consensus_driver(&config, consensus_key, &ledger)?;
         let (chain, chain_thread) = chain::spawn(ledger)?;
         let chain_handle = chain.clone();
 
@@ -138,6 +218,7 @@ impl Node {
             mempool: Mempool::new(),
             peer_tips: std::collections::BTreeMap::new(),
             in_flight: None,
+            consensus,
         };
         let sync = tokio::spawn(service.run());
         Ok(Node {
@@ -184,6 +265,7 @@ impl Node {
             .chain_handle
             .read_blocks(height, 1)
             .await?
+            .0
             .into_iter()
             .next())
     }

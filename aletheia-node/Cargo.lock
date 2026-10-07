@@ -98,10 +98,12 @@ dependencies = [
 name = "aletheia-node"
 version = "0.1.0"
 dependencies = [
+ "aletheia-consensus",
  "aletheia-core",
  "aletheia-crypto",
  "aletheia-execution",
  "aletheia-p2p",
+ "aletheia-signer",
  "aletheia-state",
  "aletheia-storage",
  "aletheia-test-harness",

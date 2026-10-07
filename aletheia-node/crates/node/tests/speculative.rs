@@ -82,8 +82,8 @@ fn a_child_executes_on_its_parents_speculative_state() {
     ledger.execute_speculative(&b).unwrap();
     assert_eq!(ledger.tip().height, Height::GENESIS, "nothing is final yet");
 
-    ledger.finalize_speculative(&hash(&net, &a)).unwrap();
-    ledger.finalize_speculative(&hash(&net, &b)).unwrap();
+    ledger.finalize_speculative(&hash(&net, &a), None).unwrap();
+    ledger.finalize_speculative(&hash(&net, &b), None).unwrap();
     assert_eq!(ledger.tip().height, Height::new(2));
     assert_eq!(ledger.tip().state_root, b.block.header.state_root);
     assert_eq!(ledger.next_nonce(&net.address(0)).unwrap(), 2);
@@ -102,7 +102,9 @@ fn finalizing_one_fork_drops_the_other_and_its_descendants() {
     ledger.execute_speculative(&left_child).unwrap();
     assert_eq!(ledger.speculative_len(), 3);
 
-    ledger.finalize_speculative(&hash(&net, &right)).unwrap();
+    ledger
+        .finalize_speculative(&hash(&net, &right), None)
+        .unwrap();
     assert_eq!(
         ledger.speculative_len(),
         0,
@@ -114,7 +116,7 @@ fn finalizing_one_fork_drops_the_other_and_its_descendants() {
         "the left transfer never happened"
     );
     let error = ledger
-        .finalize_speculative(&hash(&net, &left_child))
+        .finalize_speculative(&hash(&net, &left_child), None)
         .unwrap_err();
     assert_eq!(error.code(), ErrorCode::FinalizeParentMismatch);
     assert!(error.is_fail_stop());

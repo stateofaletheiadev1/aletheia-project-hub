@@ -109,6 +109,7 @@ async fn main() -> ExitCode {
         peers: settings.peers,
         node_key: settings.node_key,
         produce_every: settings.produce_every,
+        consensus_key: settings.consensus_key,
     };
     let mut node = match Node::start(config, store).await {
         Ok(node) => node,

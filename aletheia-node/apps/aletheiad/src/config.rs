@@ -7,6 +7,8 @@
 //! genesis = "/etc/aletheia/genesis.toml"
 //! listen = "0.0.0.0:7771"
 //! node_key_file = "/etc/aletheia/node.key"   # 64 lowercase hex digits; devnet/regtest only
+//! consensus_key_file = "/etc/aletheia/consensus.key"  # validators: 64 hex digits of BLS key
+//!                                             # material; devnet/regtest only
 //!
 //! [[peers]]
 //! address = "10.0.0.2:7771"
@@ -22,7 +24,7 @@ use std::path::PathBuf;
 use std::time::Duration;
 
 use aletheia_core::{Hash32, base16};
-use aletheia_crypto::{Ed25519SigningKey, Secret};
+use aletheia_crypto::{BlsSecretKey, Ed25519SigningKey, Secret};
 use aletheia_execution::{GenesisConfig, GenesisState};
 use aletheia_p2p::{DialTarget, PeerExpectation};
 use serde::Deserialize;
@@ -43,6 +45,7 @@ struct NodeSection {
     genesis: PathBuf,
     listen: SocketAddr,
     node_key_file: PathBuf,
+    consensus_key_file: Option<PathBuf>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -66,6 +69,7 @@ pub(crate) struct Settings {
     pub(crate) peers: Vec<DialTarget>,
     pub(crate) node_key: Ed25519SigningKey,
     pub(crate) produce_every: Option<Duration>,
+    pub(crate) consensus_key: Option<BlsSecretKey>,
 }
 
 fn read(path: &std::path::Path, what: &str) -> Result<String, String> {
@@ -97,6 +101,23 @@ pub(crate) fn load(path: &std::path::Path) -> Result<Settings, String> {
         )
     })?;
     let node_key = Ed25519SigningKey::from_seed(&Secret::new(seed));
+    let consensus_key = file
+        .node
+        .consensus_key_file
+        .as_ref()
+        .map(|path| {
+            let text = read(path, "consensus key")?;
+            let material = base16::decode_fixed::<32>(text.trim()).map_err(|e| {
+                format!(
+                    "{}: consensus key must be 64 lowercase hex digits ({})",
+                    path.display(),
+                    e.detail()
+                )
+            })?;
+            BlsSecretKey::from_key_material(&Secret::new(material))
+                .map_err(|e| format!("{}: {}", path.display(), e.detail()))
+        })
+        .transpose()?;
 
     let mut peers = Vec::with_capacity(file.peers.len());
     for peer in file.peers {
@@ -137,5 +158,6 @@ pub(crate) fn load(path: &std::path::Path) -> Result<Settings, String> {
         produce_every: file
             .devnet
             .map(|devnet| Duration::from_millis(devnet.produce_every_ms)),
+        consensus_key,
     })
 }

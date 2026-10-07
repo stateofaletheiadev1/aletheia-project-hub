@@ -22,16 +22,22 @@
 //! nodes it would write held in a batch. A child executes through a [`LayeredStore`] of the
 //! base store and its uncommitted ancestors' batches. Finalizing re-applies the block to the
 //! real store through the path above, so nothing speculative ever reaches disk unverified.
+//!
+//! Consensus safety data (Section 24.2) is a synced `SAFETY_DATA` WAL record, written before
+//! the vote or timeout it authorizes is sent. Recovery restores the last one; every checkpoint
+//! is followed by a fresh copy so pruning old segments can never lose it. A finality proof is
+//! committed in the same KV batch as the block it finalizes.
 
 use std::path::Path;
 
+use aletheia_consensus::{FinalityProof, SafetyData};
 use aletheia_core::block::Proposal;
 use aletheia_core::{
     AceDecode, AceEncode, AceReader, AceWriter, AletheiaError, ErrorCode, Hash32, Height,
     NetworkIdentity,
 };
 use aletheia_execution::continuity::rules_for_height;
-use aletheia_execution::model::validator_records_hash;
+use aletheia_execution::model::{ValidatorRecord, validator_records_hash};
 use aletheia_execution::{
     BlockContext, ExecutedBlock, GenesisState, Records, StatelessValidator, VerifiedTransaction,
     check_header_results, execute_block,
@@ -135,6 +141,8 @@ pub struct Ledger<S: KvStore> {
     network: NetworkIdentity,
     tip: LastFinalized,
     speculative: std::collections::BTreeMap<Hash32, Speculative>,
+    /// The last safety data made durable, restored from the WAL at start-up.
+    safety: Option<SafetyData>,
     #[cfg(feature = "fault-injection")]
     crash_at: Option<CrashPoint>,
 }
@@ -200,6 +208,7 @@ impl<S: KvStore> Ledger<S> {
             network,
             tip,
             speculative: std::collections::BTreeMap::new(),
+            safety: None,
             #[cfg(feature = "fault-injection")]
             crash_at: None,
         })
@@ -282,6 +291,7 @@ impl<S: KvStore> Ledger<S> {
             network,
             tip,
             speculative: std::collections::BTreeMap::new(),
+            safety: None,
             #[cfg(feature = "fault-injection")]
             crash_at: None,
         };
@@ -291,6 +301,15 @@ impl<S: KvStore> Ledger<S> {
         let mut open_finalize: Option<(Height, Hash32)> = None;
         for record in &recovery.records {
             match record.kind {
+                RecordType::SafetyData => {
+                    ledger.safety =
+                        Some(SafetyData::from_ace_bytes(&record.payload).map_err(|e| {
+                            fail_stop(
+                                ErrorCode::StoCorrupt,
+                                format!("WAL safety data: {}", e.detail()),
+                            )
+                        })?);
+                }
                 RecordType::FinalizeBegin => {
                     open_finalize = Some(parse_finalize_payload(&record.payload)?)
                 }
@@ -325,7 +344,7 @@ impl<S: KvStore> Ledger<S> {
                             ));
                         }
                         let executed = ledger.execute(&proposal)?;
-                        ledger.commit(&proposal, &executed, location)?;
+                        ledger.commit(&proposal, &executed, location, None)?;
                         Reconciled::ReExecuted(height)
                     }
                     None => {
@@ -333,6 +352,11 @@ impl<S: KvStore> Ledger<S> {
                             RecordType::Checkpoint,
                             &finalize_payload(ledger.tip.height, &ledger.tip.hash),
                         )?;
+                        if let Some(safety) = ledger.safety {
+                            ledger
+                                .wal
+                                .append(RecordType::SafetyData, &safety.to_ace_bytes())?;
+                        }
                         Reconciled::Abandoned(height)
                     }
                 }
@@ -585,15 +609,20 @@ impl<S: KvStore> Ledger<S> {
     }
 
     /// Finalizes a block executed with [`Ledger::execute_speculative`]; it must extend the
-    /// tip. Speculative blocks that no longer descend from the new tip are dropped.
-    pub fn finalize_speculative(&mut self, hash: &Hash32) -> Result<(), AletheiaError> {
+    /// tip. `proof` is stored with it (consensus passes it for the last block of each finalized
+    /// run). Speculative blocks that no longer descend from the new tip are dropped.
+    pub fn finalize_speculative(
+        &mut self,
+        hash: &Hash32,
+        proof: Option<&FinalityProof>,
+    ) -> Result<(), AletheiaError> {
         let block = self.speculative.remove(hash).ok_or_else(|| {
             fail_stop(
                 ErrorCode::FinalizeParentMismatch,
                 format!("consensus finalized {hash}, which this node never executed"),
             )
         })?;
-        self.finalize(&block.proposal, &block.executed)?;
+        self.finalize_with_proof(&block.proposal, &block.executed, proof)?;
         self.prune_speculative();
         Ok(())
     }
@@ -632,6 +661,16 @@ impl<S: KvStore> Ledger<S> {
         proposal: &Proposal,
         executed: &ExecutedBlock,
     ) -> Result<(), AletheiaError> {
+        self.finalize_with_proof(proposal, executed, None)
+    }
+
+    /// Finalizes and, under consensus, commits the block's finality proof with it.
+    fn finalize_with_proof(
+        &mut self,
+        proposal: &Proposal,
+        executed: &ExecutedBlock,
+        proof: Option<&FinalityProof>,
+    ) -> Result<(), AletheiaError> {
         let header = &proposal.block.header;
         if header.height != self.tip.height.next()? {
             return Err(fail_stop(
@@ -658,7 +697,7 @@ impl<S: KvStore> Ledger<S> {
         let location = self.archive.append(proposal)?;
         #[cfg(feature = "fault-injection")]
         self.maybe_crash(CrashPoint::AfterArchiveAppend)?;
-        self.commit(proposal, executed, location)
+        self.commit(proposal, executed, location, proof)
     }
 
     fn commit(
@@ -666,10 +705,18 @@ impl<S: KvStore> Ledger<S> {
         proposal: &Proposal,
         executed: &ExecutedBlock,
         location: aletheia_storage::archive::ArchiveLocation,
+        proof: Option<&FinalityProof>,
     ) -> Result<(), AletheiaError> {
         let header = &proposal.block.header;
         let hash = header.block_hash(&self.network);
         let mut batch = self.store.batch();
+        if let Some(proof) = proof {
+            batch.put(
+                ColumnFamily::FinalityProofs,
+                &header.height.get().to_be_bytes(),
+                &proof.to_ace_bytes(),
+            );
+        }
         let state_root = JellyfishMerkleTree::new(&self.store, self.network).apply(
             Some(self.tip.height.get()),
             header.height.get(),
@@ -888,9 +935,86 @@ impl<S: KvStore> Ledger<S> {
 
     /// Validates and finalizes in one step (single-node operation until consensus exists).
     pub fn apply(&mut self, proposal: &Proposal) -> Result<ExecutedBlock, AletheiaError> {
+        self.apply_with_proof(proposal, None)
+    }
+
+    /// Block sync under consensus: a block proven final by a peer, re-executed on the tip.
+    pub fn apply_with_proof(
+        &mut self,
+        proposal: &Proposal,
+        proof: Option<&FinalityProof>,
+    ) -> Result<ExecutedBlock, AletheiaError> {
         let executed = self.execute(proposal)?;
-        self.finalize(proposal, &executed)?;
+        self.finalize_with_proof(proposal, &executed, proof)?;
+        self.prune_speculative();
         Ok(executed)
+    }
+
+    /// Makes consensus safety data durable (synced) before what it authorizes is sent.
+    pub fn persist_safety(&mut self, safety: &SafetyData) -> Result<(), AletheiaError> {
+        self.wal
+            .append(RecordType::SafetyData, &safety.to_ace_bytes())?;
+        self.wal.sync()?;
+        self.safety = Some(*safety);
+        Ok(())
+    }
+
+    /// The safety data restored at start-up or last persisted.
+    pub fn safety(&self) -> Option<SafetyData> {
+        self.safety
+    }
+
+    /// The round (slot) of the finalized tip block, where consensus resumes.
+    pub fn tip_round(&self) -> Result<aletheia_core::Slot, AletheiaError> {
+        let block = self.read_block(self.tip.height)?.ok_or_else(|| {
+            fail_stop(
+                ErrorCode::StoCorrupt,
+                format!("finalized tip {} is not in the archive", self.tip.height),
+            )
+        })?;
+        Ok(block.block.header.slot)
+    }
+
+    /// The validator set of `epoch` as of the finalized tip.
+    pub fn validator_records(
+        &self,
+        epoch: u64,
+    ) -> Result<Option<Vec<ValidatorRecord>>, AletheiaError> {
+        Records::new(self.network).validator_set(&self.tip_view(), epoch)
+    }
+
+    /// A finalized block by hash (fetches from peers that lag behind).
+    pub fn read_block_by_hash(&self, hash: &Hash32) -> Result<Option<Proposal>, AletheiaError> {
+        let Some(bytes) = self.store.get(
+            ColumnFamily::BlockIndex,
+            &aletheia_storage::archive::hash_key(hash),
+        )?
+        else {
+            return Ok(None);
+        };
+        let height = Height::from_ace_bytes(&bytes).map_err(|e| {
+            fail_stop(
+                ErrorCode::StoCorrupt,
+                format!("block index entry for {hash}: {}", e.detail()),
+            )
+        })?;
+        self.read_block(height)
+    }
+
+    /// The stored finality proof for the block at `height`, if consensus finalized a run
+    /// ending there.
+    pub fn finality_proof(&self, height: Height) -> Result<Option<FinalityProof>, AletheiaError> {
+        self.store
+            .get(ColumnFamily::FinalityProofs, &height.get().to_be_bytes())?
+            .map(|bytes| {
+                FinalityProof::from_ace_bytes(&bytes).map_err(|e| {
+                    fail_stop(
+                        ErrorCode::StoCorrupt,
+                        format!("finality proof at {height}: {}", e.detail()),
+                    )
+                })
+            })
+            .transpose()
     }
 
     /// Clean shutdown: a checkpoint at the tip and the tip recorded in DATADIR (Section 44.5).
@@ -899,6 +1023,10 @@ impl<S: KvStore> Ledger<S> {
             RecordType::Checkpoint,
             &finalize_payload(self.tip.height, &self.tip.hash),
         )?;
+        if let Some(safety) = self.safety {
+            self.wal
+                .append(RecordType::SafetyData, &safety.to_ace_bytes())?;
+        }
         self.wal.sync()?;
         let mut manifest = self.datadir.manifest().clone();
         manifest.last_finalized = Some(self.tip);

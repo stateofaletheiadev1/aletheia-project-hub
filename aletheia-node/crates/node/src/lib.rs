@@ -4,6 +4,7 @@
 
 pub(crate) mod chain;
 pub mod channels;
+pub(crate) mod consensus;
 pub mod ledger;
 pub mod mempool;
 pub mod runtime;
