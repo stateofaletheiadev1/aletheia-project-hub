@@ -16,6 +16,7 @@
 #   1200-1299 addresses and identifiers (APS-0002)
 #   1300-1399 network identity (APS-0001)
 #   2000-2999 transactions (APS-0003)
+#   3000-3999 blocks (APS-0004)
 #   4000-4999 cryptography (APS-0037, APS-0009)
 #   5000-5999 state (APS-0005)
 #   6000-6999 payments (APS-0049..0053)
@@ -193,11 +194,109 @@ class = "reject"
 message = "The authorization carries a different number of signatures than its threshold."
 
 [[code]]
+code = 2010
+name = "TX_NONCE_TOO_HIGH"
+variant = "TxNonceTooHigh"
+class = "reject"
+message = "The transaction nonce is above the account's next nonce."
+
+[[code]]
+code = 2011
+name = "TX_KEY_MISMATCH"
+variant = "TxKeyMismatch"
+class = "reject"
+message = "The authorization's keys are not the keys that control the sender account."
+
+[[code]]
+code = 2012
+name = "TX_EXPIRED"
+variant = "TxExpired"
+class = "reject"
+message = "The current slot is after the transaction's expiry_slot."
+
+[[code]]
+code = 2013
+name = "TX_NOT_YET_VALID"
+variant = "TxNotYetValid"
+class = "reject"
+message = "The current slot is before the transaction's valid_from_slot."
+
+[[code]]
+code = 2014
+name = "TX_FEE_UNAFFORDABLE"
+variant = "TxFeeUnaffordable"
+class = "reject"
+message = "The sender's available balance in the fee asset is below max_fee."
+
+[[code]]
+code = 2015
+name = "TX_MAX_FEE_INSUFFICIENT"
+variant = "TxMaxFeeInsufficient"
+class = "reject"
+message = "max_fee is below eu_limit times the current EU price of the fee asset."
+
+[[code]]
+code = 2016
+name = "TX_ASSET_UNKNOWN"
+variant = "TxAssetUnknown"
+class = "reject"
+message = "The transaction names an asset that does not exist or cannot be transferred."
+
+[[code]]
 code = 2020
 name = "TX_TYPE_NOT_ACTIVE"
 variant = "TxTypeNotActive"
 class = "reject"
 message = "The transaction type is not active at the current protocol version."
+
+[[code]]
+code = 3001
+name = "BLK_NOT_CANONICAL_ORDER"
+variant = "BlkNotCanonicalOrder"
+class = "reject"
+message = "Block transactions are not in canonical order, or a sender's nonces are not contiguous."
+
+[[code]]
+code = 3002
+name = "BLK_VERSION_MISMATCH"
+variant = "BlkVersionMismatch"
+class = "reject"
+message = "The header's protocol version is not the one the schedule assigns to its height."
+
+[[code]]
+code = 3003
+name = "BLK_LIMIT_EXCEEDED"
+variant = "BlkLimitExceeded"
+class = "reject"
+message = "The block exceeds a per-block limit of its rule set (transactions, bytes or execution units)."
+
+[[code]]
+code = 3004
+name = "BLK_ROOT_MISMATCH"
+variant = "BlkRootMismatch"
+class = "reject"
+message = "A root or total in the header differs from what re-execution produces."
+
+[[code]]
+code = 3005
+name = "BLK_PARENT_MISMATCH"
+variant = "BlkParentMismatch"
+class = "reject"
+message = "The header does not extend the expected parent (hash, height or slot)."
+
+[[code]]
+code = 3006
+name = "BLK_TIME_MISMATCH"
+variant = "BlkTimeMismatch"
+class = "reject"
+message = "protocol_time_ms differs from genesis_time_ms + slot x slot_duration_ms."
+
+[[code]]
+code = 3007
+name = "BLK_INVALID_TRANSACTION"
+variant = "BlkInvalidTransaction"
+class = "reject"
+message = "A transaction in the block fails stateful validation; the whole block is invalid."
 
 [[code]]
 code = 4001
@@ -361,6 +460,13 @@ class = "reject"
 message = "A subtraction would make a balance negative."
 
 [[code]]
+code = 9003
+name = "ARITHMETIC_DIVISION_BY_ZERO"
+variant = "ArithmeticDivisionByZero"
+class = "reject"
+message = "A division had a zero divisor; divisors are validated non-zero parameters."
+
+[[code]]
 code = 11001
 name = "FINALIZE_OUT_OF_ORDER"
 variant = "FinalizeOutOfOrder"
@@ -380,3 +486,10 @@ name = "PROTOCOL_VERSION_UNSUPPORTED"
 variant = "ProtocolVersionUnsupported"
 class = "reject"
 message = "The protocol version is not known to this binary."
+
+[[code]]
+code = 12002
+name = "PROTOCOL_UPGRADE_REQUIRED"
+variant = "ProtocolUpgradeRequired"
+class = "fail-stop"
+message = "The next height runs a protocol version this binary does not support; stop cleanly with exit 75."

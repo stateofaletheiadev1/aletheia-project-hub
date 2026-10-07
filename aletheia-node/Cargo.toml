@@ -9,7 +9,9 @@ members = [
   "crates/execution",
   "crates/storage",
   "crates/state",
+  "crates/monetary",
   "tests/conformance",
+  "tests/harness",
 ]
 
 [workspace.package]
@@ -26,6 +28,8 @@ aletheia-crypto = { path = "crates/crypto" }
 aletheia-execution = { path = "crates/execution" }
 aletheia-storage = { path = "crates/storage" }
 aletheia-state = { path = "crates/state" }
+aletheia-monetary = { path = "crates/monetary" }
+aletheia-test-harness = { path = "tests/harness" }
 
 blake3 = { version = "1.8", default-features = false }
 ed25519-dalek = { version = "2.2", default-features = false, features = ["std", "zeroize"] }

@@ -45,6 +45,10 @@ pub struct TxType(u16);
 impl TxType {
     pub const TRANSFER: TxType = TxType(1);
     pub const BATCH_TRANSFER: TxType = TxType(2);
+    /// Test-only (feature `test-protocol-v2`): the type protocol version 2 adds in the
+    /// continuity tests. Far from every real tag so it can never collide with one.
+    #[cfg(feature = "test-protocol-v2")]
+    pub const TEST_REMARK: TxType = TxType(65_000);
 
     pub const fn new(value: u16) -> TxType {
         TxType(value)
@@ -98,6 +102,9 @@ pub enum Payload {
     Transfer(TransferLeg),
     /// 1 to 256 legs, applied in order, all or nothing.
     BatchTransfer(Vec<TransferLeg>),
+    /// Test-only opaque note, at most 256 bytes (feature `test-protocol-v2`).
+    #[cfg(feature = "test-protocol-v2")]
+    TestRemark(Vec<u8>),
 }
 
 impl Payload {
@@ -105,6 +112,8 @@ impl Payload {
         match self {
             Payload::Transfer(_) => TxType::TRANSFER,
             Payload::BatchTransfer(_) => TxType::BATCH_TRANSFER,
+            #[cfg(feature = "test-protocol-v2")]
+            Payload::TestRemark(_) => TxType::TEST_REMARK,
         }
     }
 
@@ -113,6 +122,8 @@ impl Payload {
         match self {
             Payload::Transfer(leg) => leg.encode(out),
             Payload::BatchTransfer(legs) => out.list(legs),
+            #[cfg(feature = "test-protocol-v2")]
+            Payload::TestRemark(note) => out.bytes(note),
         }
     }
 
@@ -124,6 +135,10 @@ impl Payload {
         match tx_type {
             TxType::TRANSFER => TransferLeg::decode(input).map(Payload::Transfer),
             TxType::BATCH_TRANSFER => input.list(MAX_BATCH_LEGS).map(Payload::BatchTransfer),
+            #[cfg(feature = "test-protocol-v2")]
+            TxType::TEST_REMARK => input
+                .bytes(MAX_MEMO_BYTES)
+                .map(|note| Payload::TestRemark(note.to_vec())),
             other => Err(AletheiaError::new(
                 ErrorCode::DecodeNonCanonical,
                 format!(

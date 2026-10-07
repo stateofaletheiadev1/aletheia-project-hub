@@ -161,6 +161,8 @@ fn check_field_ranges(
     let legs: &[TransferLeg] = match &body.payload {
         Payload::Transfer(leg) => core::slice::from_ref(leg),
         Payload::BatchTransfer(legs) => legs,
+        #[cfg(feature = "test-protocol-v2")]
+        Payload::TestRemark(_) => return Ok(()),
     };
     if legs.is_empty() {
         return Err(reject(

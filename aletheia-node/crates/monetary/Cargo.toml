@@ -1,0 +1,17 @@
+[package]
+name = "aletheia-monetary"
+description = "Monetary arithmetic with explicit rounding; AEY, ALnT and the supply ledger as they are implemented."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+aletheia-core.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true
+
+[lints]
+workspace = true

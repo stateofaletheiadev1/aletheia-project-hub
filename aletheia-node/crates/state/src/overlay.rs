@@ -93,6 +93,26 @@ impl<'p> StateOverlay<'p> {
         self.checkpoints.pop();
     }
 
+    /// A position in the write journal, for [`StateOverlay::changes_since`].
+    pub fn mark(&self) -> usize {
+        self.journal.len()
+    }
+
+    /// Keys written since `mark` with their current values, sorted and deduplicated: one
+    /// transaction's write set (Section 38 `write_set_hash`).
+    pub fn changes_since(&self, mark: usize) -> Vec<(StateKey, Option<StateValue>)> {
+        let keys: std::collections::BTreeSet<StateKey> = self
+            .journal
+            .get(mark..)
+            .unwrap_or_default()
+            .iter()
+            .map(|(key, _)| *key)
+            .collect();
+        keys.into_iter()
+            .map(|key| (key, self.writes.get(&key).cloned().flatten()))
+            .collect()
+    }
+
     /// Sorted, deduplicated writes for the JMT update and the finalize batch.
     pub fn changes(&self) -> impl Iterator<Item = (&StateKey, Option<&StateValue>)> {
         self.writes.iter().map(|(k, v)| (k, v.as_ref()))

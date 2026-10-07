@@ -168,10 +168,13 @@ pub enum DomainTag {
     BlockId,
     BridgeMessage,
     BridgeAttestation,
+    Receipt,
+    Event,
+    WriteSet,
 }
 
 impl DomainTag {
-    pub const ALL: [DomainTag; 20] = [
+    pub const ALL: [DomainTag; 23] = [
         DomainTag::TxId,
         DomainTag::TxWitness,
         DomainTag::TxSignature,
@@ -192,6 +195,9 @@ impl DomainTag {
         DomainTag::BlockId,
         DomainTag::BridgeMessage,
         DomainTag::BridgeAttestation,
+        DomainTag::Receipt,
+        DomainTag::Event,
+        DomainTag::WriteSet,
     ];
 
     pub const fn as_str(self) -> &'static str {
@@ -216,6 +222,10 @@ impl DomainTag {
             DomainTag::BlockId => "ALETHEIA/BLOCKID/v1",
             DomainTag::BridgeMessage => "ALETHEIA/BRIDGE-MSG/v1",
             DomainTag::BridgeAttestation => "ALETHEIA/BRIDGE-ATTEST/v1",
+            // Added in implementation (ERRATA E-17): Section 38 hashes receipts with an unnamed tag.
+            DomainTag::Receipt => "ALETHEIA/RECEIPT/v1",
+            DomainTag::Event => "ALETHEIA/EVENT/v1",
+            DomainTag::WriteSet => "ALETHEIA/WRITESET/v1",
         }
     }
 

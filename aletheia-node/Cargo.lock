@@ -55,6 +55,20 @@ version = "0.1.0"
 dependencies = [
  "aletheia-core",
  "aletheia-crypto",
+ "aletheia-monetary",
+ "aletheia-state",
+ "aletheia-storage",
+ "blake3",
+ "proptest",
+ "serde",
+ "toml",
+]
+
+[[package]]
+name = "aletheia-monetary"
+version = "0.1.0"
+dependencies = [
+ "aletheia-core",
  "proptest",
 ]
 
@@ -79,6 +93,18 @@ dependencies = [
  "proptest",
  "rocksdb",
  "zstd",
+]
+
+[[package]]
+name = "aletheia-test-harness"
+version = "0.1.0"
+dependencies = [
+ "aletheia-core",
+ "aletheia-crypto",
+ "aletheia-execution",
+ "aletheia-state",
+ "aletheia-storage",
+ "proptest",
 ]
 
 [[package]]

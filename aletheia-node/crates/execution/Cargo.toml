@@ -10,6 +10,18 @@ publish.workspace = true
 [dependencies]
 aletheia-core.workspace = true
 aletheia-crypto.workspace = true
+aletheia-monetary.workspace = true
+aletheia-state.workspace = true
+aletheia-storage.workspace = true
+blake3.workspace = true
+# Genesis TOML is operator input, parsed at the boundary; consensus bytes are ACE (Section 43).
+serde.workspace = true
+toml.workspace = true
+
+[features]
+# Test-only protocol version 2 that adds one transaction type, for mixed-version and
+# clean-halt tests (spec 62.1, Phase 3). Never enabled in a release build.
+test-protocol-v2 = ["aletheia-core/test-protocol-v2"]
 
 [dev-dependencies]
 proptest.workspace = true

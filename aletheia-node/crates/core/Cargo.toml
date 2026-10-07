@@ -10,6 +10,10 @@ publish.workspace = true
 [dependencies]
 blake3.workspace = true
 
+[features]
+# Adds the test-only `Remark` payload (tx type 4) used by the protocol-version-2 test rule set.
+test-protocol-v2 = []
+
 [dev-dependencies]
 proptest.workspace = true
 serde.workspace = true

@@ -73,7 +73,21 @@ error_codes! {
     TxValidityWindowInvalid = 2007, "TX_VALIDITY_WINDOW_INVALID", Reject;
     TxAuthMalformed = 2008, "TX_AUTH_MALFORMED", Reject;
     TxThresholdNotMet = 2009, "TX_THRESHOLD_NOT_MET", Reject;
+    TxNonceTooHigh = 2010, "TX_NONCE_TOO_HIGH", Reject;
+    TxKeyMismatch = 2011, "TX_KEY_MISMATCH", Reject;
+    TxExpired = 2012, "TX_EXPIRED", Reject;
+    TxNotYetValid = 2013, "TX_NOT_YET_VALID", Reject;
+    TxFeeUnaffordable = 2014, "TX_FEE_UNAFFORDABLE", Reject;
+    TxMaxFeeInsufficient = 2015, "TX_MAX_FEE_INSUFFICIENT", Reject;
+    TxAssetUnknown = 2016, "TX_ASSET_UNKNOWN", Reject;
     TxTypeNotActive = 2020, "TX_TYPE_NOT_ACTIVE", Reject;
+    BlkNotCanonicalOrder = 3001, "BLK_NOT_CANONICAL_ORDER", Reject;
+    BlkVersionMismatch = 3002, "BLK_VERSION_MISMATCH", Reject;
+    BlkLimitExceeded = 3003, "BLK_LIMIT_EXCEEDED", Reject;
+    BlkRootMismatch = 3004, "BLK_ROOT_MISMATCH", Reject;
+    BlkParentMismatch = 3005, "BLK_PARENT_MISMATCH", Reject;
+    BlkTimeMismatch = 3006, "BLK_TIME_MISMATCH", Reject;
+    BlkInvalidTransaction = 3007, "BLK_INVALID_TRANSACTION", Reject;
     SigInvalid = 4001, "SIG_INVALID", Reject;
     SigMalformed = 4002, "SIG_MALFORMED", Reject;
     KeyMalformed = 4003, "KEY_MALFORMED", Reject;
@@ -97,9 +111,11 @@ error_codes! {
     StoMigrationFailed = 7030, "STO_MIGRATION_FAILED", FailStop;
     ArithmeticOverflow = 9001, "ARITHMETIC_OVERFLOW", Reject;
     InsufficientBalance = 9002, "INSUFFICIENT_BALANCE", Reject;
+    ArithmeticDivisionByZero = 9003, "ARITHMETIC_DIVISION_BY_ZERO", Reject;
     FinalizeOutOfOrder = 11001, "FINALIZE_OUT_OF_ORDER", FailStop;
     FinalizeParentMismatch = 11002, "FINALIZE_PARENT_MISMATCH", FailStop;
     ProtocolVersionUnsupported = 12001, "PROTOCOL_VERSION_UNSUPPORTED", Reject;
+    ProtocolUpgradeRequired = 12002, "PROTOCOL_UPGRADE_REQUIRED", FailStop;
 }
 
 #[cfg(test)]
