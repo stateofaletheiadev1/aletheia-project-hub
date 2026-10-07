@@ -11,9 +11,13 @@
 //! same bytes, `genesis_id` and state root on any machine.
 //!
 //! Implemented now: chain identity and timing, fee prices, the AEY and ALnT asset records,
-//! protocol schedule entry 1 and ALnT/AEY allocations. Validators (Phase 5), the monetary
+//! protocol schedule entry 1, ALnT/AEY allocations and the epoch-0 validator set. The monetary
 //! authority and AEY capacity (Phase 7) and governance (Phase 10) join the genesis format in
 //! their phases, before any production genesis is built.
+//!
+//! Genesis validators prove possession of their BLS keys before the genesis id exists. That
+//! is sound because domain-separated hashes bind chain id and network kind, never the genesis
+//! id (Section 10), so a proof made for the pre-genesis identity verifies on the network.
 
 use aletheia_core::block::{BlockHeader, QuorumCertificate};
 use aletheia_core::{
@@ -27,8 +31,8 @@ use aletheia_state::{StateKey, StateOverlay, StateValue, StateView};
 use serde::Deserialize;
 
 use crate::model::{
-    AssetConfig, Balance, ChainTiming, FeePrice, FeeSchedule, ParamId, ProtocolScheduleEntry,
-    Records,
+    AssetConfig, Balance, ChainTiming, FeePrice, FeeSchedule, MAX_VALIDATOR_RECORDS, ParamId,
+    ProtocolScheduleEntry, Records, ValidatorRecord, validator_records_hash,
 };
 
 const MAX_ALLOCATIONS: u32 = 100_000;
@@ -40,6 +44,21 @@ pub struct GenesisConfig {
     pub fees: FeesSection,
     #[serde(default)]
     pub allocations: Vec<AllocationEntry>,
+    /// The epoch-0 validator set, in validator-index order. Empty only for a devnet or regtest
+    /// chain run by the single-node producer.
+    #[serde(default)]
+    pub validators: Vec<ValidatorEntry>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ValidatorEntry {
+    /// BLS12-381 min-pk public key, 48 bytes base16.
+    pub consensus_key: String,
+    /// Proof of possession over the pre-genesis identity, 96 bytes base16.
+    pub proof_of_possession: String,
+    /// Ed25519 node identity, 32 bytes base16.
+    pub node_key: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -87,6 +106,8 @@ pub struct GenesisState {
     pub fees: FeeSchedule,
     /// Strictly ascending by (address, asset).
     pub allocations: Vec<Allocation>,
+    /// Validator-index order.
+    pub validators: Vec<ValidatorRecord>,
 }
 
 fn config_error(detail: String) -> AletheiaError {
@@ -188,8 +209,33 @@ impl GenesisConfig {
                 )));
             }
         }
+        let chain_id = ChainId::new(self.chain.chain_id);
+        let validators = self
+            .validators
+            .iter()
+            .map(|entry| {
+                let field = |text: &str, what: &str| {
+                    config_error(format!("validator {what} \"{text}\" is not valid base16"))
+                };
+                Ok(ValidatorRecord {
+                    consensus_key: aletheia_core::base16::decode_fixed(&entry.consensus_key)
+                        .map_err(|_| field(&entry.consensus_key, "consensus_key"))?,
+                    proof_of_possession: aletheia_core::base16::decode_fixed(
+                        &entry.proof_of_possession,
+                    )
+                    .map_err(|_| field(&entry.proof_of_possession, "proof_of_possession"))?,
+                    node_key: aletheia_core::base16::decode_fixed(&entry.node_key)
+                        .map_err(|_| field(&entry.node_key, "node_key"))?,
+                    voting_power: 1,
+                })
+            })
+            .collect::<Result<Vec<_>, AletheiaError>>()?;
+        check_validators(
+            &NetworkIdentity::new(chain_id, network_kind, Hash32::ZERO),
+            &validators,
+        )?;
         Ok(GenesisState {
-            chain_id: ChainId::new(self.chain.chain_id),
+            chain_id,
             network_kind,
             protocol_version: ProtocolVersion::new(self.chain.protocol_version),
             timing: ChainTiming {
@@ -198,8 +244,38 @@ impl GenesisConfig {
             },
             fees,
             allocations,
+            validators,
         })
     }
+}
+
+/// Genesis validators: within the size bound, distinct consensus and node keys, and every
+/// proof of possession valid for the pre-genesis identity.
+pub fn check_validators(
+    pre_genesis: &NetworkIdentity,
+    validators: &[ValidatorRecord],
+) -> Result<(), AletheiaError> {
+    if validators.len() > usize::try_from(MAX_VALIDATOR_RECORDS).unwrap_or(usize::MAX) {
+        return Err(config_error(format!(
+            "{} validators exceed the maximum of {MAX_VALIDATOR_RECORDS}",
+            validators.len()
+        )));
+    }
+    let mut consensus_keys = std::collections::BTreeSet::new();
+    let mut node_keys = std::collections::BTreeSet::new();
+    for (index, validator) in validators.iter().enumerate() {
+        if !consensus_keys.insert(validator.consensus_key) || !node_keys.insert(validator.node_key)
+        {
+            return Err(config_error(format!(
+                "validator {index} repeats a consensus or node key"
+            )));
+        }
+        let proof = aletheia_crypto::bls::BlsSignature::from_bytes(&validator.proof_of_possession)?;
+        aletheia_crypto::bls::BlsPublicKey::from_bytes(&validator.consensus_key)?
+            .prove_possession(pre_genesis, &proof)
+            .map_err(|e| config_error(format!("validator {index}: {}", e.detail())))?;
+    }
+    Ok(())
 }
 
 impl AceEncode for Allocation {
@@ -228,6 +304,7 @@ impl AceEncode for GenesisState {
         self.timing.encode(out);
         self.fees.encode(out);
         out.list(&self.allocations);
+        out.list(&self.validators);
     }
 }
 
@@ -240,6 +317,7 @@ impl AceDecode for GenesisState {
             timing: ChainTiming::decode(input)?,
             fees: FeeSchedule::decode(input)?,
             allocations: input.sorted_list(MAX_ALLOCATIONS)?,
+            validators: input.list(MAX_VALIDATOR_RECORDS)?,
         })
     }
 }
@@ -253,11 +331,27 @@ impl StateView for Empty {
 }
 
 impl GenesisState {
+    /// The identity before the genesis id exists. Its domain hashes equal the network's,
+    /// which is how genesis validators sign proofs of possession for a chain not yet defined.
+    pub fn pre_genesis_identity(&self) -> NetworkIdentity {
+        NetworkIdentity::new(self.chain_id, self.network_kind, Hash32::ZERO)
+    }
+
     /// The identity of the network this genesis defines.
     pub fn network(&self) -> NetworkIdentity {
-        let unidentified = NetworkIdentity::new(self.chain_id, self.network_kind, Hash32::ZERO);
-        let genesis_id = unidentified.domain_hash(DomainTag::Genesis, &self.to_ace_bytes());
+        let genesis_id = self
+            .pre_genesis_identity()
+            .domain_hash(DomainTag::Genesis, &self.to_ace_bytes());
         NetworkIdentity::new(self.chain_id, self.network_kind, genesis_id)
+    }
+
+    /// `validator_set_hash` of the epoch-0 set; zero when genesis has no validators.
+    pub fn validator_set_hash(&self) -> Hash32 {
+        if self.validators.is_empty() {
+            Hash32::ZERO
+        } else {
+            validator_records_hash(&self.network(), Epoch::new(0), &self.validators)
+        }
     }
 
     /// Initial state (version 0) as sorted changes for the JMT.
@@ -302,6 +396,9 @@ impl GenesisState {
             records.schedule_key(self.protocol_version.get()),
             schedule.to_ace_bytes(),
         );
+        if !self.validators.is_empty() {
+            records.put_validator_set(&mut overlay, 0, &self.validators);
+        }
         for allocation in &self.allocations {
             records.put_balance(
                 &mut overlay,
@@ -335,8 +432,8 @@ impl GenesisState {
             receipt_root: empty_root,
             state_root,
             event_root: empty_root,
-            validator_set_hash: Hash32::ZERO,
-            next_validator_set_hash: Hash32::ZERO,
+            validator_set_hash: self.validator_set_hash(),
+            next_validator_set_hash: self.validator_set_hash(),
             monetary_root: Hash32::ZERO,
             eu_used: 0,
             tx_count: 0,

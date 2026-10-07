@@ -16,6 +16,12 @@
 //! FINALIZE_COMMITTED; if only the archive append landed, re-execute the archived block and
 //! commit it; if neither, the block was never finalized here and consensus will deliver it
 //! again. A node never continues from state it has not verified.
+//!
+//! Speculative execution (Section 19.3): under DSP a block is executed, voted on and built
+//! upon before it is final. Its results are kept in memory, keyed by block hash, with the JMT
+//! nodes it would write held in a batch. A child executes through a [`LayeredStore`] of the
+//! base store and its uncommitted ancestors' batches. Finalizing re-applies the block to the
+//! real store through the path above, so nothing speculative ever reaches disk unverified.
 
 use std::path::Path;
 
@@ -25,6 +31,7 @@ use aletheia_core::{
     NetworkIdentity,
 };
 use aletheia_execution::continuity::rules_for_height;
+use aletheia_execution::model::validator_records_hash;
 use aletheia_execution::{
     BlockContext, ExecutedBlock, GenesisState, Records, StatelessValidator, VerifiedTransaction,
     check_header_results, execute_block,
@@ -33,7 +40,7 @@ use aletheia_state::{JellyfishMerkleTree, StateKey, StateValue, StateView};
 use aletheia_storage::archive::{ArchiveConfig, BlockArchive, index_entries};
 use aletheia_storage::datadir::{DataDir, DataDirManifest, LastFinalized, StartupAction, decide};
 use aletheia_storage::wal::{RecordType, Wal, WalConfig};
-use aletheia_storage::{ColumnFamily, KvStore, WriteBatch};
+use aletheia_storage::{ColumnFamily, KvStore, LayeredStore, WriteBatch};
 
 const META_LAST_FINALIZED: &[u8] = b"last_finalized";
 const RELEASE: &str = concat!("aletheiad ", env!("CARGO_PKG_VERSION"));
@@ -92,6 +99,34 @@ impl StateView for VersionView<'_> {
     }
 }
 
+/// A block executed on a parent that is not final yet.
+#[derive(Debug, Clone)]
+struct Speculative {
+    proposal: Proposal,
+    executed: ExecutedBlock,
+    /// The JMT nodes and values this block writes, read by its descendants.
+    nodes: WriteBatch,
+}
+
+/// Where a new block attaches: the parent's height, hash and the protocol-time slot it was
+/// built in.
+#[derive(Debug, Clone, Copy)]
+struct Parent {
+    height: Height,
+    hash: Hash32,
+}
+
+/// Header fields chosen by consensus for a block this node builds.
+#[derive(Debug, Clone)]
+pub struct BuildParams {
+    pub slot: aletheia_core::Slot,
+    pub epoch: aletheia_core::Epoch,
+    pub proposer: aletheia_core::ValidatorIndex,
+    /// Certifies the parent; the parent is `parent_qc.block_hash`.
+    pub parent_qc: aletheia_core::block::QuorumCertificate,
+    pub timeout_cert: Option<aletheia_core::block::TimeoutCertificate>,
+}
+
 pub struct Ledger<S: KvStore> {
     datadir: DataDir,
     store: S,
@@ -99,6 +134,7 @@ pub struct Ledger<S: KvStore> {
     wal: Wal,
     network: NetworkIdentity,
     tip: LastFinalized,
+    speculative: std::collections::BTreeMap<Hash32, Speculative>,
     #[cfg(feature = "fault-injection")]
     crash_at: Option<CrashPoint>,
 }
@@ -163,6 +199,7 @@ impl<S: KvStore> Ledger<S> {
             wal,
             network,
             tip,
+            speculative: std::collections::BTreeMap::new(),
             #[cfg(feature = "fault-injection")]
             crash_at: None,
         })
@@ -244,6 +281,7 @@ impl<S: KvStore> Ledger<S> {
             wal,
             network,
             tip,
+            speculative: std::collections::BTreeMap::new(),
             #[cfg(feature = "fault-injection")]
             crash_at: None,
         };
@@ -388,23 +426,52 @@ impl<S: KvStore> Ledger<S> {
         Ok(())
     }
 
-    /// Validator path: stateless checks, re-execution on the tip, header comparison.
-    pub fn execute(&self, proposal: &Proposal) -> Result<ExecutedBlock, AletheiaError> {
+    /// The uncommitted ancestors of `parent` (inclusive), oldest first, ending at the tip.
+    /// `None` when `parent` is neither the tip nor a block speculatively executed on it.
+    fn lineage(&self, parent: &Hash32) -> Option<(Parent, Vec<&Speculative>)> {
+        let mut chain = Vec::new();
+        let mut cursor = *parent;
+        while cursor != self.tip.hash {
+            let block = self.speculative.get(&cursor)?;
+            chain.push(block);
+            cursor = block.proposal.block.header.parent_hash;
+        }
+        chain.reverse();
+        let attach = match chain.last() {
+            Some(last) => Parent {
+                height: last.proposal.block.header.height,
+                hash: *parent,
+            },
+            None => Parent {
+                height: self.tip.height,
+                hash: self.tip.hash,
+            },
+        };
+        Some((attach, chain))
+    }
+
+    /// Validator path: stateless checks, re-execution on the parent's state, header
+    /// comparison. Returns the result and the JMT writes it implies.
+    fn execute_on(
+        &self,
+        store: &dyn KvStore,
+        parent: Parent,
+        proposal: &Proposal,
+    ) -> Result<(ExecutedBlock, WriteBatch), AletheiaError> {
         let header = &proposal.block.header;
-        let expected_height = self.tip.height.next()?;
-        if header.height != expected_height || header.parent_hash != self.tip.hash {
+        if header.height != parent.height.next()? || header.parent_hash != parent.hash {
             return Err(fail_stop(
                 ErrorCode::BlkParentMismatch,
                 format!(
-                    "block at height {} does not extend finalized height {} ({})",
-                    header.height, self.tip.height, self.tip.hash
+                    "block at height {} does not extend height {} ({})",
+                    header.height, parent.height, parent.hash
                 ),
             ));
         }
         let records = Records::new(self.network);
         let view = VersionView {
-            tree: JellyfishMerkleTree::new(&self.store, self.network),
-            version: self.tip.height.get(),
+            tree: JellyfishMerkleTree::new(store, self.network),
+            version: parent.height.get(),
         };
         let (rules, entry) = rules_for_height(&records, &view, header.height)?;
         if header.version.get() != entry.protocol_version {
@@ -426,6 +493,16 @@ impl<S: KvStore> Ledger<S> {
                 ),
             ));
         }
+        let set_hash = self.validator_set_hash(&view, header.epoch)?;
+        if header.validator_set_hash != set_hash || header.next_validator_set_hash != set_hash {
+            return Err(fail_stop(
+                ErrorCode::BlkValidatorSetMismatch,
+                format!(
+                    "block at height {} commits to validator set {}, state has {set_hash}",
+                    header.height, header.validator_set_hash
+                ),
+            ));
+        }
         let validator = StatelessValidator::new(self.network, rules);
         let verified = proposal
             .block
@@ -444,15 +521,109 @@ impl<S: KvStore> Ledger<S> {
             protocol_version: header.version,
         };
         let executed = execute_block(rules, &records, &view, &ctx, &verified)?;
-        let mut scratch = WriteBatch::new();
-        let state_root = JellyfishMerkleTree::new(&self.store, self.network).apply(
-            Some(self.tip.height.get()),
+        let mut nodes = WriteBatch::new();
+        let state_root = JellyfishMerkleTree::new(store, self.network).apply(
+            Some(parent.height.get()),
             header.height.get(),
             &executed.changes,
-            &mut scratch,
+            &mut nodes,
         )?;
         check_header_results(&self.network, header, &executed, &state_root)?;
-        Ok(executed)
+        Ok((executed, nodes))
+    }
+
+    /// `validator_set_hash` for `epoch` as state records it; zero for a chain without
+    /// validators (the devnet producer).
+    fn validator_set_hash(
+        &self,
+        view: &dyn StateView,
+        epoch: aletheia_core::Epoch,
+    ) -> Result<Hash32, AletheiaError> {
+        Ok(Records::new(self.network)
+            .validator_set(view, epoch.get())?
+            .map_or(Hash32::ZERO, |members| {
+                validator_records_hash(&self.network, epoch, &members)
+            }))
+    }
+
+    /// Validator path on the finalized tip.
+    pub fn execute(&self, proposal: &Proposal) -> Result<ExecutedBlock, AletheiaError> {
+        let parent = Parent {
+            height: self.tip.height,
+            hash: self.tip.hash,
+        };
+        self.execute_on(&self.store, parent, proposal)
+            .map(|(executed, _)| executed)
+    }
+
+    /// Executes a block on its parent, which may itself be speculative, and keeps the result
+    /// for finalization and for descendants. An unknown parent is an ordinary error: consensus
+    /// only hands out blocks whose ancestors it holds, so this means they diverged.
+    pub fn execute_speculative(&mut self, proposal: &Proposal) -> Result<(), AletheiaError> {
+        let hash = proposal.block.header.block_hash(&self.network);
+        if self.speculative.contains_key(&hash) {
+            return Ok(());
+        }
+        let parent_hash = proposal.block.header.parent_hash;
+        let (parent, chain) = self.lineage(&parent_hash).ok_or_else(|| {
+            AletheiaError::new(
+                ErrorCode::BlkParentMismatch,
+                format!("block {hash} extends {parent_hash}, which this node has not executed"),
+            )
+        })?;
+        let layered = LayeredStore::new(&self.store, chain.iter().map(|b| &b.nodes).collect());
+        let (executed, nodes) = self.execute_on(&layered, parent, proposal)?;
+        self.speculative.insert(
+            hash,
+            Speculative {
+                proposal: proposal.clone(),
+                executed,
+                nodes,
+            },
+        );
+        Ok(())
+    }
+
+    /// Finalizes a block executed with [`Ledger::execute_speculative`]; it must extend the
+    /// tip. Speculative blocks that no longer descend from the new tip are dropped.
+    pub fn finalize_speculative(&mut self, hash: &Hash32) -> Result<(), AletheiaError> {
+        let block = self.speculative.remove(hash).ok_or_else(|| {
+            fail_stop(
+                ErrorCode::FinalizeParentMismatch,
+                format!("consensus finalized {hash}, which this node never executed"),
+            )
+        })?;
+        self.finalize(&block.proposal, &block.executed)?;
+        self.prune_speculative();
+        Ok(())
+    }
+
+    fn prune_speculative(&mut self) {
+        let tip = self.tip;
+        self.speculative
+            .retain(|_, block| block.proposal.block.header.height > tip.height);
+        loop {
+            let orphaned: Vec<Hash32> = self
+                .speculative
+                .iter()
+                .filter(|(_, block)| {
+                    let parent = block.proposal.block.header.parent_hash;
+                    parent != tip.hash && !self.speculative.contains_key(&parent)
+                })
+                .map(|(hash, _)| *hash)
+                .collect();
+            if orphaned.is_empty() {
+                break;
+            }
+            for hash in orphaned {
+                self.speculative.remove(&hash);
+            }
+        }
+    }
+
+    /// Blocks executed but not final.
+    pub fn speculative_len(&self) -> usize {
+        self.speculative.len()
     }
 
     /// Finalizes a block that [`Ledger::execute`] accepted.
@@ -606,55 +777,98 @@ impl<S: KvStore> Ledger<S> {
             .map_or(0, |account| account.next_nonce))
     }
 
-    /// Builds a block on the tip at `slot` from candidate transactions. The header carries the
-    /// genesis QC and a zero proposer signature: certificates and signing arrive with DSP
-    /// (Phase 5), which replaces this proposer path's caller, not the block construction.
+    /// Builds a block on the tip at `slot` from candidate transactions, for the single-node
+    /// devnet producer: genesis QC, proposer 0, zero signature.
     pub fn propose(
         &self,
         candidates: Vec<VerifiedTransaction>,
         slot: aletheia_core::Slot,
     ) -> Result<(Proposal, ExecutedBlock), AletheiaError> {
+        let params = BuildParams {
+            slot,
+            epoch: aletheia_core::Epoch::new(0),
+            proposer: aletheia_core::ValidatorIndex::new(0),
+            parent_qc: aletheia_core::block::QuorumCertificate::genesis(),
+            timeout_cert: None,
+        };
+        let parent = Parent {
+            height: self.tip.height,
+            hash: self.tip.hash,
+        };
+        self.build_on(&self.store, parent, candidates, params)
+    }
+
+    /// Builds an unsigned block for consensus on `params.parent_qc.block_hash`, which may be
+    /// speculative. Consensus signs it and hands it back for execution like any proposal.
+    pub fn build(
+        &self,
+        candidates: Vec<VerifiedTransaction>,
+        params: BuildParams,
+    ) -> Result<Proposal, AletheiaError> {
+        let parent_hash = params.parent_qc.block_hash;
+        let (parent, chain) = self.lineage(&parent_hash).ok_or_else(|| {
+            AletheiaError::new(
+                ErrorCode::BlkParentMismatch,
+                format!("cannot build on {parent_hash}: this node has not executed it"),
+            )
+        })?;
+        let layered = LayeredStore::new(&self.store, chain.iter().map(|b| &b.nodes).collect());
+        self.build_on(&layered, parent, candidates, params)
+            .map(|(proposal, _)| proposal)
+    }
+
+    fn build_on(
+        &self,
+        store: &dyn KvStore,
+        parent: Parent,
+        candidates: Vec<VerifiedTransaction>,
+        params: BuildParams,
+    ) -> Result<(Proposal, ExecutedBlock), AletheiaError> {
         let records = Records::new(self.network);
-        let view = self.tip_view();
-        let height = self.tip.height.next()?;
+        let view = VersionView {
+            tree: JellyfishMerkleTree::new(store, self.network),
+            version: parent.height.get(),
+        };
+        let height = parent.height.next()?;
         let (rules, entry) = rules_for_height(&records, &view, height)?;
         let timing = records.chain_timing(&view)?;
         let ctx = BlockContext {
             height,
-            slot,
-            epoch: aletheia_core::Epoch::new(0),
-            protocol_time_ms: timing.protocol_time_ms(slot)?,
-            proposer: aletheia_core::ValidatorIndex::new(0),
-            parent_hash: self.tip.hash,
+            slot: params.slot,
+            epoch: params.epoch,
+            protocol_time_ms: timing.protocol_time_ms(params.slot)?,
+            proposer: params.proposer,
+            parent_hash: parent.hash,
             protocol_version: aletheia_core::ProtocolVersion::new(entry.protocol_version),
         };
         let included =
             aletheia_execution::builder::select(rules, &records, &view, &ctx, candidates)?;
         let executed = execute_block(rules, &records, &view, &ctx, &included)?;
         let mut scratch = WriteBatch::new();
-        let state_root = JellyfishMerkleTree::new(&self.store, self.network).apply(
-            Some(self.tip.height.get()),
+        let state_root = JellyfishMerkleTree::new(store, self.network).apply(
+            Some(parent.height.get()),
             height.get(),
             &executed.changes,
             &mut scratch,
         )?;
+        let set_hash = self.validator_set_hash(&view, params.epoch)?;
         let header = aletheia_core::block::BlockHeader {
             version: ctx.protocol_version,
             chain_id: self.network.chain_id(),
             height,
             epoch: ctx.epoch,
-            slot,
+            slot: params.slot,
             protocol_time_ms: ctx.protocol_time_ms,
             proposer: ctx.proposer,
-            parent_hash: self.tip.hash,
-            parent_qc: aletheia_core::block::QuorumCertificate::genesis(),
-            timeout_cert: None,
+            parent_hash: parent.hash,
+            parent_qc: params.parent_qc,
+            timeout_cert: params.timeout_cert,
             tx_root: executed.tx_root,
             receipt_root: executed.receipt_root,
             state_root,
             event_root: executed.event_root,
-            validator_set_hash: Hash32::ZERO,
-            next_validator_set_hash: Hash32::ZERO,
+            validator_set_hash: set_hash,
+            next_validator_set_hash: set_hash,
             monetary_root: Hash32::ZERO,
             eu_used: executed.eu_used,
             tx_count: executed.tx_count,

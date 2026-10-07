@@ -88,6 +88,7 @@ error_codes! {
     BlkParentMismatch = 3005, "BLK_PARENT_MISMATCH", Reject;
     BlkTimeMismatch = 3006, "BLK_TIME_MISMATCH", Reject;
     BlkInvalidTransaction = 3007, "BLK_INVALID_TRANSACTION", Reject;
+    BlkValidatorSetMismatch = 3008, "BLK_VALIDATOR_SET_MISMATCH", Reject;
     SigInvalid = 4001, "SIG_INVALID", Reject;
     SigMalformed = 4002, "SIG_MALFORMED", Reject;
     KeyMalformed = 4003, "KEY_MALFORMED", Reject;

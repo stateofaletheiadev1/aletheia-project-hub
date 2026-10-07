@@ -149,6 +149,42 @@ impl Records {
         decode_record(&bytes, "chain timing")
     }
 
+    pub fn validator_set_key(&self, epoch: u64) -> StateKey {
+        StateKey::derive(&self.network, Namespace::ValidatorSets, &epoch)
+    }
+
+    /// The validator set of `epoch`, members in validator-index order.
+    pub fn validator_set(
+        &self,
+        view: &dyn StateView,
+        epoch: u64,
+    ) -> Result<Option<Vec<ValidatorRecord>>, AletheiaError> {
+        let Some(bytes) = view.get(&self.validator_set_key(epoch))? else {
+            return Ok(None);
+        };
+        let mut reader = AceReader::new(&bytes);
+        reader
+            .list(MAX_VALIDATOR_RECORDS)
+            .and_then(|members| reader.finish().map(|()| Some(members)))
+            .map_err(|e| {
+                AletheiaError::new(
+                    ErrorCode::StoCorrupt,
+                    format!("stored validator set does not decode: {}", e.detail()),
+                )
+            })
+    }
+
+    pub fn put_validator_set(
+        &self,
+        overlay: &mut StateOverlay<'_>,
+        epoch: u64,
+        members: &[ValidatorRecord],
+    ) {
+        let mut out = AceWriter::new();
+        out.list(members);
+        overlay.put(self.validator_set_key(epoch), out.into_bytes());
+    }
+
     pub fn schedule_entry(
         &self,
         view: &dyn StateView,
@@ -379,4 +415,53 @@ impl AceDecode for ProtocolScheduleEntry {
             recorded_at_height: input.u64()?,
         })
     }
+}
+
+/// Bound on a stored validator set; equals `aletheia_core::block::MAX_VALIDATORS`.
+pub const MAX_VALIDATOR_RECORDS: u32 = 1024;
+
+/// One member of an epoch's validator set (namespace 17, key `epoch`; the record is the ACE
+/// list of members in validator-index order). The proof of possession is stored so every node
+/// re-verifies the key before aggregating it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ValidatorRecord {
+    pub consensus_key: [u8; aletheia_core::block::BLS_PUBLIC_KEY_LEN],
+    pub proof_of_possession: [u8; aletheia_core::block::BLS_SIGNATURE_LEN],
+    pub node_key: [u8; 32],
+    pub voting_power: u64,
+}
+
+impl AceEncode for ValidatorRecord {
+    fn encode(&self, out: &mut AceWriter) {
+        out.fixed(&self.consensus_key);
+        out.fixed(&self.proof_of_possession);
+        out.fixed(&self.node_key);
+        out.u64(self.voting_power);
+    }
+}
+
+impl AceDecode for ValidatorRecord {
+    fn decode(input: &mut AceReader<'_>) -> Result<ValidatorRecord, AletheiaError> {
+        Ok(ValidatorRecord {
+            consensus_key: input.array()?,
+            proof_of_possession: input.array()?,
+            node_key: input.array()?,
+            voting_power: input.u64()?,
+        })
+    }
+}
+
+/// `validator_set_hash` of a stored set (ERRATA E-20).
+pub fn validator_records_hash(
+    network: &NetworkIdentity,
+    epoch: aletheia_core::Epoch,
+    members: &[ValidatorRecord],
+) -> Hash32 {
+    aletheia_core::block::validator_set_hash(
+        network,
+        epoch,
+        members
+            .iter()
+            .map(|m| (&m.consensus_key, &m.node_key, m.voting_power)),
+    )
 }

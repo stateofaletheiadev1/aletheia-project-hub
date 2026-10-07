@@ -300,6 +300,13 @@ class = "reject"
 message = "A transaction in the block fails stateful validation; the whole block is invalid."
 
 [[code]]
+code = 3008
+name = "BLK_VALIDATOR_SET_MISMATCH"
+variant = "BlkValidatorSetMismatch"
+class = "reject"
+message = "validator_set_hash or next_validator_set_hash differs from the set state records for the epoch."
+
+[[code]]
 code = 4001
 name = "SIG_INVALID"
 variant = "SigInvalid"

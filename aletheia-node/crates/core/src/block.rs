@@ -467,6 +467,27 @@ impl AceDecode for Proposal {
     }
 }
 
+pub const BLS_PUBLIC_KEY_LEN: usize = 48;
+
+/// `validator_set_hash` (ERRATA E-20): `H_domain("ALETHEIA/VALSET/v1", ace(epoch, list<{
+/// consensus_pubkey [48], node_key [32], voting_power u64 }>))`, members in validator-index
+/// order. The one implementation: genesis, block validation and consensus all call it.
+pub fn validator_set_hash<'a>(
+    network: &NetworkIdentity,
+    epoch: Epoch,
+    members: impl ExactSizeIterator<Item = (&'a [u8; BLS_PUBLIC_KEY_LEN], &'a [u8; 32], u64)>,
+) -> Hash32 {
+    let mut out = AceWriter::new();
+    epoch.encode(&mut out);
+    out.u32(u32::try_from(members.len()).unwrap_or(u32::MAX));
+    for (consensus_key, node_key, voting_power) in members {
+        out.fixed(consensus_key);
+        out.fixed(node_key);
+        out.u64(voting_power);
+    }
+    network.domain_hash(DomainTag::ValidatorSet, out.as_bytes())
+}
+
 #[cfg(test)]
 pub(crate) mod tests {
     use super::*;

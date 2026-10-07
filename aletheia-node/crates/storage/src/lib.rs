@@ -17,6 +17,7 @@ pub mod archive;
 pub mod datadir;
 pub mod fsutil;
 pub mod kv;
+pub mod layered;
 pub mod memory;
 pub mod migrate;
 #[cfg(feature = "rocksdb")]
@@ -24,4 +25,5 @@ pub mod rocks;
 pub mod wal;
 
 pub use kv::{ColumnFamily, KvPairs, KvSnapshot, KvStore, WriteBatch, WriteOp};
+pub use layered::LayeredStore;
 pub use memory::MemoryKvStore;

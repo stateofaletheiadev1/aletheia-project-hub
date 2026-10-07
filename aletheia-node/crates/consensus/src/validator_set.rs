@@ -5,11 +5,8 @@
 //! validators, so at least one honest one, which is what makes two conflicting certificates
 //! for the same round impossible without more than `F` faults.
 
-use aletheia_core::block::MAX_VALIDATORS;
-use aletheia_core::{
-    AceEncode, AceWriter, AletheiaError, DomainTag, Epoch, ErrorCode, Hash32, NetworkIdentity,
-    ValidatorIndex,
-};
+use aletheia_core::block::{MAX_VALIDATORS, validator_set_hash};
+use aletheia_core::{AletheiaError, Epoch, ErrorCode, Hash32, NetworkIdentity, ValidatorIndex};
 use aletheia_crypto::ProvenBlsPublicKey;
 
 /// One member, at the position given by its validator index.
@@ -85,14 +82,17 @@ impl ValidatorSet {
 
     /// `validator_set_hash` (ERRATA E-20).
     pub fn hash(&self, network: &NetworkIdentity) -> Hash32 {
-        let mut out = AceWriter::new();
-        self.epoch.encode(&mut out);
-        out.u32(u32::try_from(self.members.len()).unwrap_or(u32::MAX));
-        for member in &self.members {
-            out.fixed(&member.consensus_key.to_bytes());
-            out.fixed(&member.node_key);
-            out.u64(member.voting_power);
-        }
-        network.domain_hash(DomainTag::ValidatorSet, out.as_bytes())
+        let keys: Vec<[u8; 48]> = self
+            .members
+            .iter()
+            .map(|member| member.consensus_key.to_bytes())
+            .collect();
+        validator_set_hash(
+            network,
+            self.epoch,
+            keys.iter()
+                .zip(&self.members)
+                .map(|(key, member)| (key, &member.node_key, member.voting_power)),
+        )
     }
 }
