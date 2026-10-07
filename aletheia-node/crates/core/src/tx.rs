@@ -45,6 +45,12 @@ pub struct TxType(u16);
 impl TxType {
     pub const TRANSFER: TxType = TxType(1);
     pub const BATCH_TRANSFER: TxType = TxType(2);
+    pub const MINT: TxType = TxType(16);
+    pub const BURN: TxType = TxType(17);
+    pub const LOCK: TxType = TxType(18);
+    pub const UNLOCK: TxType = TxType(19);
+    pub const REDEEM: TxType = TxType(20);
+    pub const RESERVE_ATTESTATION: TxType = TxType(96);
     /// Test-only (feature `test-protocol-v2`): the type protocol version 2 adds in the
     /// continuity tests. Far from every real tag so it can never collide with one.
     #[cfg(feature = "test-protocol-v2")]
@@ -102,6 +108,12 @@ pub enum Payload {
     Transfer(TransferLeg),
     /// 1 to 256 legs, applied in order, all or nothing.
     BatchTransfer(Vec<TransferLeg>),
+    Mint(Box<crate::monetary::MintAuthorization>),
+    Burn(crate::monetary::AssetAmount),
+    Lock(crate::monetary::AssetAmount),
+    Unlock(crate::monetary::AssetAmount),
+    Redeem(Box<crate::monetary::Redemption>),
+    ReserveAttestation(Box<crate::monetary::ReserveAttestation>),
     /// Test-only opaque note, at most 256 bytes (feature `test-protocol-v2`).
     #[cfg(feature = "test-protocol-v2")]
     TestRemark(Vec<u8>),
@@ -112,6 +124,12 @@ impl Payload {
         match self {
             Payload::Transfer(_) => TxType::TRANSFER,
             Payload::BatchTransfer(_) => TxType::BATCH_TRANSFER,
+            Payload::Mint(_) => TxType::MINT,
+            Payload::Burn(_) => TxType::BURN,
+            Payload::Lock(_) => TxType::LOCK,
+            Payload::Unlock(_) => TxType::UNLOCK,
+            Payload::Redeem(_) => TxType::REDEEM,
+            Payload::ReserveAttestation(_) => TxType::RESERVE_ATTESTATION,
             #[cfg(feature = "test-protocol-v2")]
             Payload::TestRemark(_) => TxType::TEST_REMARK,
         }
@@ -122,6 +140,12 @@ impl Payload {
         match self {
             Payload::Transfer(leg) => leg.encode(out),
             Payload::BatchTransfer(legs) => out.list(legs),
+            Payload::Mint(authorization) => authorization.encode(out),
+            Payload::Burn(amount) | Payload::Lock(amount) | Payload::Unlock(amount) => {
+                amount.encode(out)
+            }
+            Payload::Redeem(redemption) => redemption.encode(out),
+            Payload::ReserveAttestation(attestation) => attestation.encode(out),
             #[cfg(feature = "test-protocol-v2")]
             Payload::TestRemark(note) => out.bytes(note),
         }
@@ -135,6 +159,15 @@ impl Payload {
         match tx_type {
             TxType::TRANSFER => TransferLeg::decode(input).map(Payload::Transfer),
             TxType::BATCH_TRANSFER => input.list(MAX_BATCH_LEGS).map(Payload::BatchTransfer),
+            TxType::MINT => crate::monetary::MintAuthorization::decode(input)
+                .map(|authorization| Payload::Mint(Box::new(authorization))),
+            TxType::BURN => crate::monetary::AssetAmount::decode(input).map(Payload::Burn),
+            TxType::LOCK => crate::monetary::AssetAmount::decode(input).map(Payload::Lock),
+            TxType::UNLOCK => crate::monetary::AssetAmount::decode(input).map(Payload::Unlock),
+            TxType::REDEEM => crate::monetary::Redemption::decode(input)
+                .map(|redemption| Payload::Redeem(Box::new(redemption))),
+            TxType::RESERVE_ATTESTATION => crate::monetary::ReserveAttestation::decode(input)
+                .map(|attestation| Payload::ReserveAttestation(Box::new(attestation))),
             #[cfg(feature = "test-protocol-v2")]
             TxType::TEST_REMARK => input
                 .bytes(MAX_MEMO_BYTES)

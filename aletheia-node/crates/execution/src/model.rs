@@ -149,6 +149,53 @@ impl Records {
         decode_record(&bytes, "chain timing")
     }
 
+    /// The registered monetary keys and policy; `None` on a chain without a monetary
+    /// authority, where nothing can be minted or redeemed.
+    pub fn monetary_policy(
+        &self,
+        view: &dyn StateView,
+    ) -> Result<Option<MonetaryPolicy>, AletheiaError> {
+        view.get(&self.param_key(ParamId::MonetaryPolicy))?
+            .map(|bytes| decode_record(&bytes, "monetary policy"))
+            .transpose()
+    }
+
+    pub fn mint_authorization_key(&self, id: &Hash32) -> StateKey {
+        StateKey::derive(&self.network, Namespace::MintAuthorizations, id)
+    }
+
+    /// The height at which a mint authorization was consumed.
+    pub fn mint_consumed_at(
+        &self,
+        view: &dyn StateView,
+        id: &Hash32,
+    ) -> Result<Option<u64>, AletheiaError> {
+        view.get(&self.mint_authorization_key(id))?
+            .map(|bytes| decode_record::<u64>(&bytes, "mint authorization record"))
+            .transpose()
+    }
+
+    pub fn attestation_key(&self, feed_id: u32) -> StateKey {
+        StateKey::derive(&self.network, Namespace::Oracles, &feed_id)
+    }
+
+    pub fn attestation_history_key(&self, feed_id: u32, sequence: u64) -> StateKey {
+        let mut key = feed_id.to_ace_bytes();
+        key.extend_from_slice(&sequence.to_ace_bytes());
+        StateKey::derive_raw(&self.network, Namespace::Oracles, &key)
+    }
+
+    /// The latest accepted reserve attestation of a feed.
+    pub fn latest_attestation(
+        &self,
+        view: &dyn StateView,
+        feed_id: u32,
+    ) -> Result<Option<StoredAttestation>, AletheiaError> {
+        view.get(&self.attestation_key(feed_id))?
+            .map(|bytes| decode_record(&bytes, "reserve attestation"))
+            .transpose()
+    }
+
     pub fn supply_key(&self, asset: AssetId) -> StateKey {
         StateKey::derive(&self.network, Namespace::MonetaryLedger, &asset)
     }
@@ -302,6 +349,7 @@ impl AceDecode for AssetConfig {
 pub enum ParamId {
     FeeSchedule,
     ChainTiming,
+    MonetaryPolicy,
 }
 
 impl ParamId {
@@ -309,6 +357,7 @@ impl ParamId {
         match self {
             ParamId::FeeSchedule => 1,
             ParamId::ChainTiming => 2,
+            ParamId::MonetaryPolicy => 3,
         }
     }
 }
@@ -487,4 +536,118 @@ pub fn validator_records_hash(
             .iter()
             .map(|m| (&m.consensus_key, &m.node_key, m.voting_power)),
     )
+}
+
+/// Most keys in one monetary registry (authority, redemption agents, attestors).
+pub const MAX_MONETARY_KEYS: u32 = 16;
+
+/// The monetary authority, redemption agents, attestors and reserve policy (Sections 18.5,
+/// 18.8; namespace 65 parameter 3). Keys are Ed25519 public keys, named by their position.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct MonetaryPolicy {
+    pub authority_keys: Vec<[u8; 32]>,
+    /// M of the N authority keys must sign a mint authorization.
+    pub authority_threshold: u8,
+    pub redemption_agents: Vec<[u8; 32]>,
+    pub attestors: Vec<[u8; 32]>,
+    pub attestor_threshold: u8,
+    /// Required instead when an attestation moves more than `max_deviation_bps` from the last.
+    pub attestor_threshold_large_deviation: u8,
+    pub max_deviation_bps: u32,
+    /// An attestation older than this many slots is stale.
+    pub max_attestation_age_slots: u64,
+    /// The feed whose attested value backs AEY.
+    pub reserve_feed_id: u32,
+    /// I9: when on, new issuance needs a fresh attestation covering the new outstanding
+    /// supply at `min_reserve_ratio_bps`.
+    pub enforce_reserve_ratio: bool,
+    pub min_reserve_ratio_bps: u32,
+}
+
+fn encode_keys(keys: &[[u8; 32]], out: &mut AceWriter) {
+    out.u32(u32::try_from(keys.len()).unwrap_or(u32::MAX));
+    for key in keys {
+        out.fixed(key);
+    }
+}
+
+fn decode_keys(input: &mut AceReader<'_>) -> Result<Vec<[u8; 32]>, AletheiaError> {
+    let len = input.u32()?;
+    if len > MAX_MONETARY_KEYS {
+        return Err(AletheiaError::new(
+            ErrorCode::DecodeLengthExceeded,
+            format!("{len} monetary keys exceed {MAX_MONETARY_KEYS}"),
+        ));
+    }
+    (0..len).map(|_| input.array()).collect()
+}
+
+impl AceEncode for MonetaryPolicy {
+    fn encode(&self, out: &mut AceWriter) {
+        encode_keys(&self.authority_keys, out);
+        out.u8(self.authority_threshold);
+        encode_keys(&self.redemption_agents, out);
+        encode_keys(&self.attestors, out);
+        out.u8(self.attestor_threshold);
+        out.u8(self.attestor_threshold_large_deviation);
+        out.u32(self.max_deviation_bps);
+        out.u64(self.max_attestation_age_slots);
+        out.u32(self.reserve_feed_id);
+        out.bool(self.enforce_reserve_ratio);
+        out.u32(self.min_reserve_ratio_bps);
+    }
+}
+
+impl AceDecode for MonetaryPolicy {
+    fn decode(input: &mut AceReader<'_>) -> Result<MonetaryPolicy, AletheiaError> {
+        Ok(MonetaryPolicy {
+            authority_keys: decode_keys(input)?,
+            authority_threshold: input.u8()?,
+            redemption_agents: decode_keys(input)?,
+            attestors: decode_keys(input)?,
+            attestor_threshold: input.u8()?,
+            attestor_threshold_large_deviation: input.u8()?,
+            max_deviation_bps: input.u32()?,
+            max_attestation_age_slots: input.u64()?,
+            reserve_feed_id: input.u32()?,
+            enforce_reserve_ratio: input.bool()?,
+            min_reserve_ratio_bps: input.u32()?,
+        })
+    }
+}
+
+/// An accepted reserve attestation (namespace 80). The latest is kept under the feed id;
+/// every accepted one is also kept in the history under `(feed_id, sequence)`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct StoredAttestation {
+    pub sequence: u64,
+    pub epoch: u64,
+    pub value: u128,
+    pub observed_slot: u64,
+    pub evidence_ref: Hash32,
+    pub accepted_at_height: u64,
+}
+
+impl AceEncode for StoredAttestation {
+    fn encode(&self, out: &mut AceWriter) {
+        out.u64(self.sequence);
+        out.u64(self.epoch);
+        out.u128(self.value);
+        out.u64(self.observed_slot);
+        self.evidence_ref.encode(out);
+        out.u64(self.accepted_at_height);
+    }
+}
+
+impl AceDecode for StoredAttestation {
+    fn decode(input: &mut AceReader<'_>) -> Result<StoredAttestation, AletheiaError> {
+        Ok(StoredAttestation {
+            sequence: input.u64()?,
+            epoch: input.u64()?,
+            value: input.u128()?,
+            observed_slot: input.u64()?,
+            evidence_ref: Hash32::decode(input)?,
+            accepted_at_height: input.u64()?,
+        })
+    }
 }

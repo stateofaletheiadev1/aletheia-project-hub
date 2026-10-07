@@ -65,6 +65,8 @@ pub struct Devnet {
     /// State writes merged into the next block's commit: a stand-in for governance
     /// transactions (UpgradePlan, Phase 10) so upgrades can be tested now.
     pub injected: Vec<(StateKey, Option<StateValue>)>,
+    /// The epoch of the blocks produced next (epoch transitions are not modelled yet).
+    pub epoch: Epoch,
 }
 
 pub fn seed(index: usize) -> [u8; 32] {
@@ -83,6 +85,12 @@ pub fn keys(count: usize) -> Vec<Ed25519SigningKey> {
 impl Devnet {
     /// `accounts` funded accounts, each with `aey` and `alnt` base units.
     pub fn new(accounts: usize, aey: u128, alnt: u128) -> Devnet {
+        Devnet::with_genesis_extra(accounts, aey, alnt, "")
+    }
+
+    /// As [`Devnet::new`], with `extra` appended to the genesis TOML (for example a
+    /// `[monetary]` section).
+    pub fn with_genesis_extra(accounts: usize, aey: u128, alnt: u128, extra: &str) -> Devnet {
         let keys = keys(accounts);
         // Addresses depend only on chain id and network kind, not on genesis_id.
         let provisional = NetworkIdentity::new(
@@ -103,6 +111,7 @@ impl Devnet {
                 }
             }
         }
+        toml.push_str(extra);
         Devnet::from_genesis(
             GenesisConfig::from_toml(&toml).unwrap().to_state().unwrap(),
             keys,
@@ -127,6 +136,7 @@ impl Devnet {
             keys,
             blocks: Vec::new(),
             injected: Vec::new(),
+            epoch: Epoch::new(0),
         }
     }
 
@@ -289,7 +299,7 @@ impl Devnet {
         let ctx = BlockContext {
             height,
             slot,
-            epoch: Epoch::new(0),
+            epoch: self.epoch,
             protocol_time_ms: timing.protocol_time_ms(slot)?,
             proposer: ValidatorIndex::new(0),
             parent_hash,

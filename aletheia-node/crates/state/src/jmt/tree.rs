@@ -78,7 +78,10 @@ impl VersionWriter<'_> {
     }
 }
 
-fn value_key(key: &StateKey, version: u64) -> Vec<u8> {
+/// Where the value of `key` written at `version` is stored in `StateValues`: the key then the
+/// inverted version, so a range read from `(key, version)` finds the newest value at or
+/// below it. Public for storage tools and fault-injection tests.
+pub fn value_key(key: &StateKey, version: u64) -> Vec<u8> {
     let mut bytes = key.as_bytes().to_vec();
     bytes.extend_from_slice(&u64::MAX.saturating_sub(version).to_be_bytes());
     bytes

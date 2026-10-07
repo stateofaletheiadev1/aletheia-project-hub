@@ -552,6 +552,76 @@ class = "fail-stop"
 message = "Finalized state breaks a supply invariant; the node halts and never repairs balances itself."
 
 [[code]]
+code = 9020
+name = "MONETARY_AUTHORIZATION_INVALID"
+variant = "MonetaryAuthorizationInvalid"
+class = "reject"
+message = "A mint authorization, redemption co-signature or attestation lacks the required valid signatures from registered keys."
+
+[[code]]
+code = 9021
+name = "MINT_AUTHORIZATION_CONSUMED"
+variant = "MintAuthorizationConsumed"
+class = "reject"
+message = "The mint authorization id was already used; each authorization mints exactly once."
+
+[[code]]
+code = 9022
+name = "MINT_AUTHORIZATION_EXPIRED"
+variant = "MintAuthorizationExpired"
+class = "reject"
+message = "The current epoch is after the authorization valid_until_epoch."
+
+[[code]]
+code = 9023
+name = "MONETARY_CAPACITY_EXCEEDED"
+variant = "MonetaryCapacityExceeded"
+class = "reject"
+message = "Minting would take outstanding supply above authorized_capacity (I3)."
+
+[[code]]
+code = 9024
+name = "EPOCH_ISSUANCE_CAP_EXCEEDED"
+variant = "EpochIssuanceCapExceeded"
+class = "reject"
+message = "Minting would take this epoch issuance above epoch_issuance_cap (I4)."
+
+[[code]]
+code = 9025
+name = "RESERVE_ATTESTATION_STALE"
+variant = "ReserveAttestationStale"
+class = "reject"
+message = "Reserve ratio enforcement is on and there is no fresh reserve attestation; new minting is blocked."
+
+[[code]]
+code = 9026
+name = "RESERVE_RATIO_INSUFFICIENT"
+variant = "ReserveRatioInsufficient"
+class = "reject"
+message = "Minting would take outstanding supply above what the attested reserve covers at the minimum ratio (I9)."
+
+[[code]]
+code = 9027
+name = "ASSET_NOT_ISSUABLE"
+variant = "AssetNotIssuable"
+class = "reject"
+message = "The asset has no issuance or redemption path (ALnT in v0.1), or no monetary authority is registered."
+
+[[code]]
+code = 9028
+name = "INSUFFICIENT_LOCKED"
+variant = "InsufficientLocked"
+class = "reject"
+message = "The locked balance is smaller than the amount to unlock."
+
+[[code]]
+code = 9029
+name = "ATTESTATION_REJECTED"
+variant = "AttestationRejected"
+class = "reject"
+message = "A reserve attestation is stale, from the future, not newer than the last one, or deviates beyond the limit without the higher threshold."
+
+[[code]]
 code = 11001
 name = "FINALIZE_OUT_OF_ORDER"
 variant = "FinalizeOutOfOrder"

@@ -124,6 +124,16 @@ error_codes! {
     ArithmeticDivisionByZero = 9003, "ARITHMETIC_DIVISION_BY_ZERO", Reject;
     MonetaryInvariantViolated = 9010, "MONETARY_INVARIANT_VIOLATED", Reject;
     MonetaryInvariantViolatedFinalized = 9011, "MONETARY_INVARIANT_VIOLATED_FINALIZED", FailStop;
+    MonetaryAuthorizationInvalid = 9020, "MONETARY_AUTHORIZATION_INVALID", Reject;
+    MintAuthorizationConsumed = 9021, "MINT_AUTHORIZATION_CONSUMED", Reject;
+    MintAuthorizationExpired = 9022, "MINT_AUTHORIZATION_EXPIRED", Reject;
+    MonetaryCapacityExceeded = 9023, "MONETARY_CAPACITY_EXCEEDED", Reject;
+    EpochIssuanceCapExceeded = 9024, "EPOCH_ISSUANCE_CAP_EXCEEDED", Reject;
+    ReserveAttestationStale = 9025, "RESERVE_ATTESTATION_STALE", Reject;
+    ReserveRatioInsufficient = 9026, "RESERVE_RATIO_INSUFFICIENT", Reject;
+    AssetNotIssuable = 9027, "ASSET_NOT_ISSUABLE", Reject;
+    InsufficientLocked = 9028, "INSUFFICIENT_LOCKED", Reject;
+    AttestationRejected = 9029, "ATTESTATION_REJECTED", Reject;
     FinalizeOutOfOrder = 11001, "FINALIZE_OUT_OF_ORDER", FailStop;
     FinalizeParentMismatch = 11002, "FINALIZE_PARENT_MISMATCH", FailStop;
     FinalizeStateDiverged = 11003, "FINALIZE_STATE_DIVERGED", FailStop;

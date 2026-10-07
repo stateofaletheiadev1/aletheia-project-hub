@@ -15,6 +15,7 @@
 
 pub mod balances;
 pub mod limits;
+pub mod monetary;
 pub mod transfer;
 
 use aletheia_core::{AceEncode, AceWriter, AletheiaError, ErrorCode, Payload};
@@ -150,6 +151,7 @@ pub type PayloadRunner = fn(
     &Records,
     &mut StateOverlay<'_>,
     &VerifiedTransaction,
+    &BlockContext,
     &mut Meter,
     &mut Vec<Event>,
 ) -> Result<PayloadOutcome, AletheiaError>;
@@ -158,6 +160,7 @@ pub fn run_payload(
     records: &Records,
     overlay: &mut StateOverlay<'_>,
     verified: &VerifiedTransaction,
+    ctx: &BlockContext,
     meter: &mut Meter,
     events: &mut Vec<Event>,
 ) -> Result<PayloadOutcome, AletheiaError> {
@@ -173,6 +176,30 @@ pub fn run_payload(
         ),
         Payload::BatchTransfer(legs) => {
             transfer::apply_legs(records, overlay, &body.sender, legs, meter, events)
+        }
+        Payload::Mint(authorization) => {
+            monetary::mint(records, overlay, authorization, ctx, meter, events)
+        }
+        Payload::Burn(amount) => {
+            monetary::burn(records, overlay, &body.sender, amount, meter, events)
+        }
+        Payload::Lock(amount) => {
+            monetary::lock_or_unlock(records, overlay, &body.sender, amount, true, meter, events)
+        }
+        Payload::Unlock(amount) => {
+            monetary::lock_or_unlock(records, overlay, &body.sender, amount, false, meter, events)
+        }
+        Payload::Redeem(redemption) => monetary::redeem(
+            records,
+            overlay,
+            &body.sender,
+            body.nonce,
+            redemption,
+            meter,
+            events,
+        ),
+        Payload::ReserveAttestation(attestation) => {
+            monetary::attest(records, overlay, attestation, ctx, meter, events)
         }
         #[cfg(feature = "test-protocol-v2")]
         Payload::TestRemark(_) => Err(invalid(
@@ -203,8 +230,9 @@ fn write_set_hash(
         .domain_hash(aletheia_core::DomainTag::WriteSet, out.as_bytes())
 }
 
-/// The balances a version-1 transaction can change: the fee (sender and fee pool) and each
-/// transfer leg (sender and recipient).
+/// The balances a version-1 transaction can change: the fee (sender and fee pool), each
+/// transfer leg (sender and recipient), a mint's destination, and the holder of a burn,
+/// lock, unlock or redemption.
 pub fn touched_balances(
     verified: &VerifiedTransaction,
 ) -> Vec<(aletheia_core::Address, aletheia_core::AssetId)> {
@@ -216,6 +244,19 @@ pub fn touched_balances(
     let legs: &[aletheia_core::TransferLeg] = match &body.payload {
         Payload::Transfer(leg) => core::slice::from_ref(leg),
         Payload::BatchTransfer(legs) => legs,
+        Payload::Mint(authorization) => {
+            touched.push((authorization.destination, authorization.asset));
+            &[]
+        }
+        Payload::Burn(amount) | Payload::Lock(amount) | Payload::Unlock(amount) => {
+            touched.push((body.sender, amount.asset));
+            &[]
+        }
+        Payload::Redeem(redemption) => {
+            touched.push((body.sender, redemption.asset));
+            &[]
+        }
+        Payload::ReserveAttestation(_) => &[],
         #[cfg(feature = "test-protocol-v2")]
         Payload::TestRemark(_) => &[],
     };
@@ -256,7 +297,7 @@ pub fn apply_transaction_with(
     overlay.checkpoint();
     let mut meter = Meter::new(body.fee.eu_limit);
     let mut events = Vec::new();
-    let mut result = run(records, overlay, verified, &mut meter, &mut events)?;
+    let mut result = run(records, overlay, verified, ctx, &mut meter, &mut events)?;
 
     if matches!(result, PayloadOutcome::Success) {
         let fee = u128::from(meter.used()).saturating_mul(price);

@@ -173,10 +173,12 @@ pub enum DomainTag {
     WriteSet,
     P2pHandshake,
     ValidatorSet,
+    ReserveAttestation,
+    Redemption,
 }
 
 impl DomainTag {
-    pub const ALL: [DomainTag; 25] = [
+    pub const ALL: [DomainTag; 27] = [
         DomainTag::TxId,
         DomainTag::TxWitness,
         DomainTag::TxSignature,
@@ -202,6 +204,8 @@ impl DomainTag {
         DomainTag::WriteSet,
         DomainTag::P2pHandshake,
         DomainTag::ValidatorSet,
+        DomainTag::ReserveAttestation,
+        DomainTag::Redemption,
     ];
 
     pub const fn as_str(self) -> &'static str {
@@ -234,6 +238,8 @@ impl DomainTag {
             DomainTag::P2pHandshake => "ALETHEIA/P2P-HANDSHAKE/v1",
             // ERRATA E-20: headers commit to validator_set_hash; the hash needs a domain.
             DomainTag::ValidatorSet => "ALETHEIA/VALSET/v1",
+            DomainTag::ReserveAttestation => "ALETHEIA/RESERVE-ATTEST/v1",
+            DomainTag::Redemption => "ALETHEIA/REDEEM/v1",
         }
     }
 

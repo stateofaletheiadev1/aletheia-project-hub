@@ -151,8 +151,20 @@ fn step_4_other_chain_and_network_are_refused() {
 /// Phase 3 test-only V2 rule set). Until then the rule table itself is checked.
 #[test]
 fn step_5_rule_table_lists_only_active_types() {
-    assert!(Rules::V1.tx_type_active(TxType::TRANSFER));
-    assert!(!Rules::V1.tx_type_active(TxType::new(16)));
+    for active in [
+        TxType::TRANSFER,
+        TxType::BATCH_TRANSFER,
+        TxType::MINT,
+        TxType::BURN,
+        TxType::LOCK,
+        TxType::UNLOCK,
+        TxType::REDEEM,
+        TxType::RESERVE_ATTESTATION,
+    ] {
+        assert!(Rules::V1.tx_type_active(active), "{active}");
+    }
+    // ContractDeploy (32) arrives with the Arno VM.
+    assert!(!Rules::V1.tx_type_active(TxType::new(32)));
 }
 
 #[test]

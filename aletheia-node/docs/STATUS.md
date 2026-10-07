@@ -4,7 +4,7 @@ Spec Section 1.2: one row per module. "Implemented" means code exists on `main`.
 means unit and property tests run in `cargo test --workspace`. Nothing below is described as
 done unless it is.
 
-Current phase: **Phase 6 (native assets)**, exit criterion met (table below). Phase 5 (DSP) runs in real nodes and its simulator suite is green at 25 seeds; the 10k-seed run, the 24-hour chaos run, epoch-boundary activation and the signer daemon remain. Phase 4 exit criteria met in-process; Phase 3 met except the 1M-block replay. Phase 1 still lacks the 24-hour fuzz campaign; Phase 2 lacks the Linux dm-log-writes power-loss replay. Phase 0 documents are
+Current phase: **Phase 7 (AEY)**, exit criteria met (table below); Phase 6 met. Phase 5 (DSP) runs in real nodes and its simulator suite is green at 25 seeds; the 10k-seed run, the 24-hour chaos run, epoch-boundary activation and the signer daemon remain. Phase 4 exit criteria met in-process; Phase 3 met except the 1M-block replay. Phase 1 still lacks the 24-hour fuzz campaign; Phase 2 lacks the Linux dm-log-writes power-loss replay. Phase 0 documents are
 partly written; see the end of this file.
 
 ## crates/core
@@ -86,7 +86,9 @@ partly written; see the end of this file.
 | Monetary arithmetic (`arith.rs`) | APS-0020, R.7 | yes | yes | property: division identity, native agreement | **no** | rustdoc | no |
 | Supply ledger and invariants I1-I8 (`ledger.rs`) | 18.4, R.8 | yes | yes | unit per invariant, property (I7, encoding) | **no** | rustdoc | no |
 | Asset framework: registry (decimals, transferable), AEY and ALnT records, genesis supply | 18.3, 18.7 | yes | yes | via execution and supply tests | n/a | rustdoc | n/a |
-| AEY operations: mint authorizations, burn, lock, redeem, attestations, I9 | 18.5, 18.8 | yes | **no** (Phase 7) | no | no | no | no |
+| AEY operations: mint (M-of-N authority), burn, lock and release (types 18-19), redeem (agent co-signed), reserve attestations, I9 at issuance (`execution/rules/v1/monetary.rs`) | 18.5, 18.8 (+ E-23, E-24) | yes | yes | `tests/harness/tests/monetary.rs`: 14 scenarios incl. attacks | **no** | rustdoc | no |
+| Monetary payloads and digests (`core/monetary.rs`) | 13, 18.5, 18.8 | yes | yes | round trip, canonical signer lists, digest binding | **no** | rustdoc | n/a |
+| Governed capacity changes (`MonetaryPolicyUpdate`), `max_capacity_increase_per_epoch` | 18.1, 35 | yes | **no** (governance, Phase 10) | no | no | no | no |
 
 ## crates/node
 
@@ -120,6 +122,13 @@ partly written; see the end of this file.
 | Simulator Byzantine suite green (10k seeds) | Green at 25 seeds in release (10 scenarios: silent, equivocating proposer, double voter, invalid proposer, partitions, loss, random faults). The 10k-seed run is the scheduled `node:sim` job, not yet run. |
 | Chaos 24 h, no safety violation | **Not yet run.** |
 | Activation with readiness just above and below threshold | **Not yet**: epoch transitions are not implemented. |
+
+## Phase 7 exit criteria (spec Section 62)
+
+| Criterion | State |
+| --- | --- |
+| Monetary attack tests | Met: replayed authorization; too few, unregistered, forged, tampered and cross-chain signatures; one authority signing twice; ALnT issuance; expired authorization; capacity (I3) and epoch cap (I4) with the epoch reset; minting without a fresh attestation and beyond the attested reserve (I9) while transfers continue; attestations from outsiders, from the future, not newer, and large moves without the higher threshold; redemptions without an agent, with a stolen or reused co-signature; unlocking more than locked; spending locked funds. Every block also passes the per-block supply check. |
+| Invariant fail-stop tested | Met: a finalized supply ledger corrupted underneath a verifying JMT stops start-up with 9011 (`crates/node/tests/recovery.rs`). |
 
 ## Phase 6 exit criteria (spec Section 62)
 

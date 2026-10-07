@@ -136,6 +136,49 @@ fn a_damaged_tip_block_in_the_archive_refuses_to_start() {
     );
 }
 
+/// Section 18.4: finalized state that breaks a supply invariant should be impossible, so
+/// finding it is a fail-stop. The ledger value is corrupted underneath the JMT (whose root
+/// still verifies) to model a storage fault or a bug that slipped past the per-block check.
+#[test]
+fn a_finalized_supply_ledger_that_breaks_an_invariant_refuses_to_start() {
+    use aletheia_core::AceEncode;
+    use aletheia_storage::{ColumnFamily, KvStore};
+
+    let net = proposer_with_blocks(1);
+    let store = Arc::new(MemoryKvStore::new());
+    let root = scratch("supply-fail-stop");
+    let mut ledger = Ledger::init(&root, &net.genesis, store.clone()).unwrap();
+    ledger.apply(&net.blocks[0].0).unwrap();
+    ledger.shutdown().unwrap();
+
+    // Genesis wrote the AEY ledger at version 0 and no block has rewritten it.
+    let records = net.records();
+    let key = records.supply_key(AssetId::AEY);
+    let mut corrupted = records
+        .supply_ledger(&net.view(), AssetId::AEY)
+        .unwrap()
+        .unwrap();
+    corrupted.circulating += 1;
+    let mut stored = vec![1u8];
+    stored.extend_from_slice(&corrupted.to_ace_bytes());
+    let mut batch = store.batch();
+    batch.put(
+        ColumnFamily::StateValues,
+        &aletheia_state::jmt::tree::value_key(&key, 0),
+        &stored,
+    );
+    store.write_sync(batch).unwrap();
+
+    let error = Ledger::open(&root, &net.genesis, store).unwrap_err();
+    assert_eq!(
+        error.code(),
+        ErrorCode::MonetaryInvariantViolatedFinalized,
+        "{error}"
+    );
+    assert!(error.is_fail_stop());
+    assert!(error.detail().contains("I2"), "{error}");
+}
+
 #[cfg(feature = "fault-injection")]
 mod crash_points {
     use super::*;

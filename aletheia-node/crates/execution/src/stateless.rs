@@ -158,9 +158,37 @@ fn check_field_ranges(
             "eu_limit is 0".to_owned(),
         ));
     }
+    let zero = |what: &str| {
+        Err(reject(
+            ErrorCode::TxFieldOutOfRange,
+            format!("{what} moves 0 units"),
+        ))
+    };
     let legs: &[TransferLeg] = match &body.payload {
         Payload::Transfer(leg) => core::slice::from_ref(leg),
         Payload::BatchTransfer(legs) => legs,
+        Payload::Mint(authorization) => {
+            return if authorization.amount == 0 {
+                zero("mint")
+            } else {
+                Ok(())
+            };
+        }
+        Payload::Burn(amount) | Payload::Lock(amount) | Payload::Unlock(amount) => {
+            return if amount.amount == 0 {
+                zero("monetary operation")
+            } else {
+                Ok(())
+            };
+        }
+        Payload::Redeem(redemption) => {
+            return if redemption.amount == 0 {
+                zero("redemption")
+            } else {
+                Ok(())
+            };
+        }
+        Payload::ReserveAttestation(_) => return Ok(()),
         #[cfg(feature = "test-protocol-v2")]
         Payload::TestRemark(_) => return Ok(()),
     };

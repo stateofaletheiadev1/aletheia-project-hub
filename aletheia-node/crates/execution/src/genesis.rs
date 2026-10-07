@@ -11,9 +11,10 @@
 //! same bytes, `genesis_id` and state root on any machine.
 //!
 //! Implemented now: chain identity and timing, fee prices, the AEY and ALnT asset records,
-//! protocol schedule entry 1, ALnT/AEY allocations and the epoch-0 validator set. The monetary
-//! authority and AEY capacity (Phase 7) and governance (Phase 10) join the genesis format in
-//! their phases, before any production genesis is built.
+//! protocol schedule entry 1, ALnT/AEY allocations, the epoch-0 validator set, and the
+//! monetary authority, attestors, redemption agents and AEY capacity (`[monetary]`).
+//! Governance (Phase 10) joins the genesis format in its phase, before any production genesis
+//! is built.
 //!
 //! Genesis validators prove possession of their BLS keys before the genesis id exists. That
 //! is sound because domain-separated hashes bind chain id and network kind, never the genesis
@@ -31,8 +32,9 @@ use aletheia_state::{StateKey, StateOverlay, StateValue, StateView};
 use serde::Deserialize;
 
 use crate::model::{
-    AssetConfig, Balance, ChainTiming, FeePrice, FeeSchedule, MAX_VALIDATOR_RECORDS, ParamId,
-    ProtocolScheduleEntry, Records, ValidatorRecord, validator_records_hash,
+    AssetConfig, Balance, ChainTiming, FeePrice, FeeSchedule, MAX_MONETARY_KEYS,
+    MAX_VALIDATOR_RECORDS, MonetaryPolicy, ParamId, ProtocolScheduleEntry, Records,
+    ValidatorRecord, validator_records_hash,
 };
 
 const MAX_ALLOCATIONS: u32 = 100_000;
@@ -48,6 +50,159 @@ pub struct GenesisConfig {
     /// chain run by the single-node producer.
     #[serde(default)]
     pub validators: Vec<ValidatorEntry>,
+    /// The monetary authority and AEY policy. Without it nothing can be minted or redeemed.
+    pub monetary: Option<MonetarySection>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct MonetarySection {
+    /// Ed25519 public keys, 32 bytes base16 each.
+    pub authority_keys: Vec<String>,
+    pub authority_threshold: u8,
+    #[serde(default)]
+    pub redemption_agents: Vec<String>,
+    #[serde(default)]
+    pub attestors: Vec<String>,
+    pub attestor_threshold: u8,
+    pub attestor_threshold_large_deviation: u8,
+    pub max_deviation_bps: u32,
+    pub max_attestation_age_slots: u64,
+    pub reserve_feed_id: u32,
+    pub enforce_reserve_ratio: bool,
+    pub min_reserve_ratio_bps: u32,
+    /// AEY base units, decimal string. At least the genesis AEY supply.
+    pub aey_authorized_capacity: String,
+    /// AEY base units per epoch, decimal string.
+    pub aey_epoch_issuance_cap: String,
+}
+
+/// The canonical monetary part of genesis.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct MonetaryGenesis {
+    pub policy: MonetaryPolicy,
+    pub aey_authorized_capacity: u128,
+    pub aey_epoch_issuance_cap: u128,
+}
+
+impl AceEncode for MonetaryGenesis {
+    fn encode(&self, out: &mut AceWriter) {
+        self.policy.encode(out);
+        out.u128(self.aey_authorized_capacity);
+        out.u128(self.aey_epoch_issuance_cap);
+    }
+}
+
+impl AceDecode for MonetaryGenesis {
+    fn decode(input: &mut AceReader<'_>) -> Result<MonetaryGenesis, AletheiaError> {
+        Ok(MonetaryGenesis {
+            policy: MonetaryPolicy::decode(input)?,
+            aey_authorized_capacity: input.u128()?,
+            aey_epoch_issuance_cap: input.u128()?,
+        })
+    }
+}
+
+fn parse_keys(texts: &[String], what: &str) -> Result<Vec<[u8; 32]>, AletheiaError> {
+    if texts.len() > usize::try_from(MAX_MONETARY_KEYS).unwrap_or(usize::MAX) {
+        return Err(config_error(format!(
+            "{} {what} exceed the maximum of {MAX_MONETARY_KEYS}",
+            texts.len()
+        )));
+    }
+    let mut seen = std::collections::BTreeSet::new();
+    texts
+        .iter()
+        .map(|text| {
+            let key: [u8; 32] = aletheia_core::base16::decode_fixed(text)
+                .map_err(|_| config_error(format!("{what} key \"{text}\" is not valid base16")))?;
+            aletheia_crypto::Ed25519PublicKey::from_bytes(&key)
+                .map_err(|e| config_error(format!("{what} key {text}: {}", e.detail())))?;
+            if !seen.insert(key) {
+                return Err(config_error(format!("{what} key {text} is listed twice")));
+            }
+            Ok(key)
+        })
+        .collect()
+}
+
+impl MonetarySection {
+    fn to_genesis(&self, aey_supply: u128) -> Result<MonetaryGenesis, AletheiaError> {
+        let policy = MonetaryPolicy {
+            authority_keys: parse_keys(&self.authority_keys, "monetary authority")?,
+            authority_threshold: self.authority_threshold,
+            redemption_agents: parse_keys(&self.redemption_agents, "redemption agent")?,
+            attestors: parse_keys(&self.attestors, "attestor")?,
+            attestor_threshold: self.attestor_threshold,
+            attestor_threshold_large_deviation: self.attestor_threshold_large_deviation,
+            max_deviation_bps: self.max_deviation_bps,
+            max_attestation_age_slots: self.max_attestation_age_slots,
+            reserve_feed_id: self.reserve_feed_id,
+            enforce_reserve_ratio: self.enforce_reserve_ratio,
+            min_reserve_ratio_bps: self.min_reserve_ratio_bps,
+        };
+        let within = |threshold: u8, keys: usize, what: &str| {
+            if threshold == 0 || usize::from(threshold) > keys {
+                Err(config_error(format!(
+                    "{what} threshold {threshold} must be between 1 and the {keys} registered keys"
+                )))
+            } else {
+                Ok(())
+            }
+        };
+        within(
+            policy.authority_threshold,
+            policy.authority_keys.len(),
+            "monetary authority",
+        )?;
+        if !policy.attestors.is_empty() {
+            within(
+                policy.attestor_threshold,
+                policy.attestors.len(),
+                "attestor",
+            )?;
+            within(
+                policy.attestor_threshold_large_deviation,
+                policy.attestors.len(),
+                "large-deviation attestor",
+            )?;
+            if policy.attestor_threshold_large_deviation < policy.attestor_threshold {
+                return Err(config_error(
+                    "the large-deviation attestor threshold is below the normal one".to_owned(),
+                ));
+            }
+        }
+        if policy.enforce_reserve_ratio
+            && (policy.attestors.is_empty() || policy.min_reserve_ratio_bps == 0)
+        {
+            return Err(config_error(
+                "reserve-ratio enforcement needs attestors and a positive min_reserve_ratio_bps"
+                    .to_owned(),
+            ));
+        }
+        if policy.max_attestation_age_slots == 0 {
+            return Err(config_error(
+                "max_attestation_age_slots must be positive".to_owned(),
+            ));
+        }
+        let capacity = within_supply_bound(parse_units(
+            &self.aey_authorized_capacity,
+            "aey_authorized_capacity",
+        )?)?;
+        if capacity < aey_supply {
+            return Err(config_error(format!(
+                "aey_authorized_capacity {capacity} is below the genesis AEY supply {aey_supply}"
+            )));
+        }
+        Ok(MonetaryGenesis {
+            policy,
+            aey_authorized_capacity: capacity,
+            aey_epoch_issuance_cap: within_supply_bound(parse_units(
+                &self.aey_epoch_issuance_cap,
+                "aey_epoch_issuance_cap",
+            )?)?,
+        })
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -108,6 +263,7 @@ pub struct GenesisState {
     pub allocations: Vec<Allocation>,
     /// Validator-index order.
     pub validators: Vec<ValidatorRecord>,
+    pub monetary: Option<MonetaryGenesis>,
 }
 
 fn config_error(detail: String) -> AletheiaError {
@@ -234,6 +390,21 @@ impl GenesisConfig {
             &NetworkIdentity::new(chain_id, network_kind, Hash32::ZERO),
             &validators,
         )?;
+        let aey_supply = allocations
+            .iter()
+            .filter(|allocation| allocation.asset == AssetId::AEY)
+            .try_fold(0u128, |total, allocation| {
+                within_supply_bound(
+                    total
+                        .checked_add(allocation.units)
+                        .ok_or_else(|| config_error("genesis AEY supply overflows".to_owned()))?,
+                )
+            })?;
+        let monetary = self
+            .monetary
+            .as_ref()
+            .map(|section| section.to_genesis(aey_supply))
+            .transpose()?;
         Ok(GenesisState {
             chain_id,
             network_kind,
@@ -245,6 +416,7 @@ impl GenesisConfig {
             fees,
             allocations,
             validators,
+            monetary,
         })
     }
 }
@@ -305,6 +477,7 @@ impl AceEncode for GenesisState {
         self.fees.encode(out);
         out.list(&self.allocations);
         out.list(&self.validators);
+        out.option(self.monetary.as_ref());
     }
 }
 
@@ -318,6 +491,7 @@ impl AceDecode for GenesisState {
             fees: FeeSchedule::decode(input)?,
             allocations: input.sorted_list(MAX_ALLOCATIONS)?,
             validators: input.list(MAX_VALIDATOR_RECORDS)?,
+            monetary: input.option()?,
         })
     }
 }
@@ -412,10 +586,17 @@ impl GenesisState {
                         config_error(format!("genesis supply of {asset} overflows"))
                     })?)
                 })?;
-            records.put_supply_ledger(
-                &mut overlay,
-                asset,
-                &aletheia_monetary::SupplyLedger::genesis(issued, reserve_backed),
+            let mut ledger = aletheia_monetary::SupplyLedger::genesis(issued, reserve_backed);
+            if let (AssetId::AEY, Some(monetary)) = (asset, &self.monetary) {
+                ledger.authorized_capacity = monetary.aey_authorized_capacity;
+                ledger.epoch_issuance_cap = monetary.aey_epoch_issuance_cap;
+            }
+            records.put_supply_ledger(&mut overlay, asset, &ledger);
+        }
+        if let Some(monetary) = &self.monetary {
+            overlay.put(
+                records.param_key(ParamId::MonetaryPolicy),
+                monetary.policy.to_ace_bytes(),
             );
         }
         for allocation in &self.allocations {

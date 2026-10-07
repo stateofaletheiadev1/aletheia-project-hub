@@ -15,6 +15,12 @@ use crate::stateless::VerifiedTransaction;
 pub const TX_TYPES: &[TxType] = &[
     TxType::TRANSFER,
     TxType::BATCH_TRANSFER,
+    TxType::MINT,
+    TxType::BURN,
+    TxType::LOCK,
+    TxType::UNLOCK,
+    TxType::REDEEM,
+    TxType::RESERVE_ATTESTATION,
     TxType::TEST_REMARK,
 ];
 pub const REMARK_EU: u64 = 500;
@@ -23,6 +29,7 @@ fn run_payload(
     records: &Records,
     overlay: &mut StateOverlay<'_>,
     verified: &VerifiedTransaction,
+    ctx: &BlockContext,
     meter: &mut Meter,
     events: &mut Vec<Event>,
 ) -> Result<PayloadOutcome, AletheiaError> {
@@ -31,7 +38,7 @@ fn run_payload(
             Ok(()) => PayloadOutcome::Success,
             Err(_) => PayloadOutcome::OutOfEu,
         }),
-        _ => v1::run_payload(records, overlay, verified, meter, events),
+        _ => v1::run_payload(records, overlay, verified, ctx, meter, events),
     }
 }
 
