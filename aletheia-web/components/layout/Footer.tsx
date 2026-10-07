@@ -28,7 +28,7 @@ export function Footer() {
           <div className="flex items-center gap-2.5">
             <span className="w-2 h-2 rounded-full bg-gold shrink-0" />
             <span className="font-semibold text-gold tracking-wide uppercase text-[11px]">{t("Platform Status Notice:")}</span>
-            <span className="text-parchment/80">{t("Aletheia is a developing maritime and civic project. Features, services, and institutions are categorized strictly as")}<span className="text-gold font-medium">{' '}{t("Operational")}</span>, 
+            <span className="text-parchment/80">{t("The Sovereign Covenant State of Aletheia is a maritime republic in its founding phase. Features, services, and institutions are categorized strictly as")}<span className="text-gold font-medium">{' '}{t("Operational")}</span>, 
               <span className="text-gold font-medium">{' '}{t("Under Development")}</span>{t(", or")}<span className="text-gold font-medium">{' '}{t("Planned")}</span>.
             </span>
           </div>
@@ -58,7 +58,7 @@ export function Footer() {
               </div>
             </div>
 
-            <p className="text-xs text-parchment/70 leading-relaxed max-w-sm">{t("A sovereign European-oriented maritime development and future civic system founded upon immutable records, provable reserves, and the rule of covenant law.")}</p>
+            <p className="text-xs text-parchment/70 leading-relaxed max-w-sm">{t("A sovereign, European-oriented maritime republic founded upon immutable records, provable reserves, and the rule of covenant law.")}</p>
 
             <div className="pt-2 flex items-center gap-4">
               <div>

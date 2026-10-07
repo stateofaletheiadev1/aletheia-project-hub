@@ -9,7 +9,7 @@ const FAQ: { group: string; items: { q: string; a: string; link?: { href: string
   {
     group: 'About Aletheia',
     items: [
-      { q: 'What is Aletheia today?', a: 'Aletheia is a developing European-oriented maritime and civic project. Its constitutional framework, digital platform and registries are being built in the open, and every institution on this site carries an explicit status — Operational, Under Development, Planned, Proposed or Vision — so aspiration is never presented as fact.', link: { href: '/transparency', label: 'How statuses work' } },
+      { q: 'What is Aletheia today?', a: 'Aletheia is a sovereign, European-oriented maritime republic founded on the Covenant. Its constitutional framework, digital platform and registries are being built in the open, and every institution on this site carries an explicit status — Operational, Under Development, Planned, Proposed or Vision — so aspiration is never presented as fact.', link: { href: '/transparency', label: 'How statuses work' } },
       { q: 'Where is Aletheia?', a: 'The territorial plan comprises the federal capital district of Antioch and four founding states — St. Barbara, Augustine, Benedict and St. Brendan — oriented to the North Sea. Territorial development is at the Planned stage.', link: { href: '/development', label: 'Explore the territory' } },
       { q: 'What does “Veritas in Foedere” mean?', a: 'It is the national motto: “Truth in Covenant.” It expresses the founding idea that public institutions should be able to prove what they claim, and that membership of the nation rests on a mutual covenant rather than on commerce.' },
     ],
