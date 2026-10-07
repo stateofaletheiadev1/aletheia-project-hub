@@ -172,10 +172,11 @@ pub enum DomainTag {
     Event,
     WriteSet,
     P2pHandshake,
+    ValidatorSet,
 }
 
 impl DomainTag {
-    pub const ALL: [DomainTag; 24] = [
+    pub const ALL: [DomainTag; 25] = [
         DomainTag::TxId,
         DomainTag::TxWitness,
         DomainTag::TxSignature,
@@ -200,6 +201,7 @@ impl DomainTag {
         DomainTag::Event,
         DomainTag::WriteSet,
         DomainTag::P2pHandshake,
+        DomainTag::ValidatorSet,
     ];
 
     pub const fn as_str(self) -> &'static str {
@@ -230,6 +232,8 @@ impl DomainTag {
             DomainTag::WriteSet => "ALETHEIA/WRITESET/v1",
             // ERRATA E-19: the signed P2P handshake of Section 36 needs its own domain.
             DomainTag::P2pHandshake => "ALETHEIA/P2P-HANDSHAKE/v1",
+            // ERRATA E-20: headers commit to validator_set_hash; the hash needs a domain.
+            DomainTag::ValidatorSet => "ALETHEIA/VALSET/v1",
         }
     }
 

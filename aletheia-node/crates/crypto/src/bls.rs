@@ -131,6 +131,11 @@ impl ProvenBlsPublicKey {
     pub fn to_bytes(&self) -> [u8; PUBLIC_KEY_LEN] {
         self.key.compress()
     }
+
+    /// Verifies one signature over a digest (an individual vote or timeout).
+    pub fn verify(&self, digest: &Hash32, signature: &BlsSignature) -> Result<(), AletheiaError> {
+        BlsPublicKey { key: self.key }.verify(digest, signature)
+    }
 }
 
 impl core::fmt::Debug for ProvenBlsPublicKey {
@@ -168,6 +173,53 @@ pub fn verify_aggregate(
             format!(
                 "aggregate BLS signature by {} signers over digest {digest} does not verify: {}",
                 signers.len(),
+                describe(error)
+            ),
+        )),
+    }
+}
+
+/// Verifies an aggregate signature where signer `i` signed `digests[i]` - the timeout
+/// certificate check, in which each validator signs its own highest QC round (ERRATA E-11).
+/// Signers must be proof-of-possession verified, as for [`verify_aggregate`].
+pub fn verify_aggregate_distinct(
+    signers: &[&ProvenBlsPublicKey],
+    digests: &[Hash32],
+    aggregate: &BlsSignature,
+) -> Result<(), AletheiaError> {
+    if signers.is_empty() {
+        return Err(AletheiaError::new(
+            ErrorCode::BlsAggregateEmpty,
+            "aggregate signature has no signers".to_owned(),
+        ));
+    }
+    if signers.len() != digests.len() {
+        return Err(AletheiaError::new(
+            ErrorCode::SigMalformed,
+            format!(
+                "{} signers but {} signed messages",
+                signers.len(),
+                digests.len()
+            ),
+        ));
+    }
+    let keys: Vec<&PublicKey> = signers.iter().map(|signer| &signer.key).collect();
+    let messages: Vec<&[u8]> = digests
+        .iter()
+        .map(|digest| &digest.as_bytes()[..])
+        .collect();
+    // Distinct messages are required by the scheme; identical digests from different signers
+    // are still sound here because every key carries a verified proof of possession.
+    match aggregate
+        .signature
+        .aggregate_verify(true, &messages, SIGNATURE_DST, &keys, false)
+    {
+        BLST_ERROR::BLST_SUCCESS => Ok(()),
+        error => Err(AletheiaError::new(
+            ErrorCode::SigInvalid,
+            format!(
+                "aggregate BLS signature over {} messages does not verify: {}",
+                digests.len(),
                 describe(error)
             ),
         )),

@@ -232,3 +232,35 @@ fn generated_keys_work() {
         .verify(&digest, &bls_key.sign(&digest))
         .unwrap();
 }
+
+#[test]
+fn bls_aggregate_over_distinct_messages_verifies_only_as_signed() {
+    let secrets: Vec<BlsSecretKey> = (1u8..=3)
+        .map(|i| BlsSecretKey::from_key_material(&Secret::new([i; 32])).unwrap())
+        .collect();
+    let proven: Vec<_> = secrets
+        .iter()
+        .map(|s| {
+            s.public_key()
+                .prove_possession(&devnet(), &s.prove_possession(&devnet()))
+                .unwrap()
+        })
+        .collect();
+    let digests: Vec<Hash32> = (0u8..3).map(|i| Hash32::from_bytes([i; 32])).collect();
+    let signatures: Vec<BlsSignature> = secrets
+        .iter()
+        .zip(&digests)
+        .map(|(s, d)| s.sign(d))
+        .collect();
+    let aggregate = bls::aggregate_signatures(&signatures.iter().collect::<Vec<_>>()).unwrap();
+    let signers: Vec<_> = proven.iter().collect();
+    bls::verify_aggregate_distinct(&signers, &digests, &aggregate).unwrap();
+
+    let mut swapped = digests.clone();
+    swapped.swap(0, 1);
+    assert!(
+        bls::verify_aggregate_distinct(&signers, &swapped, &aggregate).is_err(),
+        "each signer is bound to its own message"
+    );
+    assert!(bls::verify_aggregate_distinct(&signers[..2], &digests[..2], &aggregate).is_err());
+}

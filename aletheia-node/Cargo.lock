@@ -24,6 +24,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "aletheia-consensus"
+version = "0.1.0"
+dependencies = [
+ "aletheia-core",
+ "aletheia-crypto",
+ "blake3",
+ "proptest",
+]
+
+[[package]]
 name = "aletheia-core"
 version = "0.1.0"
 dependencies = [
