@@ -4,7 +4,7 @@ Spec Section 1.2: one row per module. "Implemented" means code exists on `main`.
 means unit and property tests run in `cargo test --workspace`. Nothing below is described as
 done unless it is.
 
-Current phase: **Phase 7 (AEY)**, exit criteria met (table below); Phase 6 met. Phase 5 (DSP) runs in real nodes and its simulator suite is green at 25 seeds; the 10k-seed run, the 24-hour chaos run, epoch-boundary activation and the signer daemon remain. Phase 4 exit criteria met in-process; Phase 3 met except the 1M-block replay. Phase 1 still lacks the 24-hour fuzz campaign; Phase 2 lacks the Linux dm-log-writes power-loss replay. Phase 0 documents are
+Current phase: **Phase 8 (Arno compiler)**, exit criteria met (table below); Phases 6 and 7 met. Phase 5 (DSP) runs in real nodes and its simulator suite is green at 25 seeds; the 10k-seed run, the 24-hour chaos run, epoch-boundary activation and the signer daemon remain. Phase 4 exit criteria met in-process; Phase 3 met except the 1M-block replay. Phase 1 still lacks the 24-hour fuzz campaign; Phase 2 lacks the Linux dm-log-writes power-loss replay. Phase 0 documents are
 partly written; see the end of this file.
 
 ## crates/core
@@ -122,6 +122,24 @@ partly written; see the end of this file.
 | Simulator Byzantine suite green (10k seeds) | Green at 25 seeds in release (10 scenarios: silent, equivocating proposer, double voter, invalid proposer, partitions, loss, random faults). The 10k-seed run is the scheduled `node:sim` job, not yet run. |
 | Chaos 24 h, no safety violation | **Not yet run.** |
 | Activation with readiness just above and below threshold | **Not yet**: epoch transitions are not implemented. |
+
+## crates/arno, crates/vm, apps/arno (Phase 8)
+
+| Module | APS | Specified | Implemented | Tested | Fuzzed | Documented | Benchmarked |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Lexer, parser, diagnostics (`arno/lexer.rs`, `parser.rs`, `diagnostics.rs`) | 25.6, 25.7, 26 | yes (+ `docs/arno/grammar.ebnf`) | yes | reference contracts, recovery, property | `arno_compile` | rustdoc | no |
+| Names, types, coins, effects, bounds, recursion (`check.rs`, `linear.rs`, `effects.rs`) | 25 | yes (+ E-25) | yes | `tests/arno/diagnostics` (16 golden files), clean contracts, property | `arno_compile` | rustdoc | no |
+| Code generation and packaging (`codegen.rs`) | 26, 27 | yes | yes | reference packages verified, byte-identical, golden hashes, 400 random well-typed programs | `arno_compile` | rustdoc | no |
+| Bytecode format and verifier (`vm/opcode.rs`, `package.rs`, `verifier.rs`) | 27, APS-0014 | yes (+ ADR-046) | yes | one test per rule, property | `arnobc_verify` | rustdoc | no |
+| `arno` command: check, compile, inspect | 26 | yes | yes | by hand | n/a | usage text | n/a |
+| SSA IR with CSE, `arno fmt`, `arno-test` | 26 | yes | **no**: code is generated from the checked tree with fixed registers; formatter and test runner not yet built | no | no | no | no |
+
+## Phase 8 exit criteria (spec Section 62)
+
+| Criterion | State |
+| --- | --- |
+| Reference contracts compile byte-identically across machines | Met: Escrow, Payroll and a contract using most of the language compile to packages the VM verifier accepts; their code hashes are pinned in `tests/arno/golden-hashes.txt` (written on Windows), and the Linux CI test job compares them, so any machine or architecture difference fails the build. LF line endings are enforced for sources. |
+| Compiler fuzzed | Targets `arno_compile` (accepted output must verify and be reproducible) and `arnobc_verify` (accepted packages are canonical) are written and in the smoke run, including 2,000 mutations of the Escrow source per run; the long campaign is the scheduled `node:fuzz` job. |
 
 ## Phase 7 exit criteria (spec Section 62)
 

@@ -56,3 +56,17 @@ path = "fuzz_targets/p2p_frames.rs"
 test = false
 doc = false
 bench = false
+
+[[bin]]
+name = "arno_compile"
+path = "fuzz_targets/arno_compile.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "arnobc_verify"
+path = "fuzz_targets/arnobc_verify.rs"
+test = false
+doc = false
+bench = false

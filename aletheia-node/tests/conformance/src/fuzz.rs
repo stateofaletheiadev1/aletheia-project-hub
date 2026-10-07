@@ -106,3 +106,34 @@ pub fn p2p_frames(data: &[u8]) {
     }
     assert!(decoder.buffered() <= data.len());
 }
+
+/// The Arno compiler: whatever it accepts, the VM's verifier accepts too, and compiling the
+/// same text twice gives the same bytes (Section 26 reproducibility).
+pub fn arno_compile(data: &[u8]) {
+    let Ok(text) = core::str::from_utf8(data) else {
+        return;
+    };
+    let file = aletheia_arno::SourceFile::new("fuzz.arno", text);
+    if let Ok(bytes) = aletheia_arno::compile(&file) {
+        assert!(
+            aletheia_vm::verify_bytes(&bytes).is_ok(),
+            "the compiler produced a package the verifier refuses"
+        );
+        assert_eq!(
+            aletheia_arno::compile(&file).ok(),
+            Some(bytes),
+            "compiling the same source twice gave different bytes"
+        );
+    }
+}
+
+/// The package decoder and verifier: anything accepted is canonical.
+pub fn arnobc_verify(data: &[u8]) {
+    if let Ok(package) = aletheia_vm::verify_bytes(data) {
+        assert_eq!(
+            package.to_bytes(),
+            data,
+            "accepted package bytes are not canonical"
+        );
+    }
+}

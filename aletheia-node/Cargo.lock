@@ -15,6 +15,9 @@ dependencies = [
 name = "aletheia-arno"
 version = "0.1.0"
 dependencies = [
+ "aletheia-core",
+ "aletheia-vm",
+ "blake3",
  "proptest",
 ]
 
@@ -22,10 +25,12 @@ dependencies = [
 name = "aletheia-conformance"
 version = "0.1.0"
 dependencies = [
+ "aletheia-arno",
  "aletheia-core",
  "aletheia-crypto",
  "aletheia-execution",
  "aletheia-p2p",
+ "aletheia-vm",
  "proptest",
  "serde_json",
 ]
@@ -209,6 +214,14 @@ dependencies = [
  "serde",
  "tokio",
  "toml",
+]
+
+[[package]]
+name = "arno"
+version = "0.1.0"
+dependencies = [
+ "aletheia-arno",
+ "aletheia-vm",
 ]
 
 [[package]]

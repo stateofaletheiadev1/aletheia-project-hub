@@ -8,6 +8,9 @@ rust-version.workspace = true
 publish.workspace = true
 
 [dependencies]
+aletheia-core.workspace = true
+aletheia-vm.workspace = true
+blake3.workspace = true
 
 [dev-dependencies]
 proptest.workspace = true

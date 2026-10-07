@@ -46,6 +46,20 @@ proptest! {
         fuzz::base16_text(&data);
         fuzz::stateless_validation(&data);
         fuzz::p2p_frames(&data);
+        fuzz::arnobc_verify(&data);
+    }
+
+    /// The reference Escrow contract with a few bytes changed: mostly near-valid programs,
+    /// which reach the checker and code generator rather than stopping in the lexer.
+    #[test]
+    fn mutated_arno_sources(edits in proptest::collection::vec((any::<prop::sample::Index>(), any::<u8>()), 1..4)) {
+        let path = format!("{}/../../examples/arno/escrow.arno", env!("CARGO_MANIFEST_DIR"));
+        let mut data = std::fs::read(path).unwrap();
+        for (position, value) in edits {
+            let index = position.index(data.len());
+            data[index] = value;
+        }
+        fuzz::arno_compile(&data);
     }
 
     #[test]

@@ -17,6 +17,7 @@ members = [
   "crates/monetary",
   "crates/node",
   "apps/aletheiad",
+  "apps/arno",
   "tests/conformance",
   "tests/harness",
   "tests/determinism",
