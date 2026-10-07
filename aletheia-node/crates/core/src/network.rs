@@ -171,10 +171,11 @@ pub enum DomainTag {
     Receipt,
     Event,
     WriteSet,
+    P2pHandshake,
 }
 
 impl DomainTag {
-    pub const ALL: [DomainTag; 23] = [
+    pub const ALL: [DomainTag; 24] = [
         DomainTag::TxId,
         DomainTag::TxWitness,
         DomainTag::TxSignature,
@@ -198,6 +199,7 @@ impl DomainTag {
         DomainTag::Receipt,
         DomainTag::Event,
         DomainTag::WriteSet,
+        DomainTag::P2pHandshake,
     ];
 
     pub const fn as_str(self) -> &'static str {
@@ -226,6 +228,8 @@ impl DomainTag {
             DomainTag::Receipt => "ALETHEIA/RECEIPT/v1",
             DomainTag::Event => "ALETHEIA/EVENT/v1",
             DomainTag::WriteSet => "ALETHEIA/WRITESET/v1",
+            // ERRATA E-19: the signed P2P handshake of Section 36 needs its own domain.
+            DomainTag::P2pHandshake => "ALETHEIA/P2P-HANDSHAKE/v1",
         }
     }
 

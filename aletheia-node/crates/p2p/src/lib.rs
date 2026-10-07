@@ -10,8 +10,13 @@
     )
 )]
 
+pub mod connection;
 pub mod frame;
+pub mod handshake;
 pub mod message;
+pub mod tls;
 
+pub use connection::{LocalNode, PeerConnection, PeerExpectation, PeerIdentity};
 pub use frame::{Channel, Frame, FrameDecoder};
 pub use message::Message;
+pub use tls::TransportCertificate;
