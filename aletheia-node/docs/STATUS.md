@@ -4,7 +4,7 @@ Spec Section 1.2: one row per module. "Implemented" means code exists on `main`.
 means unit and property tests run in `cargo test --workspace`. Nothing below is described as
 done unless it is.
 
-Current phase: **Phase 3 (single-node state machine)**, exit criteria largely met (table below). Phase 1 still lacks the 24-hour fuzz campaign; Phase 2 lacks the Linux dm-log-writes power-loss replay. Phase 0 documents are
+Current phase: **Phase 4 (multi-node P2P)**, exit criteria met in-process (table below); Phase 3 met except the 1M-block replay. Phase 1 still lacks the 24-hour fuzz campaign; Phase 2 lacks the Linux dm-log-writes power-loss replay. Phase 0 documents are
 partly written; see the end of this file.
 
 ## crates/core
@@ -28,6 +28,30 @@ partly written; see the end of this file.
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | `Rules` registry, V1 limits and types (`rules/`) | 44.3 | yes | yes (V1 not frozen) | unit | n/a | rustdoc | n/a |
 | Stateless validator (`stateless.rs`) | APS-0003, R.4 | yes | yes | one integration test per step, vectors | target written, smoke only | rustdoc | no |
+
+## crates/p2p and node networking (Phase 4)
+
+| Module | APS | Specified | Implemented | Tested | Fuzzed | Documented | Benchmarked |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Frame codec and channels (`p2p/frame.rs`) | APS-0029, 36 | yes | yes | unit, property (chunking, bounded buffering) | target `p2p_frames` (smoke) | rustdoc | no |
+| Channel messages (`p2p/message.rs`) | 36 | yes | yes | round trip, bounds | target `p2p_frames` (smoke) | rustdoc | n/a |
+| TLS 1.3 mutual auth (`p2p/tls.rs`) | ADR-016 | yes | yes (ring provider, P-256 certs, pinning) | localhost TLS tests | n/a | rustdoc | no |
+| Signed handshake (`p2p/handshake.rs`) | 36 (+ E-19) | yes | yes | wrong network, versions, pinned key, self, timeout | **no** | rustdoc | n/a |
+| Network service: peers, budgets, scoring, bans, limits (`p2p/network.rs`) | 36, 46.2 | yes | yes | peering, priority, simultaneous dial, bans, rate limit, handshake cap | n/a | rustdoc | no |
+| Mempool (`node/mempool.rs`) | 21 | yes | yes (eviction of non-ready low-fee txs not yet) | via network tests | n/a | rustdoc | no |
+| Chain thread (`node/chain.rs`) | 46A.1 | yes | yes | via network tests | n/a | rustdoc | n/a |
+| Block propagation, block sync, tx gossip (`node/sync.rs`) | 36 | yes | yes | 7-node convergence, late joiner (80+ blocks), restart | n/a | rustdoc | no |
+| Devnet producer (feature `devnet-producer`) | 62 (stand-in) | n/a | yes, devnet/regtest only | refused on mainnet | n/a | rustdoc | n/a |
+| State sync over the network (JMT chunks) | 42.4 | yes | **no** (snapshots exist locally; serving them is next) | no | no | no | no |
+| Peer exchange, keepalive pings, peer-version reporting | 36 | yes | **no** | no | no | no | no |
+
+## Phase 4 exit criteria (spec Section 62)
+
+| Criterion | State |
+| --- | --- |
+| 7-node private validation network syncs | Met in-process over real TLS: all 7 nodes hold the producer's identical block and state root at height 20; transactions submitted to one node reach the producer by gossip and are all included. |
+| Fuzzed framing | Target written and in the smoke run; the 24-hour campaign is the scheduled `node:fuzz` job. |
+| DoS limits tested | Met: oversized/unknown frames, invalid messages (ban), channel floods (rate-limit ban), pending-handshake cap, handshake deadline. |
 
 ## crates/execution (Phase 3)
 

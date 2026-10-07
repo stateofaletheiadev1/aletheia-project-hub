@@ -9,14 +9,20 @@ publish.workspace = true
 
 [dependencies]
 aletheia-core.workspace = true
+aletheia-crypto.workspace = true
 aletheia-execution.workspace = true
+aletheia-p2p.workspace = true
 aletheia-state.workspace = true
 aletheia-storage.workspace = true
+tokio = { version = "1", features = ["rt-multi-thread", "sync", "time", "macros"] }
 
 [features]
 # Crash points inside the finalize path, for recovery tests (spec Section 52). Never enabled
 # in a release build.
 fault-injection = []
+# Single-node block production for devnet and regtest until DSP (Phase 5). Refused at start-up
+# on any other network.
+devnet-producer = []
 
 [dev-dependencies]
 aletheia-test-harness.workspace = true

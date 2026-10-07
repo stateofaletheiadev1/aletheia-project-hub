@@ -26,8 +26,8 @@ use aletheia_core::{
 };
 use aletheia_execution::continuity::rules_for_height;
 use aletheia_execution::{
-    BlockContext, ExecutedBlock, GenesisState, Records, StatelessValidator, check_header_results,
-    execute_block,
+    BlockContext, ExecutedBlock, GenesisState, Records, StatelessValidator, VerifiedTransaction,
+    check_header_results, execute_block,
 };
 use aletheia_state::{JellyfishMerkleTree, StateKey, StateValue, StateView};
 use aletheia_storage::archive::{ArchiveConfig, BlockArchive, index_entries};
@@ -540,6 +540,129 @@ impl<S: KvStore> Ledger<S> {
         )?;
         self.tip = tip;
         Ok(())
+    }
+
+    fn tip_view(&self) -> VersionView<'_> {
+        VersionView {
+            tree: JellyfishMerkleTree::new(&self.store, self.network),
+            version: self.tip.height.get(),
+        }
+    }
+
+    /// A finalized block by height, read and verified from the archive (block sync serves
+    /// these to peers).
+    pub fn read_block(&self, height: Height) -> Result<Option<Proposal>, AletheiaError> {
+        if height > self.tip.height {
+            return Ok(None);
+        }
+        let Some(bytes) = self.store.get(
+            ColumnFamily::BlockIndex,
+            &aletheia_storage::archive::height_key(height),
+        )?
+        else {
+            return Ok(None);
+        };
+        let location =
+            aletheia_storage::archive::ArchiveLocation::from_ace_bytes(&bytes).map_err(|e| {
+                fail_stop(
+                    ErrorCode::StoCorrupt,
+                    format!("block index entry at {height}: {}", e.detail()),
+                )
+            })?;
+        self.archive.read(location, height).map(Some)
+    }
+
+    /// Mempool admission (Section 21): stateless validation under the rules of the next height,
+    /// then the sender's next nonce from the tip so the mempool can tell ready from future.
+    pub fn admit(&self, bytes: &[u8]) -> Result<(VerifiedTransaction, u64), AletheiaError> {
+        let records = Records::new(self.network);
+        let view = self.tip_view();
+        let (rules, _) = rules_for_height(&records, &view, self.tip.height.next()?)?;
+        let verified = StatelessValidator::new(self.network, rules).validate(bytes)?;
+        let body = &verified.transaction().body;
+        let next_nonce = records
+            .account(&view, &body.sender)?
+            .map_or(0, |account| account.next_nonce);
+        if body.nonce < next_nonce {
+            return Err(AletheiaError::new(
+                ErrorCode::TxNonceTooLow,
+                format!("nonce {} is below next nonce {next_nonce}", body.nonce),
+            ));
+        }
+        Ok((verified, next_nonce))
+    }
+
+    /// The sender's next nonce at the tip.
+    pub fn next_nonce(&self, sender: &aletheia_core::Address) -> Result<u64, AletheiaError> {
+        Ok(Records::new(self.network)
+            .account(&self.tip_view(), sender)?
+            .map_or(0, |account| account.next_nonce))
+    }
+
+    /// Builds a block on the tip at `slot` from candidate transactions. The header carries the
+    /// genesis QC and a zero proposer signature: certificates and signing arrive with DSP
+    /// (Phase 5), which replaces this proposer path's caller, not the block construction.
+    pub fn propose(
+        &self,
+        candidates: Vec<VerifiedTransaction>,
+        slot: aletheia_core::Slot,
+    ) -> Result<(Proposal, ExecutedBlock), AletheiaError> {
+        let records = Records::new(self.network);
+        let view = self.tip_view();
+        let height = self.tip.height.next()?;
+        let (rules, entry) = rules_for_height(&records, &view, height)?;
+        let timing = records.chain_timing(&view)?;
+        let ctx = BlockContext {
+            height,
+            slot,
+            epoch: aletheia_core::Epoch::new(0),
+            protocol_time_ms: timing.protocol_time_ms(slot)?,
+            proposer: aletheia_core::ValidatorIndex::new(0),
+            parent_hash: self.tip.hash,
+            protocol_version: aletheia_core::ProtocolVersion::new(entry.protocol_version),
+        };
+        let included =
+            aletheia_execution::builder::select(rules, &records, &view, &ctx, candidates)?;
+        let executed = execute_block(rules, &records, &view, &ctx, &included)?;
+        let mut scratch = WriteBatch::new();
+        let state_root = JellyfishMerkleTree::new(&self.store, self.network).apply(
+            Some(self.tip.height.get()),
+            height.get(),
+            &executed.changes,
+            &mut scratch,
+        )?;
+        let header = aletheia_core::block::BlockHeader {
+            version: ctx.protocol_version,
+            chain_id: self.network.chain_id(),
+            height,
+            epoch: ctx.epoch,
+            slot,
+            protocol_time_ms: ctx.protocol_time_ms,
+            proposer: ctx.proposer,
+            parent_hash: self.tip.hash,
+            parent_qc: aletheia_core::block::QuorumCertificate::genesis(),
+            timeout_cert: None,
+            tx_root: executed.tx_root,
+            receipt_root: executed.receipt_root,
+            state_root,
+            event_root: executed.event_root,
+            validator_set_hash: Hash32::ZERO,
+            next_validator_set_hash: Hash32::ZERO,
+            monetary_root: Hash32::ZERO,
+            eu_used: executed.eu_used,
+            tx_count: executed.tx_count,
+            extensions: Vec::new(),
+        };
+        let body = aletheia_core::block::BlockBody {
+            transactions: included.iter().map(|tx| tx.transaction().clone()).collect(),
+        };
+        Ok((
+            Proposal {
+                block: aletheia_core::block::Block { header, body },
+                proposer_signature: [0; 96],
+            },
+            executed,
+        ))
     }
 
     /// Validates and finalizes in one step (single-node operation until consensus exists).

@@ -76,7 +76,8 @@ pub enum NetworkCommand {
     },
 }
 
-/// The node's end of the network service.
+/// The node's end of the network service. Dropping it stops the supervisor and every peer
+/// task it owns.
 #[derive(Debug)]
 pub struct NetworkHandle {
     pub commands: mpsc::Sender<NetworkCommand>,
@@ -86,10 +87,14 @@ pub struct NetworkHandle {
 }
 
 impl NetworkHandle {
-    /// Stops the supervisor; dropping it aborts every peer task it owns.
     pub async fn shutdown(self) {
         self.supervisor.abort();
-        let _ = self.supervisor.await;
+    }
+}
+
+impl Drop for NetworkHandle {
+    fn drop(&mut self) {
+        self.supervisor.abort();
     }
 }
 

@@ -1,7 +1,13 @@
-//! The Aletheia node. Implemented so far: the ledger - finalize path and crash recovery
-//! (spec Sections 20, 24). The supervision tree, P2P, consensus and RPC wiring arrive with
-//! their phases (Section 46A).
+//! The Aletheia node (spec Sections 20, 24, 46, 46A): the ledger with its finalize path and
+//! crash recovery, the chain thread that owns it, the mempool, block propagation and sync, and
+//! the runtime that assembles them. Consensus (DSP) and RPC arrive with their phases.
 
+pub(crate) mod chain;
+pub mod channels;
 pub mod ledger;
+pub mod mempool;
+pub mod runtime;
+pub(crate) mod sync;
 
 pub use ledger::{Ledger, Reconciled};
+pub use runtime::{Node, NodeConfig};
