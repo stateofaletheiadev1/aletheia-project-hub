@@ -4,7 +4,7 @@ Spec Section 1.2: one row per module. "Implemented" means code exists on `main`.
 means unit and property tests run in `cargo test --workspace`. Nothing below is described as
 done unless it is.
 
-Current phase: **Phase 1 (crypto and encoding)**. Every exit criterion except the 24-hour fuzz campaign is met. Phase 0 documents are
+Current phase: **Phase 2 (storage and state)**. Phase 1 criteria are met except the 24-hour fuzz campaign, which needs the scheduled CI job. Phase 0 documents are
 partly written; see the end of this file.
 
 ## crates/core
@@ -28,6 +28,40 @@ partly written; see the end of this file.
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | `Rules` registry, V1 limits and types (`rules/`) | 44.3 | yes | yes (V1 not frozen) | unit | n/a | rustdoc | n/a |
 | Stateless validator (`stateless.rs`) | APS-0003, R.4 | yes | yes | one integration test per step, vectors | target written, smoke only | rustdoc | no |
+
+## crates/storage
+
+| Module | APS | Specified | Implemented | Tested | Fuzzed | Documented | Benchmarked |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `KvStore` contract (`kv.rs`) | 42.1 | yes | yes | conformance suite | n/a | rustdoc | n/a |
+| Memory backend (`memory.rs`, NON-PRODUCTION) | 42.1 | yes | yes | conformance suite | n/a | rustdoc | n/a |
+| RocksDB backend (`rocks.rs`, feature `rocksdb`) | 42.2 | yes (+ ERRATA E-16) | yes | conformance suite | n/a | rustdoc | no |
+| Data directory and manifest (`datadir.rs`) | APS-0055 | yes | yes | decision table, lock, corruption, wrong chain, refuse-newer | **no** | rustdoc | n/a |
+| Consensus WAL (`wal.rs`) | APS-0034 | yes | yes | torn tail at every offset, corruption, gaps, rotation, pruning | **no** | rustdoc | no |
+| Block archive (`archive.rs`) | 42.3 | yes | yes | round trip, order, tamper, wrong network, torn tail | **no** | rustdoc | no |
+| Migration framework (`migrate.rs`) | 44.5 | yes | yes | dummy 1->2 step: clean run, crash-and-resume from journal, rollback, failed tip check | n/a | rustdoc | no |
+| Snapshots and state sync | 42.4 | yes | **no** | no | no | no | no |
+
+## crates/state
+
+| Module | APS | Specified | Implemented | Tested | Fuzzed | Documented | Benchmarked |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| State keys and namespaces (`key.rs`) | APS-0005 | yes | yes | unit | n/a | rustdoc | n/a |
+| `StateOverlay` (`overlay.rs`) | 15 | yes | yes | unit (nested checkpoints, stacking) | n/a | rustdoc | no |
+| Jellyfish Merkle Tree (`jmt/`) | 16.1 (+ ERRATA E-15) | yes | yes | property: root == naive root over random histories; historical reads | **no** | rustdoc | no |
+| State proofs (`jmt/proof.rs`) | 16.3, R.5 | yes | yes | property: inclusion, non-inclusion, wrong value, wrong network | **no** | rustdoc | no |
+| JMT stale-node pruning | 42.4 | yes | recorded, pruner **not yet** | no | n/a | rustdoc | no |
+
+## Phase 2 exit criteria (spec Section 62, 62.1)
+
+| Criterion | State |
+| --- | --- |
+| KvStore conformance | Met: memory and RocksDB backends pass the same suite. |
+| JMT root == naive root (property) | Met. |
+| Power-loss suite green | Partly: WAL and archive truncation tests simulate torn writes at every offset. A dm-log-writes replay of the finalize path needs Linux and the node's finalize path (Phase 3). |
+| DATADIR manifest, storage schema 1 | Met. |
+| Migration framework, dummy 1->2 step, migration-crash test | Met (memory backend; the RocksDB checkpoint path is covered by the conformance suite). |
+| Refuse-newer test | Met (decision table). |
 
 ## crates/crypto
 

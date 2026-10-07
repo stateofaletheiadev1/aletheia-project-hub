@@ -25,6 +25,10 @@ automatically).
 
 ```sh
 cd aletheia-node
-cargo test --workspace --locked
+cargo test --workspace --locked                 # memory backend only, no C++ toolchain
+cargo test --workspace --all-features --locked  # includes RocksDB; needs clang/libclang
 ./scripts/lint.sh
 ```
+
+On Windows, RocksDB needs LLVM (`winget install LLVM.LLVM`) with `LIBCLANG_PATH` set to
+`C:\Program Files\LLVMin` and that directory on `PATH`.

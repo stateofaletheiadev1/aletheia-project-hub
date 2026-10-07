@@ -18,6 +18,9 @@ pub mod datadir;
 mod fsutil;
 pub mod kv;
 pub mod memory;
+pub mod migrate;
+#[cfg(feature = "rocksdb")]
+pub mod rocks;
 pub mod wal;
 
 pub use kv::{ColumnFamily, KvPairs, KvSnapshot, KvStore, WriteBatch, WriteOp};

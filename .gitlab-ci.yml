@@ -11,6 +11,8 @@ stages:
     CARGO_HOME: $CI_PROJECT_DIR/.cargo-home
     CARGO_TERM_COLOR: always
   before_script:
+    # clang/libclang: RocksDB's Rust binding generates its FFI bindings at build time.
+    - apt-get update -qq && apt-get install -y -qq clang libclang-dev > /dev/null
     - cd aletheia-node
     - rustup show active-toolchain
   cache:
@@ -39,8 +41,8 @@ node:test:
   extends: .node
   stage: check
   script:
-    - cargo test --workspace --locked
-    - cargo test --workspace --release --locked
+    - cargo test --workspace --all-features --locked
+    - cargo test --workspace --all-features --release --locked
 
 node:lint:
   extends: .node

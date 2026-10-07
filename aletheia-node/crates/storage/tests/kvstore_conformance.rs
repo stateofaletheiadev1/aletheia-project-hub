@@ -174,6 +174,7 @@ fn checkpoints_are_point_in_time_copies(backend: &impl Backend) {
         store.checkpoint(&dir).is_err(),
         "checkpoint never overwrites an existing directory"
     );
+    drop(restored); // Windows refuses to delete files an open database still holds
     std::fs::remove_dir_all(&dir).unwrap();
 }
 
@@ -201,4 +202,53 @@ fn run_suite(backend: &impl Backend) {
 #[test]
 fn memory_backend_conforms() {
     run_suite(&Memory);
+}
+
+#[cfg(feature = "rocksdb")]
+mod rocks_backend {
+    use super::*;
+    use aletheia_storage::rocks::{OpenMode, RocksKvStore, StorageBudget};
+    use std::sync::atomic::{AtomicUsize, Ordering};
+
+    static NEXT: AtomicUsize = AtomicUsize::new(0);
+
+    struct Rocks;
+
+    impl Backend for Rocks {
+        type Store = RocksKvStore;
+        fn fresh(&self) -> RocksKvStore {
+            let dir = scratch_dir(&format!("rocks-{}", NEXT.fetch_add(1, Ordering::Relaxed)));
+            RocksKvStore::open(
+                &dir,
+                &StorageBudget {
+                    block_cache_bytes: 8 << 20,
+                    ..StorageBudget::default()
+                },
+                OpenMode::CreateNew,
+            )
+            .unwrap()
+        }
+        fn reopen_checkpoint(&self, dir: &std::path::Path) -> RocksKvStore {
+            RocksKvStore::open(
+                dir,
+                &StorageBudget {
+                    block_cache_bytes: 8 << 20,
+                    ..StorageBudget::default()
+                },
+                OpenMode::Existing,
+            )
+            .unwrap()
+        }
+    }
+
+    #[test]
+    fn rocksdb_backend_conforms() {
+        run_suite(&Rocks);
+    }
+
+    #[test]
+    fn opening_a_missing_database_is_an_error_not_a_fresh_start() {
+        let dir = scratch_dir("rocks-missing");
+        assert!(RocksKvStore::open(&dir, &StorageBudget::default(), OpenMode::Existing).is_err());
+    }
 }
