@@ -15,7 +15,7 @@ const PAGES = [
   '/news/public-key-directory', '/documents', '/contact', '/faq', '/government', '/government/ministry-of-foreign-affairs',
   '/government/ministry-of-maritime', '/constitution', '/laws', '/laws/adss-act', '/citizenship', '/citizenship/apply',
   '/registry', '/e-residency', '/immigration', '/passport', '/development', '/infrastructure', '/energy', '/economy',
-  '/treasury', '/central-bank', '/aey', '/stablechain', '/business', '/invest', '/technology', '/security', '/adss',
+  '/treasury', '/central-bank', '/aey', '/aey/paper-currency', '/de/aey/paper-currency', '/stablechain', '/business', '/invest', '/technology', '/security', '/adss',
   '/adss/cybersecurity', '/privacy', '/terms', '/accessibility', '/portal/login', '/de', '/nl', '/sr', '/it', '/sr/citizenship', '/de/citizenship/apply', '/nl/registry',
 ];
 

@@ -5,7 +5,9 @@ import React, { useState } from 'react';
 import Link from '@/components/i18n/Link';
 import { StarOfTruth } from '@/components/brand/Logo';
 import { StatusBadge } from '@/components/ui/StatusBadge';
+import Image from 'next/image';
 import {
+  Banknote,
   CreditCard,
   ArrowRight,
   CheckCircle2,
@@ -349,13 +351,60 @@ export default function AeyCurrencyPage() {
 
       </section>
 
+      {/* ── PAPER SERIES PROTOTYPE ── */}
+      <section className="bg-white border-y border-navy/10 py-16 lg:py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+          <div className="lg:col-span-5 space-y-5">
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">{t("Banknote Design Prototype")}</span>
+              <StatusBadge status="Proposed" size="sm" />
+            </div>
+            <h2 className="text-3xl font-bold text-navy tracking-tight">{t("The AEY Paper Series")}</h2>
+            <p className="text-sm text-navy/70 leading-relaxed">{t("See what an Aletheian Guilder banknote looks like. Five prototype denominations — 1, 5, 10, 20 and 100 AEY — engraved front and back with the saints, scientists and founding states of the Covenant. Concept artwork only; the AEY remains a fully digital currency.")}</p>
+            <Link
+              href="/aey/paper-currency"
+              className="btn-sovereign-gold inline-flex px-7 py-3.5 rounded-sm items-center gap-2.5 group text-sm"
+            >
+              <Banknote className="w-4 h-4" />
+              <span>{t("View the Paper Currency")}</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
+          <Link
+            href="/aey/paper-currency"
+            className="lg:col-span-7 group block bg-navy rounded-sm border border-gold/30 p-6 sm:p-10 relative overflow-hidden"
+            aria-label={t("View the Paper Currency")}
+          >
+            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-gold to-transparent" />
+            <div className="relative mx-auto w-[88%] aspect-[1168/784]">
+              {[20, 100].map((value, i) => (
+                <div
+                  key={value}
+                  className="absolute inset-0 rounded-sm overflow-hidden border border-gold/30 shadow-2xl shadow-black/50 transition-transform duration-500"
+                  style={{ transform: i === 0 ? 'translate(-5%, -6%) rotate(-4deg)' : 'translate(4%, 5%) rotate(2deg)' }}
+                >
+                  <Image
+                    src={`/images/currency/aey-${value}-front.webp`}
+                    alt={i === 1 ? t("Prototype 100 AEY banknote, front") : ''}
+                    width={1168}
+                    height={784}
+                    loading="lazy"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ))}
+            </div>
+          </Link>
+        </div>
+      </section>
+
       {/* ── CALL TO ACTION ── */}
       <section className="bg-navy text-parchment py-16 border-t border-gold/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
           <StarOfTruth size={36} className="mx-auto" />
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-parchment">{t("Experience Sound Money by Covenant")}</h2>
           <p className="text-xs sm:text-sm text-parchment/70 max-w-xl mx-auto leading-relaxed">{t("Open an enterprise account or acquire digital AEY settlement balances through accredited e-residency.")}</p>
-          <div className="flex justify-center gap-4 pt-2">
+          <div className="flex flex-wrap justify-center gap-4 pt-2">
             <Link
               href="/e-residency"
               className="px-6 py-2.5 bg-gold text-navy font-bold text-xs uppercase tracking-wider rounded-sm hover:bg-gold-tint transition-all"
@@ -364,6 +413,10 @@ export default function AeyCurrencyPage() {
               href="/central-bank"
               className="px-6 py-2.5 border border-gold/30 text-parchment font-semibold text-xs uppercase tracking-wider rounded-sm hover:border-gold/60 transition-colors"
             >{t("Central Bank Architecture")}</Link>
+            <Link
+              href="/aey/paper-currency"
+              className="px-6 py-2.5 border border-gold/30 text-parchment font-semibold text-xs uppercase tracking-wider rounded-sm hover:border-gold/60 transition-colors"
+            >{t("Paper Currency Prototype")}</Link>
           </div>
         </div>
       </section>
