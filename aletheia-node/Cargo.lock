@@ -12,6 +12,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "aletheia-arno"
+version = "0.1.0"
+dependencies = [
+ "proptest",
+]
+
+[[package]]
 name = "aletheia-conformance"
 version = "0.1.0"
 dependencies = [

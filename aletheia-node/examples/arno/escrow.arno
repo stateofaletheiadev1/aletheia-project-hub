@@ -1,0 +1,88 @@
+{ Escrow: holds AEY until the arbiter releases it, or refunds the buyer after the deadline. }
+contract Escrow;
+
+version 0.1;
+
+uses Std.Coins, Std.Auth, Std.Chain;
+
+type
+  Phase = (Open, Funded, Released, Refunded);
+
+errors
+  WrongPhase  = 'The escrow is not in the right phase for this action.';
+  NotTheBuyer = 'Only the buyer can do this.';
+  NotArbiter  = 'Only the arbiter can do this.';
+  TooEarly    = 'The refund deadline has not passed yet.';
+
+events
+  EscrowFunded(Buyer: Address; Total: UInt128);
+  EscrowReleased(Seller: Address; Total: UInt128);
+  EscrowRefunded(Buyer: Address; Total: UInt128);
+
+storage
+  Buyer, Seller, Arbiter: Address;
+  Deadline: Slot;
+  Safe: Vault of AEY;
+  State: Phase;
+
+constructor Create(Caller: Signer; ASeller, AnArbiter: Address; ADeadline: Slot);
+  changes storage;
+begin
+  Buyer    := Caller.Address;
+  Seller   := ASeller;
+  Arbiter  := AnArbiter;
+  Deadline := ADeadline;
+  Safe     := Vault.Empty;
+  State    := Open;
+end;
+
+procedure Fund(Caller: Signer; Deposit: Coins of AEY); entry;
+  changes storage, receives coins, emits events;
+var
+  Total: UInt128;
+begin
+  require State = Open otherwise WrongPhase;
+  require Caller.Address = Buyer otherwise NotTheBuyer;
+  Total := Deposit.Value;
+  Safe.Deposit(move Deposit);        { Deposit is used up here and can never be touched again }
+  State := Funded;
+  emit EscrowFunded(Buyer, Total);
+end;
+
+procedure Release(Caller: Signer); entry;
+  changes storage, sends coins, emits events;
+var
+  Payout: Coins of AEY;
+  Total: UInt128;
+begin
+  require State = Funded otherwise WrongPhase;
+  require Caller.Address = Arbiter otherwise NotArbiter;
+  Payout := Safe.WithdrawAll;
+  Total := Payout.Value;
+  Transfer(move Payout, Seller);
+  State := Released;
+  emit EscrowReleased(Seller, Total);
+end;
+
+procedure Refund(Caller: Signer); entry;
+  changes storage, sends coins, emits events;
+var
+  Back: Coins of AEY;
+  Total: UInt128;
+begin
+  require State = Funded otherwise WrongPhase;
+  require Caller.Address = Buyer otherwise NotTheBuyer;
+  require Chain.Slot > Deadline otherwise TooEarly;
+  Back := Safe.WithdrawAll;
+  Total := Back.Value;
+  Transfer(move Back, Buyer);
+  State := Refunded;
+  emit EscrowRefunded(Buyer, Total);
+end;
+
+function Status: Phase; view;
+begin
+  Result := State;
+end;
+
+end.

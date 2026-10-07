@@ -1,0 +1,16 @@
+[package]
+name = "aletheia-arno"
+description = "The Arno compiler: lexer, parser, checks, code generation and packaging to .arnobc (spec Sections 25-27)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+
+[dev-dependencies]
+proptest.workspace = true
+
+[lints]
+workspace = true

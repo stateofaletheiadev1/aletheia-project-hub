@@ -4,6 +4,7 @@ resolver = "2"
 # crate here before it exists would break `cargo build --locked`.
 exclude = ["fuzz"]
 members = [
+  "crates/arno",
   "crates/core",
   "crates/crypto",
   "crates/consensus",
@@ -30,6 +31,7 @@ repository = "https://gitlab.com/emeka.iwuagwu/aletheia-project-hub"
 publish = false
 
 [workspace.dependencies]
+aletheia-arno = { path = "crates/arno" }
 aletheia-core = { path = "crates/core" }
 aletheia-crypto = { path = "crates/crypto" }
 aletheia-consensus = { path = "crates/consensus" }

@@ -1,0 +1,52 @@
+contract Payroll;
+
+version 0.1;
+
+uses Std.Coins, Std.Auth;
+
+const
+  MaxStaff = 500;
+
+type
+  Employee = record
+    Wallet: Address;
+    Salary: UInt128;
+    Active: Boolean;
+  end;
+
+errors
+  NotOwner     = 'Only the payroll owner can do this.';
+  NotEnough    = 'The payroll vault does not hold enough AEY for this run.';
+
+events
+  SalaryPaid(Wallet: Address; Amount: UInt128);
+
+storage
+  Owner: Address;
+  Staff: List of Employee max MaxStaff;
+  Funds: Vault of AEY;
+
+procedure PayEveryone(Caller: Signer); entry;
+  sends coins, emits events;
+var
+  Person: Employee;
+  Needed: UInt128;
+begin
+  require Caller.Address = Owner otherwise NotOwner;
+
+  Needed := 0;
+  for each Person in Staff do
+    if Person.Active then
+      Needed := Needed + Person.Salary;          { overflow would abort, never wrap }
+
+  require Funds.Balance >= Needed otherwise NotEnough;
+
+  for each Person in Staff do                     { bounded: Staff holds at most MaxStaff entries }
+    if Person.Active then
+    begin
+      Transfer(Funds.Withdraw(Person.Salary), Person.Wallet);
+      emit SalaryPaid(Person.Wallet, Person.Salary);
+    end;
+end;
+
+end.
