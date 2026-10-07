@@ -20,6 +20,7 @@ pub enum Trap {
     InsufficientVault,
     InsufficientCoins,
     MemoryLimit,
+    StorageValueTooLarge,
     /// The contract aborted with its error at this index (`require` / `fail`).
     Abort(u16),
     /// The host refused an operation (for example a transfer to an invalid address).
@@ -43,6 +44,7 @@ impl Trap {
             Trap::InsufficientVault => ErrorCode::VmInsufficientVault,
             Trap::InsufficientCoins => ErrorCode::VmInsufficientCoins,
             Trap::MemoryLimit => ErrorCode::VmMemoryLimit,
+            Trap::StorageValueTooLarge => ErrorCode::VmStorageValueTooLarge,
             Trap::Abort(_) => ErrorCode::VmContractAborted,
             Trap::Host(code) => *code,
             Trap::Internal(_) => ErrorCode::VmInternal,

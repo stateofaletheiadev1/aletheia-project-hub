@@ -13,6 +13,7 @@ aletheia-crypto.workspace = true
 aletheia-monetary.workspace = true
 aletheia-state.workspace = true
 aletheia-storage.workspace = true
+aletheia-vm.workspace = true
 blake3.workspace = true
 # Genesis TOML is operator input, parsed at the boundary; consensus bytes are ACE (Section 43).
 serde.workspace = true

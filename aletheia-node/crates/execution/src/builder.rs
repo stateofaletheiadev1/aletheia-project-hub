@@ -83,7 +83,10 @@ pub fn select(
             break;
         }
         overlay.checkpoint();
-        match rules.apply_transaction(records, &mut overlay, tx, ctx, tx_count) {
+        match rules
+            .apply_transaction(records, &mut overlay, tx, ctx, tx_count)
+            .map(|(receipt, _)| receipt)
+        {
             Ok(receipt) if eu.saturating_add(receipt.eu_used) <= limits.max_block_eu => {
                 overlay.commit_checkpoint();
                 eu = eu.saturating_add(receipt.eu_used);

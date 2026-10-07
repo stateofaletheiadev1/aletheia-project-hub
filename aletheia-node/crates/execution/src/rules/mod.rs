@@ -118,7 +118,7 @@ impl Rules {
         tx: &VerifiedTransaction,
         ctx: &BlockContext,
         index: u32,
-    ) -> Result<Receipt, AletheiaError> {
+    ) -> Result<(Receipt, v1::Touched), AletheiaError> {
         match self {
             Rules::V1 => v1::apply_transaction(records, overlay, tx, ctx, index),
             #[cfg(feature = "test-protocol-v2")]

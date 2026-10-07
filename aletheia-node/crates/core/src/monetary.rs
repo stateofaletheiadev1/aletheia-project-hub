@@ -255,6 +255,101 @@ impl AceDecode for ReserveAttestation {
     }
 }
 
+/// Largest package a deployment carries (it must also fit the transaction size limit).
+pub const MAX_DEPLOY_PACKAGE: u32 = 60 * 1024;
+/// Largest encoded argument list.
+pub const MAX_CALL_ARGS: u32 = 16 * 1024;
+/// Longest routine name.
+pub const MAX_ROUTINE_NAME: u32 = 64;
+
+/// Coins attached to a contract call or deployment, handed to the routine's Coins parameter.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Attachment {
+    pub asset: AssetId,
+    pub amount: u128,
+}
+
+impl AceEncode for Attachment {
+    fn encode(&self, out: &mut AceWriter) {
+        self.asset.encode(out);
+        out.u128(self.amount);
+    }
+}
+
+impl AceDecode for Attachment {
+    fn decode(input: &mut AceReader<'_>) -> Result<Attachment, AletheiaError> {
+        Ok(Attachment {
+            asset: AssetId::decode(input)?,
+            amount: input.u128()?,
+        })
+    }
+}
+
+/// `ContractDeploy` (32): an Arno package and its constructor's arguments (Section 27).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ContractDeploy {
+    pub package: Vec<u8>,
+    /// The constructor's arguments after the Signer, each in its type's canonical encoding.
+    pub args: Vec<u8>,
+    pub attach: Option<Attachment>,
+}
+
+impl AceEncode for ContractDeploy {
+    fn encode(&self, out: &mut AceWriter) {
+        out.bytes(&self.package);
+        out.bytes(&self.args);
+        out.option(self.attach.as_ref());
+    }
+}
+
+impl AceDecode for ContractDeploy {
+    fn decode(input: &mut AceReader<'_>) -> Result<ContractDeploy, AletheiaError> {
+        Ok(ContractDeploy {
+            package: input.bytes(MAX_DEPLOY_PACKAGE)?.to_vec(),
+            args: input.bytes(MAX_CALL_ARGS)?.to_vec(),
+            attach: input.option()?,
+        })
+    }
+}
+
+/// `ContractCall` (33): an entry or view routine of a deployed contract, by name.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ContractCall {
+    pub contract: Address,
+    pub routine: String,
+    pub args: Vec<u8>,
+    pub attach: Option<Attachment>,
+}
+
+impl AceEncode for ContractCall {
+    fn encode(&self, out: &mut AceWriter) {
+        self.contract.encode(out);
+        out.bytes(self.routine.as_bytes());
+        out.bytes(&self.args);
+        out.option(self.attach.as_ref());
+    }
+}
+
+impl AceDecode for ContractCall {
+    fn decode(input: &mut AceReader<'_>) -> Result<ContractCall, AletheiaError> {
+        let contract = Address::decode(input)?;
+        let routine = core::str::from_utf8(input.bytes(MAX_ROUTINE_NAME)?)
+            .map_err(|_| {
+                AletheiaError::new(
+                    ErrorCode::DecodeNonCanonical,
+                    "routine name is not UTF-8".to_owned(),
+                )
+            })?
+            .to_owned();
+        Ok(ContractCall {
+            contract,
+            routine,
+            args: input.bytes(MAX_CALL_ARGS)?.to_vec(),
+            attach: input.option()?,
+        })
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

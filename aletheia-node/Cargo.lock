@@ -92,6 +92,7 @@ dependencies = [
  "aletheia-monetary",
  "aletheia-state",
  "aletheia-storage",
+ "aletheia-vm",
  "blake3",
  "proptest",
  "serde",
@@ -183,12 +184,14 @@ dependencies = [
 name = "aletheia-test-harness"
 version = "0.1.0"
 dependencies = [
+ "aletheia-arno",
  "aletheia-core",
  "aletheia-crypto",
  "aletheia-execution",
  "aletheia-monetary",
  "aletheia-state",
  "aletheia-storage",
+ "aletheia-vm",
  "proptest",
 ]
 

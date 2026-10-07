@@ -163,8 +163,10 @@ fn step_5_rule_table_lists_only_active_types() {
     ] {
         assert!(Rules::V1.tx_type_active(active), "{active}");
     }
-    // ContractDeploy (32) arrives with the Arno VM.
-    assert!(!Rules::V1.tx_type_active(TxType::new(32)));
+    assert!(Rules::V1.tx_type_active(TxType::CONTRACT_DEPLOY));
+    assert!(Rules::V1.tx_type_active(TxType::CONTRACT_CALL));
+    // Registry operations (48..=63) arrive with the native registries.
+    assert!(!Rules::V1.tx_type_active(TxType::new(48)));
 }
 
 #[test]

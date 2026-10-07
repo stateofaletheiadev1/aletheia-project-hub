@@ -196,6 +196,32 @@ impl Records {
             .transpose()
     }
 
+    pub fn contract_code_key(&self, code_hash: &Hash32) -> StateKey {
+        StateKey::derive(&self.network, Namespace::ContractCode, code_hash)
+    }
+
+    pub fn contract_meta_key(&self, contract: &Address) -> StateKey {
+        StateKey::derive(&self.network, Namespace::ContractMeta, contract)
+    }
+
+    /// A contract's storage entry: `(contract, slot u16 LE || key)` (Section 15, ADR-047).
+    pub fn contract_storage_key(&self, contract: &Address, slot: u16, key: &[u8]) -> StateKey {
+        let mut raw = contract.to_ace_bytes();
+        raw.extend_from_slice(&slot.to_le_bytes());
+        raw.extend_from_slice(key);
+        StateKey::derive_raw(&self.network, Namespace::ContractStorage, &raw)
+    }
+
+    pub fn contract_meta(
+        &self,
+        view: &dyn StateView,
+        contract: &Address,
+    ) -> Result<Option<ContractMeta>, AletheiaError> {
+        view.get(&self.contract_meta_key(contract))?
+            .map(|bytes| decode_record(&bytes, "contract meta"))
+            .transpose()
+    }
+
     pub fn supply_key(&self, asset: AssetId) -> StateKey {
         StateKey::derive(&self.network, Namespace::MonetaryLedger, &asset)
     }
@@ -648,6 +674,36 @@ impl AceDecode for StoredAttestation {
             observed_slot: input.u64()?,
             evidence_ref: Hash32::decode(input)?,
             accepted_at_height: input.u64()?,
+        })
+    }
+}
+
+/// Namespace 49, key the contract address (Section 15).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ContractMeta {
+    pub code_hash: Hash32,
+    pub deployer: Address,
+    pub arno_version: u16,
+    /// Reserved for a per-contract storage commitment; zero in v0.1.
+    pub storage_root_hint: Hash32,
+}
+
+impl AceEncode for ContractMeta {
+    fn encode(&self, out: &mut AceWriter) {
+        self.code_hash.encode(out);
+        self.deployer.encode(out);
+        out.u16(self.arno_version);
+        self.storage_root_hint.encode(out);
+    }
+}
+
+impl AceDecode for ContractMeta {
+    fn decode(input: &mut AceReader<'_>) -> Result<ContractMeta, AletheiaError> {
+        Ok(ContractMeta {
+            code_hash: Hash32::decode(input)?,
+            deployer: Address::decode(input)?,
+            arno_version: input.u16()?,
+            storage_root_hint: Hash32::decode(input)?,
         })
     }
 }

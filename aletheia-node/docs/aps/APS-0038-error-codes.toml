@@ -244,11 +244,39 @@ class = "reject"
 message = "The transaction names an asset that does not exist or cannot be transferred."
 
 [[code]]
+code = 2017
+name = "TX_CONTRACT_UNKNOWN"
+variant = "TxContractUnknown"
+class = "reject"
+message = "No contract is deployed at the called address."
+
+[[code]]
+code = 2018
+name = "TX_ROUTINE_UNKNOWN"
+variant = "TxRoutineUnknown"
+class = "reject"
+message = "The contract has no entry or view routine with that name."
+
+[[code]]
+code = 2019
+name = "TX_ATTACHMENT_INVALID"
+variant = "TxAttachmentInvalid"
+class = "reject"
+message = "Attached coins do not match the routine: none expected, a different asset, zero, or more than one Coins parameter."
+
+[[code]]
 code = 2020
 name = "TX_TYPE_NOT_ACTIVE"
 variant = "TxTypeNotActive"
 class = "reject"
 message = "The transaction type is not active at the current protocol version."
+
+[[code]]
+code = 2021
+name = "TX_ARGS_INVALID"
+variant = "TxArgsInvalid"
+class = "reject"
+message = "The call arguments do not decode as the routine parameters in their canonical encoding."
 
 [[code]]
 code = 3001
@@ -760,3 +788,10 @@ name = "VM_INTERNAL"
 variant = "VmInternal"
 class = "fail-stop"
 message = "The VM reached a state the bytecode verifier rules out; a VM bug, so the node stops rather than diverge."
+
+[[code]]
+code = 13113
+name = "VM_STORAGE_VALUE_TOO_LARGE"
+variant = "VmStorageValueTooLarge"
+class = "reject"
+message = "A contract tried to store a value larger than 16 KiB under one key."

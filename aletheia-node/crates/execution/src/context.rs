@@ -43,6 +43,10 @@ impl Meter {
         self.limit
     }
 
+    pub fn remaining(&self) -> u64 {
+        self.limit.saturating_sub(self.used)
+    }
+
     pub fn charge(&mut self, units: u64) -> Result<(), OutOfEu> {
         match self.used.checked_add(units) {
             Some(total) if total <= self.limit => {

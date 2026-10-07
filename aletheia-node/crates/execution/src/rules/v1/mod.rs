@@ -14,6 +14,7 @@
 //! 5. the receipt commits to the transaction's ordered write set.
 
 pub mod balances;
+pub mod contract;
 pub mod limits;
 pub mod monetary;
 pub mod transfer;
@@ -154,7 +155,12 @@ pub type PayloadRunner = fn(
     &BlockContext,
     &mut Meter,
     &mut Vec<Event>,
+    &mut Touched,
 ) -> Result<PayloadOutcome, AletheiaError>;
+
+/// Balances a payload changed that its transaction alone does not name (a contract's
+/// transfers), for the supply check after the block.
+pub type Touched = Vec<(aletheia_core::Address, aletheia_core::AssetId)>;
 
 pub fn run_payload(
     records: &Records,
@@ -163,6 +169,7 @@ pub fn run_payload(
     ctx: &BlockContext,
     meter: &mut Meter,
     events: &mut Vec<Event>,
+    touched: &mut Touched,
 ) -> Result<PayloadOutcome, AletheiaError> {
     let body = &verified.transaction().body;
     let result = match &body.payload {
@@ -201,6 +208,12 @@ pub fn run_payload(
         Payload::ReserveAttestation(attestation) => {
             monetary::attest(records, overlay, attestation, ctx, meter, events)
         }
+        Payload::ContractDeploy(deploy) => contract::deploy(
+            records, overlay, verified, deploy, ctx, meter, events, touched,
+        ),
+        Payload::ContractCall(call) => contract::call(
+            records, overlay, verified, call, ctx, meter, events, touched,
+        ),
         #[cfg(feature = "test-protocol-v2")]
         Payload::TestRemark(_) => Err(invalid(
             ErrorCode::TxTypeNotActive,
@@ -257,6 +270,21 @@ pub fn touched_balances(
             &[]
         }
         Payload::ReserveAttestation(_) => &[],
+        // Attached coins move from the sender to the contract; the contract's own transfers
+        // are reported at run time (`Touched`).
+        Payload::ContractDeploy(deploy) => {
+            if let Some(attach) = deploy.attach {
+                touched.push((body.sender, attach.asset));
+            }
+            &[]
+        }
+        Payload::ContractCall(call) => {
+            if let Some(attach) = call.attach {
+                touched.push((body.sender, attach.asset));
+                touched.push((call.contract, attach.asset));
+            }
+            &[]
+        }
         #[cfg(feature = "test-protocol-v2")]
         Payload::TestRemark(_) => &[],
     };
@@ -275,7 +303,7 @@ pub fn apply_transaction(
     verified: &VerifiedTransaction,
     ctx: &BlockContext,
     index: u32,
-) -> Result<Receipt, AletheiaError> {
+) -> Result<(Receipt, Touched), AletheiaError> {
     apply_transaction_with(records, overlay, verified, ctx, index, run_payload)
 }
 
@@ -288,7 +316,7 @@ pub fn apply_transaction_with(
     ctx: &BlockContext,
     index: u32,
     run: PayloadRunner,
-) -> Result<Receipt, AletheiaError> {
+) -> Result<(Receipt, Touched), AletheiaError> {
     let (account, price) = validate_stateful(records, overlay, verified, ctx)?;
     let tx = verified.transaction();
     let body = &tx.body;
@@ -297,7 +325,16 @@ pub fn apply_transaction_with(
     overlay.checkpoint();
     let mut meter = Meter::new(body.fee.eu_limit);
     let mut events = Vec::new();
-    let mut result = run(records, overlay, verified, ctx, &mut meter, &mut events)?;
+    let mut touched = Touched::new();
+    let mut result = run(
+        records,
+        overlay,
+        verified,
+        ctx,
+        &mut meter,
+        &mut events,
+        &mut touched,
+    )?;
 
     if matches!(result, PayloadOutcome::Success) {
         let fee = u128::from(meter.used()).saturating_mul(price);
@@ -351,7 +388,7 @@ pub fn apply_transaction_with(
     };
     records.put_account(overlay, &body.sender, &next);
 
-    Ok(Receipt {
+    let receipt = Receipt {
         tx_id: verified.tx_id().hash(),
         height: ctx.height.get(),
         index_in_block: index,
@@ -363,5 +400,6 @@ pub fn apply_transaction_with(
         write_set_hash: write_set_hash(records, &overlay.changes_since(mark)),
         events,
         return_data: Vec::new(),
-    })
+    };
+    Ok((receipt, touched))
 }

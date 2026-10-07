@@ -17,6 +17,8 @@ pub const TX_TYPES: &[TxType] = &[
     TxType::UNLOCK,
     TxType::REDEEM,
     TxType::RESERVE_ATTESTATION,
+    TxType::CONTRACT_DEPLOY,
+    TxType::CONTRACT_CALL,
 ];
 
 pub const TX_LIMITS: TxLimits = TxLimits {

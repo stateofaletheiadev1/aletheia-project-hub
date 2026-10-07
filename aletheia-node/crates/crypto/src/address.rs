@@ -28,6 +28,23 @@ pub fn ed25519_account(network: &NetworkIdentity, key: &Ed25519PublicKey) -> Add
     Address::new(AddressType::Ed25519Account, hasher.finalize())
 }
 
+/// A contract's address (Section 11): `H_domain("ALETHEIA/ADDR/v1", u8(2) || deployer ||
+/// u64(deployer_nonce) || code_hash)`, with the deployer in its ACE encoding.
+pub fn contract_account(
+    network: &NetworkIdentity,
+    deployer: &Address,
+    deployer_nonce: u64,
+    code_hash: &aletheia_core::Hash32,
+) -> Address {
+    let mut hasher = network.domain_hasher(DomainTag::Address);
+    hasher
+        .update(&[AddressType::Contract.code()])
+        .update(&aletheia_core::AceEncode::to_ace_bytes(deployer))
+        .update(&deployer_nonce.to_le_bytes())
+        .update(code_hash.as_bytes());
+    Address::new(AddressType::Contract, hasher.finalize())
+}
+
 /// `keys` must be strictly ascending, as the authorization decoder already guarantees.
 pub fn multisig_account(
     network: &NetworkIdentity,

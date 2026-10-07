@@ -84,9 +84,10 @@ pub fn execute_block(
 
     let mut overlay = StateOverlay::new(base);
     let mut receipts = Vec::with_capacity(transactions.len());
+    let mut touched = Vec::new();
     let mut eu_used = 0u64;
     for (index, tx) in (0u32..).zip(transactions) {
-        let receipt = rules
+        let (receipt, moved) = rules
             .apply_transaction(records, &mut overlay, tx, ctx, index)
             .map_err(|error| {
                 if error.is_fail_stop() || error.code() == ErrorCode::StoCorrupt {
@@ -103,6 +104,7 @@ pub fn execute_block(
                     ),
                 )
             })?;
+        touched.extend(moved);
         eu_used = eu_used
             .checked_add(receipt.eu_used)
             .ok_or_else(|| limit_exceeded("block EU overflows".to_owned()))?;
@@ -115,7 +117,7 @@ pub fn execute_block(
         )));
     }
 
-    check_supply(rules, records, base, &overlay, transactions)?;
+    check_supply(rules, records, base, &overlay, transactions, &touched)?;
 
     let network = records.network();
     let witness: Vec<[u8; 32]> = transactions
@@ -152,11 +154,13 @@ pub fn check_supply(
     base: &dyn StateView,
     after: &StateOverlay<'_>,
     transactions: &[VerifiedTransaction],
+    reported: &[(aletheia_core::Address, aletheia_core::AssetId)],
 ) -> Result<(), AletheiaError> {
     let touched: std::collections::BTreeSet<(aletheia_core::Address, aletheia_core::AssetId)> =
         transactions
             .iter()
             .flat_map(|tx| rules.touched_balances(tx))
+            .chain(reported.iter().copied())
             .collect();
     let mut deltas: std::collections::BTreeMap<
         aletheia_core::AssetId,

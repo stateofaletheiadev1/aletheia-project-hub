@@ -19,6 +19,8 @@ aletheia-storage.workspace = true
 test-protocol-v2 = ["aletheia-execution/test-protocol-v2"]
 
 [dev-dependencies]
+aletheia-arno.workspace = true
+aletheia-vm.workspace = true
 proptest.workspace = true
 
 [lints]

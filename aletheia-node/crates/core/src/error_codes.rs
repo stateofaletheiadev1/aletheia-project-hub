@@ -80,7 +80,11 @@ error_codes! {
     TxFeeUnaffordable = 2014, "TX_FEE_UNAFFORDABLE", Reject;
     TxMaxFeeInsufficient = 2015, "TX_MAX_FEE_INSUFFICIENT", Reject;
     TxAssetUnknown = 2016, "TX_ASSET_UNKNOWN", Reject;
+    TxContractUnknown = 2017, "TX_CONTRACT_UNKNOWN", Reject;
+    TxRoutineUnknown = 2018, "TX_ROUTINE_UNKNOWN", Reject;
+    TxAttachmentInvalid = 2019, "TX_ATTACHMENT_INVALID", Reject;
     TxTypeNotActive = 2020, "TX_TYPE_NOT_ACTIVE", Reject;
+    TxArgsInvalid = 2021, "TX_ARGS_INVALID", Reject;
     BlkNotCanonicalOrder = 3001, "BLK_NOT_CANONICAL_ORDER", Reject;
     BlkVersionMismatch = 3002, "BLK_VERSION_MISMATCH", Reject;
     BlkLimitExceeded = 3003, "BLK_LIMIT_EXCEEDED", Reject;
@@ -154,6 +158,7 @@ error_codes! {
     VmMemoryLimit = 13110, "VM_MEMORY_LIMIT", Reject;
     VmContractAborted = 13111, "VM_CONTRACT_ABORTED", Reject;
     VmInternal = 13112, "VM_INTERNAL", FailStop;
+    VmStorageValueTooLarge = 13113, "VM_STORAGE_VALUE_TOO_LARGE", Reject;
 }
 
 #[cfg(test)]

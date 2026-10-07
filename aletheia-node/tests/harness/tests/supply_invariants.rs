@@ -149,7 +149,7 @@ fn a_block_that_creates_value_is_refused() {
         .unwrap();
     balance.available += 5;
     records.put_balance(&mut overlay, &recipient, AssetId::ALNT, balance);
-    let error = check_supply(Rules::V1, &records, &view, &overlay, &verified).unwrap_err();
+    let error = check_supply(Rules::V1, &records, &view, &overlay, &verified, &[]).unwrap_err();
     assert_eq!(error.code(), ErrorCode::MonetaryInvariantViolated);
     assert!(error.detail().contains("I7"), "{error}");
 }
@@ -172,7 +172,7 @@ fn a_ledger_change_without_matching_balances_is_refused() {
     ledger.authorized_capacity += 7;
     ledger.outstanding_liabilities += 7;
     records.put_supply_ledger(&mut overlay, AssetId::AEY, &ledger);
-    let error = check_supply(Rules::V1, &records, &view, &overlay, &verified).unwrap_err();
+    let error = check_supply(Rules::V1, &records, &view, &overlay, &verified, &[]).unwrap_err();
     assert!(error.detail().contains("I7"), "{error}");
 }
 

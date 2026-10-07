@@ -189,6 +189,30 @@ fn check_field_ranges(
             };
         }
         Payload::ReserveAttestation(_) => return Ok(()),
+        Payload::ContractDeploy(deploy) => {
+            return if deploy.package.is_empty() {
+                Err(reject(
+                    ErrorCode::TxFieldOutOfRange,
+                    "the deployment carries no package".to_owned(),
+                ))
+            } else if deploy.attach.is_some_and(|a| a.amount == 0) {
+                zero("attachment")
+            } else {
+                Ok(())
+            };
+        }
+        Payload::ContractCall(call) => {
+            return if call.routine.is_empty() {
+                Err(reject(
+                    ErrorCode::TxFieldOutOfRange,
+                    "the call names no routine".to_owned(),
+                ))
+            } else if call.attach.is_some_and(|a| a.amount == 0) {
+                zero("attachment")
+            } else {
+                Ok(())
+            };
+        }
         #[cfg(feature = "test-protocol-v2")]
         Payload::TestRemark(_) => return Ok(()),
     };

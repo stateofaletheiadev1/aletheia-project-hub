@@ -15,6 +15,8 @@ use crate::stateless::VerifiedTransaction;
 pub const TX_TYPES: &[TxType] = &[
     TxType::TRANSFER,
     TxType::BATCH_TRANSFER,
+    TxType::CONTRACT_DEPLOY,
+    TxType::CONTRACT_CALL,
     TxType::MINT,
     TxType::BURN,
     TxType::LOCK,
@@ -32,13 +34,14 @@ fn run_payload(
     ctx: &BlockContext,
     meter: &mut Meter,
     events: &mut Vec<Event>,
+    touched: &mut v1::Touched,
 ) -> Result<PayloadOutcome, AletheiaError> {
     match &verified.transaction().body.payload {
         Payload::TestRemark(_) => Ok(match meter.charge(REMARK_EU) {
             Ok(()) => PayloadOutcome::Success,
             Err(_) => PayloadOutcome::OutOfEu,
         }),
-        _ => v1::run_payload(records, overlay, verified, ctx, meter, events),
+        _ => v1::run_payload(records, overlay, verified, ctx, meter, events, touched),
     }
 }
 
@@ -48,6 +51,6 @@ pub fn apply_transaction(
     verified: &VerifiedTransaction,
     ctx: &BlockContext,
     index: u32,
-) -> Result<Receipt, AletheiaError> {
+) -> Result<(Receipt, v1::Touched), AletheiaError> {
     v1::apply_transaction_with(records, overlay, verified, ctx, index, run_payload)
 }

@@ -51,6 +51,8 @@ impl TxType {
     pub const UNLOCK: TxType = TxType(19);
     pub const REDEEM: TxType = TxType(20);
     pub const RESERVE_ATTESTATION: TxType = TxType(96);
+    pub const CONTRACT_DEPLOY: TxType = TxType(32);
+    pub const CONTRACT_CALL: TxType = TxType(33);
     /// Test-only (feature `test-protocol-v2`): the type protocol version 2 adds in the
     /// continuity tests. Far from every real tag so it can never collide with one.
     #[cfg(feature = "test-protocol-v2")]
@@ -114,6 +116,8 @@ pub enum Payload {
     Unlock(crate::monetary::AssetAmount),
     Redeem(Box<crate::monetary::Redemption>),
     ReserveAttestation(Box<crate::monetary::ReserveAttestation>),
+    ContractDeploy(Box<crate::monetary::ContractDeploy>),
+    ContractCall(Box<crate::monetary::ContractCall>),
     /// Test-only opaque note, at most 256 bytes (feature `test-protocol-v2`).
     #[cfg(feature = "test-protocol-v2")]
     TestRemark(Vec<u8>),
@@ -130,6 +134,8 @@ impl Payload {
             Payload::Unlock(_) => TxType::UNLOCK,
             Payload::Redeem(_) => TxType::REDEEM,
             Payload::ReserveAttestation(_) => TxType::RESERVE_ATTESTATION,
+            Payload::ContractDeploy(_) => TxType::CONTRACT_DEPLOY,
+            Payload::ContractCall(_) => TxType::CONTRACT_CALL,
             #[cfg(feature = "test-protocol-v2")]
             Payload::TestRemark(_) => TxType::TEST_REMARK,
         }
@@ -146,6 +152,8 @@ impl Payload {
             }
             Payload::Redeem(redemption) => redemption.encode(out),
             Payload::ReserveAttestation(attestation) => attestation.encode(out),
+            Payload::ContractDeploy(deploy) => deploy.encode(out),
+            Payload::ContractCall(call) => call.encode(out),
             #[cfg(feature = "test-protocol-v2")]
             Payload::TestRemark(note) => out.bytes(note),
         }
@@ -168,6 +176,10 @@ impl Payload {
                 .map(|redemption| Payload::Redeem(Box::new(redemption))),
             TxType::RESERVE_ATTESTATION => crate::monetary::ReserveAttestation::decode(input)
                 .map(|attestation| Payload::ReserveAttestation(Box::new(attestation))),
+            TxType::CONTRACT_DEPLOY => crate::monetary::ContractDeploy::decode(input)
+                .map(|deploy| Payload::ContractDeploy(Box::new(deploy))),
+            TxType::CONTRACT_CALL => crate::monetary::ContractCall::decode(input)
+                .map(|call| Payload::ContractCall(Box::new(call))),
             #[cfg(feature = "test-protocol-v2")]
             TxType::TEST_REMARK => input
                 .bytes(MAX_MEMO_BYTES)
