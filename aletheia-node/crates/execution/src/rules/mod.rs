@@ -98,6 +98,19 @@ impl Rules {
         }
     }
 
+    /// Every `(account, asset)` balance applying `tx` can change. The supply check after each
+    /// block (Section 18.4, I7) recomputes the net balance change over exactly these.
+    pub fn touched_balances(
+        self,
+        tx: &VerifiedTransaction,
+    ) -> Vec<(aletheia_core::Address, AssetId)> {
+        match self {
+            Rules::V1 => v1::touched_balances(tx),
+            #[cfg(feature = "test-protocol-v2")]
+            Rules::TestV2 => v1::touched_balances(tx),
+        }
+    }
+
     pub fn apply_transaction(
         self,
         records: &Records,

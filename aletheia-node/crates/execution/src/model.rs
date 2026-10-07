@@ -149,6 +149,29 @@ impl Records {
         decode_record(&bytes, "chain timing")
     }
 
+    pub fn supply_key(&self, asset: AssetId) -> StateKey {
+        StateKey::derive(&self.network, Namespace::MonetaryLedger, &asset)
+    }
+
+    pub fn supply_ledger(
+        &self,
+        view: &dyn StateView,
+        asset: AssetId,
+    ) -> Result<Option<aletheia_monetary::SupplyLedger>, AletheiaError> {
+        view.get(&self.supply_key(asset))?
+            .map(|bytes| decode_record(&bytes, "supply ledger"))
+            .transpose()
+    }
+
+    pub fn put_supply_ledger(
+        &self,
+        overlay: &mut StateOverlay<'_>,
+        asset: AssetId,
+        ledger: &aletheia_monetary::SupplyLedger,
+    ) {
+        overlay.put(self.supply_key(asset), ledger.to_ace_bytes());
+    }
+
     pub fn validator_set_key(&self, epoch: u64) -> StateKey {
         StateKey::derive(&self.network, Namespace::ValidatorSets, &epoch)
     }

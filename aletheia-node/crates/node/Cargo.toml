@@ -12,6 +12,7 @@ aletheia-consensus.workspace = true
 aletheia-core.workspace = true
 aletheia-crypto.workspace = true
 aletheia-execution.workspace = true
+aletheia-monetary.workspace = true
 aletheia-p2p.workspace = true
 aletheia-signer.workspace = true
 aletheia-state.workspace = true

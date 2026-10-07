@@ -4,7 +4,7 @@ Spec Section 1.2: one row per module. "Implemented" means code exists on `main`.
 means unit and property tests run in `cargo test --workspace`. Nothing below is described as
 done unless it is.
 
-Current phase: **Phase 4 (multi-node P2P)**, exit criteria met in-process (table below); Phase 3 met except the 1M-block replay. Phase 1 still lacks the 24-hour fuzz campaign; Phase 2 lacks the Linux dm-log-writes power-loss replay. Phase 0 documents are
+Current phase: **Phase 6 (native assets)**, exit criterion met (table below). Phase 5 (DSP) runs in real nodes and its simulator suite is green at 25 seeds; the 10k-seed run, the 24-hour chaos run, epoch-boundary activation and the signer daemon remain. Phase 4 exit criteria met in-process; Phase 3 met except the 1M-block replay. Phase 1 still lacks the 24-hour fuzz campaign; Phase 2 lacks the Linux dm-log-writes power-loss replay. Phase 0 documents are
 partly written; see the end of this file.
 
 ## crates/core
@@ -50,7 +50,8 @@ partly written; see the end of this file.
 | Item | Spec | State |
 | --- | --- | --- |
 | Strict TOML config, plaintext keys refused outside devnet/regtest | 46A.2, 19.2 | Implemented; exit 78 on refusal |
-| Start-up order and operator log lines | 46A.2, 46A.4 | Implemented for the components that exist (no signer, consensus or RPC yet) |
+| Start-up order and operator log lines | 46A.2, 46A.4 | Implemented for the components that exist (no RPC yet) |
+| Validator consensus key (`consensus_key_file`) | 19.2 | Implemented for devnet and regtest (plaintext key material); production uses the signer daemon, not yet built |
 | Exit codes 0 / 64 / 70 / 75 / 78 | 46A.1, 44.4 | Implemented; `docs/operations/exit-codes.md` |
 | Crash recovery on real RocksDB | 24.3 | Verified by hand: killed at height 8, restarted at height 8 and continued |
 | Graceful SIGTERM shutdown order | 46A.3 | Implemented; not yet exercised on Linux (Windows `timeout` kills without a signal) |
@@ -74,7 +75,8 @@ partly written; see the end of this file.
 | Rules v1: lifecycle, transfer, batch, fees (`rules/v1/`) | 13, 23, 29 | yes | yes (not frozen) | 13 scenarios | n/a | rustdoc | no |
 | Block executor (`executor.rs`) | APS-0012 | yes | yes | scenarios, determinism corpus | n/a | rustdoc | no |
 | Protocol schedule and clean halt (`continuity.rs`) | 44.4 | yes | yes | mixed-version, replay, clean halt (feature `test-protocol-v2`) | n/a | rustdoc | n/a |
-| Genesis (`genesis.rs`) | APS-0035 | partly: chain, fees, assets, schedule, allocations | yes for that part | via harness and determinism | **no** | rustdoc | n/a |
+| Genesis (`genesis.rs`) | APS-0035 | partly: chain, fees, assets, schedule, allocations, epoch-0 validators, supply ledgers | yes for that part | harness, determinism, `genesis_validators.rs` | **no** | rustdoc | n/a |
+| Supply check after every block (`executor.rs::check_supply`) | 18.4 | yes | yes | `supply_invariants.rs` (property, forged blocks) | n/a | rustdoc | no |
 | Test-only protocol version 2 (`rules/test_v2.rs`) | 62.1 | yes | yes, feature-gated | continuity tests | n/a | rustdoc | n/a |
 
 ## crates/monetary
@@ -82,7 +84,9 @@ partly written; see the end of this file.
 | Module | APS | Specified | Implemented | Tested | Fuzzed | Documented | Benchmarked |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | Monetary arithmetic (`arith.rs`) | APS-0020, R.7 | yes | yes | property: division identity, native agreement | **no** | rustdoc | no |
-| Asset framework, ALnT, AEY, supply ledger, invariants | 18 | yes | **no** (Phases 6-7) | no | no | no | no |
+| Supply ledger and invariants I1-I8 (`ledger.rs`) | 18.4, R.8 | yes | yes | unit per invariant, property (I7, encoding) | **no** | rustdoc | no |
+| Asset framework: registry (decimals, transferable), AEY and ALnT records, genesis supply | 18.3, 18.7 | yes | yes | via execution and supply tests | n/a | rustdoc | n/a |
+| AEY operations: mint authorizations, burn, lock, redeem, attestations, I9 | 18.5, 18.8 | yes | **no** (Phase 7) | no | no | no | no |
 
 ## crates/node
 
@@ -90,7 +94,38 @@ partly written; see the end of this file.
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | Ledger: validator re-execution and finalize path (`ledger.rs`) | 20, 24.2 | yes | yes | follow a proposer, wrong root, wrong parent | n/a | rustdoc | no |
 | Crash recovery (`ledger.rs`) | 24.3 | yes (single node) | yes | crash after FINALIZE_BEGIN, archive append, KV commit; damaged archive; wrong genesis; lock | n/a | rustdoc | no |
-| Supervision tree, P2P, consensus, RPC wiring | 46A | yes | **no** | no | no | no | no |
+| Speculative execution and building on uncommitted parents (`ledger.rs`, `storage/layered.rs`) | 19.3 | yes | yes | chained state, fork pruning, unknown parent, wrong root, wrong validator set | n/a | rustdoc | no |
+| Safety data in the WAL, finality proofs with the block (`ledger.rs`) | 24.2, 24.3 | yes | yes | via the restart test | n/a | rustdoc | n/a |
+| Chain thread, sync service, DSP driver, P2P wiring (`chain.rs`, `sync.rs`, `consensus.rs`, `runtime.rs`) | 46A, 19 | yes | yes | 4 validators over TLS, restart, observer, refusals; 7-node producer network | n/a | rustdoc | no |
+| RPC | 12 | yes | **no** (Phase 12) | no | no | no | no |
+
+## crates/consensus and crates/signer (Phase 5)
+
+| Module | APS | Specified | Implemented | Tested | Fuzzed | Documented | Benchmarked |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Validator set, Q = N − F (`validator_set.rs`) | 19.1 (+ E-20, E-21) | yes | yes | unit | n/a | rustdoc | n/a |
+| Leader schedule (`schedule.rs`) | 19.6 (+ E-22) | yes | yes | unit, property (permutation) | n/a | rustdoc | n/a |
+| Safety rules V2-V5 (`safety.rs`) | 19.5, R.11 | yes | yes | unit, property | n/a | rustdoc | n/a |
+| QC/TC verification and collectors (`certificate.rs`) | APS-0009 (+ E-11) | yes | yes | unit | **no** | rustdoc | no |
+| Pacemaker (`pacemaker.rs`) | 19.4 | yes | yes | unit | n/a | rustdoc | n/a |
+| Engine, 2-chain finality, evidence (`engine.rs`, `finality.rs`) | 19 | yes | yes | Byzantine simulator | n/a | rustdoc | no |
+| Local signer with persistent high-water marks (`signer`) | 19.2, R.10 | yes | yes | equivocation, lower round, restart, crash, lock, corruption | n/a | rustdoc | n/a |
+| Signer daemon, remote protocol, HSM counter check | 19.2 | yes | **no** | no | no | no | no |
+| Activation at an epoch boundary, readiness signalling | 62.1 | yes | **no** | no | no | no | no |
+
+## Phase 5 exit criteria (spec Sections 62, 62.1)
+
+| Criterion | State |
+| --- | --- |
+| Simulator Byzantine suite green (10k seeds) | Green at 25 seeds in release (10 scenarios: silent, equivocating proposer, double voter, invalid proposer, partitions, loss, random faults). The 10k-seed run is the scheduled `node:sim` job, not yet run. |
+| Chaos 24 h, no safety violation | **Not yet run.** |
+| Activation with readiness just above and below threshold | **Not yet**: epoch transitions are not implemented. |
+
+## Phase 6 exit criteria (spec Section 62)
+
+| Criterion | State |
+| --- | --- |
+| Supply invariants property-tested | Met: random blocks of transfers and batch transfers in AEY and ALnT, failing payloads and fees in either asset, fully audited after every block (sum of all balances equals digital supply, I1-I8, issued supply unchanged); forged blocks that create value or record unbacked supply are refused. |
 
 ## Phase 3 exit criteria (spec Sections 62, 62.1)
 

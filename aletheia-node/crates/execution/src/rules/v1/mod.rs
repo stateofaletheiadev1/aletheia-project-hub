@@ -203,6 +203,29 @@ fn write_set_hash(
         .domain_hash(aletheia_core::DomainTag::WriteSet, out.as_bytes())
 }
 
+/// The balances a version-1 transaction can change: the fee (sender and fee pool) and each
+/// transfer leg (sender and recipient).
+pub fn touched_balances(
+    verified: &VerifiedTransaction,
+) -> Vec<(aletheia_core::Address, aletheia_core::AssetId)> {
+    let body = &verified.transaction().body;
+    let mut touched = vec![
+        (body.sender, body.fee.fee_asset),
+        (FEE_POOL, body.fee.fee_asset),
+    ];
+    let legs: &[aletheia_core::TransferLeg] = match &body.payload {
+        Payload::Transfer(leg) => core::slice::from_ref(leg),
+        Payload::BatchTransfer(legs) => legs,
+        #[cfg(feature = "test-protocol-v2")]
+        Payload::TestRemark(_) => &[],
+    };
+    for leg in legs {
+        touched.push((body.sender, leg.asset));
+        touched.push((leg.recipient, leg.asset));
+    }
+    touched
+}
+
 /// Applies one transaction at position `index` of the block. `Err` means the block is
 /// invalid (stateful validation failed) or the node must stop (fail-stop error).
 pub fn apply_transaction(

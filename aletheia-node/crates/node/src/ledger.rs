@@ -419,6 +419,29 @@ impl<S: KvStore> Ledger<S> {
                 ),
             ));
         }
+        self.verify_supply()
+    }
+
+    /// Finalized supply ledgers satisfy I1-I8 (Section 18.4). A violation here should be
+    /// impossible, since every block was checked before it was finalized, so it is a
+    /// fail-stop and the node never repairs balances itself.
+    fn verify_supply(&self) -> Result<(), AletheiaError> {
+        let records = Records::new(self.network);
+        let view = self.tip_view();
+        for asset in [aletheia_core::AssetId::AEY, aletheia_core::AssetId::ALNT] {
+            if let Some(ledger) = records.supply_ledger(&view, asset)? {
+                ledger.check(asset).map_err(|error| {
+                    fail_stop(
+                        ErrorCode::MonetaryInvariantViolatedFinalized,
+                        format!(
+                            "finalized state at height {}: {}",
+                            self.tip.height,
+                            error.detail()
+                        ),
+                    )
+                })?;
+            }
+        }
         Ok(())
     }
 

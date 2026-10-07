@@ -399,6 +399,25 @@ impl GenesisState {
         if !self.validators.is_empty() {
             records.put_validator_set(&mut overlay, 0, &self.validators);
         }
+        // Supply ledgers (Section 18.4): genesis allocations are the whole issued supply. AEY
+        // is reserve-backed; its issuance path (mint authorizations) arrives in Phase 7, and
+        // ALnT has none in v0.1 (Section 18.7), so capacity equals the genesis supply.
+        for (asset, reserve_backed) in [(AssetId::AEY, true), (AssetId::ALNT, false)] {
+            let issued = self
+                .allocations
+                .iter()
+                .filter(|allocation| allocation.asset == asset)
+                .try_fold(0u128, |total, allocation| {
+                    within_supply_bound(total.checked_add(allocation.units).ok_or_else(|| {
+                        config_error(format!("genesis supply of {asset} overflows"))
+                    })?)
+                })?;
+            records.put_supply_ledger(
+                &mut overlay,
+                asset,
+                &aletheia_monetary::SupplyLedger::genesis(issued, reserve_backed),
+            );
+        }
         for allocation in &self.allocations {
             records.put_balance(
                 &mut overlay,

@@ -115,6 +115,8 @@ pub fn execute_block(
         )));
     }
 
+    check_supply(rules, records, base, &overlay, transactions)?;
+
     let network = records.network();
     let witness: Vec<[u8; 32]> = transactions
         .iter()
@@ -138,6 +140,56 @@ pub fn execute_block(
         eu_used,
         tx_count,
     })
+}
+
+/// The monetary invariant check after every block (Section 18.4). For each asset whose
+/// balances the block can touch, the net balance change - recomputed from the state before
+/// and after, not trusted from the code that moved it - must equal the change of the asset's
+/// digital supply buckets, and the ledger must satisfy I1-I8 before and after.
+pub fn check_supply(
+    rules: Rules,
+    records: &Records,
+    base: &dyn StateView,
+    after: &StateOverlay<'_>,
+    transactions: &[VerifiedTransaction],
+) -> Result<(), AletheiaError> {
+    let touched: std::collections::BTreeSet<(aletheia_core::Address, aletheia_core::AssetId)> =
+        transactions
+            .iter()
+            .flat_map(|tx| rules.touched_balances(tx))
+            .collect();
+    let mut deltas: std::collections::BTreeMap<
+        aletheia_core::AssetId,
+        aletheia_monetary::BalanceDelta,
+    > = std::collections::BTreeMap::new();
+    for (address, asset) in &touched {
+        let total = |balance: crate::model::Balance| {
+            balance
+                .available
+                .checked_add(balance.locked)
+                .ok_or_else(|| {
+                    AletheiaError::new(
+                        ErrorCode::MonetaryInvariantViolated,
+                        format!("a balance of asset {asset} overflows"),
+                    )
+                })
+        };
+        let before = total(records.balance(base, address, *asset)?)?;
+        let now = total(records.balance(after, address, *asset)?)?;
+        deltas.entry(*asset).or_default().record(before, now)?;
+    }
+    for (asset, delta) in deltas {
+        let missing = || {
+            AletheiaError::new(
+                ErrorCode::MonetaryInvariantViolated,
+                format!("asset {asset} has balances but no supply ledger"),
+            )
+        };
+        let before = records.supply_ledger(base, asset)?.ok_or_else(missing)?;
+        let now = records.supply_ledger(after, asset)?.ok_or_else(missing)?;
+        aletheia_monetary::SupplyLedger::check_transition(&before, &now, delta, asset)?;
+    }
+    Ok(())
 }
 
 /// Compares a header's committed results with re-execution (voting rule V1, Section 19.5).

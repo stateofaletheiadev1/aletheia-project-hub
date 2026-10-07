@@ -122,6 +122,8 @@ error_codes! {
     ArithmeticOverflow = 9001, "ARITHMETIC_OVERFLOW", Reject;
     InsufficientBalance = 9002, "INSUFFICIENT_BALANCE", Reject;
     ArithmeticDivisionByZero = 9003, "ARITHMETIC_DIVISION_BY_ZERO", Reject;
+    MonetaryInvariantViolated = 9010, "MONETARY_INVARIANT_VIOLATED", Reject;
+    MonetaryInvariantViolatedFinalized = 9011, "MONETARY_INVARIANT_VIOLATED_FINALIZED", FailStop;
     FinalizeOutOfOrder = 11001, "FINALIZE_OUT_OF_ORDER", FailStop;
     FinalizeParentMismatch = 11002, "FINALIZE_PARENT_MISMATCH", FailStop;
     FinalizeStateDiverged = 11003, "FINALIZE_STATE_DIVERGED", FailStop;

@@ -538,6 +538,20 @@ class = "reject"
 message = "A division had a zero divisor; divisors are validated non-zero parameters."
 
 [[code]]
+code = 9010
+name = "MONETARY_INVARIANT_VIOLATED"
+variant = "MonetaryInvariantViolated"
+class = "reject"
+message = "Executing the block would break a supply invariant (I1-I8); the block is invalid and the node does not vote for it."
+
+[[code]]
+code = 9011
+name = "MONETARY_INVARIANT_VIOLATED_FINALIZED"
+variant = "MonetaryInvariantViolatedFinalized"
+class = "fail-stop"
+message = "Finalized state breaks a supply invariant; the node halts and never repairs balances itself."
+
+[[code]]
 code = 11001
 name = "FINALIZE_OUT_OF_ORDER"
 variant = "FinalizeOutOfOrder"
