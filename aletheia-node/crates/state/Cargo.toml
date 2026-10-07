@@ -11,6 +11,8 @@ publish.workspace = true
 aletheia-core.workspace = true
 aletheia-storage.workspace = true
 blake3.workspace = true
+crc32c = "0.6"
+zstd = { version = "0.13", default-features = false }
 
 [dev-dependencies]
 proptest.workspace = true

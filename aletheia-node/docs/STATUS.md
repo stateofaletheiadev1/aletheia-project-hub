@@ -40,7 +40,8 @@ partly written; see the end of this file.
 | Consensus WAL (`wal.rs`) | APS-0034 | yes | yes | torn tail at every offset, corruption, gaps, rotation, pruning | **no** | rustdoc | no |
 | Block archive (`archive.rs`) | 42.3 | yes | yes | round trip, order, tamper, wrong network, torn tail | **no** | rustdoc | no |
 | Migration framework (`migrate.rs`) | 44.5 | yes | yes | dummy 1->2 step: clean run, crash-and-resume from journal, rollback, failed tip check | n/a | rustdoc | no |
-| Snapshots and state sync | 42.4 | yes | **no** | no | no | no | no |
+| Snapshots (`crates/state/src/snapshot.rs`) | 42.4 | yes | yes (restore holds state in memory; streaming restore with state sync in Phase 4) | round trip, tampered chunk, forged root | **no** | rustdoc | no |
+| State sync over the network | 42.4 | yes | **no** (Phase 4) | no | no | no | no |
 
 ## crates/state
 
@@ -50,7 +51,7 @@ partly written; see the end of this file.
 | `StateOverlay` (`overlay.rs`) | 15 | yes | yes | unit (nested checkpoints, stacking) | n/a | rustdoc | no |
 | Jellyfish Merkle Tree (`jmt/`) | 16.1 (+ ERRATA E-15) | yes | yes | property: root == naive root over random histories; historical reads | **no** | rustdoc | no |
 | State proofs (`jmt/proof.rs`) | 16.3, R.5 | yes | yes | property: inclusion, non-inclusion, wrong value, wrong network | **no** | rustdoc | no |
-| JMT stale-node pruning | 42.4 | yes | recorded, pruner **not yet** | no | n/a | rustdoc | no |
+| JMT stale-node pruning (`prune_stale`) | 42.4 | yes | yes (rate-limited per call; the background task arrives with the node supervisor) | unit: newer versions and proofs intact | n/a | rustdoc | no |
 
 ## Phase 2 exit criteria (spec Section 62, 62.1)
 

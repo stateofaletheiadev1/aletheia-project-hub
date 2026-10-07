@@ -65,7 +65,9 @@ dependencies = [
  "aletheia-core",
  "aletheia-storage",
  "blake3",
+ "crc32c",
  "proptest",
+ "zstd",
 ]
 
 [[package]]

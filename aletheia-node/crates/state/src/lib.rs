@@ -15,6 +15,7 @@
 pub mod jmt;
 pub mod key;
 pub mod overlay;
+pub mod snapshot;
 
 pub use jmt::proof::{ProofTerminal, StateProof};
 pub use jmt::tree::JellyfishMerkleTree;

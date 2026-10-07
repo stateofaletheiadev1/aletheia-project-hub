@@ -166,6 +166,100 @@ impl<'s> JellyfishMerkleTree<'s> {
         }
     }
 
+    /// Live `(key, value)` pairs as of `version`, ascending, strictly after `after`, at most
+    /// `limit`. Snapshots page through the whole state with this.
+    pub fn live_entries(
+        &self,
+        version: u64,
+        after: Option<&StateKey>,
+        limit: usize,
+    ) -> Result<Vec<(StateKey, StateValue)>, AletheiaError> {
+        const ROWS_PER_READ: usize = 1024;
+        let mut cursor =
+            after.map_or_else(Vec::new, |key| [&key.as_bytes()[..], &[0xff; 9]].concat());
+        let end = [0xffu8; 42];
+        let mut live = Vec::new();
+        let mut current: Option<[u8; 32]> = after.map(|key| *key.as_bytes());
+        let mut current_resolved = after.is_some();
+        while live.len() < limit {
+            let rows = self
+                .store
+                .range(ColumnFamily::StateValues, &cursor, &end, ROWS_PER_READ)?;
+            let Some((last, _)) = rows.last() else { break };
+            cursor = [&last[..], &[0]].concat();
+            for (stored_key, value) in &rows {
+                let (Some(key_bytes), Some(inverted)) = (
+                    stored_key
+                        .get(..32)
+                        .and_then(|k| <[u8; 32]>::try_from(k).ok()),
+                    stored_key
+                        .get(32..40)
+                        .and_then(|v| <[u8; 8]>::try_from(v).ok()),
+                ) else {
+                    return Err(AletheiaError::new(
+                        ErrorCode::StoCorrupt,
+                        "state value key is malformed".to_owned(),
+                    ));
+                };
+                if current != Some(key_bytes) {
+                    current = Some(key_bytes);
+                    current_resolved = false;
+                }
+                // Rows of one key run newest first; the first at or below `version` decides it.
+                let row_version = u64::MAX.saturating_sub(u64::from_be_bytes(inverted));
+                if current_resolved || row_version > version {
+                    continue;
+                }
+                current_resolved = true;
+                match value.split_first() {
+                    Some((1, bytes)) => {
+                        live.push((
+                            StateKey::from_hash(Hash32::from_bytes(key_bytes)),
+                            bytes.to_vec(),
+                        ));
+                        if live.len() >= limit {
+                            return Ok(live);
+                        }
+                    }
+                    Some((0, [])) => {}
+                    _ => {
+                        return Err(AletheiaError::new(
+                            ErrorCode::StoCorrupt,
+                            "state value is malformed".to_owned(),
+                        ));
+                    }
+                }
+            }
+        }
+        Ok(live)
+    }
+
+    /// Deletes JMT nodes replaced at or before `up_to_version`, at most `max_nodes` per call so
+    /// the background pruner can rate-limit itself (Section 42.4). Returns how many it removed.
+    /// The caller must keep every version it still serves proofs for above `up_to_version`.
+    pub fn prune_stale(
+        &self,
+        up_to_version: u64,
+        max_nodes: usize,
+        batch: &mut WriteBatch,
+    ) -> Result<usize, AletheiaError> {
+        let end = up_to_version.saturating_add(1).to_be_bytes();
+        let markers = self
+            .store
+            .range(ColumnFamily::StaleJmtNodes, &[], &end, max_nodes)?;
+        for (marker, _) in &markers {
+            let node_key = marker.get(8..).ok_or_else(|| {
+                AletheiaError::new(
+                    ErrorCode::StoCorrupt,
+                    "stale-node marker is malformed".to_owned(),
+                )
+            })?;
+            batch.delete(ColumnFamily::JmtNodes, node_key);
+            batch.delete(ColumnFamily::StaleJmtNodes, marker);
+        }
+        Ok(markers.len())
+    }
+
     /// Writes version `version` on top of `previous` (None for the first version). `changes`
     /// must be strictly ascending by key - [`crate::overlay::StateOverlay::into_changes`]
     /// produces exactly that. Returns the new root hash.
