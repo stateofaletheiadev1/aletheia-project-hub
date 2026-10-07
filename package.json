@@ -1,0 +1,42 @@
+{
+  "name": "aletheia-web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "next typegen && tsc --noEmit",
+    "i18n:extract": "node scripts/i18n/extract.mjs",
+    "i18n:check": "node scripts/i18n/extract.mjs && node scripts/i18n/check.mjs",
+    "test:smoke": "node tests/smoke.mjs",
+    "test:layout": "node tests/layout-audit.mjs",
+    "test:i18n": "node tests/i18n-audit.mjs http://localhost:3123 de && node tests/i18n-audit.mjs http://localhost:3123 nl && node tests/i18n-audit.mjs http://localhost:3123 sr && node tests/i18n-audit.mjs http://localhost:3123 it && node tests/switcher.mjs",
+    "test": "npm run test:smoke && npm run test:layout && npm run test:i18n"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.4.7",
+    "lucide-react": "^0.475.0",
+    "next": "^16.3.8",
+    "pdf-lib": "^1.17.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "server-only": "^0.0.1",
+    "tailwind-merge": "^3.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.4",
+    "@types/react": "^19.0.10",
+    "@types/react-dom": "^19.0.4",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^16.3.8",
+    "playwright": "^1.63.0",
+    "postcss": "^8.5.2",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.3"
+  }
+}
