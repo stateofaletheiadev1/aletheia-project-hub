@@ -129,11 +129,67 @@ class = "reject"
 message = "The network kind byte is not one of the registered network kinds."
 
 [[code]]
+code = 2001
+name = "TX_TOO_LARGE"
+variant = "TxTooLarge"
+class = "reject"
+message = "The encoded transaction exceeds the size limit of the active rule set."
+
+[[code]]
+code = 2002
+name = "TX_VERSION_UNSUPPORTED"
+variant = "TxVersionUnsupported"
+class = "reject"
+message = "The transaction body version is not supported by the active rule set."
+
+[[code]]
 code = 2003
 name = "TX_NONCE_TOO_LOW"
 variant = "TxNonceTooLow"
 class = "reject"
 message = "The transaction nonce is below the account's next nonce."
+
+[[code]]
+code = 2004
+name = "TX_WRONG_CHAIN"
+variant = "TxWrongChain"
+class = "reject"
+message = "The transaction names a different chain_id."
+
+[[code]]
+code = 2005
+name = "TX_WRONG_NETWORK"
+variant = "TxWrongNetwork"
+class = "reject"
+message = "The transaction names a different network kind."
+
+[[code]]
+code = 2006
+name = "TX_FIELD_OUT_OF_RANGE"
+variant = "TxFieldOutOfRange"
+class = "reject"
+message = "A transaction field is outside the range the active rule set allows."
+
+[[code]]
+code = 2007
+name = "TX_VALIDITY_WINDOW_INVALID"
+variant = "TxValidityWindowInvalid"
+class = "reject"
+message = "expiry_slot precedes valid_from_slot or the window exceeds MAX_TX_VALIDITY_SLOTS."
+
+[[code]]
+code = 2008
+name = "TX_AUTH_MALFORMED"
+variant = "TxAuthMalformed"
+class = "reject"
+message = "The authorization's scheme, threshold, keys or signatures do not fit together."
+
+[[code]]
+code = 2009
+name = "TX_THRESHOLD_NOT_MET"
+variant = "TxThresholdNotMet"
+class = "reject"
+message = "The authorization carries a different number of signatures than its threshold."
 
 [[code]]
 code = 2020

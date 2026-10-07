@@ -64,7 +64,15 @@ error_codes! {
     IdWrongNetwork = 1212, "ID_WRONG_NETWORK", Reject;
     IdNonCanonical = 1213, "ID_NON_CANONICAL", Reject;
     NetworkKindUnknown = 1301, "NETWORK_KIND_UNKNOWN", Reject;
+    TxTooLarge = 2001, "TX_TOO_LARGE", Reject;
+    TxVersionUnsupported = 2002, "TX_VERSION_UNSUPPORTED", Reject;
     TxNonceTooLow = 2003, "TX_NONCE_TOO_LOW", Reject;
+    TxWrongChain = 2004, "TX_WRONG_CHAIN", Reject;
+    TxWrongNetwork = 2005, "TX_WRONG_NETWORK", Reject;
+    TxFieldOutOfRange = 2006, "TX_FIELD_OUT_OF_RANGE", Reject;
+    TxValidityWindowInvalid = 2007, "TX_VALIDITY_WINDOW_INVALID", Reject;
+    TxAuthMalformed = 2008, "TX_AUTH_MALFORMED", Reject;
+    TxThresholdNotMet = 2009, "TX_THRESHOLD_NOT_MET", Reject;
     TxTypeNotActive = 2020, "TX_TYPE_NOT_ACTIVE", Reject;
     SigInvalid = 4001, "SIG_INVALID", Reject;
     SigMalformed = 4002, "SIG_MALFORMED", Reject;

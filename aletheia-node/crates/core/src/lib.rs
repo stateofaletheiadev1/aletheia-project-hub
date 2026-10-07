@@ -21,19 +21,29 @@ pub mod ace;
 pub mod address;
 pub mod base16;
 mod bech32m;
+pub mod block;
 pub mod error;
 pub mod error_codes;
 pub mod ids;
 pub mod network;
 mod text_id;
+pub mod tx;
 pub mod types;
 
 pub use ace::{AceDecode, AceEncode, AceReader, AceWriter};
 pub use address::{Address, AddressType};
+pub use block::{
+    Block, BlockBody, BlockHeader, ExtensionField, QuorumCertificate, SignerBitmap,
+    TimeoutCertificate,
+};
 pub use error::AletheiaError;
 pub use error_codes::{ErrorClass, ErrorCode};
 pub use ids::{BlockId, TxId};
 pub use network::{ChainId, DomainHasher, DomainTag, NetworkIdentity, NetworkKind};
+pub use tx::{
+    AuthScheme, Authorization, Fee, Payload, PublicKeyEntry, SignatureEntry, SignedTransaction,
+    TransactionBody, TransferLeg, TxType,
+};
 pub use types::{
     AeyAmount, AeyTag, AlntAmount, AlntTag, Amount, AssetId, AssetTag, Epoch, Hash32, Height,
     ProtocolVersion, Slot, ValidatorIndex,
