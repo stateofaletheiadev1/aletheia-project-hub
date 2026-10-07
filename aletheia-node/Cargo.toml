@@ -7,6 +7,7 @@ members = [
   "crates/core",
   "crates/crypto",
   "crates/consensus",
+  "crates/signer",
   "crates/execution",
   "crates/p2p",
   "crates/storage",
@@ -32,6 +33,7 @@ publish = false
 aletheia-core = { path = "crates/core" }
 aletheia-crypto = { path = "crates/crypto" }
 aletheia-consensus = { path = "crates/consensus" }
+aletheia-signer = { path = "crates/signer" }
 aletheia-execution = { path = "crates/execution" }
 aletheia-storage = { path = "crates/storage" }
 aletheia-state = { path = "crates/state" }

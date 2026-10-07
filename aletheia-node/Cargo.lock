@@ -123,6 +123,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "aletheia-signer"
+version = "0.1.0"
+dependencies = [
+ "aletheia-consensus",
+ "aletheia-core",
+ "aletheia-crypto",
+ "aletheia-storage",
+]
+
+[[package]]
 name = "aletheia-sim"
 version = "0.1.0"
 dependencies = [

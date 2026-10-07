@@ -1,0 +1,17 @@
+[package]
+name = "aletheia-signer"
+description = "Consensus signing with persistent double-sign protection (high-water marks per message class)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+aletheia-consensus.workspace = true
+aletheia-core.workspace = true
+aletheia-crypto.workspace = true
+aletheia-storage.workspace = true
+
+[lints]
+workspace = true

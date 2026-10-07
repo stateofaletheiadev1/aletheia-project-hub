@@ -12,14 +12,14 @@ use std::path::Path;
 
 use aletheia_core::{AletheiaError, ErrorCode};
 
-pub(crate) fn io_error(action: &str, path: &Path, error: &std::io::Error) -> AletheiaError {
+pub fn io_error(action: &str, path: &Path, error: &std::io::Error) -> AletheiaError {
     AletheiaError::new(
         ErrorCode::StoIo,
         format!("{action} {}: {error}", path.display()),
     )
 }
 
-pub(crate) fn create_dir_all(dir: &Path) -> Result<(), AletheiaError> {
+pub fn create_dir_all(dir: &Path) -> Result<(), AletheiaError> {
     fs::create_dir_all(dir).map_err(|e| io_error("create directory", dir, &e))?;
     if let Some(parent) = dir.parent() {
         sync_dir(parent)?;
@@ -32,7 +32,7 @@ pub(crate) fn create_dir_all(dir: &Path) -> Result<(), AletheiaError> {
 /// Linux needs an fsync on the directory itself. Windows offers no portable way to open a
 /// directory for flushing from std, and NTFS journals metadata; validators run Linux only
 /// (Section 3.1), so on other platforms this is a no-op.
-pub(crate) fn sync_dir(dir: &Path) -> Result<(), AletheiaError> {
+pub fn sync_dir(dir: &Path) -> Result<(), AletheiaError> {
     #[cfg(unix)]
     {
         File::open(dir)
@@ -46,7 +46,7 @@ pub(crate) fn sync_dir(dir: &Path) -> Result<(), AletheiaError> {
     Ok(())
 }
 
-pub(crate) fn write_atomically(path: &Path, contents: &[u8]) -> Result<(), AletheiaError> {
+pub fn write_atomically(path: &Path, contents: &[u8]) -> Result<(), AletheiaError> {
     let dir = path.parent().unwrap_or_else(|| Path::new("."));
     let file_name = path
         .file_name()
@@ -68,7 +68,7 @@ pub(crate) fn write_atomically(path: &Path, contents: &[u8]) -> Result<(), Aleth
     sync_dir(dir)
 }
 
-pub(crate) fn write_checksummed_atomically(
+pub fn write_checksummed_atomically(
     path: &Path,
     magic: &[u8; 8],
     payload: &[u8],
@@ -92,7 +92,7 @@ pub(crate) fn write_checksummed_atomically(
     write_atomically(path, &contents)
 }
 
-pub(crate) fn read_checksummed(path: &Path, magic: &[u8; 8]) -> Result<Vec<u8>, AletheiaError> {
+pub fn read_checksummed(path: &Path, magic: &[u8; 8]) -> Result<Vec<u8>, AletheiaError> {
     let contents = fs::read(path).map_err(|e| {
         let code = if e.kind() == std::io::ErrorKind::NotFound {
             ErrorCode::StoDataDirMissing
@@ -136,7 +136,7 @@ pub(crate) fn read_checksummed(path: &Path, magic: &[u8; 8]) -> Result<Vec<u8>, 
 
 /// Opens (creating if needed) and exclusively locks `path` for the process lifetime. The lock
 /// is released when the returned file is dropped or the process dies.
-pub(crate) fn lock_exclusive(path: &Path) -> Result<File, AletheiaError> {
+pub fn lock_exclusive(path: &Path) -> Result<File, AletheiaError> {
     let file = OpenOptions::new()
         .read(true)
         .write(true)

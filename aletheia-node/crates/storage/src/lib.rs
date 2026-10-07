@@ -15,7 +15,7 @@
 
 pub mod archive;
 pub mod datadir;
-mod fsutil;
+pub mod fsutil;
 pub mod kv;
 pub mod memory;
 pub mod migrate;
