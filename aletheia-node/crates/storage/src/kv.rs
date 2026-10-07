@@ -173,3 +173,37 @@ pub trait KvStore: Send + Sync {
     /// step 2). RocksDB uses hard links; other backends may copy.
     fn checkpoint(&self, dir: &std::path::Path) -> Result<(), AletheiaError>;
 }
+
+/// Shared ownership of a store: the node's components hold one handle each, and crash tests
+/// keep the store alive across a simulated restart.
+impl<T: KvStore + ?Sized> KvStore for std::sync::Arc<T> {
+    fn get(&self, cf: ColumnFamily, key: &[u8]) -> Result<Option<Vec<u8>>, AletheiaError> {
+        (**self).get(cf, key)
+    }
+
+    fn range(
+        &self,
+        cf: ColumnFamily,
+        from: &[u8],
+        to: &[u8],
+        limit: usize,
+    ) -> Result<KvPairs, AletheiaError> {
+        (**self).range(cf, from, to, limit)
+    }
+
+    fn write_sync(&self, batch: WriteBatch) -> Result<(), AletheiaError> {
+        (**self).write_sync(batch)
+    }
+
+    fn write(&self, batch: WriteBatch) -> Result<(), AletheiaError> {
+        (**self).write(batch)
+    }
+
+    fn snapshot(&self) -> Result<Box<dyn KvSnapshot + '_>, AletheiaError> {
+        (**self).snapshot()
+    }
+
+    fn checkpoint(&self, dir: &std::path::Path) -> Result<(), AletheiaError> {
+        (**self).checkpoint(dir)
+    }
+}

@@ -4,7 +4,7 @@ Spec Section 1.2: one row per module. "Implemented" means code exists on `main`.
 means unit and property tests run in `cargo test --workspace`. Nothing below is described as
 done unless it is.
 
-Current phase: **Phase 2 (storage and state)**. Phase 1 criteria are met except the 24-hour fuzz campaign, which needs the scheduled CI job. Phase 0 documents are
+Current phase: **Phase 3 (single-node state machine)**, exit criteria largely met (table below). Phase 1 still lacks the 24-hour fuzz campaign; Phase 2 lacks the Linux dm-log-writes power-loss replay. Phase 0 documents are
 partly written; see the end of this file.
 
 ## crates/core
@@ -28,6 +28,44 @@ partly written; see the end of this file.
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | `Rules` registry, V1 limits and types (`rules/`) | 44.3 | yes | yes (V1 not frozen) | unit | n/a | rustdoc | n/a |
 | Stateless validator (`stateless.rs`) | APS-0003, R.4 | yes | yes | one integration test per step, vectors | target written, smoke only | rustdoc | no |
+
+## crates/execution (Phase 3)
+
+| Module | APS | Specified | Implemented | Tested | Fuzzed | Documented | Benchmarked |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| State records (`model.rs`) | 15, 18.3, 23, 44.4 | yes | yes | via execution scenarios | n/a | rustdoc | n/a |
+| Receipts and events (`receipt.rs`) | APS-0031/0032 (+ E-17) | yes | yes | via execution scenarios | **no** | rustdoc | n/a |
+| Canonical ordering (`ordering.rs`) | APS-0011, R.12 | yes | yes | order, gap, repeat, replay | n/a | rustdoc | no |
+| Rules v1: lifecycle, transfer, batch, fees (`rules/v1/`) | 13, 23, 29 | yes | yes (not frozen) | 13 scenarios | n/a | rustdoc | no |
+| Block executor (`executor.rs`) | APS-0012 | yes | yes | scenarios, determinism corpus | n/a | rustdoc | no |
+| Protocol schedule and clean halt (`continuity.rs`) | 44.4 | yes | yes | mixed-version, replay, clean halt (feature `test-protocol-v2`) | n/a | rustdoc | n/a |
+| Genesis (`genesis.rs`) | APS-0035 | partly: chain, fees, assets, schedule, allocations | yes for that part | via harness and determinism | **no** | rustdoc | n/a |
+| Test-only protocol version 2 (`rules/test_v2.rs`) | 62.1 | yes | yes, feature-gated | continuity tests | n/a | rustdoc | n/a |
+
+## crates/monetary
+
+| Module | APS | Specified | Implemented | Tested | Fuzzed | Documented | Benchmarked |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Monetary arithmetic (`arith.rs`) | APS-0020, R.7 | yes | yes | property: division identity, native agreement | **no** | rustdoc | no |
+| Asset framework, ALnT, AEY, supply ledger, invariants | 18 | yes | **no** (Phases 6-7) | no | no | no | no |
+
+## crates/node
+
+| Module | APS | Specified | Implemented | Tested | Fuzzed | Documented | Benchmarked |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Ledger: validator re-execution and finalize path (`ledger.rs`) | 20, 24.2 | yes | yes | follow a proposer, wrong root, wrong parent | n/a | rustdoc | no |
+| Crash recovery (`ledger.rs`) | 24.3 | yes (single node) | yes | crash after FINALIZE_BEGIN, archive append, KV commit; damaged archive; wrong genesis; lock | n/a | rustdoc | no |
+| Supervision tree, P2P, consensus, RPC wiring | 46A | yes | **no** | no | no | no | no |
+
+## Phase 3 exit criteria (spec Sections 62, 62.1)
+
+| Criterion | State |
+| --- | --- |
+| Determinism test green | Met on x86-64: seeded 200-block corpus with golden hashes and a full state-dump hash; release and debug builds agree. aarch64 needs a CI runner. |
+| Recovery tests green | Met for the single-node finalize path (three crash points, damaged archive, torn WAL tail). |
+| `Rules` with V1 and a test-only V2; schedule namespace 66; clean halt exit 75 | Met in execution (halt error and message); the process exit code 75 arrives with the `aletheiad` binary. |
+| Mixed-version and clean-halt tests | Met. |
+| Replay of a 1M-block devnet history reproduces every root | **Not yet**: replay is tested across an upgrade on short histories; the 1M-block run needs the replay tool and a CI budget. |
 
 ## crates/storage
 

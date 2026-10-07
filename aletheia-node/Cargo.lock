@@ -84,6 +84,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "aletheia-node"
+version = "0.1.0"
+dependencies = [
+ "aletheia-core",
+ "aletheia-execution",
+ "aletheia-state",
+ "aletheia-storage",
+ "aletheia-test-harness",
+]
+
+[[package]]
 name = "aletheia-state"
 version = "0.1.0"
 dependencies = [

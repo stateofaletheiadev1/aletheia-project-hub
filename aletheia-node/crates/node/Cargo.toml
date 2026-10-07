@@ -1,0 +1,25 @@
+[package]
+name = "aletheia-node"
+description = "The node: ledger (finalize path and crash recovery); supervision tree, networking and consensus wiring follow."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+aletheia-core.workspace = true
+aletheia-execution.workspace = true
+aletheia-state.workspace = true
+aletheia-storage.workspace = true
+
+[features]
+# Crash points inside the finalize path, for recovery tests (spec Section 52). Never enabled
+# in a release build.
+fault-injection = []
+
+[dev-dependencies]
+aletheia-test-harness.workspace = true
+
+[lints]
+workspace = true

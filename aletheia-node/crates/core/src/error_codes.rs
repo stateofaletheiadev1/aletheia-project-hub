@@ -114,6 +114,7 @@ error_codes! {
     ArithmeticDivisionByZero = 9003, "ARITHMETIC_DIVISION_BY_ZERO", Reject;
     FinalizeOutOfOrder = 11001, "FINALIZE_OUT_OF_ORDER", FailStop;
     FinalizeParentMismatch = 11002, "FINALIZE_PARENT_MISMATCH", FailStop;
+    FinalizeStateDiverged = 11003, "FINALIZE_STATE_DIVERGED", FailStop;
     ProtocolVersionUnsupported = 12001, "PROTOCOL_VERSION_UNSUPPORTED", Reject;
     ProtocolUpgradeRequired = 12002, "PROTOCOL_UPGRADE_REQUIRED", FailStop;
 }

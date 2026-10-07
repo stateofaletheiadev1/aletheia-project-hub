@@ -481,6 +481,13 @@ class = "fail-stop"
 message = "A block presented for finalization does not extend the last finalized block."
 
 [[code]]
+code = 11003
+name = "FINALIZE_STATE_DIVERGED"
+variant = "FinalizeStateDiverged"
+class = "fail-stop"
+message = "Re-executing a block being finalized produced different roots than its certified header."
+
+[[code]]
 code = 12001
 name = "PROTOCOL_VERSION_UNSUPPORTED"
 variant = "ProtocolVersionUnsupported"

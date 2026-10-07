@@ -71,7 +71,7 @@ fn small() -> ArchiveConfig {
 #[test]
 fn appended_blocks_read_back_verified() {
     let dir = scratch("roundtrip");
-    let mut archive = BlockArchive::open(&dir, network(), small()).unwrap();
+    let mut archive = BlockArchive::open(&dir, network(), small(), None).unwrap();
     let locations: Vec<ArchiveLocation> = (1..=10)
         .map(|h| archive.append(&proposal(h)).unwrap())
         .collect();
@@ -90,7 +90,7 @@ fn appended_blocks_read_back_verified() {
 #[test]
 fn heights_must_be_consecutive() {
     let dir = scratch("order");
-    let mut archive = BlockArchive::open(&dir, network(), ArchiveConfig::default()).unwrap();
+    let mut archive = BlockArchive::open(&dir, network(), ArchiveConfig::default(), None).unwrap();
     archive.append(&proposal(1)).unwrap();
     assert_eq!(
         archive.append(&proposal(3)).unwrap_err().code(),
@@ -107,12 +107,12 @@ fn heights_must_be_consecutive() {
 fn reopening_continues_after_the_last_block() {
     let dir = scratch("reopen");
     {
-        let mut archive = BlockArchive::open(&dir, network(), small()).unwrap();
+        let mut archive = BlockArchive::open(&dir, network(), small(), None).unwrap();
         for h in 1..=6 {
             archive.append(&proposal(h)).unwrap();
         }
     }
-    let mut archive = BlockArchive::open(&dir, network(), small()).unwrap();
+    let mut archive = BlockArchive::open(&dir, network(), small(), None).unwrap();
     assert_eq!(archive.last_height(), Some(Height::new(6)));
     archive.append(&proposal(7)).unwrap();
 }
@@ -120,7 +120,7 @@ fn reopening_continues_after_the_last_block() {
 #[test]
 fn a_record_at_the_wrong_height_is_an_archive_mismatch() {
     let dir = scratch("height");
-    let mut archive = BlockArchive::open(&dir, network(), ArchiveConfig::default()).unwrap();
+    let mut archive = BlockArchive::open(&dir, network(), ArchiveConfig::default(), None).unwrap();
     let location = archive.append(&proposal(1)).unwrap();
     assert_eq!(
         archive.read(location, Height::new(2)).unwrap_err().code(),
@@ -131,7 +131,7 @@ fn a_record_at_the_wrong_height_is_an_archive_mismatch() {
 #[test]
 fn a_flipped_byte_is_detected() {
     let dir = scratch("flip");
-    let mut archive = BlockArchive::open(&dir, network(), ArchiveConfig::default()).unwrap();
+    let mut archive = BlockArchive::open(&dir, network(), ArchiveConfig::default(), None).unwrap();
     let location = archive.append(&proposal(1)).unwrap();
     drop(archive);
     let path = dir.join("seg-000000000000.blk");
@@ -139,7 +139,7 @@ fn a_flipped_byte_is_detected() {
     let inside_frame = (location.offset as usize) + 60;
     bytes[inside_frame] ^= 0x40;
     std::fs::write(&path, bytes).unwrap();
-    let archive = BlockArchive::open(&dir, network(), ArchiveConfig::default());
+    let archive = BlockArchive::open(&dir, network(), ArchiveConfig::default(), None);
     // The flipped record is the last one, so open treats it as torn and truncates it, or the
     // read rejects it; either way corrupted bytes never come back as a block.
     match archive {
@@ -151,11 +151,11 @@ fn a_flipped_byte_is_detected() {
 #[test]
 fn the_wrong_network_never_verifies_an_archived_block() {
     let dir = scratch("network");
-    let mut archive = BlockArchive::open(&dir, network(), ArchiveConfig::default()).unwrap();
+    let mut archive = BlockArchive::open(&dir, network(), ArchiveConfig::default(), None).unwrap();
     let location = archive.append(&proposal(1)).unwrap();
     drop(archive);
     let mainnet = NetworkIdentity::new(ChainId::new(7771), NetworkKind::Mainnet, Hash32::ZERO);
-    let other = BlockArchive::open(&dir, mainnet, ArchiveConfig::default()).unwrap();
+    let other = BlockArchive::open(&dir, mainnet, ArchiveConfig::default(), None).unwrap();
     assert_eq!(
         other.read(location, Height::new(1)).unwrap_err().code(),
         ErrorCode::StoArchiveMismatch
@@ -166,14 +166,15 @@ fn the_wrong_network_never_verifies_an_archived_block() {
 fn a_torn_tail_is_truncated_and_the_next_append_succeeds() {
     let dir = scratch("torn");
     {
-        let mut archive = BlockArchive::open(&dir, network(), ArchiveConfig::default()).unwrap();
+        let mut archive =
+            BlockArchive::open(&dir, network(), ArchiveConfig::default(), None).unwrap();
         archive.append(&proposal(1)).unwrap();
         archive.append(&proposal(2)).unwrap();
     }
     let path = dir.join("seg-000000000000.blk");
     let bytes = std::fs::read(&path).unwrap();
     std::fs::write(&path, &bytes[..bytes.len() - 5]).unwrap();
-    let mut archive = BlockArchive::open(&dir, network(), ArchiveConfig::default()).unwrap();
+    let mut archive = BlockArchive::open(&dir, network(), ArchiveConfig::default(), None).unwrap();
     assert_eq!(archive.last_height(), Some(Height::new(1)));
     archive.append(&proposal(2)).unwrap();
 }
@@ -181,7 +182,7 @@ fn a_torn_tail_is_truncated_and_the_next_append_succeeds() {
 #[test]
 fn index_entries_map_height_to_location_and_hash_to_height() {
     let dir = scratch("index");
-    let mut archive = BlockArchive::open(&dir, network(), ArchiveConfig::default()).unwrap();
+    let mut archive = BlockArchive::open(&dir, network(), ArchiveConfig::default(), None).unwrap();
     let block = proposal(1);
     let location = archive.append(&block).unwrap();
     let store = MemoryKvStore::new();
@@ -196,4 +197,30 @@ fn index_entries_map_height_to_location_and_hash_to_height() {
         .unwrap();
     let found = ArchiveLocation::from_ace_bytes(&stored).unwrap();
     assert_eq!(archive.read(found, Height::new(1)).unwrap(), block);
+}
+
+/// Regression: a damaged final record that the index says is finalized must never be truncated
+/// as a torn write - that would silently delete a finalized block.
+#[test]
+fn a_damaged_finalized_record_is_corruption_not_a_torn_tail() {
+    let dir = scratch("finalized-tail");
+    let location = {
+        let mut archive =
+            BlockArchive::open(&dir, network(), ArchiveConfig::default(), None).unwrap();
+        archive.append(&proposal(1)).unwrap()
+    };
+    let path = dir.join("seg-000000000000.blk");
+    let mut bytes = std::fs::read(&path).unwrap();
+    let last = bytes.len() - 3;
+    bytes[last] ^= 0xff;
+    std::fs::write(&path, &bytes).unwrap();
+
+    let error =
+        BlockArchive::open(&dir, network(), ArchiveConfig::default(), Some(location)).unwrap_err();
+    assert_eq!(error.code(), ErrorCode::StoCorrupt);
+    assert_eq!(
+        std::fs::read(&path).unwrap(),
+        bytes,
+        "nothing was truncated"
+    );
 }

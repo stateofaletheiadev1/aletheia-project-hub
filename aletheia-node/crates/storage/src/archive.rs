@@ -201,10 +201,15 @@ impl BlockArchive {
     /// Opens the archive, truncating a torn record at the tail of the last segment. Records
     /// beyond the finalized height recorded in `BlockIndex` are harmless: the index, not the
     /// archive, says what is final, and the next append for that height rewrites nothing.
+    ///
+    /// `finalized` is the index location of the last finalized block. A damaged record that
+    /// ends at or before it is never treated as a torn write: truncating it would delete a
+    /// finalized block, so it is corruption and the node refuses to start.
     pub fn open(
         dir: &Path,
         network: NetworkIdentity,
         config: ArchiveConfig,
+        finalized: Option<ArchiveLocation>,
     ) -> Result<BlockArchive, AletheiaError> {
         fsutil::create_dir_all(dir)?;
         let segments = list_segments(dir)?;
@@ -258,6 +263,16 @@ impl BlockArchive {
             offset = offset.saturating_add(end);
         }
         let valid = u64::try_from(offset).unwrap_or(u64::MAX);
+        if let Some(protected) = finalized.filter(|f| f.segment == segment_seq)
+            && valid < protected.offset.saturating_add(u64::from(protected.len))
+            && offset < bytes.len()
+        {
+            return Err(corrupt(
+                &path,
+                valid,
+                "a finalized block's record is damaged; refusing to truncate it",
+            ));
+        }
         let mut file = OpenOptions::new()
             .read(true)
             .write(true)
@@ -394,6 +409,31 @@ impl BlockArchive {
         Ok(location)
     }
 
+    /// Finds the record for `height` by scanning segments from the newest. Recovery only: a
+    /// block appended just before a crash has no index entry yet (Section 24.3 step 7).
+    pub fn find(&self, height: Height) -> Result<Option<ArchiveLocation>, AletheiaError> {
+        for segment_seq in list_segments(&self.dir)?.into_iter().rev() {
+            let path = segment_path(&self.dir, segment_seq);
+            let bytes = fs::read(&path).map_err(|e| io_error("read archive segment", &path, &e))?;
+            let mut offset = SEGMENT_HEADER_LEN;
+            while let Some(record) = bytes.get(offset..).and_then(parse_record_header) {
+                let len = RECORD_HEADER_LEN.saturating_add(record.frame_len);
+                if record.height == height.get() {
+                    return Ok(Some(ArchiveLocation {
+                        segment: segment_seq,
+                        offset: u64::try_from(offset).unwrap_or(u64::MAX),
+                        len: u32::try_from(len).unwrap_or(u32::MAX),
+                    }));
+                }
+                if record.height > height.get() && offset == SEGMENT_HEADER_LEN {
+                    break; // this segment starts above the height; look in older ones
+                }
+                offset = offset.saturating_add(len);
+            }
+        }
+        Ok(None)
+    }
+
     /// Reads and fully verifies the block at `location`, which the caller got from the index
     /// for `expected_height`.
     pub fn read(
@@ -407,8 +447,17 @@ impl BlockArchive {
         file.seek(SeekFrom::Start(location.offset))
             .map_err(|e| io_error("seek archive segment", &path, &e))?;
         let mut record = vec![0u8; usize::try_from(location.len).unwrap_or(0)];
-        file.read_exact(&mut record)
-            .map_err(|e| io_error("read archive record", &path, &e))?;
+        file.read_exact(&mut record).map_err(|e| {
+            if e.kind() == std::io::ErrorKind::UnexpectedEof {
+                corrupt(
+                    &path,
+                    location.offset,
+                    "the indexed record extends past the end of its segment",
+                )
+            } else {
+                io_error("read archive record", &path, &e)
+            }
+        })?;
 
         let header = parse_record_header(&record)
             .ok_or_else(|| corrupt(&path, location.offset, "record header cut off"))?;
