@@ -1,0 +1,19 @@
+[package]
+name = "aletheia-storage"
+description = "KvStore abstraction and backends, consensus WAL, block archive and data-directory manifest."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+aletheia-core.workspace = true
+crc32c = "0.6"
+zstd = { version = "0.13", default-features = false }
+
+[dev-dependencies]
+proptest.workspace = true
+
+[lints]
+workspace = true

@@ -17,7 +17,7 @@ Present now, with no npm dependencies (`npm run check` runs everything on Node 2
   grouping, and search classification with a Bech32m port that is tested against the node's
   published APS-0002 vectors.
 
-Previously: The Explorer is Phase 12C of the implementation plan (spec Section 62). It
+Why parked: the Explorer is Phase 12C of the implementation plan (spec Section 62). It
 reads only finalized data through the explorer API (`crates/explorer-api` in
 `aletheia-node`), which sits on the indexer database, which in turn follows a running node.
 None of those exist yet; work here begins once the node exposes finalized blocks and the

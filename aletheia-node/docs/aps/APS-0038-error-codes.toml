@@ -19,6 +19,7 @@
 #   4000-4999 cryptography (APS-0037, APS-0009)
 #   5000-5999 state (APS-0005)
 #   6000-6999 payments (APS-0049..0053)
+#   7000-7999 storage, WAL, archive and data directory (APS-0033, APS-0034, APS-0055)
 #   9000-9999 arithmetic and monetary (APS-0020)
 #   11000-11999 finalization
 #   12000-12999 protocol versions and continuity (APS-0054)
@@ -274,6 +275,76 @@ name = "PAY_DUPLICATE"
 variant = "PayDuplicate"
 class = "reject"
 message = "A payment with the same de-duplication key is already settled."
+
+[[code]]
+code = 7001
+name = "STO_IO"
+variant = "StoIo"
+class = "fail-stop"
+message = "A storage read, write or sync failed at the operating-system level."
+
+[[code]]
+code = 7002
+name = "STO_CORRUPT"
+variant = "StoCorrupt"
+class = "fail-stop"
+message = "Stored bytes fail their checksum or do not decode."
+
+[[code]]
+code = 7003
+name = "STO_WAL_CHECKSUM"
+variant = "StoWalChecksum"
+class = "fail-stop"
+message = "A consensus WAL record before the tail of the last segment fails its checksum."
+
+[[code]]
+code = 7004
+name = "STO_WAL_SEQUENCE_GAP"
+variant = "StoWalSequenceGap"
+class = "fail-stop"
+message = "Consensus WAL sequence numbers are not strictly consecutive."
+
+[[code]]
+code = 7010
+name = "STO_DATA_DIR_WRONG_CHAIN"
+variant = "StoDataDirWrongChain"
+class = "fail-stop"
+message = "The data directory belongs to a different chain_id, genesis or network."
+
+[[code]]
+code = 7011
+name = "STO_DATA_DIR_TOO_NEW"
+variant = "StoDataDirTooNew"
+class = "fail-stop"
+message = "The data directory's storage schema is newer than this binary can read."
+
+[[code]]
+code = 7012
+name = "STO_DATA_DIR_LOCKED"
+variant = "StoDataDirLocked"
+class = "fail-stop"
+message = "Another process holds the data directory lock."
+
+[[code]]
+code = 7013
+name = "STO_DATA_DIR_MISSING"
+variant = "StoDataDirMissing"
+class = "fail-stop"
+message = "The data directory or its manifest does not exist."
+
+[[code]]
+code = 7020
+name = "STO_ARCHIVE_MISMATCH"
+variant = "StoArchiveMismatch"
+class = "fail-stop"
+message = "An archived block does not hash to the hash recorded with it."
+
+[[code]]
+code = 7030
+name = "STO_MIGRATION_FAILED"
+variant = "StoMigrationFailed"
+class = "fail-stop"
+message = "A storage migration step failed its verification."
 
 [[code]]
 code = 9001

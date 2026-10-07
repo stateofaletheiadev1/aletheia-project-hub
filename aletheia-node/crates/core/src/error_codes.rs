@@ -85,6 +85,16 @@ error_codes! {
     ProofInvalid = 4040, "PROOF_INVALID", Reject;
     StateNoCheckpoint = 5001, "STATE_NO_CHECKPOINT", FailStop;
     PayDuplicate = 6010, "PAY_DUPLICATE", Reject;
+    StoIo = 7001, "STO_IO", FailStop;
+    StoCorrupt = 7002, "STO_CORRUPT", FailStop;
+    StoWalChecksum = 7003, "STO_WAL_CHECKSUM", FailStop;
+    StoWalSequenceGap = 7004, "STO_WAL_SEQUENCE_GAP", FailStop;
+    StoDataDirWrongChain = 7010, "STO_DATA_DIR_WRONG_CHAIN", FailStop;
+    StoDataDirTooNew = 7011, "STO_DATA_DIR_TOO_NEW", FailStop;
+    StoDataDirLocked = 7012, "STO_DATA_DIR_LOCKED", FailStop;
+    StoDataDirMissing = 7013, "STO_DATA_DIR_MISSING", FailStop;
+    StoArchiveMismatch = 7020, "STO_ARCHIVE_MISMATCH", FailStop;
+    StoMigrationFailed = 7030, "STO_MIGRATION_FAILED", FailStop;
     ArithmeticOverflow = 9001, "ARITHMETIC_OVERFLOW", Reject;
     InsufficientBalance = 9002, "INSUFFICIENT_BALANCE", Reject;
     FinalizeOutOfOrder = 11001, "FINALIZE_OUT_OF_ORDER", FailStop;
