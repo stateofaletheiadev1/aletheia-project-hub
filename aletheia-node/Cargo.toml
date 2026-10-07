@@ -8,6 +8,7 @@ members = [
   "crates/crypto",
   "crates/execution",
   "crates/storage",
+  "crates/state",
   "tests/conformance",
 ]
 
@@ -24,6 +25,7 @@ aletheia-core = { path = "crates/core" }
 aletheia-crypto = { path = "crates/crypto" }
 aletheia-execution = { path = "crates/execution" }
 aletheia-storage = { path = "crates/storage" }
+aletheia-state = { path = "crates/state" }
 
 blake3 = { version = "1.8", default-features = false }
 ed25519-dalek = { version = "2.2", default-features = false, features = ["std", "zeroize"] }

@@ -1,0 +1,19 @@
+[package]
+name = "aletheia-state"
+description = "State keys, copy-on-write state overlays and the versioned Jellyfish Merkle Tree with proofs."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+aletheia-core.workspace = true
+aletheia-storage.workspace = true
+blake3.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true
+
+[lints]
+workspace = true

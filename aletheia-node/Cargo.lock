@@ -50,6 +50,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "aletheia-state"
+version = "0.1.0"
+dependencies = [
+ "aletheia-core",
+ "aletheia-storage",
+ "blake3",
+ "proptest",
+]
+
+[[package]]
 name = "aletheia-storage"
 version = "0.1.0"
 dependencies = [
