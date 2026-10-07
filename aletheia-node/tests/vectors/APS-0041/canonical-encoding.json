@@ -1,0 +1,63 @@
+{
+  "accepted": [
+    {
+      "bytes": "0201",
+      "type": "u16",
+      "value": "258"
+    },
+    {
+      "bytes": "0100000000000000",
+      "type": "u64",
+      "value": "1"
+    },
+    {
+      "bytes": "ffffffffffffffffffffffffffffffff",
+      "type": "u128",
+      "value": "340282366920938463463374607431768211455"
+    },
+    {
+      "bytes": "01",
+      "type": "bool",
+      "value": "true"
+    },
+    {
+      "bytes": "03000000010002000300",
+      "type": "list<u16>",
+      "value": "[1, 2, 3]"
+    },
+    {
+      "bytes": "010700000000000000",
+      "type": "option<u64>",
+      "value": "7"
+    }
+  ],
+  "aps": "APS-0041",
+  "description": "ACE: fixed-width little-endian integers, u8 booleans and presence tags, u32 length prefixes, strictly sorted lists, no trailing bytes",
+  "rejected": [
+    {
+      "bytes": "02",
+      "error": "DECODE_NON_CANONICAL",
+      "type": "bool"
+    },
+    {
+      "bytes": "0100ff",
+      "error": "DECODE_TRAILING_BYTES",
+      "type": "u16"
+    },
+    {
+      "bytes": "010203",
+      "error": "DECODE_LENGTH_EXCEEDED",
+      "type": "u64"
+    },
+    {
+      "bytes": "0200",
+      "error": "DECODE_NON_CANONICAL",
+      "type": "option<u8>"
+    },
+    {
+      "bytes": "0200000001000100",
+      "error": "DECODE_NON_CANONICAL",
+      "type": "sorted list<u16> with duplicate"
+    }
+  ]
+}

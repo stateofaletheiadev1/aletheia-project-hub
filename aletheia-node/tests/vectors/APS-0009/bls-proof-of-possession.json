@@ -1,0 +1,17 @@
+{
+  "aps": "APS-0009",
+  "cases": [
+    {
+      "key_material": "141b222930373e454c535a61686f767d848b9299a0a7aeb5bcc3cad1d8dfe6ed",
+      "network": {
+        "chain_id": 7771,
+        "network_kind": 3
+      },
+      "proof_of_possession": "97ee2693f48a81f5228b6c2f47bf8a2dbddaa8a5590c6bd89ec9e9415cacb77580f751397b228ec1bb1fad036b5b13101754d146ddf3656402c8886a0e89360281fb023b45b794b1529f7a1ba2e57b3bff716bd0a56212ecb7a1b504059681ed",
+      "public_key": "a785e26463d1206c3ae0f8175c6f04fa3f5388936736ccd18b9efdf2942ce429c6c978919998a86cc01de7c225eb9f6d",
+      "vote_digest": "bd71a6aaa4aa5f54ea22045af1d0c0bc4529397d46eb91ac6d7acfbfe5b9fd2d",
+      "vote_signature": "b0e079e4b29258fffcfe8ba3eae64b0f1ab3b73ff79832ed4b5f01229a630dcfb1d6a40fece1883f24c47529db4ee12501e8ad55c746fcac342ff1a025fcb4c72228f2ee38fa83fbda85e5a8735daefd05da43901ee97c51821e5b35657347e8"
+    }
+  ],
+  "description": "BLS12-381 min-pk; key from IETF KeyGen over the 32-byte pattern starting 14 (hex) with step 7; PoP over H_domain(\"ALETHEIA/BLS-POP/v1\", pk)"
+}

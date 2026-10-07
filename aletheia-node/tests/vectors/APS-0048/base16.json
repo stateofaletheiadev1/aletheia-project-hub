@@ -1,0 +1,45 @@
+{
+  "aps": "APS-0048",
+  "cases": [
+    {
+      "bytes_len": 0,
+      "result": "ACCEPTED",
+      "text": ""
+    },
+    {
+      "bytes_len": 1,
+      "result": "ACCEPTED",
+      "text": "00"
+    },
+    {
+      "bytes_len": 3,
+      "result": "ACCEPTED",
+      "text": "9fabff"
+    },
+    {
+      "result": "ENC_PREFIXED_HEX_REJECTED",
+      "text": "0x00"
+    },
+    {
+      "result": "ENC_PREFIXED_HEX_REJECTED",
+      "text": "0X00"
+    },
+    {
+      "result": "ENC_UPPERCASE_HEX",
+      "text": "AB"
+    },
+    {
+      "result": "ENC_ODD_LENGTH",
+      "text": "abc"
+    },
+    {
+      "result": "ENC_INVALID_CHARACTER",
+      "text": "ab cd"
+    },
+    {
+      "result": "ENC_INVALID_CHARACTER",
+      "text": "zz"
+    }
+  ],
+  "description": "Base16 text: lowercase, unprefixed, even length; 0x is rejected, never stripped"
+}

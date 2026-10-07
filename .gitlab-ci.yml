@@ -47,3 +47,27 @@ node:lint:
   stage: check
   script:
     - ./scripts/lint.sh
+
+# Coverage-guided fuzzing on nightly (spec Section 62, Phase 1 exit: 24 h clean per target).
+# Runs from a pipeline schedule or by hand; FUZZ_SECONDS sets the per-target budget.
+node:fuzz:
+  image: rustlang/rust:nightly-bookworm
+  stage: check
+  timeout: 26h
+  variables:
+    FUZZ_SECONDS: "3600"
+  before_script:
+    - cd aletheia-node/fuzz
+    - cargo install cargo-fuzz --locked
+  script:
+    - for target in $(cargo +nightly fuzz list); do
+        cargo +nightly fuzz run "$target" -- -max_total_time="$FUZZ_SECONDS" || exit 1;
+      done
+  artifacts:
+    when: on_failure
+    paths:
+      - aletheia-node/fuzz/artifacts/
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+    - if: $CI_PIPELINE_SOURCE == "web"
+      when: manual

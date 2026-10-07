@@ -1,0 +1,50 @@
+{
+  "aps": "APS-0006",
+  "cases": [
+    {
+      "items": [],
+      "root": "f29dd8af2df3f7ad73d48298ec997e101856b9094e55046ba42f75b01cd949f4"
+    },
+    {
+      "items": [
+        "00"
+      ],
+      "root": "ad0c6f3e04dbdbdd25b7d5baf5e1e185074ebacad61b5ee89e2dcd3ffdb62594"
+    },
+    {
+      "items": [
+        "00",
+        "01"
+      ],
+      "root": "dc31dafca8ba43c9e3e3c675d890ff12d355c86bd54b950c4071db1bdaf6d754"
+    },
+    {
+      "items": [
+        "00",
+        "01",
+        "02"
+      ],
+      "root": "e69a36755c2cb64939b547aca35eab5ad128696c78336841de98fb4f4de0757e"
+    },
+    {
+      "items": [
+        "00",
+        "01",
+        "02",
+        "03"
+      ],
+      "root": "7d29b4deb117f76cc8965799f27d3f3c79d9267b2dcdf5ac90a74e5ba3655bc1"
+    },
+    {
+      "items": [
+        "00",
+        "01",
+        "02",
+        "03",
+        "04"
+      ],
+      "root": "dfeb664368471bf0698d51512cbb34075acc475484e173f4ba9e473ca2f9702e"
+    }
+  ],
+  "description": "List Merkle roots on devnet (chain 7771): leaf and node domains, odd node promoted, empty root = leaf hash of nothing"
+}

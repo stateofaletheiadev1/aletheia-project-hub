@@ -1,0 +1,30 @@
+{
+  "aps": "APS-0002",
+  "cases": [
+    {
+      "block_id": "AL:Bq5xpxx3p9qhnv02yfdf9jcr8de6hequ2jxvflf4dkjau9jws6l0q7dz6dj",
+      "hash": "050c131a21282f363d444b525960676e757c838a91989fa6adb4bbc2c9d0d7de",
+      "network_kind": 1,
+      "tx_id": "AL:Tq5xpxx3p9qhnv02yfdf9jcr8de6hequ2jxvflf4dkjau9jws6l0qj2rxyg"
+    },
+    {
+      "block_id": "AL:Bq5xpxx3p9qhnv02yfdf9jcr8de6hequ2jxvflf4dkjau9jws6l0qdg8853",
+      "hash": "050c131a21282f363d444b525960676e757c838a91989fa6adb4bbc2c9d0d7de",
+      "network_kind": 2,
+      "tx_id": "AL:Tq5xpxx3p9qhnv02yfdf9jcr8de6hequ2jxvflf4dkjau9jws6l0qp0xmat"
+    },
+    {
+      "block_id": "AL:Bq5xpxx3p9qhnv02yfdf9jcr8de6hequ2jxvflf4dkjau9jws6l0qadtqu9",
+      "hash": "050c131a21282f363d444b525960676e757c838a91989fa6adb4bbc2c9d0d7de",
+      "network_kind": 3,
+      "tx_id": "AL:Tq5xpxx3p9qhnv02yfdf9jcr8de6hequ2jxvflf4dkjau9jws6l0q322u4l"
+    },
+    {
+      "block_id": "AL:Bq5xpxx3p9qhnv02yfdf9jcr8de6hequ2jxvflf4dkjau9jws6l0qtj3rhz",
+      "hash": "050c131a21282f363d444b525960676e757c838a91989fa6adb4bbc2c9d0d7de",
+      "network_kind": 4,
+      "tx_id": "AL:Tq5xpxx3p9qhnv02yfdf9jcr8de6hequ2jxvflf4dkjau9jws6l0q84sl7c"
+    }
+  ],
+  "description": "AL:T transaction ids and AL:B block ids: 32-byte hash, Bech32m with HRP = network HRP + t / b, 62 characters"
+}

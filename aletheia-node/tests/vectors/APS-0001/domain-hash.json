@@ -1,0 +1,90 @@
+{
+  "aps": "APS-0001",
+  "cases": [
+    {
+      "chain_id": 7771,
+      "hash": "822c08b15dd54038c9bc266ee58c7c3e827dbe6162f4462264d6ddcd44838c39",
+      "message": "",
+      "network_kind": 1,
+      "tag": "ALETHEIA/TXID/v1"
+    },
+    {
+      "chain_id": 7771,
+      "hash": "7211a7f32429aff47d84b92907eec40591ca7ed87b299420013cb3987eabeb3b",
+      "message": "616c657468656961",
+      "network_kind": 1,
+      "tag": "ALETHEIA/BLOCK/v1"
+    },
+    {
+      "chain_id": 7771,
+      "hash": "4d143611d2141ba24eead295191e49283033c5928da5a12bb72e5955277ff182",
+      "message": "00010203",
+      "network_kind": 1,
+      "tag": "ALETHEIA/ADDR/v1"
+    },
+    {
+      "chain_id": 7771,
+      "hash": "153ed091a8bffee96d45998e8f8649a3e1ed8c1d54edae05158f33131f925d07",
+      "message": "",
+      "network_kind": 2,
+      "tag": "ALETHEIA/TXID/v1"
+    },
+    {
+      "chain_id": 7771,
+      "hash": "8e1005919622369dad21814bbb447494bf0dcf82078c4fab76ad78930b5bd620",
+      "message": "616c657468656961",
+      "network_kind": 2,
+      "tag": "ALETHEIA/BLOCK/v1"
+    },
+    {
+      "chain_id": 7771,
+      "hash": "d01ca19834d250b756c86ee43ca401ef39499009f3262cfeb4edfed775d95a4d",
+      "message": "00010203",
+      "network_kind": 2,
+      "tag": "ALETHEIA/ADDR/v1"
+    },
+    {
+      "chain_id": 7771,
+      "hash": "2d9a301927eb05e019033a3719da5350dfb33e3ab6c0d89c9008c3ca1ce105dd",
+      "message": "",
+      "network_kind": 3,
+      "tag": "ALETHEIA/TXID/v1"
+    },
+    {
+      "chain_id": 7771,
+      "hash": "a576c84ef1c0f20207e1440524083ce8ce25ba9d4eb15bb8b096eade4b595549",
+      "message": "616c657468656961",
+      "network_kind": 3,
+      "tag": "ALETHEIA/BLOCK/v1"
+    },
+    {
+      "chain_id": 7771,
+      "hash": "617a388996282d9dbe5b9939560189b3f87f2764c433cbc79f85f5a9b05f635d",
+      "message": "00010203",
+      "network_kind": 3,
+      "tag": "ALETHEIA/ADDR/v1"
+    },
+    {
+      "chain_id": 7771,
+      "hash": "e09d8421e5a3ef69b38818ad5946d240336b5b059d1bdb5e0b03a59fe7107523",
+      "message": "",
+      "network_kind": 4,
+      "tag": "ALETHEIA/TXID/v1"
+    },
+    {
+      "chain_id": 7771,
+      "hash": "0c6a8c61c970c5bea28c946e997844e3ca22dcfdc4f81b16ba12872dfa7ee179",
+      "message": "616c657468656961",
+      "network_kind": 4,
+      "tag": "ALETHEIA/BLOCK/v1"
+    },
+    {
+      "chain_id": 7771,
+      "hash": "caefa31e68082a668795d56c2326daf7ec4872712596d2190240764e531e205a",
+      "message": "00010203",
+      "network_kind": 4,
+      "tag": "ALETHEIA/ADDR/v1"
+    }
+  ],
+  "description": "H_domain(tag, msg) = BLAKE3(u8(len(tag)) || tag || u32_le(chain_id) || u8(network_kind) || msg)"
+}

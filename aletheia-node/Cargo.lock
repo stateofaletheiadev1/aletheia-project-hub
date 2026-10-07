@@ -3,6 +3,17 @@
 version = 4
 
 [[package]]
+name = "aletheia-conformance"
+version = "0.1.0"
+dependencies = [
+ "aletheia-core",
+ "aletheia-crypto",
+ "aletheia-execution",
+ "proptest",
+ "serde_json",
+]
+
+[[package]]
 name = "aletheia-core"
 version = "0.1.0"
 dependencies = [

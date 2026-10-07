@@ -4,7 +4,7 @@ Spec Section 1.2: one row per module. "Implemented" means code exists on `main`.
 means unit and property tests run in `cargo test --workspace`. Nothing below is described as
 done unless it is.
 
-Current phase: **Phase 1 (crypto and encoding)** is in progress. Phase 0 documents are
+Current phase: **Phase 1 (crypto and encoding)**. Every exit criterion except the 24-hour fuzz campaign is met. Phase 0 documents are
 partly written; see the end of this file.
 
 ## crates/core
@@ -19,6 +19,15 @@ partly written; see the end of this file.
 | Bech32m engine (`bech32m.rs`) | APS-0002 | yes | yes | BIP-350 vectors, property vs `bech32` crate | **no** | rustdoc | no |
 | `AL:` addresses (`address.rs`) | APS-0002 | yes | yes | unit, property | **no** | rustdoc | no |
 | `AL:T` / `AL:B` identifiers (`ids.rs`) | 12, 12.1 | yes | yes | unit, property | **no** | rustdoc | no |
+| Transaction wire format (`tx.rs`) | APS-0003 | yes (+ ERRATA E-10, E-12) | yes | unit, property, vectors | target written, smoke only | rustdoc | no |
+| Block wire format, QC, TC, signer bitmap (`block.rs`) | APS-0004, APS-0009 | yes (+ ERRATA E-11) | yes | unit, property, vectors | target written, smoke only | rustdoc | no |
+
+## crates/execution
+
+| Module | APS | Specified | Implemented | Tested | Fuzzed | Documented | Benchmarked |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `Rules` registry, V1 limits and types (`rules/`) | 44.3 | yes | yes (V1 not frozen) | unit | n/a | rustdoc | n/a |
+| Stateless validator (`stateless.rs`) | APS-0003, R.4 | yes | yes | one integration test per step, vectors | target written, smoke only | rustdoc | no |
 
 ## crates/crypto
 
@@ -30,7 +39,7 @@ partly written; see the end of this file.
 | BLS12-381 min-pk, PoP, aggregate | APS-0009 | yes | yes | consensus-spec KAT, PoP, aggregate | **no** | rustdoc | no |
 | List Merkle trees and inclusion proofs | APS-0006 | yes | yes | unit, property | **no** | rustdoc | no |
 | Address derivation (Ed25519, contract) | APS-0002 | yes | yes | unit | n/a | rustdoc | n/a |
-| Address derivation (multisig) | APS-0002 | **blocked** (ERRATA E-4) | no | no | no | no | no |
+| Address derivation (multisig, authorization) | APS-0002 | yes (ERRATA E-4 adopted) | yes | unit | n/a | rustdoc | n/a |
 
 ## Phase 1 exit criteria (spec Section 62)
 
@@ -38,9 +47,9 @@ partly written; see the end of this file.
 | --- | --- |
 | KATs pass | Ed25519 (RFC 8032) and BLS (consensus-spec `sign` vector) pass. BLAKE3 is exercised through `H_domain` against the normative formula; upstream BLAKE3 KATs are not yet in the suite. |
 | Round-trip property tests | ACE integers, lists and byte strings; base16; Bech32m regrouping; addresses; IDs. |
-| Fuzzers 24 h clean | **Not started.** `cargo-fuzz` targets for ACE, base16, address and ID parsing are next. |
-| Vectors published | **Not started.** `tests/vectors/APS-0002`, `APS-0041`, `APS-0048` to follow. |
-| Transaction and block structures (Sections 13, 14) | **Not started.** Next after fuzz targets. |
+| Fuzzers 24 h clean | **Not met yet.** Five targets in `fuzz/` (transaction and header decoding, text identifiers, base16, stateless validation). A stable smoke run (2,000 random and mutated inputs per target) passes on every CI run. The 24-hour coverage-guided campaign runs in the `node:fuzz` GitLab job (nightly, scheduled or manual) and has not been run yet. |
+| Vectors published | Done: `tests/vectors/` APS-0001, 0002, 0003, 0004, 0006, 0009, 0041, 0048, checked against the implementation by `tests/conformance`. |
+| Transaction and block structures (Sections 13, 14) | Done (wire format, IDs, digests, stateless validation). |
 
 ## Phase 0 documents (spec Section 65)
 
@@ -56,4 +65,4 @@ Not yet written: ADR-001 to ADR-036, the APS documents, `docs/architecture/*`,
 `scripts/check_ui_tells.sh`, `scripts/check_frozen_rules.sh`, rail profiles,
 `crates/execution/src/rules/frozen.toml`.
 
-Open decisions: ERRATA E-1 (ADR numbering) and E-4 (multisig derivation).
+Open decisions: none. ERRATA E-1 and E-4 were adopted on the project lead's instruction; the seats may still object.

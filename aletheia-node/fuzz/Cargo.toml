@@ -1,0 +1,51 @@
+# Coverage-guided fuzzing (cargo-fuzz, nightly). Kept outside the workspace so stable builds
+# never need nightly (spec Section 5.5). Target bodies live in tests/conformance/src/fuzz.rs.
+#
+#   cargo +nightly fuzz run ace_signed_transaction -- -max_total_time=86400
+[package]
+name = "aletheia-fuzz"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+aletheia-conformance = { path = "../tests/conformance" }
+
+[[bin]]
+name = "ace_signed_transaction"
+path = "fuzz_targets/ace_signed_transaction.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "ace_block_header"
+path = "fuzz_targets/ace_block_header.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "text_identifiers"
+path = "fuzz_targets/text_identifiers.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "base16_text"
+path = "fuzz_targets/base16_text.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "stateless_validation"
+path = "fuzz_targets/stateless_validation.rs"
+test = false
+doc = false
+bench = false

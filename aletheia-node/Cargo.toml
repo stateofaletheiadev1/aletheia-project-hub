@@ -2,10 +2,12 @@
 resolver = "2"
 # Members are added as each crate is implemented (spec Section 62 phase order). Listing a
 # crate here before it exists would break `cargo build --locked`.
+exclude = ["fuzz"]
 members = [
   "crates/core",
   "crates/crypto",
   "crates/execution",
+  "tests/conformance",
 ]
 
 [workspace.package]
