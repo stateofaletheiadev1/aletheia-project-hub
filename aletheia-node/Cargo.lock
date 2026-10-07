@@ -197,6 +197,7 @@ name = "aletheia-vm"
 version = "0.1.0"
 dependencies = [
  "aletheia-core",
+ "aletheia-monetary",
  "blake3",
  "proptest",
 ]

@@ -1,5 +1,5 @@
-//! The Arno VM (spec Sections 27-29): the bytecode format and the deploy-time verifier, which
-//! the compiler also runs on everything it emits. The interpreter follows in Phase 9.
+//! The Arno VM (spec Sections 27-29): the bytecode format, the deploy-time verifier (which
+//! the compiler also runs on everything it emits), and the metered interpreter.
 
 #![cfg_attr(
     test,
@@ -11,10 +11,17 @@
     )
 )]
 
+pub mod cost;
+pub mod interp;
 pub mod opcode;
 pub mod package;
+pub mod trap;
+pub mod value;
 pub mod verifier;
 
+pub use interp::{ChainInfo, Failure, Host, Outcome, run};
 pub use opcode::{HostFn, Instr, Op};
 pub use package::{Constant, FunctionDef, Package, TypeDef};
+pub use trap::Trap;
+pub use value::Value;
 pub use verifier::{verify, verify_bytes};

@@ -137,3 +137,86 @@ pub fn arnobc_verify(data: &[u8]) {
         );
     }
 }
+
+/// The interpreter: compiled contracts' parameterless routines either return or stop with a
+/// named trap, never an internal error, and two runs agree.
+pub fn vm_run(data: &[u8]) {
+    let Ok(text) = core::str::from_utf8(data) else {
+        return;
+    };
+    let Ok(bytes) = aletheia_arno::compile(&aletheia_arno::SourceFile::new("fuzz.arno", text))
+    else {
+        return;
+    };
+    let Ok(package) = aletheia_vm::Package::from_bytes(&bytes) else {
+        return;
+    };
+    for (index, function) in package.functions.iter().enumerate() {
+        let Ok(index) = u8::try_from(index) else {
+            return;
+        };
+        if function.params != 0 {
+            continue;
+        }
+        let mut first = NullHost::default();
+        let mut second = NullHost::default();
+        let a = aletheia_vm::run(&package, index, Vec::new(), &mut first, 1_000_000);
+        let b = aletheia_vm::run(&package, index, Vec::new(), &mut second, 1_000_000);
+        if let Err(failure) = &a {
+            assert!(
+                !matches!(failure.trap, aletheia_vm::Trap::Internal(_)),
+                "internal VM error: {failure:?}"
+            );
+        }
+        assert_eq!(a, b, "two runs of the same call differ");
+    }
+}
+
+/// A host with in-memory storage that accepts every transfer and event.
+#[derive(Debug, Default)]
+struct NullHost {
+    storage: std::collections::BTreeMap<(u16, Vec<u8>), Vec<u8>>,
+}
+
+impl aletheia_vm::Host for NullHost {
+    fn chain(&self) -> aletheia_vm::ChainInfo {
+        aletheia_vm::ChainInfo {
+            height: 1,
+            slot: 1,
+            epoch: 0,
+            protocol_time_ms: 0,
+            tx_id: [0; 32],
+        }
+    }
+    fn storage_contains(&mut self, slot: u16, key: &[u8]) -> Result<bool, aletheia_vm::Trap> {
+        Ok(self.storage.contains_key(&(slot, key.to_vec())))
+    }
+    fn storage_read(
+        &mut self,
+        slot: u16,
+        key: &[u8],
+    ) -> Result<Option<Vec<u8>>, aletheia_vm::Trap> {
+        Ok(self.storage.get(&(slot, key.to_vec())).cloned())
+    }
+    fn storage_write(
+        &mut self,
+        slot: u16,
+        key: &[u8],
+        value: Option<&[u8]>,
+    ) -> Result<(), aletheia_vm::Trap> {
+        match value {
+            Some(v) => self.storage.insert((slot, key.to_vec()), v.to_vec()),
+            None => self.storage.remove(&(slot, key.to_vec())),
+        };
+        Ok(())
+    }
+    fn transfer(&mut self, _: u32, _: u128, _: &[u8; 33]) -> Result<(), aletheia_vm::Trap> {
+        Ok(())
+    }
+    fn emit(&mut self, _: u16, _: Vec<u8>) -> Result<(), aletheia_vm::Trap> {
+        Ok(())
+    }
+    fn verify_ed25519(&self, _: &[u8; 32], _: &[u8; 32], _: &[u8; 64]) -> bool {
+        false
+    }
+}

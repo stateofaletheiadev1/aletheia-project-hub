@@ -1,6 +1,6 @@
 [package]
 name = "aletheia-vm"
-description = "The Arno VM: bytecode format and deploy-time verifier (interpreter in Phase 9). Consensus-critical."
+description = "The Arno VM: bytecode format, deploy-time verifier and metered interpreter. Consensus-critical."
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -9,6 +9,7 @@ publish.workspace = true
 
 [dependencies]
 aletheia-core.workspace = true
+aletheia-monetary.workspace = true
 blake3.workspace = true
 
 [dev-dependencies]

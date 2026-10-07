@@ -60,6 +60,7 @@ proptest! {
             data[index] = value;
         }
         fuzz::arno_compile(&data);
+        fuzz::vm_run(&data);
     }
 
     #[test]

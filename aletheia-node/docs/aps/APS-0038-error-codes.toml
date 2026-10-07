@@ -669,3 +669,94 @@ name = "VM_VERIFY_FAILED"
 variant = "VmVerifyFailed"
 class = "reject"
 message = "The bytecode verifier refused the package; the detail names the function, instruction and rule."
+
+[[code]]
+code = 13100
+name = "VM_OUT_OF_EU"
+variant = "VmOutOfEu"
+class = "reject"
+message = "Contract execution reached the transaction eu_limit; state is reverted and the fee charged."
+
+[[code]]
+code = 13101
+name = "VM_OVERFLOW"
+variant = "VmOverflow"
+class = "reject"
+message = "A contract computation overflowed its integer type."
+
+[[code]]
+code = 13102
+name = "VM_DIVISION_BY_ZERO"
+variant = "VmDivisionByZero"
+class = "reject"
+message = "A contract divided by zero."
+
+[[code]]
+code = 13103
+name = "VM_INDEX_OUT_OF_RANGE"
+variant = "VmIndexOutOfRange"
+class = "reject"
+message = "A contract indexed outside an array or list (indices start at 1)."
+
+[[code]]
+code = 13104
+name = "VM_LIST_FULL"
+variant = "VmListFull"
+class = "reject"
+message = "A contract added to a list already at its maximum length."
+
+[[code]]
+code = 13105
+name = "VM_NOTHING_TO_UNWRAP"
+variant = "VmNothingToUnwrap"
+class = "reject"
+message = "A contract read the value of an optional holding Nothing."
+
+[[code]]
+code = 13106
+name = "VM_CONVERSION_OUT_OF_RANGE"
+variant = "VmConversionOutOfRange"
+class = "reject"
+message = "A contract converted a number to a type it does not fit."
+
+[[code]]
+code = 13107
+name = "VM_LOOP_BOUND_EXCEEDED"
+variant = "VmLoopBoundExceeded"
+class = "reject"
+message = "A contract loop ran more times than its declared bound."
+
+[[code]]
+code = 13108
+name = "VM_INSUFFICIENT_VAULT"
+variant = "VmInsufficientVault"
+class = "reject"
+message = "A contract withdrew more than its vault holds."
+
+[[code]]
+code = 13109
+name = "VM_INSUFFICIENT_COINS"
+variant = "VmInsufficientCoins"
+class = "reject"
+message = "A contract split more from a coins value than it holds."
+
+[[code]]
+code = 13110
+name = "VM_MEMORY_LIMIT"
+variant = "VmMemoryLimit"
+class = "reject"
+message = "A contract exceeded 4 MiB in one call or 32 MiB in one transaction."
+
+[[code]]
+code = 13111
+name = "VM_CONTRACT_ABORTED"
+variant = "VmContractAborted"
+class = "reject"
+message = "The contract aborted with one of its declared errors; the receipt names it."
+
+[[code]]
+code = 13112
+name = "VM_INTERNAL"
+variant = "VmInternal"
+class = "fail-stop"
+message = "The VM reached a state the bytecode verifier rules out; a VM bug, so the node stops rather than diverge."

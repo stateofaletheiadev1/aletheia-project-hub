@@ -70,3 +70,10 @@ path = "fuzz_targets/arnobc_verify.rs"
 test = false
 doc = false
 bench = false
+
+[[bin]]
+name = "vm_run"
+path = "fuzz_targets/vm_run.rs"
+test = false
+doc = false
+bench = false

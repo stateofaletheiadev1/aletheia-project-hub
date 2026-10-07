@@ -141,6 +141,19 @@ error_codes! {
     ProtocolUpgradeRequired = 12002, "PROTOCOL_UPGRADE_REQUIRED", FailStop;
     VmPackageMalformed = 13001, "VM_PACKAGE_MALFORMED", Reject;
     VmVerifyFailed = 13002, "VM_VERIFY_FAILED", Reject;
+    VmOutOfEu = 13100, "VM_OUT_OF_EU", Reject;
+    VmOverflow = 13101, "VM_OVERFLOW", Reject;
+    VmDivisionByZero = 13102, "VM_DIVISION_BY_ZERO", Reject;
+    VmIndexOutOfRange = 13103, "VM_INDEX_OUT_OF_RANGE", Reject;
+    VmListFull = 13104, "VM_LIST_FULL", Reject;
+    VmNothingToUnwrap = 13105, "VM_NOTHING_TO_UNWRAP", Reject;
+    VmConversionOutOfRange = 13106, "VM_CONVERSION_OUT_OF_RANGE", Reject;
+    VmLoopBoundExceeded = 13107, "VM_LOOP_BOUND_EXCEEDED", Reject;
+    VmInsufficientVault = 13108, "VM_INSUFFICIENT_VAULT", Reject;
+    VmInsufficientCoins = 13109, "VM_INSUFFICIENT_COINS", Reject;
+    VmMemoryLimit = 13110, "VM_MEMORY_LIMIT", Reject;
+    VmContractAborted = 13111, "VM_CONTRACT_ABORTED", Reject;
+    VmInternal = 13112, "VM_INTERNAL", FailStop;
 }
 
 #[cfg(test)]
