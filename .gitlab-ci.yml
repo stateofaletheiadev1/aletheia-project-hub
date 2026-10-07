@@ -1,0 +1,49 @@
+# CI for the monorepo. Node jobs run only when aletheia-node/ changes (spec Section 50).
+# The toolchain comes from aletheia-node/rust-toolchain.toml; the image only supplies rustup
+# and a C compiler for blst.
+
+stages:
+  - check
+
+.node:
+  image: rust:1.91.1-bookworm
+  variables:
+    CARGO_HOME: $CI_PROJECT_DIR/.cargo-home
+    CARGO_TERM_COLOR: always
+  before_script:
+    - cd aletheia-node
+    - rustup show active-toolchain
+  cache:
+    key: aletheia-node-$CI_COMMIT_REF_SLUG
+    paths:
+      - .cargo-home/registry
+      - aletheia-node/target
+  rules:
+    - changes:
+        - aletheia-node/**/*
+        - .gitlab-ci.yml
+
+node:fmt:
+  extends: .node
+  stage: check
+  script:
+    - cargo fmt --check
+
+node:clippy:
+  extends: .node
+  stage: check
+  script:
+    - cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
+
+node:test:
+  extends: .node
+  stage: check
+  script:
+    - cargo test --workspace --locked
+    - cargo test --workspace --release --locked
+
+node:lint:
+  extends: .node
+  stage: check
+  script:
+    - ./scripts/lint.sh

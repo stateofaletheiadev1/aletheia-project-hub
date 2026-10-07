@@ -4,7 +4,7 @@ resolver = "2"
 # crate here before it exists would break `cargo build --locked`.
 members = [
   "crates/core",
-  # "crates/crypto",
+  "crates/crypto",
 ]
 
 [workspace.package]

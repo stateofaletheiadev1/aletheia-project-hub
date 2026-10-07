@@ -73,6 +73,8 @@ error_codes! {
     BlsPopInvalid = 4010, "BLS_POP_INVALID", Reject;
     BlsAggregateEmpty = 4011, "BLS_AGGREGATE_EMPTY", Reject;
     CryptoAlgorithmUnsupported = 4020, "CRYPTO_ALGORITHM_UNSUPPORTED", Reject;
+    KeyGenerationFailed = 4030, "KEY_GENERATION_FAILED", Reject;
+    ProofInvalid = 4040, "PROOF_INVALID", Reject;
     StateNoCheckpoint = 5001, "STATE_NO_CHECKPOINT", FailStop;
     PayDuplicate = 6010, "PAY_DUPLICATE", Reject;
     ArithmeticOverflow = 9001, "ARITHMETIC_OVERFLOW", Reject;

@@ -192,6 +192,20 @@ class = "reject"
 message = "The algorithm identifier is not supported by this crypto profile."
 
 [[code]]
+code = 4030
+name = "KEY_GENERATION_FAILED"
+variant = "KeyGenerationFailed"
+class = "reject"
+message = "Key generation could not obtain randomness or derive a key from the input material."
+
+[[code]]
+code = 4040
+name = "PROOF_INVALID"
+variant = "ProofInvalid"
+class = "reject"
+message = "A Merkle or state proof does not connect the claimed value to the claimed root."
+
+[[code]]
 code = 5001
 name = "STATE_NO_CHECKPOINT"
 variant = "StateNoCheckpoint"
