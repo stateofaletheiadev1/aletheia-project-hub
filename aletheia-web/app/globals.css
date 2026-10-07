@@ -733,6 +733,8 @@ body {
   background: linear-gradient(135deg, rgba(196, 154, 78, 0.04) 0%, transparent 60%);
   opacity: 0;
   transition: opacity 280ms ease;
+  /* Decorative sheen only: it sits above the card's content, so it must not take clicks. */
+  pointer-events: none;
 }
 .sovereign-card-premium:hover::after { opacity: 1; }
 
