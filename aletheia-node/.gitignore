@@ -1,0 +1,6 @@
+/target
+*.profraw
+/coverage
+/fuzz/target
+/fuzz/corpus
+/fuzz/artifacts

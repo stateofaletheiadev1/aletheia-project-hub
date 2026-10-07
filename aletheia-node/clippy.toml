@@ -1,0 +1,7 @@
+# Consensus code returns Result; these lints are denied workspace-wide in Cargo.toml and
+# this file only tunes thresholds.
+too-many-arguments-threshold = 8
+allow-unwrap-in-tests = true
+allow-expect-in-tests = true
+allow-panic-in-tests = true
+allow-indexing-slicing-in-tests = true

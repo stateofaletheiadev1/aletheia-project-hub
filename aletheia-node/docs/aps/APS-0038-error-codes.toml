@@ -1,0 +1,241 @@
+# APS-0038 appendix: protocol error codes.
+#
+# This file is the single source for error codes. `crates/core/src/error_codes.rs` must match
+# it exactly; the test `error_codes_match_registry` in that crate fails on any difference.
+#
+# Rules (spec Section 57):
+#   - codes are u32, grouped by thousands per subsystem;
+#   - a code is never reused; a retired code stays listed with `retired = true`;
+#   - `name` is the stable symbolic name used in RPC errors;
+#   - `class` is "reject" (the input is refused, the node continues) or "fail-stop"
+#     (the node must stop rather than continue, spec Section 46.3).
+#
+# Ranges:
+#   1000-1099 canonical decoding (APS-0041)
+#   1100-1199 text encoding of binary values (APS-0048)
+#   1200-1299 addresses and identifiers (APS-0002)
+#   1300-1399 network identity (APS-0001)
+#   2000-2999 transactions (APS-0003)
+#   4000-4999 cryptography (APS-0037, APS-0009)
+#   5000-5999 state (APS-0005)
+#   6000-6999 payments (APS-0049..0053)
+#   9000-9999 arithmetic and monetary (APS-0020)
+#   11000-11999 finalization
+#   12000-12999 protocol versions and continuity (APS-0054)
+
+[[code]]
+code = 1001
+name = "DECODE_NON_CANONICAL"
+variant = "DecodeNonCanonical"
+class = "reject"
+message = "Input is not the canonical ACE encoding of the expected type."
+
+[[code]]
+code = 1002
+name = "DECODE_LENGTH_EXCEEDED"
+variant = "DecodeLengthExceeded"
+class = "reject"
+message = "A length prefix exceeds the type's maximum, or the input ends before the value does."
+
+[[code]]
+code = 1003
+name = "DECODE_TRAILING_BYTES"
+variant = "DecodeTrailingBytes"
+class = "reject"
+message = "Bytes remain after a complete value was decoded."
+
+[[code]]
+code = 1101
+name = "ENC_PREFIXED_HEX_REJECTED"
+variant = "EncPrefixedHexRejected"
+class = "reject"
+message = "Base16 text starts with 0x or 0X; Aletheia text encoding has no prefix."
+
+[[code]]
+code = 1102
+name = "ENC_UPPERCASE_HEX"
+variant = "EncUppercaseHex"
+class = "reject"
+message = "Base16 text contains uppercase digits; only lowercase is canonical."
+
+[[code]]
+code = 1103
+name = "ENC_ODD_LENGTH"
+variant = "EncOddLength"
+class = "reject"
+message = "Base16 text has an odd number of digits."
+
+[[code]]
+code = 1104
+name = "ENC_WRONG_LENGTH"
+variant = "EncWrongLength"
+class = "reject"
+message = "Base16 text does not have the exact length of the fixed-size type."
+
+[[code]]
+code = 1105
+name = "ENC_INVALID_CHARACTER"
+variant = "EncInvalidCharacter"
+class = "reject"
+message = "Base16 text contains a character outside 0-9 and a-f."
+
+[[code]]
+code = 1201
+name = "ADDR_MALFORMED"
+variant = "AddrMalformed"
+class = "reject"
+message = "Text is not an Aletheia address: wrong length, prefix, characters, checksum or type."
+
+[[code]]
+code = 1202
+name = "ADDR_WRONG_NETWORK"
+variant = "AddrWrongNetwork"
+class = "reject"
+message = "The address checksum is valid for a different Aletheia network."
+
+[[code]]
+code = 1203
+name = "ADDR_NON_CANONICAL"
+variant = "AddrNonCanonical"
+class = "reject"
+message = "The address decodes but is not in canonical form (case or padding bits)."
+
+[[code]]
+code = 1211
+name = "ID_MALFORMED"
+variant = "IdMalformed"
+class = "reject"
+message = "Text is not an Aletheia transaction or block identifier."
+
+[[code]]
+code = 1212
+name = "ID_WRONG_NETWORK"
+variant = "IdWrongNetwork"
+class = "reject"
+message = "The identifier checksum is valid for a different Aletheia network."
+
+[[code]]
+code = 1213
+name = "ID_NON_CANONICAL"
+variant = "IdNonCanonical"
+class = "reject"
+message = "The identifier decodes but is not in canonical form (case or padding bits)."
+
+[[code]]
+code = 1301
+name = "NETWORK_KIND_UNKNOWN"
+variant = "NetworkKindUnknown"
+class = "reject"
+message = "The network kind byte is not one of the registered network kinds."
+
+[[code]]
+code = 2003
+name = "TX_NONCE_TOO_LOW"
+variant = "TxNonceTooLow"
+class = "reject"
+message = "The transaction nonce is below the account's next nonce."
+
+[[code]]
+code = 2020
+name = "TX_TYPE_NOT_ACTIVE"
+variant = "TxTypeNotActive"
+class = "reject"
+message = "The transaction type is not active at the current protocol version."
+
+[[code]]
+code = 4001
+name = "SIG_INVALID"
+variant = "SigInvalid"
+class = "reject"
+message = "The signature does not verify for this key and message."
+
+[[code]]
+code = 4002
+name = "SIG_MALFORMED"
+variant = "SigMalformed"
+class = "reject"
+message = "The signature bytes are not a canonical encoding for the algorithm."
+
+[[code]]
+code = 4003
+name = "KEY_MALFORMED"
+variant = "KeyMalformed"
+class = "reject"
+message = "The public key bytes are not a valid canonical point for the algorithm."
+
+[[code]]
+code = 4004
+name = "KEY_WEAK"
+variant = "KeyWeak"
+class = "reject"
+message = "The public key is a small-order or identity point and is refused."
+
+[[code]]
+code = 4010
+name = "BLS_POP_INVALID"
+variant = "BlsPopInvalid"
+class = "reject"
+message = "The BLS proof of possession does not verify for the public key."
+
+[[code]]
+code = 4011
+name = "BLS_AGGREGATE_EMPTY"
+variant = "BlsAggregateEmpty"
+class = "reject"
+message = "A BLS aggregate was requested over zero keys or signatures."
+
+[[code]]
+code = 4020
+name = "CRYPTO_ALGORITHM_UNSUPPORTED"
+variant = "CryptoAlgorithmUnsupported"
+class = "reject"
+message = "The algorithm identifier is not supported by this crypto profile."
+
+[[code]]
+code = 5001
+name = "STATE_NO_CHECKPOINT"
+variant = "StateNoCheckpoint"
+class = "fail-stop"
+message = "A state overlay revert was requested without a matching checkpoint."
+
+[[code]]
+code = 6010
+name = "PAY_DUPLICATE"
+variant = "PayDuplicate"
+class = "reject"
+message = "A payment with the same de-duplication key is already settled."
+
+[[code]]
+code = 9001
+name = "ARITHMETIC_OVERFLOW"
+variant = "ArithmeticOverflow"
+class = "reject"
+message = "A checked arithmetic operation overflowed."
+
+[[code]]
+code = 9002
+name = "INSUFFICIENT_BALANCE"
+variant = "InsufficientBalance"
+class = "reject"
+message = "A subtraction would make a balance negative."
+
+[[code]]
+code = 11001
+name = "FINALIZE_OUT_OF_ORDER"
+variant = "FinalizeOutOfOrder"
+class = "fail-stop"
+message = "A block was presented for finalization out of height order."
+
+[[code]]
+code = 11002
+name = "FINALIZE_PARENT_MISMATCH"
+variant = "FinalizeParentMismatch"
+class = "fail-stop"
+message = "A block presented for finalization does not extend the last finalized block."
+
+[[code]]
+code = 12001
+name = "PROTOCOL_VERSION_UNSUPPORTED"
+variant = "ProtocolVersionUnsupported"
+class = "reject"
+message = "The protocol version is not known to this binary."

@@ -1,0 +1,72 @@
+[workspace]
+resolver = "2"
+# Members are added as each crate is implemented (spec Section 62 phase order). Listing a
+# crate here before it exists would break `cargo build --locked`.
+members = [
+  "crates/core",
+  # "crates/crypto",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "Apache-2.0"
+rust-version = "1.91.1"
+repository = "https://gitlab.com/emeka.iwuagwu/aletheia-project-hub"
+publish = false
+
+[workspace.dependencies]
+aletheia-core = { path = "crates/core" }
+aletheia-crypto = { path = "crates/crypto" }
+
+blake3 = { version = "1.8", default-features = false }
+ed25519-dalek = { version = "2.2", default-features = false, features = ["std", "zeroize"] }
+blst = { version = "0.3", default-features = false }
+zeroize = { version = "1.8", features = ["derive"] }
+getrandom = "0.3"
+
+proptest = "1.7"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+toml = "0.9"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+missing_debug_implementations = "warn"
+unreachable_pub = "warn"
+unused_must_use = "deny"
+
+[workspace.lints.clippy]
+# Spec Section 5.2: no panics, unwraps, unchecked indexing or floats on consensus paths.
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+indexing_slicing = "deny"
+float_arithmetic = "deny"
+arithmetic_side_effects = "deny"
+as_conversions = "deny"
+cast_possible_truncation = "deny"
+todo = "deny"
+unimplemented = "deny"
+dbg_macro = "deny"
+print_stdout = "deny"
+print_stderr = "deny"
+
+[profile.dev]
+overflow-checks = true
+
+[profile.test]
+overflow-checks = true
+
+[profile.release]
+codegen-units = 1
+lto = "fat"
+panic = "abort"
+strip = "symbols"
+
+[profile.hardened-release]
+inherits = "release"
+overflow-checks = true
+
+[profile.coverage]
+inherits = "test"

@@ -1,0 +1,11 @@
+# Hardened link flags for the Linux validator targets (spec Sections 5.7, 51).
+# Other hosts build with defaults; validators run Linux only.
+[target.x86_64-unknown-linux-gnu]
+rustflags = ["-C", "link-arg=-Wl,-z,relro,-z,now", "-C", "link-arg=-Wl,-z,noexecstack"]
+
+[target.aarch64-unknown-linux-gnu]
+rustflags = ["-C", "link-arg=-Wl,-z,relro,-z,now", "-C", "link-arg=-Wl,-z,noexecstack"]
+
+[net]
+# Release builds fetch nothing outside Cargo and the committed lockfile.
+git-fetch-with-cli = false

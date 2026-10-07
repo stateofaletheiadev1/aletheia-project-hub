@@ -1,0 +1,29 @@
+# cargo-deny policy (spec Section 50). Supply-chain changes to consensus, crypto,
+# serialization, storage or execution dependencies also require an ADR (Section 5.5).
+[graph]
+all-features = true
+
+[advisories]
+version = 2
+yanked = "deny"
+
+[licenses]
+version = 2
+allow = ["Apache-2.0", "MIT", "BSD-2-Clause", "BSD-3-Clause", "ISC", "Unicode-3.0", "CC0-1.0", "Zlib"]
+confidence-threshold = 0.9
+
+[bans]
+multiple-versions = "warn"
+wildcards = "deny"
+# Consensus bytes are hand-written ACE (ADR-005); no reflection/protobuf encoders.
+deny = [
+  { crate = "prost" },
+  { crate = "bincode" },
+  { crate = "openssl" },
+  { crate = "openssl-sys" },
+]
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
