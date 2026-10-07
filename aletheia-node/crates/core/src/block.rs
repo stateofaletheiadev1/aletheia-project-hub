@@ -436,6 +436,37 @@ impl AceDecode for Block {
     }
 }
 
+/// A proposed block with the proposer's signature over
+/// `H_domain("ALETHEIA/PROPOSAL/v1", block_hash)` (§14.3). This is what the archive stores.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Proposal {
+    pub block: Block,
+    pub proposer_signature: [u8; BLS_SIGNATURE_LEN],
+}
+
+impl Proposal {
+    /// The digest the proposer signs.
+    pub fn signing_digest(network: &NetworkIdentity, block_hash: &Hash32) -> Hash32 {
+        network.domain_hash(DomainTag::Proposal, block_hash.as_bytes())
+    }
+}
+
+impl AceEncode for Proposal {
+    fn encode(&self, out: &mut AceWriter) {
+        self.block.encode(out);
+        out.fixed(&self.proposer_signature);
+    }
+}
+
+impl AceDecode for Proposal {
+    fn decode(input: &mut AceReader<'_>) -> Result<Proposal, AletheiaError> {
+        Ok(Proposal {
+            block: Block::decode(input)?,
+            proposer_signature: input.array()?,
+        })
+    }
+}
+
 #[cfg(test)]
 pub(crate) mod tests {
     use super::*;

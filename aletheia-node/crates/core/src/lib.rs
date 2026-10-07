@@ -33,7 +33,7 @@ pub mod types;
 pub use ace::{AceDecode, AceEncode, AceReader, AceWriter};
 pub use address::{Address, AddressType};
 pub use block::{
-    Block, BlockBody, BlockHeader, ExtensionField, QuorumCertificate, SignerBitmap,
+    Block, BlockBody, BlockHeader, ExtensionField, Proposal, QuorumCertificate, SignerBitmap,
     TimeoutCertificate,
 };
 pub use error::AletheiaError;

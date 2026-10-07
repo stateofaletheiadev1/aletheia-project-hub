@@ -13,6 +13,7 @@
     )
 )]
 
+pub mod archive;
 pub mod datadir;
 mod fsutil;
 pub mod kv;
