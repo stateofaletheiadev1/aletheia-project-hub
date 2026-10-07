@@ -66,5 +66,5 @@ floating-point arithmetic, nondeterministic map/set iteration feeding protocol o
 ## Repository layout (monorepo)
 This workspace lives in `aletheia-node/` of the aletheia-project-hub repository. Paths in the
 spec such as `crates/`, `docs/`, `scripts/` are relative to `aletheia-node/`. The spec's
-`explorer/` directory is `../aletheia-explorer/`. The repository root holds the national web
-platform (Next.js) and is not part of the node build. All work lands on the `main` branch.
+`explorer/` directory is `../aletheia-explorer/`. The national web platform (Next.js) lives in
+`../aletheia-web/` and is not part of the node build. All work lands on the `main` branch.
