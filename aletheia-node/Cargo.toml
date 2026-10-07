@@ -12,6 +12,7 @@ members = [
   "crates/monetary",
   "tests/conformance",
   "tests/harness",
+  "tests/determinism",
 ]
 
 [workspace.package]

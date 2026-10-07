@@ -50,6 +50,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "aletheia-determinism"
+version = "0.1.0"
+dependencies = [
+ "aletheia-core",
+ "aletheia-execution",
+ "aletheia-state",
+ "aletheia-test-harness",
+ "blake3",
+]
+
+[[package]]
 name = "aletheia-execution"
 version = "0.1.0"
 dependencies = [

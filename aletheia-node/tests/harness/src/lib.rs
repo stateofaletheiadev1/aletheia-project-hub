@@ -62,6 +62,9 @@ pub struct Devnet {
     pub head: BlockHeader,
     pub keys: Vec<Ed25519SigningKey>,
     pub blocks: Vec<(Proposal, ExecutedBlock)>,
+    /// State writes merged into the next block's commit: a stand-in for governance
+    /// transactions (UpgradePlan, Phase 10) so upgrades can be tested now.
+    pub injected: Vec<(StateKey, Option<StateValue>)>,
 }
 
 pub fn seed(index: usize) -> [u8; 32] {
@@ -70,12 +73,17 @@ pub fn seed(index: usize) -> [u8; 32] {
     bytes
 }
 
+/// The harness's deterministic signing keys (secret keys are not `Clone`; rebuild them).
+pub fn keys(count: usize) -> Vec<Ed25519SigningKey> {
+    (0..count)
+        .map(|i| Ed25519SigningKey::from_seed(&Secret::new(seed(i))))
+        .collect()
+}
+
 impl Devnet {
     /// `accounts` funded accounts, each with `aey` and `alnt` base units.
     pub fn new(accounts: usize, aey: u128, alnt: u128) -> Devnet {
-        let keys: Vec<Ed25519SigningKey> = (0..accounts)
-            .map(|i| Ed25519SigningKey::from_seed(&Secret::new(seed(i))))
-            .collect();
+        let keys = keys(accounts);
         // Addresses depend only on chain id and network kind, not on genesis_id.
         let provisional = NetworkIdentity::new(
             aletheia_core::ChainId::new(7771),
@@ -118,6 +126,7 @@ impl Devnet {
             head,
             keys,
             blocks: Vec::new(),
+            injected: Vec::new(),
         }
     }
 
@@ -231,6 +240,22 @@ impl Devnet {
             .collect()
     }
 
+    /// Schedules `version` to activate at `activation_height`, committed with the next block.
+    pub fn schedule_upgrade(&mut self, version: u16, activation_height: u64) {
+        let entry = aletheia_execution::model::ProtocolScheduleEntry {
+            protocol_version: version,
+            activation_height,
+            activation_epoch: 0,
+            upgrade_id: Hash32::from_bytes([version as u8; 32]),
+            binary_hashes: Vec::new(),
+            migration_id: None,
+            recorded_at_height: self.head.height.get() + 1,
+        };
+        let records = self.records();
+        self.injected
+            .push((records.schedule_key(version), Some(entry.to_ace_bytes())));
+    }
+
     /// Verifies, orders canonically, executes and commits the next block.
     pub fn produce(
         &mut self,
@@ -270,7 +295,13 @@ impl Devnet {
             parent_hash,
             protocol_version: aletheia_core::ProtocolVersion::new(entry.protocol_version),
         };
-        let executed = execute_block(rules, &records, &self.view(), &ctx, &ordered)?;
+        let mut executed = execute_block(rules, &records, &self.view(), &ctx, &ordered)?;
+        if !self.injected.is_empty() {
+            let mut merged: std::collections::BTreeMap<StateKey, Option<StateValue>> =
+                executed.changes.into_iter().collect();
+            merged.extend(self.injected.drain(..));
+            executed.changes = merged.into_iter().collect();
+        }
         let tree = JellyfishMerkleTree::new(&self.store, self.network);
         let mut batch = self.store.batch();
         let state_root = tree.apply(
