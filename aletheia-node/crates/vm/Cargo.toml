@@ -1,0 +1,18 @@
+[package]
+name = "aletheia-vm"
+description = "The Arno VM: bytecode format and deploy-time verifier (interpreter in Phase 9). Consensus-critical."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+aletheia-core.workspace = true
+blake3.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true
+
+[lints]
+workspace = true

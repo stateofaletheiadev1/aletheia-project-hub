@@ -188,6 +188,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "aletheia-vm"
+version = "0.1.0"
+dependencies = [
+ "aletheia-core",
+ "blake3",
+ "proptest",
+]
+
+[[package]]
 name = "aletheiad"
 version = "0.1.0"
 dependencies = [

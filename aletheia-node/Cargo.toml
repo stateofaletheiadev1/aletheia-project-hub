@@ -13,6 +13,7 @@ members = [
   "crates/p2p",
   "crates/storage",
   "crates/state",
+  "crates/vm",
   "crates/monetary",
   "crates/node",
   "apps/aletheiad",
@@ -39,6 +40,7 @@ aletheia-signer = { path = "crates/signer" }
 aletheia-execution = { path = "crates/execution" }
 aletheia-storage = { path = "crates/storage" }
 aletheia-state = { path = "crates/state" }
+aletheia-vm = { path = "crates/vm" }
 aletheia-monetary = { path = "crates/monetary" }
 aletheia-p2p = { path = "crates/p2p" }
 aletheia-node = { path = "crates/node" }

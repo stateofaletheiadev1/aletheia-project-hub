@@ -139,6 +139,8 @@ error_codes! {
     FinalizeStateDiverged = 11003, "FINALIZE_STATE_DIVERGED", FailStop;
     ProtocolVersionUnsupported = 12001, "PROTOCOL_VERSION_UNSUPPORTED", Reject;
     ProtocolUpgradeRequired = 12002, "PROTOCOL_UPGRADE_REQUIRED", FailStop;
+    VmPackageMalformed = 13001, "VM_PACKAGE_MALFORMED", Reject;
+    VmVerifyFailed = 13002, "VM_VERIFY_FAILED", Reject;
 }
 
 #[cfg(test)]

@@ -655,3 +655,17 @@ name = "PROTOCOL_UPGRADE_REQUIRED"
 variant = "ProtocolUpgradeRequired"
 class = "fail-stop"
 message = "The next height runs a protocol version this binary does not support; stop cleanly with exit 75."
+
+[[code]]
+code = 13001
+name = "VM_PACKAGE_MALFORMED"
+variant = "VmPackageMalformed"
+class = "reject"
+message = "The bytes are not a well-formed Arno package: wrong magic or format, a bound exceeded, or a code hash that does not match."
+
+[[code]]
+code = 13002
+name = "VM_VERIFY_FAILED"
+variant = "VmVerifyFailed"
+class = "reject"
+message = "The bytecode verifier refused the package; the detail names the function, instruction and rule."
