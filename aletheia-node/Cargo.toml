@@ -7,6 +7,7 @@ members = [
   "crates/core",
   "crates/crypto",
   "crates/execution",
+  "crates/p2p",
   "crates/storage",
   "crates/state",
   "crates/monetary",
@@ -31,6 +32,8 @@ aletheia-execution = { path = "crates/execution" }
 aletheia-storage = { path = "crates/storage" }
 aletheia-state = { path = "crates/state" }
 aletheia-monetary = { path = "crates/monetary" }
+aletheia-p2p = { path = "crates/p2p" }
+aletheia-node = { path = "crates/node" }
 aletheia-test-harness = { path = "tests/harness" }
 
 blake3 = { version = "1.8", default-features = false }

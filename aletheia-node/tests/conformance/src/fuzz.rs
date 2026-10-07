@@ -86,3 +86,23 @@ pub fn stateless_validation(data: &[u8]) {
         );
     }
 }
+
+/// P2P frames and messages from an untrusted peer (spec Section 61: Node -> P2P peers).
+pub fn p2p_frames(data: &[u8]) {
+    let mut decoder = aletheia_p2p::FrameDecoder::new();
+    decoder.push(data);
+    while let Ok(Some(frame)) = decoder.next_frame() {
+        if let Ok(message) = aletheia_p2p::Message::from_frame(&frame) {
+            let again = message.to_frame(frame.request_id);
+            assert_eq!(
+                again.payload, frame.payload,
+                "accepted message is not canonical"
+            );
+            assert_eq!(
+                (again.channel, again.msg_type),
+                (frame.channel, frame.msg_type)
+            );
+        }
+    }
+    assert!(decoder.buffered() <= data.len());
+}

@@ -49,3 +49,10 @@ path = "fuzz_targets/stateless_validation.rs"
 test = false
 doc = false
 bench = false
+
+[[bin]]
+name = "p2p_frames"
+path = "fuzz_targets/p2p_frames.rs"
+test = false
+doc = false
+bench = false

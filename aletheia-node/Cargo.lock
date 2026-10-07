@@ -18,6 +18,7 @@ dependencies = [
  "aletheia-core",
  "aletheia-crypto",
  "aletheia-execution",
+ "aletheia-p2p",
  "proptest",
  "serde_json",
 ]
@@ -92,6 +93,15 @@ dependencies = [
  "aletheia-state",
  "aletheia-storage",
  "aletheia-test-harness",
+]
+
+[[package]]
+name = "aletheia-p2p"
+version = "0.1.0"
+dependencies = [
+ "aletheia-core",
+ "aletheia-crypto",
+ "proptest",
 ]
 
 [[package]]

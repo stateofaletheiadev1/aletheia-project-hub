@@ -20,6 +20,7 @@
 #   4000-4999 cryptography (APS-0037, APS-0009)
 #   5000-5999 state (APS-0005)
 #   6000-6999 payments (APS-0049..0053)
+#   8000-8999 peer-to-peer transport (APS-0029)
 #   7000-7999 storage, WAL, archive and data directory (APS-0033, APS-0034, APS-0055)
 #   9000-9999 arithmetic and monetary (APS-0020)
 #   11000-11999 finalization
@@ -444,6 +445,69 @@ name = "STO_MIGRATION_FAILED"
 variant = "StoMigrationFailed"
 class = "fail-stop"
 message = "A storage migration step failed its verification."
+
+[[code]]
+code = 8001
+name = "P2P_FRAME_TOO_LARGE"
+variant = "P2pFrameTooLarge"
+class = "reject"
+message = "A frame exceeds the size limit of its channel."
+
+[[code]]
+code = 8002
+name = "P2P_UNKNOWN_CHANNEL"
+variant = "P2pUnknownChannel"
+class = "reject"
+message = "A frame names a channel that does not exist."
+
+[[code]]
+code = 8003
+name = "P2P_MALFORMED_MESSAGE"
+variant = "P2pMalformedMessage"
+class = "reject"
+message = "A frame's payload is not a valid message for its channel and type."
+
+[[code]]
+code = 8004
+name = "P2P_HANDSHAKE_FAILED"
+variant = "P2pHandshakeFailed"
+class = "reject"
+message = "The TLS or application handshake did not complete or did not verify."
+
+[[code]]
+code = 8005
+name = "P2P_WRONG_NETWORK"
+variant = "P2pWrongNetwork"
+class = "reject"
+message = "The peer belongs to a different chain, network or genesis."
+
+[[code]]
+code = 8006
+name = "P2P_VERSION_MISMATCH"
+variant = "P2pVersionMismatch"
+class = "reject"
+message = "The peer's supported protocol versions do not overlap ours."
+
+[[code]]
+code = 8007
+name = "P2P_RATE_LIMITED"
+variant = "P2pRateLimited"
+class = "reject"
+message = "The peer exceeded its per-channel rate budget."
+
+[[code]]
+code = 8008
+name = "P2P_PEER_BANNED"
+variant = "P2pPeerBanned"
+class = "reject"
+message = "The peer's score fell below the ban threshold."
+
+[[code]]
+code = 8009
+name = "P2P_CONNECTION_LIMIT"
+variant = "P2pConnectionLimit"
+class = "reject"
+message = "A connection, per-address or pending-handshake limit is reached."
 
 [[code]]
 code = 9001

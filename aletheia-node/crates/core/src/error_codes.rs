@@ -109,6 +109,15 @@ error_codes! {
     StoDataDirMissing = 7013, "STO_DATA_DIR_MISSING", FailStop;
     StoArchiveMismatch = 7020, "STO_ARCHIVE_MISMATCH", FailStop;
     StoMigrationFailed = 7030, "STO_MIGRATION_FAILED", FailStop;
+    P2pFrameTooLarge = 8001, "P2P_FRAME_TOO_LARGE", Reject;
+    P2pUnknownChannel = 8002, "P2P_UNKNOWN_CHANNEL", Reject;
+    P2pMalformedMessage = 8003, "P2P_MALFORMED_MESSAGE", Reject;
+    P2pHandshakeFailed = 8004, "P2P_HANDSHAKE_FAILED", Reject;
+    P2pWrongNetwork = 8005, "P2P_WRONG_NETWORK", Reject;
+    P2pVersionMismatch = 8006, "P2P_VERSION_MISMATCH", Reject;
+    P2pRateLimited = 8007, "P2P_RATE_LIMITED", Reject;
+    P2pPeerBanned = 8008, "P2P_PEER_BANNED", Reject;
+    P2pConnectionLimit = 8009, "P2P_CONNECTION_LIMIT", Reject;
     ArithmeticOverflow = 9001, "ARITHMETIC_OVERFLOW", Reject;
     InsufficientBalance = 9002, "INSUFFICIENT_BALANCE", Reject;
     ArithmeticDivisionByZero = 9003, "ARITHMETIC_DIVISION_BY_ZERO", Reject;

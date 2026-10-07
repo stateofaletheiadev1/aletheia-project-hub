@@ -45,6 +45,7 @@ proptest! {
         fuzz::text_identifiers(&data);
         fuzz::base16_text(&data);
         fuzz::stateless_validation(&data);
+        fuzz::p2p_frames(&data);
     }
 
     #[test]

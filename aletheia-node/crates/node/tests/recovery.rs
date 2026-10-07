@@ -28,8 +28,14 @@ fn proposer_with_blocks(count: usize) -> Devnet {
     let mut net = Devnet::new(3, 100 * ONE_AEY, 100 * ONE_ALNT);
     for i in 0..count {
         let b = net.address(1);
-        net.produce(vec![net.transfer(0, u64::try_from(i).unwrap(), b, AssetId::AEY, ONE_AEY)])
-            .unwrap();
+        net.produce(vec![net.transfer(
+            0,
+            u64::try_from(i).unwrap(),
+            b,
+            AssetId::AEY,
+            ONE_AEY,
+        )])
+        .unwrap();
     }
     net
 }
