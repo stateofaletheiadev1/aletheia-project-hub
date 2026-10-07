@@ -1,0 +1,10 @@
+{ A6004: Chain used without 'uses Std.Chain'. }
+contract Clock;
+version 0.1;
+
+function Now: Slot; view;
+begin
+  Result := Chain.Slot;
+end;
+
+end.

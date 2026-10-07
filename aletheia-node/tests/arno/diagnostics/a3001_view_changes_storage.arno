@@ -1,0 +1,14 @@
+{ A3001: a view function that writes storage. }
+contract Counter;
+version 0.1;
+
+storage
+  Count: UInt64;
+
+function Status: UInt64; view;
+begin
+  Count := Count + 1;
+  Result := Count;
+end;
+
+end.

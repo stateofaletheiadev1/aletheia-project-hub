@@ -1,0 +1,13 @@
+{ A6003: 'otherwise' names an error that is not declared. }
+contract Guard;
+version 0.1;
+
+storage
+  Open: Boolean;
+
+procedure Check;
+begin
+  require Open otherwise NotOpen;
+end;
+
+end.

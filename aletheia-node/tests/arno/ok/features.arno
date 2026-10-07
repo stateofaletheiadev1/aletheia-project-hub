@@ -1,0 +1,147 @@
+{ A contract that uses most of Arno 0.1. It must check with no messages. }
+contract Treasury;
+
+version 0.1;
+
+uses Std.Coins, Std.Auth, Std.Chain, Std.Math;
+
+const
+  MaxMembers = 50;
+  FeeBps = 25;
+  Ten = 2 * 5;
+
+type
+  Role = (Viewer, Spender, Admin);
+  Member = record
+    Wallet: Address;
+    Level: Role;
+    Limit: UInt128;
+  end;
+
+errors
+  NotAdmin    = 'Only an admin can do this.';
+  TooMuch     = 'The amount is above the member''s limit.';
+  Unknown     = 'This address is not a member.';
+  Empty       = 'The treasury holds nothing.';
+
+events
+  Paid(Wallet: Address; Amount: UInt128; Fee: UInt128);
+  Joined(Wallet: Address);
+
+storage
+  Owner: Address;
+  Members: List of Member max MaxMembers;
+  Limits: Map of Address to UInt128;
+  Funds: Vault of AEY;
+  Fees: Vault of AEY;
+  LastPaid: Optional of Slot;
+  Opened: Height;
+
+constructor Create(Caller: Signer);
+  changes storage;
+begin
+  Owner := Caller.Address;
+  Funds := Vault.Empty;
+  Fees := Vault.Empty;
+  LastPaid := Nothing;
+  Opened := Chain.Height;
+end;
+
+function IsAdmin(Who: Address): Boolean; view;
+var
+  Person: Member;
+begin
+  Result := Who = Owner;
+  for each Person in Members do
+    if Person.Wallet = Who and Person.Level = Admin then
+      Result := True;
+end;
+
+function FeeOn(Amount: UInt128): UInt128; view;
+begin
+  Result := MulDiv(Amount, FeeBps, 10000, RoundUp);
+end;
+
+procedure Enrol(Caller: Signer; Who: Address; Level: Role; Limit: UInt128); entry;
+  changes storage, emits events;
+var
+  Person: Member;
+begin
+  require IsAdmin(Caller.Address) otherwise NotAdmin;
+  Person.Wallet := Who;
+  Person.Level := Level;
+  Person.Limit := Limit;
+  Members.Add(Person);
+  Limits.Put(Who, Limit);
+  emit Joined(Who);
+end;
+
+procedure Fund(Caller: Signer; Deposit: Coins of AEY); entry;
+  changes storage, receives coins;
+begin
+  Funds.Deposit(move Deposit);
+end;
+
+procedure Pay(Caller: Signer; Amount: UInt128); entry;
+  changes storage, sends coins, emits events;
+var
+  Limit: Optional of UInt128;
+  Payment: Coins of AEY;
+  Fee: Coins of AEY;
+  Charged: UInt128;
+begin
+  Limit := Limits.Get(Caller.Address);
+  require Limit.IsSome otherwise Unknown;
+  require Amount <= Limit.Value otherwise TooMuch;
+  require Funds.Balance > 0 otherwise Empty;
+  Charged := FeeOn(Amount);
+  Payment := Funds.Withdraw(Amount + Charged);
+  Fee := Split(Payment, Charged);
+  Fees.Deposit(move Fee);
+  Transfer(move Payment, Caller.Address);
+  LastPaid := Some(Chain.Slot);
+  emit Paid(Caller.Address, Amount, Charged);
+end;
+
+procedure Sweep(Caller: Signer); entry;
+  changes storage, sends coins;
+var
+  All: Coins of AEY;
+  More: Coins of AEY;
+begin
+  require Caller.Address = Owner otherwise NotAdmin;
+  All := Funds.WithdrawAll;
+  More := Fees.WithdrawAll;
+  Join(All, move More);
+  Transfer(move All, Owner);
+end;
+
+function Describe(Level: Role): UInt8; view;
+begin
+  case Level of
+    Viewer: Result := 1;
+    Spender, Admin: Result := 2;
+  else
+    Result := 0;
+  end;
+end;
+
+function Countdown(Start: UInt64): UInt64; view;
+var
+  Left: UInt64;
+  Steps: UInt64;
+  I: UInt64;
+begin
+  Left := Min(Start, Ten);
+  Steps := 0;
+  while Left > 0 at most 100 times do
+  begin
+    Left := Left - 1;
+    Steps := Steps + 1;
+  end;
+  for I := 1 to Ten do
+    Steps := Steps + UInt64(Describe(Admin));
+  Result := Steps;
+end;
+
+end.

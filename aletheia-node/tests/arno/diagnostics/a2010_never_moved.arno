@@ -1,0 +1,17 @@
+{ A2010: coins withdrawn into a variable and never handed on. }
+contract Escrow;
+version 0.1;
+uses Std.Coins, Std.Auth;
+
+storage
+  Safe: Vault of AEY;
+
+procedure Release(Caller: Signer); entry;
+  changes storage;
+var
+  Payout: Coins of AEY;
+begin
+  Payout := Safe.WithdrawAll;
+end;
+
+end.

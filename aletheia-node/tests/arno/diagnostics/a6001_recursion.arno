@@ -1,0 +1,10 @@
+{ A6001: a routine that calls itself. }
+contract Walker;
+version 0.1;
+
+procedure Walk;
+begin
+  Walk;
+end;
+
+end.

@@ -1,0 +1,1 @@
+a2012_moved_in_loop.arno(14,3): error A2012: 'Deposit' is moved inside a loop, so it could be moved more than once. Move it after the loop.

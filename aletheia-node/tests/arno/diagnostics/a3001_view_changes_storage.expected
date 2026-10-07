@@ -1,0 +1,1 @@
+a3001_view_changes_storage.arno(8,10): error A3001: Function 'Status' is marked view but changes storage.

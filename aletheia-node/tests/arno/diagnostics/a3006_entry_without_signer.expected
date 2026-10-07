@@ -1,0 +1,1 @@
+a3006_entry_without_signer.arno(8,11): error A3006: Entry routine 'Close' must take the caller's Signer as its first parameter.

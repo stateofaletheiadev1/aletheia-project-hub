@@ -1,0 +1,9 @@
+{ A4012: a routine named like a standard routine. }
+contract Shadow;
+version 0.1;
+
+procedure Transfer;
+begin
+end;
+
+end.

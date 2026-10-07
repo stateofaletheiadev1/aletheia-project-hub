@@ -1,0 +1,17 @@
+{ A2011: coins moved on one branch only. }
+contract Escrow;
+version 0.1;
+uses Std.Coins, Std.Auth;
+
+storage
+  Seller: Address;
+  Safe: Vault of AEY;
+
+procedure Fund(Caller: Signer; Deposit: Coins of AEY; Now: Boolean); entry;
+  changes storage, receives coins, sends coins;
+begin
+  if Now then
+    Transfer(move Deposit, Seller);
+end;
+
+end.

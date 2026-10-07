@@ -1,0 +1,1 @@
+a6001_recursion.arno(7,3): error A6001: Routine 'Walk' calls itself. Recursion is not allowed in Arno 0.1.

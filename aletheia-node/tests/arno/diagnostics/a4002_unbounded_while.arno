@@ -1,0 +1,14 @@
+{ A4002: a while-loop without a bound. }
+contract Payroll;
+version 0.1;
+
+procedure Countdown;
+var
+  Remaining: UInt64;
+begin
+  Remaining := 10;
+  while Remaining > 0 do
+    Remaining := Remaining - 1;
+end;
+
+end.

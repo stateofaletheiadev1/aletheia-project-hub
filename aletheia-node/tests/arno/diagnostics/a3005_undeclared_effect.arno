@@ -1,0 +1,16 @@
+{ A3005: a routine that sends coins without declaring it. }
+contract Escrow;
+version 0.1;
+uses Std.Coins, Std.Auth;
+
+storage
+  Seller: Address;
+  Safe: Vault of AEY;
+
+procedure Release(Caller: Signer); entry;
+  changes storage;
+begin
+  Transfer(Safe.WithdrawAll, Seller);
+end;
+
+end.

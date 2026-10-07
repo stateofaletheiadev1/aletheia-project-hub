@@ -1,0 +1,1 @@
+a5001_implicit_conversion.arno(11,12): error A5001: Implicit conversion from UInt128 to UInt64 is not allowed. Use UInt64(...) with a range check.

@@ -1,0 +1,16 @@
+{ A2004: a Coins value used after it was moved. }
+contract Escrow;
+version 0.1;
+uses Std.Coins, Std.Auth;
+
+storage
+  Safe: Vault of AEY;
+
+procedure Fund(Caller: Signer; Deposit: Coins of AEY); entry;
+  changes storage, receives coins;
+begin
+  Safe.Deposit(move Deposit);
+  Safe.Deposit(move Deposit);
+end;
+
+end.

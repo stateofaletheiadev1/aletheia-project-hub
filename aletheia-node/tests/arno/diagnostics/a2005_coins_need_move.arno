@@ -1,0 +1,15 @@
+{ A2005: a named Coins value passed without 'move'. }
+contract Escrow;
+version 0.1;
+uses Std.Coins, Std.Auth;
+
+storage
+  Safe: Vault of AEY;
+
+procedure Fund(Caller: Signer; Deposit: Coins of AEY); entry;
+  changes storage, receives coins;
+begin
+  Safe.Deposit(Deposit);
+end;
+
+end.

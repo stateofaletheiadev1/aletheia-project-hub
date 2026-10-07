@@ -1,0 +1,14 @@
+{ A3006: an entry routine without the caller's Signer. }
+contract Guard;
+version 0.1;
+
+storage
+  Open: Boolean;
+
+procedure Close; entry;
+  changes storage;
+begin
+  Open := False;
+end;
+
+end.

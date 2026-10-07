@@ -27,7 +27,7 @@ storage
   Funds: Vault of AEY;
 
 procedure PayEveryone(Caller: Signer); entry;
-  sends coins, emits events;
+  changes storage, sends coins, emits events;    { Funds.Withdraw changes the stored vault (ERRATA E-25) }
 var
   Person: Employee;
   Needed: UInt128;
