@@ -17,6 +17,7 @@ members = [
   "tests/conformance",
   "tests/harness",
   "tests/determinism",
+  "tests/sim",
 ]
 
 [workspace.package]
@@ -94,3 +95,21 @@ overflow-checks = true
 
 [profile.coverage]
 inherits = "test"
+
+# Cryptographic dependencies are optimized even in dev and test builds: the DSP simulator runs
+# real BLS for thousands of rounds, and unoptimized pairings make it ~20x slower. Results are
+# identical; only speed changes.
+[profile.dev.package.blst]
+opt-level = 3
+
+[profile.dev.package.blake3]
+opt-level = 3
+
+[profile.dev.package.curve25519-dalek]
+opt-level = 3
+
+[profile.dev.package.ed25519-dalek]
+opt-level = 3
+
+[profile.dev.package.sha2]
+opt-level = 3

@@ -16,6 +16,8 @@
 )]
 
 pub mod certificate;
+pub mod engine;
+pub mod finality;
 pub mod lifecycle;
 pub mod message;
 pub mod pacemaker;
@@ -23,6 +25,8 @@ pub mod safety;
 pub mod schedule;
 pub mod validator_set;
 
+pub use engine::{ConsensusSigner, Engine, FinalizedTip, Input, Output};
+pub use finality::{Evidence, FinalityProof};
 pub use message::{ConsensusMessage, Timeout, Vote};
 pub use safety::{ProposalFacts, SafetyData, SafetyRules, VoteRefusal};
 pub use validator_set::{ValidatorInfo, ValidatorSet};

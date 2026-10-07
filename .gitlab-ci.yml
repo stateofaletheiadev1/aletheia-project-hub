@@ -73,3 +73,17 @@ node:fuzz:
     - if: $CI_PIPELINE_SOURCE == "schedule"
     - if: $CI_PIPELINE_SOURCE == "web"
       when: manual
+
+# DSP Byzantine suite over many seeds (spec Section 62, Phase 5 exit: 10k seeds green).
+node:sim:
+  extends: .node
+  stage: check
+  timeout: 12h
+  variables:
+    ALETHEIA_SIM_SEEDS: "10000"
+  script:
+    - cargo test --release --locked -p aletheia-sim --test byzantine
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+    - if: $CI_PIPELINE_SOURCE == "web"
+      when: manual

@@ -33,7 +33,10 @@ fn uniform_below(stream: &mut blake3::OutputReader, bound: u64) -> u64 {
     // Accept r < bound × ⌊2^64 / bound⌋: every residue is then equally likely.
     let bound = bound.max(1);
     let space = u128::from(u64::MAX).saturating_add(1);
-    let zone = space.checked_div(u128::from(bound)).unwrap_or(0).saturating_mul(u128::from(bound));
+    let zone = space
+        .checked_div(u128::from(bound))
+        .unwrap_or(0)
+        .saturating_mul(u128::from(bound));
     loop {
         let mut bytes = [0u8; 8];
         stream.fill(&mut bytes);

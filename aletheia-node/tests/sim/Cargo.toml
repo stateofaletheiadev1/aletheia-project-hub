@@ -1,0 +1,16 @@
+[package]
+name = "aletheia-sim"
+description = "NON-PRODUCTION deterministic network simulator for DSP: Byzantine scenarios, partitions, safety and liveness checks."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+aletheia-consensus.workspace = true
+aletheia-core.workspace = true
+aletheia-crypto.workspace = true
+
+[lints]
+workspace = true
