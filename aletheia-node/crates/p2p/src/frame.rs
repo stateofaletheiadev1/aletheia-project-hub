@@ -315,12 +315,7 @@ mod tests {
         fn arbitrary_bytes_never_panic_or_over_buffer(bytes in proptest::collection::vec(any::<u8>(), 0..2048)) {
             let mut decoder = FrameDecoder::new();
             decoder.push(&bytes);
-            loop {
-                match decoder.next_frame() {
-                    Ok(Some(_)) => continue,
-                    Ok(None) | Err(_) => break,
-                }
-            }
+            while let Ok(Some(_)) = decoder.next_frame() {}
             prop_assert!(decoder.buffered() <= bytes.len());
         }
     }
