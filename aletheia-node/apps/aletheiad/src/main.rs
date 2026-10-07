@@ -98,6 +98,26 @@ async fn main() -> ExitCode {
         network.genesis_id()
     ));
 
+    match &settings.executor {
+        config::Executor::Sandboxed { program, timeout } => {
+            aletheia_execution::runner::install(Box::new(aletheia_executor::ProcessRunner::new(
+                aletheia_executor::ExecutorConfig {
+                    program: program.clone(),
+                    args: Vec::new(),
+                    timeout: *timeout,
+                    pool: 2,
+                },
+            )));
+            oplog::line(&format!(
+                "contracts run in the sandboxed executor {}",
+                program.display()
+            ));
+        }
+        config::Executor::InProcess => {
+            oplog::line("contracts run in-process (devnet/regtest only)");
+        }
+    }
+
     let store = match open_store(&settings.data_dir) {
         Ok(store) => store,
         Err(error) => return exit_for(&error),

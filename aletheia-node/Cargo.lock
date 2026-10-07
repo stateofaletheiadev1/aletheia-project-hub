@@ -22,6 +22,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "aletheia-arno-exec"
+version = "0.1.0"
+dependencies = [
+ "aletheia-arno",
+ "aletheia-core",
+ "aletheia-execution",
+ "aletheia-executor",
+ "aletheia-vm",
+]
+
+[[package]]
 name = "aletheia-conformance"
 version = "0.1.0"
 dependencies = [
@@ -97,6 +108,14 @@ dependencies = [
  "proptest",
  "serde",
  "toml",
+]
+
+[[package]]
+name = "aletheia-executor"
+version = "0.1.0"
+dependencies = [
+ "aletheia-execution",
+ "aletheia-vm",
 ]
 
 [[package]]
@@ -200,6 +219,7 @@ name = "aletheia-vm"
 version = "0.1.0"
 dependencies = [
  "aletheia-core",
+ "aletheia-crypto",
  "aletheia-monetary",
  "blake3",
  "proptest",
@@ -212,6 +232,7 @@ dependencies = [
  "aletheia-core",
  "aletheia-crypto",
  "aletheia-execution",
+ "aletheia-executor",
  "aletheia-node",
  "aletheia-p2p",
  "aletheia-storage",

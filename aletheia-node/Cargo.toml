@@ -10,6 +10,7 @@ members = [
   "crates/consensus",
   "crates/signer",
   "crates/execution",
+  "crates/executor",
   "crates/p2p",
   "crates/storage",
   "crates/state",
@@ -18,6 +19,7 @@ members = [
   "crates/node",
   "apps/aletheiad",
   "apps/arno",
+  "apps/arno-exec",
   "tests/conformance",
   "tests/harness",
   "tests/determinism",
@@ -39,6 +41,7 @@ aletheia-crypto = { path = "crates/crypto" }
 aletheia-consensus = { path = "crates/consensus" }
 aletheia-signer = { path = "crates/signer" }
 aletheia-execution = { path = "crates/execution" }
+aletheia-executor = { path = "crates/executor" }
 aletheia-storage = { path = "crates/storage" }
 aletheia-state = { path = "crates/state" }
 aletheia-vm = { path = "crates/vm" }

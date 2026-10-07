@@ -40,6 +40,14 @@ pub trait Host {
     fn transfer(&mut self, asset: u32, amount: u128, to: &[u8; 33]) -> Result<(), Trap>;
     fn emit(&mut self, event: u16, data: Vec<u8>) -> Result<(), Trap>;
     fn verify_ed25519(&self, key: &[u8; 32], digest: &[u8; 32], signature: &[u8; 64]) -> bool;
+
+    /// An executor is about to (re)run the call: everything until `commit_attempt` or
+    /// `abandon_attempt` belongs to this attempt.
+    fn begin_attempt(&mut self) {}
+    /// The attempt finished; keep its effects.
+    fn commit_attempt(&mut self) {}
+    /// The executor failed mid-call: undo everything the attempt did, so a retry starts clean.
+    fn abandon_attempt(&mut self) {}
 }
 
 /// How a successful call ended.
@@ -56,7 +64,7 @@ pub struct Failure {
     pub eu_used: u64,
 }
 
-struct Machine<'a, H: Host> {
+struct Machine<'a, H: Host + ?Sized> {
     package: &'a Package,
     code: Vec<Vec<Instr>>,
     host: &'a mut H,
@@ -75,7 +83,7 @@ fn internal(what: &'static str) -> Trap {
     Trap::Internal(what)
 }
 
-impl<H: Host> Machine<'_, H> {
+impl<H: Host + ?Sized> Machine<'_, H> {
     fn charge(&mut self, cost: u64) -> Result<(), Trap> {
         let total = self.eu_used.saturating_add(cost);
         if total > self.eu_limit {
@@ -780,7 +788,7 @@ impl<H: Host> Machine<'_, H> {
 }
 
 /// Runs function `function` of a verified package with `args` (in parameter order).
-pub fn run<H: Host>(
+pub fn run<H: Host + ?Sized>(
     package: &Package,
     function: u8,
     args: Vec<Value>,

@@ -17,6 +17,11 @@
 //!
 //! [devnet]
 //! produce_every_ms = 500               # devnet/regtest builds with devnet-producer only
+//!
+//! [execution]                          # optional
+//! executor = "sandboxed"               # default; "in-process" on devnet/regtest only
+//! executor_path = "/usr/lib/aletheia/aletheia-arno-exec"   # default: beside aletheiad
+//! call_timeout_ms = 10000              # watchdog per contract call
 //! ```
 
 use std::net::SocketAddr;
@@ -36,6 +41,22 @@ struct FileConfig {
     #[serde(default)]
     peers: Vec<PeerSection>,
     devnet: Option<DevnetSection>,
+    execution: Option<ExecutionSection>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct ExecutionSection {
+    executor: Option<String>,
+    executor_path: Option<PathBuf>,
+    call_timeout_ms: Option<u64>,
+}
+
+/// How contracts run (spec Section 28.1).
+#[derive(Debug, Clone)]
+pub(crate) enum Executor {
+    Sandboxed { program: PathBuf, timeout: Duration },
+    InProcess,
 }
 
 #[derive(Debug, Deserialize)]
@@ -70,6 +91,7 @@ pub(crate) struct Settings {
     pub(crate) node_key: Ed25519SigningKey,
     pub(crate) produce_every: Option<Duration>,
     pub(crate) consensus_key: Option<BlsSecretKey>,
+    pub(crate) executor: Executor,
 }
 
 fn read(path: &std::path::Path, what: &str) -> Result<String, String> {
@@ -119,6 +141,48 @@ pub(crate) fn load(path: &std::path::Path) -> Result<Settings, String> {
         })
         .transpose()?;
 
+    let execution = file.execution.as_ref();
+    let executor = match execution
+        .and_then(|e| e.executor.as_deref())
+        .unwrap_or("sandboxed")
+    {
+        "sandboxed" => {
+            let program = match execution.and_then(|e| e.executor_path.clone()) {
+                Some(path) => path,
+                None => std::env::current_exe()
+                    .map_err(|e| format!("cannot locate aletheiad to find the executor: {e}"))?
+                    .with_file_name(format!(
+                        "aletheia-arno-exec{}",
+                        std::env::consts::EXE_SUFFIX
+                    )),
+            };
+            if !program.is_file() {
+                return Err(format!(
+                    "the contract executor {} does not exist; install it or set [execution] executor_path",
+                    program.display()
+                ));
+            }
+            Executor::Sandboxed {
+                program,
+                timeout: Duration::from_millis(
+                    execution.and_then(|e| e.call_timeout_ms).unwrap_or(10_000),
+                ),
+            }
+        }
+        "in-process" if genesis.network_kind.allows_development_keys() => Executor::InProcess,
+        "in-process" => {
+            return Err(format!(
+                "in-process contract execution is refused on {}; contracts run in the sandboxed executor",
+                genesis.network_kind
+            ));
+        }
+        other => {
+            return Err(format!(
+                "[execution] executor \"{other}\" is not \"sandboxed\" or \"in-process\""
+            ));
+        }
+    };
+
     let mut peers = Vec::with_capacity(file.peers.len());
     for peer in file.peers {
         let node_key = peer
@@ -159,5 +223,6 @@ pub(crate) fn load(path: &std::path::Path) -> Result<Settings, String> {
             .devnet
             .map(|devnet| Duration::from_millis(devnet.produce_every_ms)),
         consensus_key,
+        executor,
     })
 }

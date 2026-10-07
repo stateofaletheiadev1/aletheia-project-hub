@@ -74,6 +74,31 @@ node:fuzz:
     - if: $CI_PIPELINE_SOURCE == "web"
       when: manual
 
+# Phase 9 exit: the Arno VM fuzzed for 7 days clean (spec Section 62). Runs the VM-facing
+# targets in parallel for FUZZ_SECONDS each on a schedule with FUZZ_CAMPAIGN=vm; needs a
+# runner whose job timeout allows a week.
+node:fuzz-vm:
+  image: rustlang/rust:nightly-bookworm
+  stage: check
+  timeout: 170h
+  variables:
+    FUZZ_SECONDS: "604800"
+  before_script:
+    - cd aletheia-node/fuzz
+    - cargo install cargo-fuzz --locked
+  script:
+    - for target in vm_run arnobc_verify arno_compile; do
+        cargo +nightly fuzz run "$target" -- -max_total_time="$FUZZ_SECONDS" > "$target.log" 2>&1 &
+      done;
+      wait -n && wait -n && wait -n
+  artifacts:
+    when: always
+    paths:
+      - aletheia-node/fuzz/artifacts/
+      - aletheia-node/fuzz/*.log
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule" && $FUZZ_CAMPAIGN == "vm"
+
 # DSP Byzantine suite over many seeds (spec Section 62, Phase 5 exit: 10k seeds green).
 node:sim:
   extends: .node

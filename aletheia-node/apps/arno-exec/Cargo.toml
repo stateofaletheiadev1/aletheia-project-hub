@@ -1,0 +1,20 @@
+[package]
+name = "aletheia-arno-exec"
+description = "Contract executor worker: runs Arno calls for the node over the executor protocol."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+aletheia-vm.workspace = true
+
+[dev-dependencies]
+aletheia-arno.workspace = true
+aletheia-core.workspace = true
+aletheia-execution.workspace = true
+aletheia-executor.workspace = true
+
+[lints]
+workspace = true

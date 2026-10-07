@@ -18,6 +18,8 @@ pub mod package;
 pub mod trap;
 pub mod value;
 pub mod verifier;
+pub mod wire;
+pub mod worker;
 
 pub use interp::{ChainInfo, Failure, Host, Outcome, run};
 pub use opcode::{HostFn, Instr, Op};

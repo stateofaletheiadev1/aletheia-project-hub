@@ -21,6 +21,7 @@ pub mod model;
 pub mod ordering;
 pub mod receipt;
 pub mod rules;
+pub mod runner;
 pub mod stateless;
 
 pub use context::BlockContext;

@@ -197,3 +197,104 @@ fn view_routines_run_without_a_signer() {
     let r = net.submit(SELLER, call(contract, "Status", None));
     assert_eq!(r.status, ReceiptStatus::Success, "{r:?}");
 }
+
+// ---- Escape tests: what a contract must not be able to do ----
+
+fn deploy_source(net: &mut Devnet, from: usize, source: &str) -> Address {
+    let file = aletheia_arno::SourceFile::new("x.arno", source);
+    let package = aletheia_arno::compile(&file).unwrap();
+    let code_hash = aletheia_vm::Package::from_bytes(&package)
+        .unwrap()
+        .code_hash();
+    let nonce = net.next_nonce(from);
+    let r = net.submit(
+        from,
+        Payload::ContractDeploy(Box::new(ContractDeploy {
+            package,
+            args: Vec::new(),
+            attach: None,
+        })),
+    );
+    assert_eq!(r.status, ReceiptStatus::Success, "{r:?}");
+    aletheia_crypto::address::contract_account(&net.network, &net.address(from), nonce, &code_hash)
+}
+
+#[test]
+fn contracts_cannot_reach_each_others_storage_or_coins() {
+    let World {
+        mut net,
+        contract: first,
+    } = deployed();
+    // A second escrow from the same code: a different address, its own storage and vault.
+    let package = escrow_package();
+    let code_hash = aletheia_vm::Package::from_bytes(&package)
+        .unwrap()
+        .code_hash();
+    let mut args = net.address(SELLER).to_ace_bytes();
+    args.extend(net.address(ARBITER).to_ace_bytes());
+    args.extend(Slot::new(50).to_ace_bytes());
+    let nonce = net.next_nonce(BUYER);
+    net.submit(
+        BUYER,
+        Payload::ContractDeploy(Box::new(ContractDeploy {
+            package,
+            args,
+            attach: None,
+        })),
+    );
+    let second = aletheia_crypto::address::contract_account(
+        &net.network,
+        &net.address(BUYER),
+        nonce,
+        &code_hash,
+    );
+    assert_ne!(first, second);
+
+    net.submit(BUYER, call(first, "Fund", Some(3 * ONE_AEY)));
+    // The second escrow is still Open and empty: releasing it is the wrong phase.
+    let r = net.submit(ARBITER, call(second, "Release", None));
+    assert_eq!(r.error_code, ErrorCode::VmContractAborted.get());
+    assert_eq!(aey(&net, &first), 3 * ONE_AEY);
+    assert_eq!(aey(&net, &second), 0);
+}
+
+#[test]
+fn a_memory_bomb_stops_at_the_limit() {
+    let mut net = Devnet::new(1, ONE_AEY, 10_000 * ONE_ALNT);
+    let big = "x".repeat(16_000);
+    let source = format!(
+        "contract Bomb; version 0.1;\nuses Std.Auth;\nprocedure Grow(Caller: Signer); entry;\nvar T: Text max 16384; L: List of Text max 16384 max 400; I: UInt64;\nbegin\n  T := '{big}';\n  for I := 1 to 400 do L.Add(T);\nend;\nend."
+    );
+    let contract = deploy_source(&mut net, 0, &source);
+    let r = net.submit_with(0, call(contract, "Grow", None), 5_000_000);
+    assert_eq!(r.status, ReceiptStatus::FailedExecution, "{r:?}");
+    assert_eq!(r.error_code, ErrorCode::VmMemoryLimit.get());
+}
+
+#[test]
+fn an_oversized_storage_value_is_refused() {
+    let mut net = Devnet::new(1, ONE_AEY, 10_000 * ONE_ALNT);
+    let big = "y".repeat(10_000);
+    let source = format!(
+        "contract Hog; version 0.1;\nuses Std.Auth;\nstorage L: List of Text max 16384 max 4;\nprocedure Fill(Caller: Signer); entry; changes storage;\nbegin\n  L.Add('{big}');\n  L.Add('{big}');\nend;\nend."
+    );
+    let contract = deploy_source(&mut net, 0, &source);
+    let r = net.submit_with(0, call(contract, "Fill", None), 5_000_000);
+    assert_eq!(
+        r.error_code,
+        ErrorCode::VmStorageValueTooLarge.get(),
+        "{r:?}"
+    );
+}
+
+#[test]
+fn a_contract_cannot_pay_out_more_than_its_vault_holds() {
+    let mut net = Devnet::new(2, 10 * ONE_AEY, 10_000 * ONE_ALNT);
+    let source = "contract Greedy; version 0.1;\nuses Std.Coins, Std.Auth;\nstorage Safe: Vault of AEY;\nprocedure Fund(Caller: Signer; C: Coins of AEY); entry; changes storage, receives coins;\nbegin Safe.Deposit(move C); end;\nprocedure Drain(Caller: Signer); entry; changes storage, sends coins;\nbegin Transfer(Safe.Withdraw(1000000000000000000000), Caller.Address); end;\nend.";
+    let contract = deploy_source(&mut net, 0, source);
+    net.submit(0, call(contract, "Fund", Some(ONE_AEY)));
+    let r = net.submit(1, call(contract, "Drain", None));
+    assert_eq!(r.error_code, ErrorCode::VmInsufficientVault.get(), "{r:?}");
+    assert_eq!(aey(&net, &contract), ONE_AEY, "nothing left the contract");
+    assert_eq!(aey(&net, &net.address(1)), 10 * ONE_AEY);
+}

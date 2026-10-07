@@ -9,6 +9,7 @@ publish.workspace = true
 
 [dependencies]
 aletheia-core.workspace = true
+aletheia-crypto.workspace = true
 aletheia-monetary.workspace = true
 blake3.workspace = true
 

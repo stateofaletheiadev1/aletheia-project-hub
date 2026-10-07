@@ -57,6 +57,7 @@ pub fn all() -> Vec<(&'static str, Value)> {
             "APS-0009/bls-proof-of-possession.json",
             bls_proof_of_possession(),
         ),
+        ("APS-0015/vm-execution.json", vm_execution()),
         ("APS-0041/canonical-encoding.json", canonical_encoding()),
         ("APS-0048/base16.json", base16_text()),
     ]
@@ -408,6 +409,233 @@ fn base16_text() -> Value {
     json!({
         "aps": "APS-0048",
         "description": "Base16 text: lowercase, unprefixed, even length; 0x is rejected, never stripped",
+        "cases": cases,
+    })
+}
+
+/// The host the VM vectors run against: empty storage at the start of each case, fixed chain
+/// facts, events recorded.
+#[derive(Debug, Default)]
+struct VectorHost {
+    storage: std::collections::BTreeMap<(u16, Vec<u8>), Vec<u8>>,
+    events: Vec<(u16, Vec<u8>)>,
+}
+
+const VECTOR_CHAIN: aletheia_vm::ChainInfo = aletheia_vm::ChainInfo {
+    height: 42,
+    slot: 4242,
+    epoch: 1,
+    protocol_time_ms: 1_767_225_600_000,
+    tx_id: [0x11; 32],
+};
+
+impl aletheia_vm::Host for VectorHost {
+    fn chain(&self) -> aletheia_vm::ChainInfo {
+        VECTOR_CHAIN
+    }
+    fn storage_contains(&mut self, slot: u16, key: &[u8]) -> Result<bool, aletheia_vm::Trap> {
+        Ok(self.storage.contains_key(&(slot, key.to_vec())))
+    }
+    fn storage_read(
+        &mut self,
+        slot: u16,
+        key: &[u8],
+    ) -> Result<Option<Vec<u8>>, aletheia_vm::Trap> {
+        Ok(self.storage.get(&(slot, key.to_vec())).cloned())
+    }
+    fn storage_write(
+        &mut self,
+        slot: u16,
+        key: &[u8],
+        value: Option<&[u8]>,
+    ) -> Result<(), aletheia_vm::Trap> {
+        match value {
+            Some(v) => self.storage.insert((slot, key.to_vec()), v.to_vec()),
+            None => self.storage.remove(&(slot, key.to_vec())),
+        };
+        Ok(())
+    }
+    fn transfer(&mut self, _: u32, _: u128, _: &[u8; 33]) -> Result<(), aletheia_vm::Trap> {
+        Ok(())
+    }
+    fn emit(&mut self, event: u16, data: Vec<u8>) -> Result<(), aletheia_vm::Trap> {
+        self.events.push((event, data));
+        Ok(())
+    }
+    fn verify_ed25519(&self, _: &[u8; 32], _: &[u8; 32], _: &[u8; 64]) -> bool {
+        false
+    }
+}
+
+/// One VM case: a contract and calls made in order against the same storage.
+fn vm_case(name: &str, source: &str, calls: &[(&str, Vec<u8>, u64)]) -> Value {
+    let file = aletheia_arno::SourceFile::new(format!("{name}.arno"), source);
+    let bytes = match aletheia_arno::compile(&file) {
+        Ok(bytes) => bytes,
+        Err(diagnostics) => return json!({ "name": name, "error": format!("{diagnostics:?}") }),
+    };
+    let Ok(package) = aletheia_vm::Package::from_bytes(&bytes) else {
+        return json!({ "name": name, "error": "package does not decode" });
+    };
+    let mut host = VectorHost::default();
+    let mut results = Vec::new();
+    for (function, args, eu_limit) in calls {
+        let Some(index) = package
+            .functions
+            .iter()
+            .position(|f| package.text(f.name) == Some(*function))
+        else {
+            continue;
+        };
+        let Some(f) = package.functions.get(index) else {
+            continue;
+        };
+        let mut reader = AceReader::new(args);
+        let values: Vec<aletheia_vm::Value> = f
+            .registers
+            .iter()
+            .take(usize::from(f.params))
+            .filter_map(|ty| aletheia_vm::value::decode(&package, *ty, &mut reader).ok())
+            .collect();
+        let index = u8::try_from(index).unwrap_or(u8::MAX);
+        // A failed call is reverted, as the chain does: storage and events as before it.
+        let saved = (host.storage.clone(), host.events.clone());
+        let outcome = aletheia_vm::run(&package, index, values, &mut host, *eu_limit);
+        if outcome.is_err() {
+            (host.storage, host.events) = saved;
+        }
+        let (returned, trap, eu_used) = match outcome {
+            Ok(o) => {
+                let encoded = match (o.returned, f.returns) {
+                    (Some(v), Some(ty)) => aletheia_vm::value::to_bytes(&package, ty, &v)
+                        .map(|b| base16::encode(&b))
+                        .ok(),
+                    _ => None,
+                };
+                (encoded, None, o.eu_used)
+            }
+            Err(failure) => (None, Some(failure.trap.code().name()), failure.eu_used),
+        };
+        results.push(json!({
+            "function": function,
+            "args": base16::encode(args),
+            "eu_limit": eu_limit,
+            "returned": returned,
+            "trap": trap,
+            "eu_used": eu_used,
+        }));
+    }
+    let storage: Vec<Value> = host
+        .storage
+        .iter()
+        .map(|((slot, key), value)| {
+            json!({ "slot": slot, "key": base16::encode(key), "value": base16::encode(value) })
+        })
+        .collect();
+    let events: Vec<Value> = host
+        .events
+        .iter()
+        .map(|(event, data)| json!({ "event": event, "data": base16::encode(data) }))
+        .collect();
+    json!({
+        "name": name,
+        "source": source,
+        "package": base16::encode(&bytes),
+        "calls": results,
+        "storage": storage,
+        "events": events,
+    })
+}
+
+fn le_u64(values: &[u64]) -> Vec<u8> {
+    values.iter().flat_map(|v| v.to_le_bytes()).collect()
+}
+
+fn le_i64(values: &[i64]) -> Vec<u8> {
+    values.iter().flat_map(|v| v.to_le_bytes()).collect()
+}
+
+fn le_u128(values: &[u128]) -> Vec<u8> {
+    values.iter().flat_map(|v| v.to_le_bytes()).collect()
+}
+
+fn vm_execution() -> Value {
+    const EU: u64 = 1_000_000;
+    let cases = vec![
+        vm_case(
+            "arithmetic",
+            "contract V; version 0.1;\nfunction F(A, B: UInt64): UInt64; view;\nbegin Result := A * B + 7; end;\nend.",
+            &[
+                ("F", le_u64(&[6, 7]), EU),
+                ("F", le_u64(&[u64::MAX, 2]), EU),
+            ],
+        ),
+        vm_case(
+            "signed-division",
+            "contract V; version 0.1;\nfunction D(A, B: Int64): Int64; view;\nbegin Result := A div B; end;\nfunction M(A, B: Int64): Int64; view;\nbegin Result := A mod B; end;\nend.",
+            &[
+                ("D", le_i64(&[-7, 2]), EU),
+                ("M", le_i64(&[-7, 2]), EU),
+                ("D", le_i64(&[1, 0]), EU),
+            ],
+        ),
+        vm_case(
+            "muldiv-rounding",
+            "contract V; version 0.1;\nuses Std.Math;\nfunction Down(A, B, C: UInt128): UInt128; view;\nbegin Result := MulDiv(A, B, C, RoundDown); end;\nfunction Up(A, B, C: UInt128): UInt128; view;\nbegin Result := MulDiv(A, B, C, RoundUp); end;\nend.",
+            &[
+                ("Down", le_u128(&[1_000, 25, 10_000]), EU),
+                ("Up", le_u128(&[1_000, 25, 10_000]), EU),
+            ],
+        ),
+        vm_case(
+            "storage-counter",
+            "contract V; version 0.1;\nstorage Count: UInt64;\nprocedure Inc; changes storage;\nbegin Count := Count + 1; end;\nfunction Get: UInt64; view;\nbegin Result := Count; end;\nend.",
+            &[
+                ("Inc", Vec::new(), EU),
+                ("Inc", Vec::new(), EU),
+                ("Inc", Vec::new(), EU),
+                ("Get", Vec::new(), EU),
+            ],
+        ),
+        vm_case(
+            "bounded-loops",
+            "contract V; version 0.1;\nfunction Exact: UInt64; view;\nvar Y: UInt64;\nbegin Y := 0; while Y < 3 at most 3 times do Y := Y + 1; Result := Y; end;\nfunction Over: UInt64; view;\nvar Y: UInt64;\nbegin Y := 0; while Y < 4 at most 3 times do Y := Y + 1; Result := Y; end;\nend.",
+            &[("Exact", Vec::new(), EU), ("Over", Vec::new(), EU)],
+        ),
+        vm_case(
+            "map-and-list",
+            "contract V; version 0.1;\nstorage M: Map of UInt64 to UInt64; L: List of UInt64 max 2;\nprocedure Put(K, V: UInt64); changes storage;\nbegin M.Put(K, V); L.Add(K); end;\nfunction Get(K: UInt64): UInt64; view;\nvar O: Optional of UInt64;\nbegin O := M.Get(K); if O.IsSome then Result := O.Value else Result := 0; end;\nend.",
+            &[
+                ("Put", le_u64(&[5, 50]), EU),
+                ("Put", le_u64(&[6, 60]), EU),
+                ("Get", le_u64(&[5]), EU),
+                ("Get", le_u64(&[7]), EU),
+                ("Put", le_u64(&[8, 80]), EU),
+            ],
+        ),
+        vm_case(
+            "events-and-aborts",
+            "contract V; version 0.1;\nerrors Low = 'Too low.';\nevents Seen(V: UInt64);\nprocedure Check(V: UInt64); emits events;\nbegin require V > 10 otherwise Low; emit Seen(V); end;\nend.",
+            &[("Check", le_u64(&[11]), EU), ("Check", le_u64(&[3]), EU)],
+        ),
+        vm_case(
+            "out-of-eu",
+            "contract V; version 0.1;\nstorage S: UInt64;\nprocedure W; changes storage;\nbegin S := 1; end;\nend.",
+            &[
+                ("W", Vec::new(), 4_000),
+                ("W", Vec::new(), EU),
+                ("W", Vec::new(), EU),
+            ],
+        ),
+        vm_case(
+            "chain-facts-and-hash",
+            "contract V; version 0.1;\nuses Std.Chain, Std.Crypto;\nfunction Now: Slot; view;\nbegin Result := Chain.Slot; end;\nfunction H: Hash; view;\nbegin Result := Blake3('abc'); end;\nend.",
+            &[("Now", Vec::new(), EU), ("H", Vec::new(), EU)],
+        ),
+    ];
+    json!({
+        "aps": "APS-0015",
+        "description": "Arno VM execution. Each case: the source, its package (compiled by arno 0.1.0), and calls made in order against one contract storage that starts empty. Arguments are the parameters' canonical encodings, concatenated; returned values are the result type's canonical encoding. Chain facts: height 42, slot 4242, epoch 1, protocol time 1767225600000, transaction id 32 bytes each 11 (base16). A failed call changes nothing (its storage writes and events are reverted). Expected: returned value or trap code name, exact EU used, final storage (slot, key, value) and events.",
         "cases": cases,
     })
 }

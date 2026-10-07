@@ -47,6 +47,8 @@ struct OverlayHost<'a, 'o> {
     event_names: Vec<String>,
     events: Vec<Event>,
     touched: &'a mut Touched,
+    /// Where the current attempt began, in `touched`.
+    attempt_touched: usize,
 }
 
 fn host_error(error: &AletheiaError) -> Trap {
@@ -115,6 +117,23 @@ impl Host for OverlayHost<'_, '_> {
         Ok(())
     }
 
+    fn begin_attempt(&mut self) {
+        self.overlay.checkpoint();
+        self.events.clear();
+        self.attempt_touched = self.touched.len();
+    }
+
+    fn commit_attempt(&mut self) {
+        self.overlay.commit_checkpoint();
+    }
+
+    fn abandon_attempt(&mut self) {
+        // A failed executor's partial writes, events and transfers are all undone.
+        let _ = self.overlay.revert_to_checkpoint();
+        self.events.clear();
+        self.touched.truncate(self.attempt_touched);
+    }
+
     fn verify_ed25519(&self, key: &[u8; 32], digest: &[u8; 32], signature: &[u8; 64]) -> bool {
         Ed25519PublicKey::from_bytes(key)
             .and_then(|k| {
@@ -137,6 +156,7 @@ fn invoke(
     overlay: &mut StateOverlay<'_>,
     verified: &VerifiedTransaction,
     package: &Package,
+    package_bytes: &[u8],
     contract: Address,
     index: usize,
     args: &[u8],
@@ -244,6 +264,7 @@ fn invoke(
             .map(|e| package.text(e.name).unwrap_or("?").to_owned())
             .collect(),
         events: Vec::new(),
+        attempt_touched: 0,
         touched,
     };
     let function = u8::try_from(index).map_err(|_| {
@@ -252,7 +273,14 @@ fn invoke(
             "routine index out of range".to_owned(),
         )
     })?;
-    let result = aletheia_vm::run(package, function, values, &mut host, meter.remaining());
+    let result = crate::runner::current().run(
+        package,
+        package_bytes,
+        function,
+        values,
+        &mut host,
+        meter.remaining(),
+    );
     let produced = core::mem::take(&mut host.events);
     match result {
         Ok(outcome) => {
@@ -359,6 +387,7 @@ pub(crate) fn deploy(
             overlay,
             verified,
             &package,
+            &deploy.package,
             contract,
             index,
             &deploy.args,
@@ -441,6 +470,7 @@ pub(crate) fn call(
         overlay,
         verified,
         &package,
+        &bytes,
         call.contract,
         index,
         &call.args,

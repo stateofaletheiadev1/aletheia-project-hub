@@ -11,6 +11,7 @@ publish.workspace = true
 aletheia-core.workspace = true
 aletheia-crypto.workspace = true
 aletheia-execution.workspace = true
+aletheia-executor.workspace = true
 aletheia-node.workspace = true
 aletheia-p2p.workspace = true
 aletheia-storage.workspace = true

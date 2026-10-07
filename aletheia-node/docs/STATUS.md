@@ -4,7 +4,7 @@ Spec Section 1.2: one row per module. "Implemented" means code exists on `main`.
 means unit and property tests run in `cargo test --workspace`. Nothing below is described as
 done unless it is.
 
-Current phase: **Phase 8 (Arno compiler)**, exit criteria met (table below); Phases 6 and 7 met. Phase 5 (DSP) runs in real nodes and its simulator suite is green at 25 seeds; the 10k-seed run, the 24-hour chaos run, epoch-boundary activation and the signer daemon remain. Phase 4 exit criteria met in-process; Phase 3 met except the 1M-block replay. Phase 1 still lacks the 24-hour fuzz campaign; Phase 2 lacks the Linux dm-log-writes power-loss replay. Phase 0 documents are
+Current phase: **Phase 9 (Arno VM)**: conformance vectors and sandbox escape tests met; the 7-day fuzz campaign is the scheduled `node:fuzz-vm` job (not yet run). Phases 6-8 met. Phase 5 (DSP) runs in real nodes and its simulator suite is green at 25 seeds; the 10k-seed run, the 24-hour chaos run, epoch-boundary activation and the signer daemon remain. Phase 4 exit criteria met in-process; Phase 3 met except the 1M-block replay. Phase 1 still lacks the 24-hour fuzz campaign; Phase 2 lacks the Linux dm-log-writes power-loss replay. Phase 0 documents are
 partly written; see the end of this file.
 
 ## crates/core
@@ -133,6 +133,23 @@ partly written; see the end of this file.
 | Bytecode format and verifier (`vm/opcode.rs`, `package.rs`, `verifier.rs`) | 27, APS-0014 | yes (+ ADR-046) | yes | one test per rule, property | `arnobc_verify` | rustdoc | no |
 | `arno` command: check, compile, inspect | 26 | yes | yes | by hand | n/a | usage text | n/a |
 | SSA IR with CSE, `arno fmt`, `arno-test` | 26 | yes | **no**: code is generated from the checked tree with fixed registers; formatter and test runner not yet built | no | no | no | no |
+
+## Phase 9: the Arno VM
+
+| Module | APS | Specified | Implemented | Tested | Fuzzed | Documented | Benchmarked |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Interpreter, metering, memory limits, traps (`vm/interp.rs`, `value.rs`, `cost.rs`, `trap.rs`) | 28, 29 (+ ADR-047) | yes | yes | compiled contracts end to end, each trap, exact EU stop, 300 random programs (no internal error, deterministic) | `vm_run` | rustdoc | **no**: costs are the spec's devnet defaults, not yet calibrated |
+| Contracts on chain: deploy (32), call (33), contract storage, coins (`execution/rules/v1/contract.rs`) | 11, 15, 27 | yes | yes | `tests/harness/tests/contracts.rs` (lifecycle, reverts, EU, errors, escapes) | via `vm_run` | rustdoc | no |
+| Sandboxed executor: worker binary, protocol, watchdog, retry, fail-stop (`vm/wire.rs`, `vm/worker.rs`, `executor`, `apps/arno-exec`) | 28.1 | yes | yes, over pipes | `apps/arno-exec/tests/sandbox.rs` (identical results, crash, hang, garbage) | n/a | rustdoc | no |
+| Worker OS confinement (seccomp, landlock; shared-memory ring) | 28.1 | yes | **no**: worker has an empty environment and directory and only its pipes; the syscall filter and the ring transport are tracked for hardening (Phase 13) | no | no | no | no |
+
+## Phase 9 exit criteria (spec Section 62)
+
+| Criterion | State |
+| --- | --- |
+| VM conformance vectors | Met: `tests/vectors/APS-0015/vm-execution.json`, nine cases with package bytes, canonical arguments, expected results or trap codes, exact EU, final storage and events; checked against the implementation on every test run. |
+| 7-day fuzz clean | **Not yet run**: the `node:fuzz-vm` CI job runs `vm_run`, `arnobc_verify` and `arno_compile` for 7 days each when scheduled with `FUZZ_CAMPAIGN=vm`; the same targets run in every smoke run. |
+| Sandbox escape tests | Met for the contract and worker boundaries: contracts cannot reach other contracts' storage or coins, overdraw a vault, exceed memory or store oversized values; a crashed worker is replaced without doubled effects, and a hanging or lying worker ends in fail-stop. OS-level confinement tests arrive with the syscall filter. |
 
 ## Phase 8 exit criteria (spec Section 62)
 

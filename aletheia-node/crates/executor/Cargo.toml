@@ -1,0 +1,15 @@
+[package]
+name = "aletheia-executor"
+description = "The sandboxed contract runner: worker processes, watchdog, retry and fail-stop."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+aletheia-execution.workspace = true
+aletheia-vm.workspace = true
+
+[lints]
+workspace = true

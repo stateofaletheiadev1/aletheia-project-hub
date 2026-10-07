@@ -1,0 +1,320 @@
+{
+  "aps": "APS-0015",
+  "cases": [
+    {
+      "calls": [
+        {
+          "args": "06000000000000000700000000000000",
+          "eu_limit": 1000000,
+          "eu_used": 4,
+          "function": "F",
+          "returned": "3100000000000000",
+          "trap": null
+        },
+        {
+          "args": "ffffffffffffffff0200000000000000",
+          "eu_limit": 1000000,
+          "eu_used": 1,
+          "function": "F",
+          "returned": null,
+          "trap": "VM_OVERFLOW"
+        }
+      ],
+      "events": [],
+      "name": "arithmetic",
+      "package": "41524e4f01000100d2442911a67fcddd456a9e618d15c0675f01724a73774d23cf1d9cd221a3787f0a00000061726e6f20302e312e30a37b69e97bef16a370f115633f2a0c1c22aad71c907fa92b8ca98b281fa33a140000020000000201000000560201000000460100000005010000000100020100000200050000000000000000000000000000000000100000000000000000000000000000001000000001000312070004030403021000000235",
+      "source": "contract V; version 0.1;\nfunction F(A, B: UInt64): UInt64; view;\nbegin Result := A * B + 7; end;\nend.",
+      "storage": []
+    },
+    {
+      "calls": [
+        {
+          "args": "f9ffffffffffffff0200000000000000",
+          "eu_limit": 1000000,
+          "eu_used": 2,
+          "function": "D",
+          "returned": "fdffffffffffffff",
+          "trap": null
+        },
+        {
+          "args": "f9ffffffffffffff0200000000000000",
+          "eu_limit": 1000000,
+          "eu_used": 2,
+          "function": "M",
+          "returned": "ffffffffffffffff",
+          "trap": null
+        },
+        {
+          "args": "01000000000000000000000000000000",
+          "eu_limit": 1000000,
+          "eu_used": 1,
+          "function": "D",
+          "returned": null,
+          "trap": "VM_DIVISION_BY_ZERO"
+        }
+      ],
+      "events": [],
+      "name": "signed-division",
+      "package": "41524e4f01000100f10cdb2c741aa1aa6ed4ce94e96e09154d9ee22cfdfb07bd2df11368319888070a00000061726e6f20302e312e3073bfe7b4c1dbd6cd376ec6aa16f5a9f91c168c18c3576f4adcbbcaaca01cdf5300000300000002010000005602010000004402010000004d010000000702000000010002010000020003000000000000000000000000000800000002000201000002000300000000000000000008000000080000000000000000000000000000001000000001000213000002350100021400000235",
+      "source": "contract V; version 0.1;\nfunction D(A, B: Int64): Int64; view;\nbegin Result := A div B; end;\nfunction M(A, B: Int64): Int64; view;\nbegin Result := A mod B; end;\nend.",
+      "storage": []
+    },
+    {
+      "calls": [
+        {
+          "args": "e80300000000000000000000000000001900000000000000000000000000000010270000000000000000000000000000",
+          "eu_limit": 1000000,
+          "eu_used": 9,
+          "function": "Down",
+          "returned": "02000000000000000000000000000000",
+          "trap": null
+        },
+        {
+          "args": "e80300000000000000000000000000001900000000000000000000000000000010270000000000000000000000000000",
+          "eu_limit": 1000000,
+          "eu_used": 9,
+          "function": "Up",
+          "returned": "03000000000000000000000000000000",
+          "trap": null
+        }
+      ],
+      "events": [],
+      "name": "muldiv-rounding",
+      "package": "41524e4f010001008ad4ebff477b3b2094f7bb447ae997a135751543c3e359187fc0b2142fe8b29f0a00000061726e6f20302e312e30e8dea2d8a74e1af7e0e286519ded6fe47da3b3e0838c40dd47d6a750848a74fa0000030000000201000000560204000000446f776e0202000000557001000000060200000001000301000002000700000000000000000000000000000000000000000014000000020003010000020007000000000000000000000000000000000014000000140000000000000000000000000000002800000000000401000105010002060100040316000003350000040100010501000206010004031700000335",
+      "source": "contract V; version 0.1;\nuses Std.Math;\nfunction Down(A, B, C: UInt128): UInt128; view;\nbegin Result := MulDiv(A, B, C, RoundDown); end;\nfunction Up(A, B, C: UInt128): UInt128; view;\nbegin Result := MulDiv(A, B, C, RoundUp); end;\nend.",
+      "storage": []
+    },
+    {
+      "calls": [
+        {
+          "args": "",
+          "eu_limit": 1000000,
+          "eu_used": 5286,
+          "function": "Inc",
+          "returned": null,
+          "trap": null
+        },
+        {
+          "args": "",
+          "eu_limit": 1000000,
+          "eu_used": 1794,
+          "function": "Inc",
+          "returned": null,
+          "trap": null
+        },
+        {
+          "args": "",
+          "eu_limit": 1000000,
+          "eu_used": 1794,
+          "function": "Inc",
+          "returned": null,
+          "trap": null
+        },
+        {
+          "args": "",
+          "eu_limit": 1000000,
+          "eu_used": 211,
+          "function": "Get",
+          "returned": "0300000000000000",
+          "trap": null
+        }
+      ],
+      "events": [],
+      "name": "storage-counter",
+      "package": "41524e4f0100010015be5ac76440ad0e0f4a5e35bab0df9fc42127c1eaf52b737067aaff63f4d00e0a00000061726e6f20302e312e30fa9d8fe0cce5bcec516a90ac0ee54f0e94332ba5df4fbaebcfd5634e895602920000040000000201000000560205000000436f756e740203000000496e63020300000047657401000000050200000002000000000103000000000000000000000000001800000003000001000002000200000000000000180000000c0000000100000001000000000000000000000024000000000002400002010101000203020100100000004100000036000001400001000100000035",
+      "source": "contract V; version 0.1;\nstorage Count: UInt64;\nprocedure Inc; changes storage;\nbegin Count := Count + 1; end;\nfunction Get: UInt64; view;\nbegin Result := Count; end;\nend.",
+      "storage": [
+        {
+          "key": "",
+          "slot": 0,
+          "value": "0300000000000000"
+        }
+      ]
+    },
+    {
+      "calls": [
+        {
+          "args": "",
+          "eu_limit": 1000000,
+          "eu_used": 24,
+          "function": "Exact",
+          "returned": "0300000000000000",
+          "trap": null
+        },
+        {
+          "args": "",
+          "eu_limit": 1000000,
+          "eu_used": 23,
+          "function": "Over",
+          "returned": null,
+          "trap": "VM_LOOP_BOUND_EXCEEDED"
+        }
+      ],
+      "events": [],
+      "name": "bounded-loops",
+      "package": "41524e4f01000100fadc14908eaf02436b42594bf8dae0bd2ed08cf84e7e3da03441213d723e353d0a00000061726e6f20302e312e3093af82e8bdc73b8ecaedf9eabe076cb0bce2aacafd45ba5ce1fc31d14bb1c4a20000030000000201000000560205000000457861637402040000004f7665720200000005010200000001000001000002000500000000000000000001000000000000003400000002000001000002000500000000000000000001000000340000003400000000000000000000000000000068000000000000030200020303000403040003220b000332010004030400001003000403040003220b000332050002330000010100000135000000030200020304000403040003220b000332010004030400001004000403040003220b000332050002330000010100000135",
+      "source": "contract V; version 0.1;\nfunction Exact: UInt64; view;\nvar Y: UInt64;\nbegin Y := 0; while Y < 3 at most 3 times do Y := Y + 1; Result := Y; end;\nfunction Over: UInt64; view;\nvar Y: UInt64;\nbegin Y := 0; while Y < 4 at most 3 times do Y := Y + 1; Result := Y; end;\nend.",
+      "storage": []
+    },
+    {
+      "calls": [
+        {
+          "args": "05000000000000003200000000000000",
+          "eu_limit": 1000000,
+          "eu_used": 10408,
+          "function": "Put",
+          "returned": null,
+          "trap": null
+        },
+        {
+          "args": "06000000000000003c00000000000000",
+          "eu_limit": 1000000,
+          "eu_used": 7000,
+          "function": "Put",
+          "returned": null,
+          "trap": null
+        },
+        {
+          "args": "0500000000000000",
+          "eu_limit": 1000000,
+          "eu_used": 214,
+          "function": "Get",
+          "returned": "3200000000000000",
+          "trap": null
+        },
+        {
+          "args": "0700000000000000",
+          "eu_limit": 1000000,
+          "eu_used": 205,
+          "function": "Get",
+          "returned": "0000000000000000",
+          "trap": null
+        },
+        {
+          "args": "08000000000000005000000000000000",
+          "eu_limit": 1000000,
+          "eu_used": 5309,
+          "function": "Put",
+          "returned": null,
+          "trap": "VM_LIST_FULL"
+        }
+      ],
+      "events": [],
+      "name": "map-and-list",
+      "package": "41524e4f0100010048333a9933c3a83ab74109afa8a4ba1d39850d44c861bfefb9280df046f285b90a00000061726e6f20302e312e30c4124a2bed60cf7355654aa61912c0867fef04b659b64b620673ebf0bbb2484100000500000002010000005602010000004d02010000004c02030000005075740203000000476574050000000514000000001302000000000015000001020000000300020000010300000000000000020000000000140000000400010100000200040000000000030000000400140000001c000000020000000100010002000200000000000000000030000000000001430100024000000256010002410000003600000142000103580500033200010259060000300000020300000235",
+      "source": "contract V; version 0.1;\nstorage M: Map of UInt64 to UInt64; L: List of UInt64 max 2;\nprocedure Put(K, V: UInt64); changes storage;\nbegin M.Put(K, V); L.Add(K); end;\nfunction Get(K: UInt64): UInt64; view;\nvar O: Optional of UInt64;\nbegin O := M.Get(K); if O.IsSome then Result := O.Value else Result := 0; end;\nend.",
+      "storage": [
+        {
+          "key": "0500000000000000",
+          "slot": 0,
+          "value": "3200000000000000"
+        },
+        {
+          "key": "0600000000000000",
+          "slot": 0,
+          "value": "3c00000000000000"
+        },
+        {
+          "key": "",
+          "slot": 1,
+          "value": "0200000005000000000000000600000000000000"
+        }
+      ]
+    },
+    {
+      "calls": [
+        {
+          "args": "0b00000000000000",
+          "eu_limit": 1000000,
+          "eu_used": 346,
+          "function": "Check",
+          "returned": null,
+          "trap": null
+        },
+        {
+          "args": "0300000000000000",
+          "eu_limit": 1000000,
+          "eu_used": 3,
+          "function": "Check",
+          "returned": null,
+          "trap": "VM_CONTRACT_ABORTED"
+        }
+      ],
+      "events": [
+        {
+          "data": "0b00000000000000",
+          "event": 0
+        }
+      ],
+      "name": "events-and-aborts",
+      "package": "41524e4f010001008873b31ff3313c765174de291f1e700472ddd6304f48bcb83876fb7c7be576510a00000061726e6f20302e312e30a65e674461bc1c156a208edf93013f1d62b23078f3fbff96f41c723d308bb71200000500000002010000005602030000004c6f770208000000546f6f206c6f772e02040000005365656e0205000000436865636b0200000005010100000004000100000804000000000001000000000000000000180000000000000001000000010002000100000003000100000000000000180000000a0002030002012200000138000003010100037000000036",
+      "source": "contract V; version 0.1;\nerrors Low = 'Too low.';\nevents Seen(V: UInt64);\nprocedure Check(V: UInt64); emits events;\nbegin require V > 10 otherwise Low; emit Seen(V); end;\nend.",
+      "storage": []
+    },
+    {
+      "calls": [
+        {
+          "args": "",
+          "eu_limit": 4000,
+          "eu_used": 4000,
+          "function": "W",
+          "returned": null,
+          "trap": "VM_OUT_OF_EU"
+        },
+        {
+          "args": "",
+          "eu_limit": 1000000,
+          "eu_used": 5083,
+          "function": "W",
+          "returned": null,
+          "trap": null
+        },
+        {
+          "args": "",
+          "eu_limit": 1000000,
+          "eu_used": 1583,
+          "function": "W",
+          "returned": null,
+          "trap": null
+        }
+      ],
+      "events": [],
+      "name": "out-of-eu",
+      "package": "41524e4f0100010008c0f0a30c4987900d8ea9dc073f57e883fcaeadc749a1cd9b289d76c0fbf4360a00000061726e6f20302e312e30f3909f8f2113e543b6f4e85f89657f8c84610656b1fd323014929d0cd0f8c886000003000000020100000056020100000053020100000057010000000501000000020000000001010000000000000000000c000000010000000100000000000000000000000c000000010000030000004100000036",
+      "source": "contract V; version 0.1;\nstorage S: UInt64;\nprocedure W; changes storage;\nbegin S := 1; end;\nend.",
+      "storage": [
+        {
+          "key": "",
+          "slot": 0,
+          "value": "0100000000000000"
+        }
+      ]
+    },
+    {
+      "calls": [
+        {
+          "args": "",
+          "eu_limit": 1000000,
+          "eu_used": 3,
+          "function": "Now",
+          "returned": "9210000000000000",
+          "trap": null
+        },
+        {
+          "args": "",
+          "eu_limit": 1000000,
+          "eu_used": 42,
+          "function": "H",
+          "returned": "6437b3ac38465133ffb63b75273a8db548c558465d79db03fd359c6cd5bd9d85",
+          "trap": null
+        }
+      ],
+      "events": [],
+      "name": "chain-facts-and-hash",
+      "package": "41524e4f01000100d3cdb2b6d7a7b6c421a95ac2476c28320ba89453c475d4c4f18b165a782b6eb00a00000061726e6f20302e312e30f5ed4312c36f9ca3059f55de2016c2c870c13842559d750ccbd78e87b9a15f4900000400000002010000005602030000004e6f770203000000616263020100000048030000000b090d030000000200000001000001000002000200000000000000000000000c00000003000001010002000400000001000100020002000c00000014000000000000000000000000000000200000000200017100010001000000350200030200030201100001710001000100000035",
+      "source": "contract V; version 0.1;\nuses Std.Chain, Std.Crypto;\nfunction Now: Slot; view;\nbegin Result := Chain.Slot; end;\nfunction H: Hash; view;\nbegin Result := Blake3('abc'); end;\nend.",
+      "storage": []
+    }
+  ],
+  "description": "Arno VM execution. Each case: the source, its package (compiled by arno 0.1.0), and calls made in order against one contract storage that starts empty. Arguments are the parameters' canonical encodings, concatenated; returned values are the result type's canonical encoding. Chain facts: height 42, slot 4242, epoch 1, protocol time 1767225600000, transaction id 32 bytes each 11 (base16). A failed call changes nothing (its storage writes and events are reverted). Expected: returned value or trap code name, exact EU used, final storage (slot, key, value) and events."
+}
