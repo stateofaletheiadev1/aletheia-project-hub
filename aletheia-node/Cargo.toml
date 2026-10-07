@@ -70,11 +70,15 @@ dbg_macro = "deny"
 print_stdout = "deny"
 print_stderr = "deny"
 
+# Line tables only: backtraces keep file and line, and build output stays a fraction of the
+# size (full debug info took the debug target directory past 30 GB with RocksDB).
 [profile.dev]
 overflow-checks = true
+debug = "line-tables-only"
 
 [profile.test]
 overflow-checks = true
+debug = "line-tables-only"
 
 [profile.release]
 codegen-units = 1
