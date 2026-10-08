@@ -148,7 +148,9 @@ partly written; see the end of this file.
 | Rail profiles (7 drafts), reason table, validation layers 2-3 (`crates/rails`) | 40C.3, 40C.4, 40C.10 | yes | yes (profiles draft: `docs/apn/profile-verification/`) | integration per rule and rail, generated reason table | no | rustdoc | no |
 | ISO 20022 layer 1: hardened reader, `pacs.008` and `pacs.002` parse/render (`crates/rails/src/iso/`) | 40, 40C.4 | yes (+ ADR-052) | yes, except XSD validation against pinned schemas | hostile-input refusals, round trip (property), version/count/field checks, status classification; hand-written messages, operator sample packs not yet | reader property test | rustdoc | no |
 | Gateway core: hash-chained audit ledger, inbox/outbox, pipeline with layer 4, screening (fail-closed), R2 hold, escrow lock/settle/release decisions (`crates/gateway`) | 40, 40C.7, 40C.8 | yes (+ ADR-053) | yes (in-memory stores; PostgreSQL store, mTLS transport and HSM signer not yet) | tamper detection, redelivery, rejections and holds, outbound lock and outbox, late ACSC after time-out, duplicates after settlement | no | rustdoc | no |
-| `pacs.004`, `camt.05x`, `pain.001`; railsim and chaos; R8-R9 reconciliation | 40, 40C.11, 40C.12 | yes | **no** | no | no | no | no |
+| `camt.052/053/054` statements; R1, R8, R9 reconciliation with typed breaks and the R2 freeze (`rails/src/iso/camt.rs`, `gateway/src/reconcile.rs`) | 40B.6, 40C.11 | yes | yes | clean statement, each break type, freeze threshold | no | rustdoc | no |
+| Rail simulator and chaos against the chain (`tests/railsim`) | 40C.12 | yes | yes (test-only) | every behaviour once + 8 random mixes: I13-I15 on chain, R8-R9 against the statement; outage, clock skew and statement-first scenarios not yet | n/a | rustdoc | n/a |
+| `pacs.004`, `pain.001`, XSD validation, operator conformance packs; PostgreSQL store, mTLS, HSM signer | 40, 40C | yes | **no** | no | no | no | no |
 
 ## Phase 10: native registries and governance
 

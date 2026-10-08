@@ -20,6 +20,7 @@
 pub mod audit;
 pub mod exactly_once;
 pub mod pipeline;
+pub mod reconcile;
 
 pub use audit::{
     AuditEntry, AuditError, AuditLedger, AuditRecord, AuditStore, MemoryAuditStore, Stage,

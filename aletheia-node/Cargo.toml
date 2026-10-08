@@ -25,6 +25,7 @@ members = [
   "apps/arno-exec",
   "tests/conformance",
   "tests/harness",
+  "tests/railsim",
   "tests/determinism",
   "tests/sim",
 ]

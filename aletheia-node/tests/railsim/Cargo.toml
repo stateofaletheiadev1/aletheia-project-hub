@@ -1,0 +1,23 @@
+[package]
+name = "aletheia-railsim"
+description = "TEST-ONLY rail simulators (spec Section 40C.12): partner banks with virtual time, time-outs, late answers and duplicates. Never in a release image."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+aletheia-rails.workspace = true
+aletheia-rails-model.workspace = true
+
+[dev-dependencies]
+aletheia-core.workspace = true
+aletheia-crypto.workspace = true
+aletheia-execution.workspace = true
+aletheia-gateway.workspace = true
+aletheia-test-harness.workspace = true
+proptest.workspace = true
+
+[lints]
+workspace = true

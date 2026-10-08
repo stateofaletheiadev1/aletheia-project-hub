@@ -190,6 +190,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "aletheia-railsim"
+version = "0.1.0"
+dependencies = [
+ "aletheia-core",
+ "aletheia-crypto",
+ "aletheia-execution",
+ "aletheia-gateway",
+ "aletheia-rails",
+ "aletheia-rails-model",
+ "aletheia-test-harness",
+ "proptest",
+]
+
+[[package]]
 name = "aletheia-signer"
 version = "0.1.0"
 dependencies = [

@@ -30,5 +30,15 @@ Decision: B (`crates/gateway`):
      produces nothing (I15). Reports for a leg already settled or released change nothing.
   6. The gateway decides and records; it does not sign. Operations go to the gateway
      operator's signer.
+  7. Reconciliation (Section 40C.11) parses `camt.052/053/054` and checks R1 (the statement
+     adds up), R8 (each settled escrow has exactly one debit of the same amount; each credit
+     has a mint or an open case) and R9 (the closing balance equals the gateway's expected
+     balance). Breaks are typed; any break above the governed threshold, or of unknown size,
+     freezes the partner's R2 headroom.
+  8. The rail simulator (`tests/railsim`, test-only) plays the partner with virtual time:
+     accept, reject, time-out then late accept or reject, duplicate reports, reports out of
+     order, silence. Chaos runs drive the gateway against a devnet and check I13-I15 on chain
+     and R8-R9 against the simulator's statement.
 Consequences: still to come are the PostgreSQL store, mTLS transport, the HSM signer, the
-rail simulator and chaos runs, and R8-R9 reconciliation against statements.
+operator-published conformance packs, and longer chaos campaigns (partner outage, clock
+skew, statement before payment).
