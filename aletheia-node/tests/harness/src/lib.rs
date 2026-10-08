@@ -67,6 +67,8 @@ pub struct Devnet {
     pub injected: Vec<(StateKey, Option<StateValue>)>,
     /// The epoch of the blocks produced next (epoch transitions are not modelled yet).
     pub epoch: Epoch,
+    /// The slot of the next block, when it skips ahead (empty slots, Section 19).
+    pub jump_to: Option<Slot>,
 }
 
 pub fn seed(index: usize) -> [u8; 32] {
@@ -137,6 +139,7 @@ impl Devnet {
             blocks: Vec::new(),
             injected: Vec::new(),
             epoch: Epoch::new(0),
+            jump_to: None,
         }
     }
 
@@ -171,7 +174,17 @@ impl Devnet {
     }
 
     pub fn next_slot(&self) -> Slot {
-        Slot::new(self.head.slot.get() + 1)
+        self.jump_to
+            .filter(|slot| slot.get() > self.head.slot.get())
+            .unwrap_or(Slot::new(self.head.slot.get() + 1))
+    }
+
+    /// Produces an empty block `slots` slots after the head, as when the slots between had
+    /// no block: protocol time moves on by that much.
+    pub fn skip_slots(&mut self, slots: u64) {
+        self.jump_to = Some(Slot::new(self.head.slot.get() + slots));
+        self.produce(Vec::new()).unwrap();
+        self.jump_to = None;
     }
 
     /// An unsigned body from account `from`; the caller adjusts fields, then [`Devnet::sign`].

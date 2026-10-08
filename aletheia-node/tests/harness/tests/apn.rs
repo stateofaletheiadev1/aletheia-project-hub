@@ -12,11 +12,13 @@
 
 use aletheia_core::apn::{
     Aan, Aic, ApnOp, Limits, ParticipantSpec, PaymentLeg, PaymentRef, frequency, mandate_id,
-    request_id, role, status,
+    request_id, role, schedule_id, status,
 };
 use aletheia_core::registry::{GovAction, RegistryOp, proposal_id};
-use aletheia_core::{AssetId, ChainId, ErrorCode, Hash32, NetworkIdentity, NetworkKind, Payload};
-use aletheia_execution::apn_model::{Apn, day_of, mandate_status, request_status};
+use aletheia_core::{
+    AssetId, ChainId, ErrorCode, Hash32, NetworkIdentity, NetworkKind, Payload, Slot,
+};
+use aletheia_execution::apn_model::{Apn, day_of, mandate_status, request_status, schedule_status};
 use aletheia_execution::{Receipt, ReceiptStatus};
 use aletheia_test_harness::{Devnet, GENESIS_TIME_MS, ONE_AEY, ONE_ALNT, keys};
 
@@ -54,6 +56,9 @@ fn submit(net: &mut Devnet, from: usize, payload: Payload) -> Receipt {
     let mut body = net.body(from, nonce, payload);
     body.fee.eu_limit = 100_000;
     body.fee.max_fee = 100_000;
+    // Valid from the next slot, so transactions stay valid after skipped days.
+    body.valid_from_slot = net.next_slot();
+    body.expiry_slot = Slot::new(net.next_slot().get() + 7_000);
     let tx = net.sign(from, body);
     let (_, executed) = net.produce(vec![tx]).expect("the block is valid");
     executed.receipts[0].clone()
@@ -856,4 +861,131 @@ fn a_mandate_is_usable_only_inside_its_window() {
         ),
         ErrorCode::ApnRecordUnknown,
     );
+}
+
+// ---- scheduled payments ----
+
+/// Slots in one day at the devnet's 500 ms slots.
+const SLOTS_PER_DAY: u64 = 86_400_000 / 500;
+
+/// Alice schedules a payment to Bob for `day`; returns its id.
+fn schedule(net: &mut Devnet, amount: u128, uetr: u8, day: u64) -> (Hash32, Receipt) {
+    let nonce = net.next_nonce(ALICE);
+    let to_bob = leg(net, BOB, bank_b(), amount, uetr);
+    let r = apn(
+        net,
+        ALICE,
+        ApnOp::ScheduledPayment {
+            debtor_agent: bank_a(),
+            leg: to_bob,
+            purpose: *b"RENT",
+            execute_day: day,
+        },
+    );
+    (schedule_id(&net.network, &net.address(ALICE), nonce), r)
+}
+
+fn scheduled(net: &Devnet, id: &Hash32) -> aletheia_execution::apn_model::ScheduleRecord {
+    let records = net.records();
+    let view = net.view();
+    Apn { records: &records }
+        .schedule(&view, id)
+        .unwrap()
+        .unwrap()
+}
+
+#[test]
+fn a_scheduled_payment_runs_on_its_day_and_not_before() {
+    let mut net = network();
+    let (alice, bob) = (aey(&net, ALICE), aey(&net, BOB));
+    let (id, r) = schedule(&mut net, 4 * ONE_AEY, 90, today() + 1);
+    ok(&r);
+    net.produce(Vec::new()).unwrap();
+    assert_eq!(aey(&net, BOB), bob, "not before its day");
+    assert_eq!(scheduled(&net, &id).status, schedule_status::PENDING);
+
+    net.skip_slots(SLOTS_PER_DAY);
+    assert_eq!(aey(&net, ALICE), alice - 4 * ONE_AEY);
+    assert_eq!(aey(&net, BOB), bob + 4 * ONE_AEY);
+    let record = scheduled(&net, &id);
+    assert_eq!(record.status, schedule_status::EXECUTED);
+    assert_eq!(record.executed_height, net.head.height.get());
+    // Executed once: later blocks leave it alone.
+    net.produce(Vec::new()).unwrap();
+    assert_eq!(aey(&net, BOB), bob + 4 * ONE_AEY);
+}
+
+#[test]
+fn an_unfunded_or_duplicate_scheduled_payment_fails_and_moves_nothing() {
+    let mut net = network();
+    let (too_much, r) = schedule(&mut net, 40 * ONE_AEY, 91, today() + 1);
+    ok(&r);
+    // Alice moves most of her AEY away before the day comes.
+    let anyone = net.address(ANYONE);
+    let away = aey(&net, ALICE) - 5 * ONE_AEY;
+    ok(&submit(
+        &mut net,
+        ALICE,
+        Payload::Transfer(aletheia_core::TransferLeg {
+            recipient: anyone,
+            asset: AssetId::AEY,
+            amount: away,
+        }),
+    ));
+    // Its UETR is used by a payment made today, so on its day it is a duplicate.
+    let (duplicate, r) = schedule(&mut net, ONE_AEY, 92, today() + 1);
+    ok(&r);
+    let same_uetr = leg(&net, BOB, bank_b(), ONE_AEY, 92);
+    ok(&pay(&mut net, ALICE, bank_a(), same_uetr));
+    let (fine, r) = schedule(&mut net, 2 * ONE_AEY, 93, today() + 1);
+    ok(&r);
+    let bob = aey(&net, BOB);
+
+    net.skip_slots(SLOTS_PER_DAY);
+    let failed = scheduled(&net, &too_much);
+    assert_eq!(failed.status, schedule_status::FAILED);
+    assert_eq!(failed.result_code, ErrorCode::InsufficientBalance.get());
+    let failed = scheduled(&net, &duplicate);
+    assert_eq!(
+        (failed.status, failed.result_code),
+        (schedule_status::FAILED, ErrorCode::PayDuplicate.get())
+    );
+    // The others' failures did not stop it.
+    assert_eq!(scheduled(&net, &fine).status, schedule_status::EXECUTED);
+    assert_eq!(aey(&net, BOB), bob + 2 * ONE_AEY);
+}
+
+#[test]
+fn a_payment_is_scheduled_only_for_a_future_day() {
+    let mut net = network();
+    let (_, r) = schedule(&mut net, ONE_AEY, 94, today());
+    refused(&r, ErrorCode::TxFieldOutOfRange);
+    // The debtor's agent must serve the debtor when it is scheduled.
+    let to_bob = leg(&net, BOB, bank_b(), ONE_AEY, 95);
+    let r = apn(
+        &mut net,
+        ALICE,
+        ApnOp::ScheduledPayment {
+            debtor_agent: bank_b(),
+            leg: to_bob,
+            purpose: *b"RENT",
+            execute_day: today() + 2,
+        },
+    );
+    refused(&r, ErrorCode::ApnRoutingMismatch);
+}
+
+#[test]
+fn an_idle_chain_catches_up_on_missed_days() {
+    let mut net = network();
+    let bob = aey(&net, BOB);
+    let (first, r) = schedule(&mut net, ONE_AEY, 96, today() + 1);
+    ok(&r);
+    let (second, r) = schedule(&mut net, ONE_AEY, 97, today() + 3);
+    ok(&r);
+    // No block for five days, then one block: both days are processed.
+    net.skip_slots(5 * SLOTS_PER_DAY);
+    assert_eq!(scheduled(&net, &first).status, schedule_status::EXECUTED);
+    assert_eq!(scheduled(&net, &second).status, schedule_status::EXECUTED);
+    assert_eq!(aey(&net, BOB), bob + 2 * ONE_AEY);
 }

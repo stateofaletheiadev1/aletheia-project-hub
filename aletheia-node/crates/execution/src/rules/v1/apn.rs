@@ -8,6 +8,7 @@
 //! PaymentRequest            the payee; PaymentRequestResponse: the payer, paying through its agent
 //! MandateCreate, MandateAmend   the debtor;  MandateCancel: the debtor or the creditor
 //! DirectDebit               the mandate's creditor, within its maximum, window and frequency
+//! ScheduledPayment          the debtor; the protocol executes it at the end of a block on its day
 //! PaymentReturn             the original creditor, up to what is left of the original
 //! RecallRequest             the original debtor (a request: finality stands)
 //! RecallResponse            the original creditor; accepting returns what is left
@@ -22,14 +23,15 @@
 //! `(debtor agent, UETR hash, leg)`: a second payment with the same key is refused.
 
 use aletheia_core::apn::{
-    Aic, ApnOp, PaymentLeg, PaymentRef, frequency, mandate_id, request_id, status,
+    Aic, ApnOp, PaymentLeg, PaymentRef, frequency, mandate_id, request_id, schedule_id, status,
 };
 use aletheia_core::{AceEncode, Address, AletheiaError, AssetId, ErrorCode, Hash32};
 use aletheia_state::StateOverlay;
 
 use crate::apn_model::{
-    AnchorEntry, Apn, DEDUP_RETENTION_DAYS, DayTotals, DedupEntry, MandateRecord, Mapping,
-    Participant, RequestRecord, day_of, mandate_status, period, request_status,
+    AnchorEntry, Apn, DEDUP_RETENTION_DAYS, DayTotals, DedupEntry, MAX_SCHEDULED_PER_DAY,
+    MandateRecord, Mapping, Participant, RequestRecord, ScheduleCursor, ScheduleRecord, day_of,
+    mandate_status, period, request_status, schedule_status,
 };
 use crate::context::{BlockContext, Meter, OutOfEu};
 use crate::model::{Records, module_address};
@@ -660,6 +662,72 @@ pub(crate) fn apply(
             cx.overlay
                 .put(cx.apn.mandate_key(id), record.to_ace_bytes());
         }
+        ApnOp::ScheduledPayment {
+            debtor_agent,
+            leg,
+            purpose,
+            execute_day,
+        } => {
+            // The execution is paid for now: the protocol runs it later without a fee.
+            if meter.charge(APN_EU.saturating_add(PAYMENT_EU)).is_err() {
+                return Ok(Err(OutOfEu));
+            }
+            let today = cx.day();
+            if *execute_day <= today {
+                return Err(fail(
+                    ErrorCode::TxFieldOutOfRange,
+                    "a scheduled payment is for a future day; pay today with a Payment",
+                ));
+            }
+            let agent = cx.active(debtor_agent)?;
+            let debtor = cx.sender;
+            if !cx.apn.serves(cx.overlay, &agent, &debtor)? {
+                return Err(fail(
+                    ErrorCode::ApnRoutingMismatch,
+                    format!(
+                        "{} does not serve the debtor's account",
+                        agent.spec.aic.text()
+                    ),
+                ));
+            }
+            let mut queue = cx.apn.day_queue(cx.overlay, *execute_day)?;
+            if u32::try_from(queue.ids.len()).unwrap_or(u32::MAX) >= MAX_SCHEDULED_PER_DAY {
+                return Err(fail(
+                    ErrorCode::ApnLimitExceeded,
+                    format!(
+                        "day {execute_day} already has {MAX_SCHEDULED_PER_DAY} scheduled payments"
+                    ),
+                ));
+            }
+            let id = schedule_id(records.network(), &debtor, body.nonce);
+            let record = ScheduleRecord {
+                debtor,
+                debtor_agent: *debtor_agent,
+                leg: *leg,
+                purpose: *purpose,
+                execute_day: *execute_day,
+                status: schedule_status::PENDING,
+                result_code: 0,
+                executed_height: 0,
+            };
+            cx.overlay
+                .put(cx.apn.schedule_key(&id), record.to_ace_bytes());
+            queue.ids.push(id);
+            cx.overlay
+                .put(cx.apn.day_queue_key(*execute_day), queue.to_ace_bytes());
+            if cx.apn.cursor(cx.overlay)?.is_none() {
+                let start = ScheduleCursor {
+                    day: today,
+                    index: 0,
+                };
+                cx.overlay.put(cx.apn.cursor_key(), start.to_ace_bytes());
+            }
+            cx.emit(
+                "aletheia.apn.payment.scheduled.v1",
+                vec![id, debtor.account_hash(), leg.creditor.account_hash()],
+                execute_day.to_le_bytes().to_vec(),
+            );
+        }
         ApnOp::PaymentReturn {
             original,
             amount,
@@ -865,4 +933,104 @@ pub(crate) fn apply(
         }
     }
     Ok(Ok(()))
+}
+
+/// Scheduled payments executed in one block at most (devnet default).
+pub const MAX_SCHEDULED_PER_BLOCK: u32 = 256;
+/// Days the end-of-block step walks in one block at most, so an idle chain catches up in
+/// bounded steps.
+pub const MAX_DAYS_PER_BLOCK: u32 = 32;
+
+/// The end-of-block step (ADR-050): executes scheduled payments that are due, in the order
+/// they were scheduled, at most `MAX_SCHEDULED_PER_BLOCK` per block. Each runs on its own
+/// checkpoint with every payment check; one that fails is recorded as FAILED with its error
+/// code and moves nothing. Returns the balances it moved, for the supply check.
+pub(crate) fn end_block(
+    records: &Records,
+    overlay: &mut StateOverlay<'_>,
+    ctx: &BlockContext,
+) -> Result<Touched, AletheiaError> {
+    let apn = Apn { records };
+    let mut touched = Touched::new();
+    let Some(start) = apn.cursor(overlay)? else {
+        return Ok(touched);
+    };
+    let today = day_of(ctx.protocol_time_ms);
+    let mut cursor = start;
+    let (mut work, mut days) = (0u32, 0u32);
+    while cursor.day <= today && work < MAX_SCHEDULED_PER_BLOCK && days < MAX_DAYS_PER_BLOCK {
+        let queue = apn.day_queue(overlay, cursor.day)?;
+        while work < MAX_SCHEDULED_PER_BLOCK {
+            let Some(id) = usize::try_from(cursor.index)
+                .ok()
+                .and_then(|i| queue.ids.get(i))
+            else {
+                break;
+            };
+            execute_scheduled(records, overlay, ctx, id, &mut touched)?;
+            cursor.index = cursor.index.saturating_add(1);
+            work = work.saturating_add(1);
+        }
+        if usize::try_from(cursor.index).unwrap_or(usize::MAX) < queue.ids.len() {
+            break;
+        }
+        cursor = ScheduleCursor {
+            day: cursor.day.saturating_add(1),
+            index: 0,
+        };
+        days = days.saturating_add(1);
+    }
+    if cursor != start {
+        overlay.put(apn.cursor_key(), cursor.to_ace_bytes());
+    }
+    Ok(touched)
+}
+
+fn execute_scheduled(
+    records: &Records,
+    overlay: &mut StateOverlay<'_>,
+    ctx: &BlockContext,
+    id: &Hash32,
+    touched: &mut Touched,
+) -> Result<(), AletheiaError> {
+    let apn = Apn { records };
+    let Some(mut record) = apn.schedule(overlay, id)? else {
+        return Ok(());
+    };
+    if record.status != schedule_status::PENDING {
+        return Ok(());
+    }
+    let mark = touched.len();
+    overlay.checkpoint();
+    let mut events = Vec::new();
+    let outcome = {
+        let mut cx = Cx {
+            apn,
+            records,
+            overlay: &mut *overlay,
+            sender: record.debtor,
+            tx_id: *id,
+            ctx,
+            events: &mut events,
+            touched: &mut *touched,
+        };
+        cx.active(&record.debtor_agent)
+            .and_then(|agent| cx.pay(record.debtor, &agent, None, &record.leg, &record.purpose))
+    };
+    match outcome {
+        Ok(()) => {
+            overlay.commit_checkpoint();
+            record.status = schedule_status::EXECUTED;
+        }
+        Err(error) if error.is_fail_stop() => return Err(error),
+        Err(error) => {
+            overlay.revert_to_checkpoint()?;
+            touched.truncate(mark);
+            record.status = schedule_status::FAILED;
+            record.result_code = error.code().get();
+        }
+    }
+    record.executed_height = ctx.height.get();
+    overlay.put(apn.schedule_key(id), record.to_ace_bytes());
+    Ok(())
 }

@@ -50,6 +50,16 @@ Decision: B (crates/core `apn.rs`, crates/execution `apn_model.rs`, `rules/v1/ap
      day of protocol time. The debtor amends (maximum, final day, suspend or resume) and
      either party cancels for good. A direct debit comes from the creditor, inside the
      window and maximum, and settles as a payment from the debtor.
-Consequences: scheduled payments (136) need the protocol to act at block boundaries and
-follow in their own step, as does external-leg escrow (144-147). KYC-tier
+ 11. Scheduled payments (136): the debtor schedules a payment for a future UTC day (id
+     `H_domain("ALETHEIA/APN-SCHEDULE/v1", debtor ‖ nonce)`, namespace 104); the fee for its
+     execution is paid when it is scheduled. At most 1,000 per day, kept in a queue per day
+     in scheduling order. After a block's transactions, the protocol's end-of-block step
+     executes due payments in that order, at most 256 per block and over at most 32 days
+     per block, from a cursor in state. Each runs on its own checkpoint with every payment
+     check; a failure (unfunded, limit, duplicate, inactive agent) is recorded on the
+     schedule as FAILED with its error code and moves nothing. Results are kept in state
+     (status, error code, height): the step has no transaction, so it has no receipt or
+     events. Balances it moves join the block's supply check.
+Consequences: external-leg escrow (144-147) follows in its own step. A way for the debtor
+to cancel a scheduled payment before its day is not in the spec and is not provided. KYC-tier
 amount limits per customer need the identity tiers and are not enforced yet.

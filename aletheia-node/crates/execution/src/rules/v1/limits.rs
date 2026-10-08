@@ -43,6 +43,7 @@ pub const TX_TYPES: &[TxType] = &[
     TxType::new(133),
     TxType::new(134),
     TxType::new(135),
+    TxType::new(136),
     TxType::new(137),
     TxType::new(138),
     TxType::new(139),

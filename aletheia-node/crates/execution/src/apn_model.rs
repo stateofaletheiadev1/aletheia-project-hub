@@ -517,6 +517,134 @@ impl Apn<'_> {
     }
 }
 
+/// A scheduled payment (namespace 104, key `(1, schedule id)`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ScheduleRecord {
+    pub debtor: Address,
+    pub debtor_agent: Aic,
+    pub leg: aletheia_core::apn::PaymentLeg,
+    pub purpose: [u8; 4],
+    pub execute_day: u64,
+    pub status: u8,
+    /// The error code it failed with, or 0.
+    pub result_code: u32,
+    /// The block that executed or failed it, or 0 while pending.
+    pub executed_height: u64,
+}
+
+/// Scheduled payment states.
+pub mod schedule_status {
+    pub const PENDING: u8 = 1;
+    pub const EXECUTED: u8 = 2;
+    pub const FAILED: u8 = 3;
+}
+
+impl AceEncode for ScheduleRecord {
+    fn encode(&self, out: &mut AceWriter) {
+        self.debtor.encode(out);
+        self.debtor_agent.encode(out);
+        self.leg.encode(out);
+        out.fixed(&self.purpose);
+        out.u64(self.execute_day);
+        out.u8(self.status);
+        out.u32(self.result_code);
+        out.u64(self.executed_height);
+    }
+}
+
+impl AceDecode for ScheduleRecord {
+    fn decode(input: &mut AceReader<'_>) -> Result<ScheduleRecord, AletheiaError> {
+        Ok(ScheduleRecord {
+            debtor: Address::decode(input)?,
+            debtor_agent: Aic::decode(input)?,
+            leg: aletheia_core::apn::PaymentLeg::decode(input)?,
+            purpose: input.array()?,
+            execute_day: input.u64()?,
+            status: input.u8()?,
+            result_code: input.u32()?,
+            executed_height: input.u64()?,
+        })
+    }
+}
+
+/// Scheduled payments due on one day, in the order they were scheduled.
+pub const MAX_SCHEDULED_PER_DAY: u32 = 1_000;
+
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct DayQueue {
+    pub ids: Vec<Hash32>,
+}
+
+impl AceEncode for DayQueue {
+    fn encode(&self, out: &mut AceWriter) {
+        out.list(&self.ids);
+    }
+}
+
+impl AceDecode for DayQueue {
+    fn decode(input: &mut AceReader<'_>) -> Result<DayQueue, AletheiaError> {
+        Ok(DayQueue {
+            ids: input.list(MAX_SCHEDULED_PER_DAY)?,
+        })
+    }
+}
+
+/// Where the end-of-block step resumes: the next day to process and the position in its
+/// queue. Absent until the first payment is scheduled.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ScheduleCursor {
+    pub day: u64,
+    pub index: u32,
+}
+
+impl AceEncode for ScheduleCursor {
+    fn encode(&self, out: &mut AceWriter) {
+        out.u64(self.day);
+        out.u32(self.index);
+    }
+}
+
+impl AceDecode for ScheduleCursor {
+    fn decode(input: &mut AceReader<'_>) -> Result<ScheduleCursor, AletheiaError> {
+        Ok(ScheduleCursor {
+            day: input.u64()?,
+            index: input.u32()?,
+        })
+    }
+}
+
+impl Apn<'_> {
+    pub fn schedule_key(&self, id: &Hash32) -> StateKey {
+        self.key(Namespace::PaymentRequests, &[&[1], id.as_bytes()])
+    }
+
+    pub fn schedule(
+        &self,
+        view: &dyn StateView,
+        id: &Hash32,
+    ) -> Result<Option<ScheduleRecord>, AletheiaError> {
+        self.get(view, &self.schedule_key(id), "scheduled payment")
+    }
+
+    pub fn day_queue_key(&self, day: u64) -> StateKey {
+        self.key(Namespace::PaymentRequests, &[&[2], &day.to_le_bytes()])
+    }
+
+    pub fn day_queue(&self, view: &dyn StateView, day: u64) -> Result<DayQueue, AletheiaError> {
+        Ok(self
+            .get(view, &self.day_queue_key(day), "scheduled-payment queue")?
+            .unwrap_or_default())
+    }
+
+    pub fn cursor_key(&self) -> StateKey {
+        self.key(Namespace::PaymentRequests, &[&[3]])
+    }
+
+    pub fn cursor(&self, view: &dyn StateView) -> Result<Option<ScheduleCursor>, AletheiaError> {
+        self.get(view, &self.cursor_key(), "scheduled-payment cursor")
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

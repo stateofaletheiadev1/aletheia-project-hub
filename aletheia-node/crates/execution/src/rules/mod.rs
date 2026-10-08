@@ -111,6 +111,21 @@ impl Rules {
         }
     }
 
+    /// The protocol's own work after a block's transactions (Section 40B.7 scheduled
+    /// payments), reporting the balances it moved.
+    pub fn end_block(
+        self,
+        records: &Records,
+        overlay: &mut StateOverlay<'_>,
+        ctx: &BlockContext,
+    ) -> Result<v1::Touched, AletheiaError> {
+        match self {
+            Rules::V1 => v1::end_block(records, overlay, ctx),
+            #[cfg(feature = "test-protocol-v2")]
+            Rules::TestV2 => v1::end_block(records, overlay, ctx),
+        }
+    }
+
     pub fn apply_transaction(
         self,
         records: &Records,

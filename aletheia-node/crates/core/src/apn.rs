@@ -431,6 +431,14 @@ pub fn mandate_id(network: &NetworkIdentity, debtor: &Address, nonce: u64) -> Ha
     network.domain_hash(DomainTag::Mandate, out.as_bytes())
 }
 
+/// The id of a scheduled payment: `H_domain("ALETHEIA/APN-SCHEDULE/v1", debtor ‖ nonce)`.
+pub fn schedule_id(network: &NetworkIdentity, debtor: &Address, nonce: u64) -> Hash32 {
+    let mut out = AceWriter::new();
+    debtor.encode(&mut out);
+    out.u64(nonce);
+    network.domain_hash(DomainTag::ScheduledPayment, out.as_bytes())
+}
+
 /// APN payloads.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ApnOp {
@@ -491,6 +499,14 @@ pub enum ApnOp {
         uetr_hash: Hash32,
         remittance_hash: Hash32,
     },
+    /// 136: the debtor (sender) schedules a credit transfer; the protocol executes it on
+    /// `execute_day` (a future UTC day of protocol time) if it passes every payment check.
+    ScheduledPayment {
+        debtor_agent: Aic,
+        leg: PaymentLeg,
+        purpose: [u8; 4],
+        execute_day: u64,
+    },
     /// 137: the original creditor (the sender) sends money back, linked to the original.
     PaymentReturn {
         original: PaymentRef,
@@ -523,8 +539,8 @@ pub enum ApnOp {
 }
 
 impl ApnOp {
-    pub const TX_TYPES: [u16; 15] = [
-        128, 129, 130, 131, 132, 133, 134, 135, 137, 138, 139, 140, 141, 142, 143,
+    pub const TX_TYPES: [u16; 16] = [
+        128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143,
     ];
 
     pub const fn tx_type(&self) -> u16 {
@@ -537,6 +553,7 @@ impl ApnOp {
             ApnOp::MandateAmend { .. } => 133,
             ApnOp::MandateCancel { .. } => 134,
             ApnOp::DirectDebit { .. } => 135,
+            ApnOp::ScheduledPayment { .. } => 136,
             ApnOp::PaymentReturn { .. } => 137,
             ApnOp::RecallRequest { .. } => 138,
             ApnOp::RecallResponse { .. } => 139,
@@ -634,6 +651,17 @@ impl ApnOp {
                 out.u128(*amount);
                 uetr_hash.encode(out);
                 remittance_hash.encode(out);
+            }
+            ApnOp::ScheduledPayment {
+                debtor_agent,
+                leg,
+                purpose,
+                execute_day,
+            } => {
+                debtor_agent.encode(out);
+                leg.encode(out);
+                out.fixed(purpose);
+                out.u64(*execute_day);
             }
             ApnOp::PaymentReturn {
                 original,
@@ -742,6 +770,12 @@ impl ApnOp {
                     amount: input.u128()?,
                     uetr_hash: Hash32::decode(input)?,
                     remittance_hash: Hash32::decode(input)?,
+                },
+                136 => ApnOp::ScheduledPayment {
+                    debtor_agent: Aic::decode(input)?,
+                    leg: PaymentLeg::decode(input)?,
+                    purpose: input.array()?,
+                    execute_day: input.u64()?,
                 },
                 137 => ApnOp::PaymentReturn {
                     original: PaymentRef::decode(input)?,

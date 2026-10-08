@@ -305,6 +305,16 @@ pub fn touched_balances(
     touched
 }
 
+/// Work the protocol does after a block's transactions (scheduled payments). Returns the
+/// balances it moved, for the supply check.
+pub fn end_block(
+    records: &Records,
+    overlay: &mut StateOverlay<'_>,
+    ctx: &BlockContext,
+) -> Result<Touched, AletheiaError> {
+    apn::end_block(records, overlay, ctx)
+}
+
 /// Applies one transaction at position `index` of the block. `Err` means the block is
 /// invalid (stateful validation failed) or the node must stop (fail-stop error).
 pub fn apply_transaction(

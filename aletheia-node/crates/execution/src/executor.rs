@@ -117,6 +117,7 @@ pub fn execute_block(
         )));
     }
 
+    touched.extend(rules.end_block(records, &mut overlay, ctx)?);
     check_supply(rules, records, base, &overlay, transactions, &touched)?;
 
     let network = records.network();
