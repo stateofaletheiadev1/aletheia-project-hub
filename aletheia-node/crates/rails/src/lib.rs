@@ -19,6 +19,7 @@
 )]
 
 pub mod charset;
+pub mod iso;
 pub mod layers;
 pub mod profile;
 pub mod reasons;

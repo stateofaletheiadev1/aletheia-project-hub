@@ -10,6 +10,7 @@ publish.workspace = true
 [dependencies]
 aletheia-rails-model.workspace = true
 blake3.workspace = true
+quick-xml.workspace = true
 serde.workspace = true
 toml.workspace = true
 
