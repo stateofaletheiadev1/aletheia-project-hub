@@ -44,7 +44,12 @@
     value={grouped(stats?.totalTxs ?? 0)}
     note={stats?.countedFromGenesis ? `Since genesis · ${grouped(stats.txsLastMinute)} in the last minute` : "Counting back to genesis…"}
   />
-  <StatTile icon="shield" label="Validators" value="{stats?.proposers ?? 0} active" note="Protocol version {stats?.protocolVersion ?? 1}" />
+  <StatTile
+    icon="shield"
+    label="Validators"
+    value="{stats?.validators ?? stats?.proposers ?? 0} active"
+    note={stats?.validatorMode === "single-producer" ? `Single producer · ${stats?.network ?? "devnet"}` : `Recorded set · protocol version ${stats?.protocolVersion ?? 1}`}
+  />
   <StatTile icon="vault" label="AEY outstanding" value={compactUnits(stats?.aeyOutstanding ?? null, "AEY")} unit="AEY" note="Aletheian Guilder, legal tender" />
 </section>
 
@@ -151,9 +156,10 @@
   }
   .stream header {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 1rem;
+    gap: 0.6rem 1rem;
     padding: 0.25rem 0.25rem 1rem;
     margin-bottom: 1rem;
     border-bottom: 1px solid rgb(196 154 78 / 0.28);

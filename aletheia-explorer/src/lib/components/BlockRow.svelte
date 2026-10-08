@@ -13,7 +13,7 @@
     <span class="id mono" title={block.id}>{short(block.id, 14, 8)}</span>
     <span class="meta">
       <Icon name="user" size={13} />
-      Proposer <strong>Validator {block.proposer}</strong>
+      <span class="word">Proposer</span> <strong>Validator {block.proposer}</strong>
       <span class="sep">·</span>
       <span class="num">{block.txCount} {block.txCount === 1 ? "tx" : "txs"}</span>
     </span>
@@ -78,6 +78,8 @@
     display: flex;
     align-items: center;
     gap: 0.35rem;
+    min-width: 0;
+    overflow: hidden;
     font-size: var(--fs-xs);
     color: var(--text-faint);
     white-space: nowrap;
@@ -115,8 +117,13 @@
   }
   @media (max-width: 30rem) {
     .meta .sep,
-    .meta .num {
+    .meta .num,
+    .meta .word {
       display: none;
+    }
+    .height {
+      min-width: 4.75rem;
+      padding-inline: 0.5rem;
     }
   }
 </style>

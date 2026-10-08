@@ -9,6 +9,7 @@ import type {
   NetworkStatus,
   ReceiptView,
   Supply,
+  ValidatorSet,
   TransactionView,
 } from "$lib/types";
 
@@ -70,5 +71,6 @@ export const rpc = {
   receipt: (id: string) => get<ReceiptView>(`/receipts/${segment(id)}`),
   account: (address: string) => get<AccountView>(`/accounts/${segment(address)}`),
   balances: (address: string) => get<Balance[]>(`/accounts/${segment(address)}/balances`),
+  validators: (epoch?: number) => get<ValidatorSet>(epoch === undefined ? "/validators" : `/validators?epoch=${epoch}`),
   supply: (asset: string) => get<Supply>(`/monetary/${segment(asset)}/supply`),
 };

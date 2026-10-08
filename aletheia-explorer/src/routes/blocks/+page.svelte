@@ -31,7 +31,12 @@
 <section class="container cards" aria-label="Block figures">
   <StatTile icon="block" label="Latest block" value="#{grouped(head)}" note="Epoch {grouped(live.stats?.epoch ?? 0)}" />
   <StatTile icon="clock" label="Block time" value={pace} note="Average of the last 20 blocks" />
-  <StatTile icon="shield" label="Validators" value="{live.stats?.proposers ?? 0} active" note="Protocol version {live.stats?.protocolVersion ?? 1}" />
+  <StatTile
+    icon="shield"
+    label="Validators"
+    value="{live.stats?.validators ?? live.stats?.proposers ?? 0} active"
+    note={live.stats?.validatorMode === "single-producer" ? `Single producer · ${live.stats?.network ?? "devnet"}` : `Recorded set · protocol version ${live.stats?.protocolVersion ?? 1}`}
+  />
   <StatTile icon="activity" label="Transactions" value={grouped(recentTxs)} note="In the latest {grouped(Math.min(120, live.blocks.length))} blocks" />
 </section>
 

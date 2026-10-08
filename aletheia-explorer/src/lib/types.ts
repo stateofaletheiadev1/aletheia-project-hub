@@ -108,6 +108,15 @@ export interface Supply {
   readonly outstandingLiabilities: string;
 }
 
+export interface ValidatorSet {
+  readonly epoch: number;
+  readonly height: number;
+  /** "validator-set" on networks with a recorded set; "single-producer" on a devnet run by one node. */
+  readonly mode: "validator-set" | "single-producer";
+  readonly totalVotingPower: string;
+  readonly validators: readonly { readonly index: number; readonly consensusKey: string; readonly nodeKey: string; readonly votingPower: string }[];
+}
+
 /** One line of the live transaction stream. */
 export interface TxLine {
   readonly txId: string;
@@ -142,6 +151,9 @@ export interface Stats {
   /** Transactions in blocks finalized within the last minute of protocol time. */
   readonly txsLastMinute: number;
   readonly proposers: number;
+  /** The recorded validator set's size and mode, from getValidatorSet. */
+  readonly validators: number | null;
+  readonly validatorMode: "validator-set" | "single-producer" | null;
   readonly aeyOutstanding: string | null;
   readonly alntOutstanding: string | null;
 }

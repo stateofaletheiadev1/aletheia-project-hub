@@ -10,7 +10,7 @@
     {
       title: "Consensus & Staking",
       links: [
-        ["Validators & Staking", "/section/validators"],
+        ["Validators & Staking", "/validators"],
         ["Governance", "/section/governance"],
         ["Network Analytics", "/section/network"],
       ],

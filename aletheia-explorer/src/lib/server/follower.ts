@@ -41,6 +41,8 @@ class Follower {
   private counted = 0;
   private countedFrom = 0;
   private aey: string | null = null;
+  private validatorCount: number | null = null;
+  private validatorMode: "validator-set" | "single-producer" | null = null;
   private alnt: string | null = null;
   private supplyAt = 0;
   private started = false;
@@ -81,6 +83,8 @@ class Follower {
         ? this.blocks.filter((b) => latest.protocolTimeMs - b.protocolTimeMs < 60_000).reduce((sum, b) => sum + b.txCount, 0)
         : 0,
       proposers: new Set(this.blocks.map((b) => b.proposer)).size,
+      validators: this.validatorCount,
+      validatorMode: this.validatorMode,
       aeyOutstanding: this.aey,
       alntOutstanding: this.alnt,
     };
@@ -129,6 +133,12 @@ class Follower {
       const [aey, alnt] = await Promise.all([rpc.supply("AEY").catch(() => null), rpc.supply("ALnT").catch(() => null)]);
       if (aey) this.aey = (BigInt(aey.issuedTotal) - BigInt(aey.burnedTotal)).toString();
       if (alnt) this.alnt = (BigInt(alnt.issuedTotal) - BigInt(alnt.burnedTotal)).toString();
+      const set = await rpc.validators().catch(() => null);
+      if (set) {
+        this.validatorMode = set.mode;
+        // A single-producer chain has exactly one block producer and no recorded set.
+        this.validatorCount = set.mode === "single-producer" ? 1 : set.validators.length;
+      }
     }
     const target = status.finalizedHeight;
     if (this.head < 0) {

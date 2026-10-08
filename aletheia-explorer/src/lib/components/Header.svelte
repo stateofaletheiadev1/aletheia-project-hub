@@ -1,5 +1,6 @@
 <script lang="ts">
   import { page } from "$app/state";
+  import { afterNavigate } from "$app/navigation";
   import Icon from "./Icon.svelte";
   import Crest from "./Crest.svelte";
   import FlagNational from "./FlagNational.svelte";
@@ -9,11 +10,14 @@
 
   let { stats, connected }: { stats: Stats | null; connected: boolean } = $props();
   let setupOpen = $state(false);
+  let menuOpen = $state(false);
+  afterNavigate(() => (menuOpen = false));
 
   const nav = [
     { href: "/", label: "Dashboard" },
     { href: "/blocks", label: "Blocks" },
     { href: "/transactions", label: "Transactions" },
+    { href: "/validators", label: "Validators" },
     { href: "/treasury", label: "Treasury" },
   ];
 
@@ -22,7 +26,7 @@
   const feed = $derived(`${page.url.origin}/api/stream`);
 </script>
 
-<svelte:window onkeydown={(e) => e.key === "Escape" && (setupOpen = false)} />
+<svelte:window onkeydown={(e) => e.key === "Escape" && ((setupOpen = false), (menuOpen = false))} />
 
 <header class="bar">
   <div class="container inner">
@@ -33,9 +37,9 @@
       </a>
       <span class="flag" title="Sovereign Covenant State of Aletheia"><FlagNational width={27} label="" /></span>
       <span class="network" title="Network">{(stats?.network ?? "devnet").toUpperCase()}</span>
-      <button type="button" class="setup" onclick={() => (setupOpen = !setupOpen)} aria-expanded={setupOpen}>
+      <button type="button" class="setup" onclick={() => (setupOpen = !setupOpen)} aria-expanded={setupOpen} aria-label="Network setup" title="Network setup">
         <Icon name="network" size={15} />
-        Network Setup
+        <span class="setup-words">Network Setup</span>
       </button>
     </div>
 
@@ -45,11 +49,30 @@
       {/each}
     </nav>
 
+    <button type="button" class="menu-button" onclick={() => (menuOpen = !menuOpen)} aria-expanded={menuOpen} aria-controls="mobile-menu" aria-label="Menu">
+      <Icon name={menuOpen ? "close" : "menu"} size={20} stroke={2} />
+    </button>
+
     <div class="status" class:live title={live ? "Following finalized blocks live" : "Not connected to the node"}>
       {#if live}<span class="glint"><Star size={12} hole="var(--bg-deep)" /></span>{:else}<span class="dot"></span>{/if}
       {live ? "Live" : "Offline"}
     </div>
   </div>
+
+  {#if menuOpen}
+    <div class="container">
+      <nav class="mobile panel" id="mobile-menu" aria-label="Main">
+        {#each nav as item (item.href)}
+          <a href={item.href} class:active={active(item.href)} aria-current={active(item.href) ? "page" : undefined}>
+            {item.label}<Icon name="chevronRight" size={14} stroke={2} />
+          </a>
+        {/each}
+        <button type="button" class="mobile-setup" onclick={() => ((menuOpen = false), (setupOpen = true))}>
+          <Icon name="network" size={15} /> Network Setup · {(stats?.network ?? "devnet").toUpperCase()}
+        </button>
+      </nav>
+    </div>
+  {/if}
 
   {#if setupOpen}
     <div class="container">
@@ -139,11 +162,18 @@
     background: rgb(255 255 255 / 0.06);
     border: 1px solid rgb(255 255 255 / 0.18);
     border-radius: 0.5rem;
+    white-space: nowrap;
     cursor: pointer;
     transition:
       background var(--quick) var(--ease),
       border-color var(--quick) var(--ease),
       color var(--quick) var(--ease);
+  }
+  /* Between tablet and wide screens the button keeps its globe and drops its words. */
+  @media (max-width: 82rem) {
+    .setup .setup-words {
+      display: none;
+    }
   }
   .setup:hover,
   .setup[aria-expanded="true"] {
@@ -151,11 +181,11 @@
     border-color: rgb(196 154 78 / 0.6);
     color: var(--text);
   }
-  nav {
+  nav:not(.mobile) {
     display: flex;
     gap: 0.25rem;
   }
-  nav a {
+  nav:not(.mobile) a {
     position: relative;
     padding: 0.5rem 0.75rem;
     font-size: var(--fs-sm);
@@ -166,14 +196,14 @@
       color var(--quick) var(--ease),
       background var(--quick) var(--ease);
   }
-  nav a:hover {
+  nav:not(.mobile) a:hover {
     color: var(--text);
     background: rgb(255 255 255 / 0.07);
   }
-  nav a.active {
+  nav:not(.mobile) a.active {
     color: var(--text);
   }
-  nav a.active::after {
+  nav:not(.mobile) a.active::after {
     content: "";
     position: absolute;
     left: 0.75rem;
@@ -207,6 +237,51 @@
   .glint {
     display: inline-flex;
     animation: glint 2.4s var(--ease) infinite;
+  }
+  .menu-button {
+    display: none;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    margin-left: auto;
+    border-radius: 0.6rem;
+    border: 1px solid rgb(196 154 78 / 0.5);
+    background: var(--brand-navy);
+    color: var(--brand-cream);
+    cursor: pointer;
+  }
+  .mobile {
+    display: grid;
+    margin: 0.75rem 0 1rem;
+    padding: 0.5rem;
+    animation: ink-in var(--calm) var(--ease);
+  }
+  .mobile a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 0.9rem;
+    font-size: var(--fs-base);
+    font-weight: 700;
+    color: var(--text-soft);
+    border-bottom: 1px solid rgb(255 255 255 / 0.07);
+  }
+  .mobile a.active {
+    color: var(--brand-gold-bright);
+  }
+  .mobile-setup {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0.6rem 0.4rem 0.3rem;
+    padding: 0.7rem 0.9rem;
+    font-size: var(--fs-sm);
+    font-weight: 700;
+    color: var(--brand-cream);
+    background: var(--brand-navy);
+    border: 1px solid rgb(196 154 78 / 0.5);
+    border-radius: 0.55rem;
+    cursor: pointer;
   }
   .setup-panel {
     margin: 0.75rem 0 1rem;
@@ -265,8 +340,16 @@
     .status {
       display: none;
     }
-    nav a {
+    nav:not(.mobile) a {
       padding: 0.5rem;
+    }
+  }
+  @media (max-width: 52rem) {
+    nav:not(.mobile) {
+      display: none;
+    }
+    .menu-button {
+      display: grid;
     }
   }
   @media (max-width: 40rem) {
@@ -274,9 +357,6 @@
     .flag,
     .network {
       display: none;
-    }
-    nav a.active::after {
-      bottom: -0.75rem;
     }
   }
 </style>
