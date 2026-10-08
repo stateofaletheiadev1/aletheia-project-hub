@@ -1,0 +1,21 @@
+[package]
+name = "devnet-traffic"
+description = "NON-PRODUCTION devnet traffic: signed transfers between published development accounts, so the Explorer has live data. Refuses any network but devnet."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "devnet-traffic"
+path = "src/main.rs"
+
+[dependencies]
+aletheia-core.workspace = true
+aletheia-crypto.workspace = true
+aletheia-wallet.workspace = true
+tokio = { version = "1", features = ["rt", "macros", "net", "io-util", "time"] }
+
+[lints]
+workspace = true

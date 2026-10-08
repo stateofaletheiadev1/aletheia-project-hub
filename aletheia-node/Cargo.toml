@@ -27,6 +27,7 @@ members = [
   "apps/aletheiad",
   "apps/arno",
   "apps/arno-exec",
+  "apps/devnet-traffic",
   "tests/conformance",
   "tests/harness",
   "tests/paynet-reference",

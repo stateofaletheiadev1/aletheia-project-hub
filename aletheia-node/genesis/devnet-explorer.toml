@@ -1,0 +1,94 @@
+# Explorer devnet genesis: the devnet chain plus funded development accounts for
+# devnet-traffic (published seeds, devnet only). Not a production genesis.
+[chain]
+chain_id = 7771
+network = "devnet"
+protocol_version = 1
+genesis_time_ms = 1767225600000
+slot_duration_ms = 500
+
+[fees]
+eu_price_aey = "1000000000"
+eu_price_alnt = "1"
+
+# Development accounts of devnet-traffic (published seeds; devnet only).
+[[allocations]]
+address = "AL:qzhg3yvsj9cakl8pe8wghf7rpzlrnwslx0aqghw7d2gtfe3rxcqky5qmd67"
+asset = "AEY"
+units = "1000000000000000000000000"
+
+[[allocations]]
+address = "AL:qzhg3yvsj9cakl8pe8wghf7rpzlrnwslx0aqghw7d2gtfe3rxcqky5qmd67"
+asset = "ALnT"
+units = "50000000000"
+
+[[allocations]]
+address = "AL:qr9a2tt2qdkf9z4qt7egvujtm6xmm79lhjxskc52uzppf6yv3eqc7w9ffqp"
+asset = "AEY"
+units = "1000000000000000000000000"
+
+[[allocations]]
+address = "AL:qr9a2tt2qdkf9z4qt7egvujtm6xmm79lhjxskc52uzppf6yv3eqc7w9ffqp"
+asset = "ALnT"
+units = "50000000000"
+
+[[allocations]]
+address = "AL:qqk0vf52hz6fdfxe3ygm0pcwktrtnkyldsqaq9pphj2v52cp7fw37wskztc"
+asset = "AEY"
+units = "1000000000000000000000000"
+
+[[allocations]]
+address = "AL:qqk0vf52hz6fdfxe3ygm0pcwktrtnkyldsqaq9pphj2v52cp7fw37wskztc"
+asset = "ALnT"
+units = "50000000000"
+
+[[allocations]]
+address = "AL:qp8h09lr6x57uangs5697k60y7d3zzugrc58mtxfg02fgepdr2wyu7uhrpu"
+asset = "AEY"
+units = "1000000000000000000000000"
+
+[[allocations]]
+address = "AL:qp8h09lr6x57uangs5697k60y7d3zzugrc58mtxfg02fgepdr2wyu7uhrpu"
+asset = "ALnT"
+units = "50000000000"
+
+[[allocations]]
+address = "AL:qrl2vjrgjj2j6xx2qhek26a0smmntc3jln9n7munhkaf5lex2t6usq5tgx3"
+asset = "AEY"
+units = "1000000000000000000000000"
+
+[[allocations]]
+address = "AL:qrl2vjrgjj2j6xx2qhek26a0smmntc3jln9n7munhkaf5lex2t6usq5tgx3"
+asset = "ALnT"
+units = "50000000000"
+
+[[allocations]]
+address = "AL:qrr2chrv4pkr49kx8wvfpxljpy47nwn4sgt7w6ra5fuxg72n72tmvrvdrcy"
+asset = "AEY"
+units = "1000000000000000000000000"
+
+[[allocations]]
+address = "AL:qrr2chrv4pkr49kx8wvfpxljpy47nwn4sgt7w6ra5fuxg72n72tmvrvdrcy"
+asset = "ALnT"
+units = "50000000000"
+
+[[allocations]]
+address = "AL:qr0zy5tucc36l2cty27seqm9tp2qheskj42c0r8ye2724xhy6n95c8y9pw3"
+asset = "AEY"
+units = "1000000000000000000000000"
+
+[[allocations]]
+address = "AL:qr0zy5tucc36l2cty27seqm9tp2qheskj42c0r8ye2724xhy6n95c8y9pw3"
+asset = "ALnT"
+units = "50000000000"
+
+[[allocations]]
+address = "AL:qpjp9yfj84r3vd05vem0lpu0tqzrf2wm7vm9kdt645ml8qchr8jgj0rhdkl"
+asset = "AEY"
+units = "1000000000000000000000000"
+
+[[allocations]]
+address = "AL:qpjp9yfj84r3vd05vem0lpu0tqzrf2wm7vm9kdt645ml8qchr8jgj0rhdkl"
+asset = "ALnT"
+units = "50000000000"
+

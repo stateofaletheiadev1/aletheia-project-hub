@@ -1,0 +1,14 @@
+# Devnet node for Explorer development: funded accounts, RPC on. Paths are relative to the working directory.
+[node]
+data_dir = "devnet-explorer-data"
+genesis = "genesis/devnet-explorer.toml"
+listen = "127.0.0.1:7771"
+node_key_file = "configs/devnet-node.key"
+
+[devnet]
+produce_every_ms = 500
+
+[rpc]
+listen = "127.0.0.1:7781"
+# The Explorer reads through this node; give it room for its start-up backfill.
+requests_per_second = 1000

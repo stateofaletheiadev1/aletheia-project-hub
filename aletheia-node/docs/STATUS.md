@@ -170,6 +170,16 @@ partly written; see the end of this file.
 | Bridge messages, attestation and control digests, routes, guardian sets, payloads 112-117, exact conversion (`core/bridge.rs`) | 40A.5, 40A.6, 40A.10 | yes (+ ADR-058, E-33) | yes | unit | via `tx_decode` | rustdoc | no |
 | Out, in, settle, flag, pause, resume; guardian quorum (Tier B); limits, delay, equivocation pause; governance of routes and sets; I10-I12 after every block (`rules/v1/bridge.rs`, `bridge_model.rs`) | 40A.4, 40A.8, 40A.9 | yes | yes | `tests/harness/tests/bridge.rs`: forged attestations, replay, wrong destination, sequence gaps, decimal mismatch, expiry, limits, pauses, equivocation, large-transfer delay and flags, governance bounds, I10-I12 under random flows | no | rustdoc | no |
 | Light clients (119), issuer co-signatures, governance resolution of flagged messages, relayer, guardian daemon, remote endpoints, `getBridgeRoutes`/`getBridgeTransfer`, metrics | 40A.3, 40A.11 | yes | **no** | no | no | no | no |
+## Phase 12C: Explorer (in progress)
+
+| Module | Spec | Specified | Implemented | Tested | Fuzzed | Documented | Benchmarked |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| SvelteKit app, design per ADR-060 (blue, the State's arms and flags), dashboard with live streams | 41A, ADR-060 | yes | yes | svelte-check strict, WCAG AA contrast check, library tests | n/a | README | no |
+| Node follower and page loading over REST (`src/lib/server`), server-sent events | 41A.14, ADR-060 | yes | yes (in memory; no index database) | checked against a direct count of the chain | n/a | rustdoc-style comments | no |
+| Blocks, block detail, transactions, transaction detail, address, search, error pages | 41A.8, 41A.9 | yes | yes | every page answered by the devnet | n/a | README | no |
+| Devnet for the Explorer (`configs/devnet-explorer.toml`) and `apps/devnet-traffic` | ADR-060 | yes | yes | by hand | n/a | README | n/a |
+| Treasury, validators, payments, directory, bridge, registries, chronicle, network pages; in-browser proofs (`crates/verify` WASM); translations; visual regression, axe and Lighthouse gates | 41A | yes | **no** | no | no | no | no |
+
 ## Phase 11B: PayNet integration
 
 | Module | Spec | Specified | Implemented | Tested | Fuzzed | Documented | Benchmarked |
