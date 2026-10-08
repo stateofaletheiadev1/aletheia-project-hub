@@ -121,6 +121,7 @@ error_codes! {
     ApnRequestClosed = 6016, "APN_REQUEST_CLOSED", Reject;
     ApnMandateNotUsable = 6017, "APN_MANDATE_NOT_USABLE", Reject;
     ApnMandateLimit = 6018, "APN_MANDATE_LIMIT", Reject;
+    ApnStandingExhausted = 6019, "APN_STANDING_EXHAUSTED", Reject;
     StoIo = 7001, "STO_IO", FailStop;
     StoCorrupt = 7002, "STO_CORRUPT", FailStop;
     StoWalChecksum = 7003, "STO_WAL_CHECKSUM", FailStop;

@@ -7,6 +7,8 @@
 //! 102 ProxyAliases     H(salt ‖ alias) → Mapping
 //! 105 MessageAnchors   batch_id → AnchorEntry
 //! 107 PaymentDedup     PaymentDedupKey → DedupEntry
+//! 108 ExternalLegEscrow (0, leg id) EscrowRecord   (1) Σ locked   (2, inbound key) height
+//!                      (3, standing authorization id) AEY minted under it
 //! ```
 
 use aletheia_core::apn::{Aan, Aic, ParticipantSpec};
@@ -642,6 +644,134 @@ impl Apn<'_> {
 
     pub fn cursor(&self, view: &dyn StateView) -> Result<Option<ScheduleCursor>, AletheiaError> {
         self.get(view, &self.cursor_key(), "scheduled-payment cursor")
+    }
+}
+
+/// An external-leg escrow (namespace 108, key `(0, leg id)`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct EscrowRecord {
+    /// The participant settlement account the AEY came from.
+    pub sender: Address,
+    pub sender_agent: Aic,
+    pub gateway: Aic,
+    pub amount: u128,
+    pub uetr_hash: Hash32,
+    pub rail: u16,
+    pub profile_hash: Hash32,
+    /// After this day the leg joins the gateway's investigation queue; it is never released
+    /// by time alone (I15).
+    pub expiry_day: u64,
+    pub status: u8,
+    pub locked_height: u64,
+    /// The block that settled or released it, or 0 while locked.
+    pub closed_height: u64,
+}
+
+/// Escrow states (I13: exactly one; only LOCKED → SETTLED or LOCKED → RELEASED).
+pub mod escrow_status {
+    pub const LOCKED: u8 = 1;
+    pub const SETTLED: u8 = 2;
+    pub const RELEASED: u8 = 3;
+}
+
+impl AceEncode for EscrowRecord {
+    fn encode(&self, out: &mut AceWriter) {
+        self.sender.encode(out);
+        self.sender_agent.encode(out);
+        self.gateway.encode(out);
+        out.u128(self.amount);
+        self.uetr_hash.encode(out);
+        out.u16(self.rail);
+        self.profile_hash.encode(out);
+        out.u64(self.expiry_day);
+        out.u8(self.status);
+        out.u64(self.locked_height);
+        out.u64(self.closed_height);
+    }
+}
+
+impl AceDecode for EscrowRecord {
+    fn decode(input: &mut AceReader<'_>) -> Result<EscrowRecord, AletheiaError> {
+        Ok(EscrowRecord {
+            sender: Address::decode(input)?,
+            sender_agent: Aic::decode(input)?,
+            gateway: Aic::decode(input)?,
+            amount: input.u128()?,
+            uetr_hash: Hash32::decode(input)?,
+            rail: input.u16()?,
+            profile_hash: Hash32::decode(input)?,
+            expiry_day: input.u64()?,
+            status: input.u8()?,
+            locked_height: input.u64()?,
+            closed_height: input.u64()?,
+        })
+    }
+}
+
+impl Apn<'_> {
+    pub fn escrow_key(&self, leg_id: &Hash32) -> StateKey {
+        self.key(Namespace::ExternalLegEscrow, &[&[0], leg_id.as_bytes()])
+    }
+
+    pub fn escrow(
+        &self,
+        view: &dyn StateView,
+        leg_id: &Hash32,
+    ) -> Result<Option<EscrowRecord>, AletheiaError> {
+        self.get(view, &self.escrow_key(leg_id), "external-leg escrow")
+    }
+
+    /// Σ AEY in LOCKED escrows, kept so I14 is one comparison per block.
+    pub fn escrow_total_key(&self) -> StateKey {
+        self.key(Namespace::ExternalLegEscrow, &[&[1]])
+    }
+
+    pub fn escrow_total(&self, view: &dyn StateView) -> Result<u128, AletheiaError> {
+        Ok(self
+            .get(view, &self.escrow_total_key(), "escrow total")?
+            .unwrap_or(0))
+    }
+
+    /// One inbound credit, unique per `(rail, uetr hash, message id hash, amount)`.
+    pub fn inbound_key(
+        &self,
+        rail: u16,
+        uetr_hash: &Hash32,
+        msg_id_hash: &Hash32,
+        amount: u128,
+    ) -> StateKey {
+        self.key(
+            Namespace::ExternalLegEscrow,
+            &[
+                &[2],
+                &rail.to_le_bytes(),
+                uetr_hash.as_bytes(),
+                msg_id_hash.as_bytes(),
+                &amount.to_le_bytes(),
+            ],
+        )
+    }
+
+    /// AEY minted so far under a standing authorization.
+    pub fn standing_used_key(&self, authorization_id: &Hash32) -> StateKey {
+        self.key(
+            Namespace::ExternalLegEscrow,
+            &[&[3], authorization_id.as_bytes()],
+        )
+    }
+
+    pub fn standing_used(
+        &self,
+        view: &dyn StateView,
+        authorization_id: &Hash32,
+    ) -> Result<u128, AletheiaError> {
+        Ok(self
+            .get(
+                view,
+                &self.standing_used_key(authorization_id),
+                "standing authorization usage",
+            )?
+            .unwrap_or(0))
     }
 }
 

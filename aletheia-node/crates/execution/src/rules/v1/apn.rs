@@ -9,6 +9,9 @@
 //! MandateCreate, MandateAmend   the debtor;  MandateCancel: the debtor or the creditor
 //! DirectDebit               the mandate's creditor, within its maximum, window and frequency
 //! ScheduledPayment          the debtor; the protocol executes it at the end of a block on its day
+//! ExternalLegLock           an ACTIVE participant's settlement account, through an ACTIVE gateway
+//! ExternalLegSettle/Release the leg's gateway operator; ExternalInboundCredit: a gateway operator
+//!                           with the Monetary Authority's standing authorization
 //! PaymentReturn             the original creditor, up to what is left of the original
 //! RecallRequest             the original debtor (a request: finality stands)
 //! RecallResponse            the original creditor; accepting returns what is left
@@ -29,9 +32,9 @@ use aletheia_core::{AceEncode, Address, AletheiaError, AssetId, ErrorCode, Hash3
 use aletheia_state::StateOverlay;
 
 use crate::apn_model::{
-    AnchorEntry, Apn, DEDUP_RETENTION_DAYS, DayTotals, DedupEntry, MAX_SCHEDULED_PER_DAY,
-    MandateRecord, Mapping, Participant, RequestRecord, ScheduleCursor, ScheduleRecord, day_of,
-    mandate_status, period, request_status, schedule_status,
+    AnchorEntry, Apn, DEDUP_RETENTION_DAYS, DayTotals, DedupEntry, EscrowRecord,
+    MAX_SCHEDULED_PER_DAY, MandateRecord, Mapping, Participant, RequestRecord, ScheduleCursor,
+    ScheduleRecord, day_of, escrow_status, mandate_status, period, request_status, schedule_status,
 };
 use crate::context::{BlockContext, Meter, OutOfEu};
 use crate::model::{Records, module_address};
@@ -45,6 +48,8 @@ type Step = Result<Result<(), OutOfEu>, AletheiaError>;
 
 /// Emits APN events.
 pub(crate) const APN_MODULE: Address = module_address(6);
+/// Holds the AEY of LOCKED external-leg escrows, as locked balance (Section 40C.7).
+pub const EXTERNAL_ESCROW: Address = module_address(7);
 
 /// Recall states kept in a de-duplication entry.
 pub mod recall {
@@ -156,6 +161,179 @@ impl Cx<'_, '_> {
                 )
             })?;
         Ok((key, entry))
+    }
+
+    /// An ACTIVE gateway operator.
+    fn gateway(&self, aic: &Aic) -> Result<Participant, AletheiaError> {
+        let operator = self.active(aic)?;
+        if operator.spec.role != aletheia_core::apn::role::GATEWAY_OPERATOR {
+            return Err(fail(
+                ErrorCode::ApnNotParticipant,
+                format!("{} is not a gateway operator", aic.text()),
+            ));
+        }
+        Ok(operator)
+    }
+
+    fn within_gateway_limit(
+        &self,
+        operator: &Participant,
+        amount: u128,
+    ) -> Result<(), AletheiaError> {
+        if amount > operator.spec.limits.per_payment_max {
+            return Err(fail(
+                ErrorCode::ApnLimitExceeded,
+                format!(
+                    "{amount} is above gateway {}'s per-payment maximum {}",
+                    operator.spec.aic.text(),
+                    operator.spec.limits.per_payment_max
+                ),
+            ));
+        }
+        Ok(())
+    }
+
+    /// A LOCKED leg whose gateway operator sent this transaction (I13: only LOCKED moves on).
+    fn locked_leg(&self, leg_id: &Hash32) -> Result<EscrowRecord, AletheiaError> {
+        let record = self.apn.escrow(self.overlay, leg_id)?.ok_or_else(|| {
+            fail(
+                ErrorCode::ApnRecordUnknown,
+                format!("no external leg {leg_id}"),
+            )
+        })?;
+        let operator = self.sending_participant()?;
+        if operator.spec.aic != record.gateway {
+            return Err(fail(
+                ErrorCode::ApnNotParticipant,
+                "only the leg's gateway operator settles or releases it",
+            ));
+        }
+        if record.status != escrow_status::LOCKED {
+            return Err(fail(
+                ErrorCode::ApnIllegalTransition,
+                "the leg was already settled or released",
+            ));
+        }
+        Ok(record)
+    }
+
+    fn escrow_total_add(&mut self, amount: u128, add: bool) -> Result<(), AletheiaError> {
+        let total = self.apn.escrow_total(self.overlay)?;
+        let next = if add {
+            total.checked_add(amount)
+        } else {
+            total.checked_sub(amount)
+        }
+        .ok_or_else(|| {
+            fail(
+                ErrorCode::MonetaryInvariantViolated,
+                "I14: escrow total out of range",
+            )
+        })?;
+        self.overlay
+            .put(self.apn.escrow_total_key(), next.to_ace_bytes());
+        Ok(())
+    }
+
+    /// `from`'s available AEY into the escrow account's locked balance; circulating → locked.
+    fn escrow_in(&mut self, from: &Address, amount: u128) -> Result<(), AletheiaError> {
+        debit(self.records, self.overlay, from, AssetId::AEY, amount)?;
+        credit(
+            self.records,
+            self.overlay,
+            &EXTERNAL_ESCROW,
+            AssetId::AEY,
+            amount,
+        )?;
+        crate::rules::v1::balances::lock(
+            self.records,
+            self.overlay,
+            &EXTERNAL_ESCROW,
+            AssetId::AEY,
+            amount,
+        )?;
+        let mut supply = self.supply()?;
+        supply.circulating = supply
+            .circulating
+            .checked_sub(amount)
+            .ok_or_else(|| self.bucket("circulating"))?;
+        supply.locked = supply
+            .locked
+            .checked_add(amount)
+            .ok_or_else(|| self.bucket("locked"))?;
+        self.records
+            .put_supply_ledger(self.overlay, AssetId::AEY, &supply);
+        self.escrow_total_add(amount, true)?;
+        self.touched.push((*from, AssetId::AEY));
+        self.touched.push((EXTERNAL_ESCROW, AssetId::AEY));
+        Ok(())
+    }
+
+    /// Out of escrow: back to `to` (release), or burned as a redemption (settle).
+    fn escrow_out(&mut self, amount: u128, to: Option<&Address>) -> Result<(), AletheiaError> {
+        crate::rules::v1::balances::unlock(
+            self.records,
+            self.overlay,
+            &EXTERNAL_ESCROW,
+            AssetId::AEY,
+            amount,
+        )?;
+        debit(
+            self.records,
+            self.overlay,
+            &EXTERNAL_ESCROW,
+            AssetId::AEY,
+            amount,
+        )?;
+        let mut supply = self.supply()?;
+        supply.locked = supply
+            .locked
+            .checked_sub(amount)
+            .ok_or_else(|| self.bucket("locked"))?;
+        match to {
+            Some(to) => {
+                credit(self.records, self.overlay, to, AssetId::AEY, amount)?;
+                supply.circulating = supply
+                    .circulating
+                    .checked_add(amount)
+                    .ok_or_else(|| self.bucket("circulating"))?;
+                self.touched.push((*to, AssetId::AEY));
+            }
+            None => {
+                supply.burned_total = supply
+                    .burned_total
+                    .checked_add(amount)
+                    .ok_or_else(|| self.bucket("burned"))?;
+                supply.redeemed_total = supply
+                    .redeemed_total
+                    .checked_add(amount)
+                    .ok_or_else(|| self.bucket("redeemed"))?;
+                if supply.reserve_backed {
+                    supply.outstanding_liabilities = supply
+                        .outstanding_liabilities
+                        .checked_sub(amount)
+                        .ok_or_else(|| self.bucket("liabilities"))?;
+                }
+            }
+        }
+        self.records
+            .put_supply_ledger(self.overlay, AssetId::AEY, &supply);
+        self.escrow_total_add(amount, false)?;
+        self.touched.push((EXTERNAL_ESCROW, AssetId::AEY));
+        Ok(())
+    }
+
+    fn supply(&self) -> Result<aletheia_monetary::SupplyLedger, AletheiaError> {
+        self.records
+            .supply_ledger(self.overlay, AssetId::AEY)?
+            .ok_or_else(|| fail(ErrorCode::TxAssetUnknown, "AEY has no supply ledger"))
+    }
+
+    fn bucket(&self, what: &str) -> AletheiaError {
+        fail(
+            ErrorCode::MonetaryInvariantViolated,
+            format!("the {what} figure is out of range"),
+        )
     }
 
     fn mandate(&self, id: &Hash32) -> Result<MandateRecord, AletheiaError> {
@@ -728,6 +906,213 @@ pub(crate) fn apply(
                 execute_day.to_le_bytes().to_vec(),
             );
         }
+        ApnOp::ExternalLegLock {
+            leg_id,
+            amount,
+            uetr_hash,
+            rail,
+            profile_hash,
+            gateway,
+            expiry_day,
+        } => {
+            if meter.charge(PAYMENT_EU).is_err() {
+                return Ok(Err(OutOfEu));
+            }
+            let sender_agent = cx.sending_participant()?;
+            let operator = cx.gateway(gateway)?;
+            cx.within_gateway_limit(&operator, *amount)?;
+            if cx.apn.escrow(cx.overlay, leg_id)?.is_some() {
+                return Err(fail(
+                    ErrorCode::ApnAlreadyExists,
+                    format!("leg {leg_id} exists"),
+                ));
+            }
+            if *expiry_day < cx.day() {
+                return Err(fail(
+                    ErrorCode::TxFieldOutOfRange,
+                    "the leg expires in the past",
+                ));
+            }
+            // The leg is a payment: its UETR is de-duplicated like any other (40D.5).
+            let reference = PaymentRef {
+                debtor_agent: sender_agent.spec.aic,
+                uetr_hash: *uetr_hash,
+                leg: 0,
+            };
+            let key = reference.dedup_key(records.network());
+            let day = cx.day();
+            if cx
+                .apn
+                .dedup(cx.overlay, &key)?
+                .is_some_and(|e| day <= e.expires_day)
+            {
+                return Err(fail(
+                    ErrorCode::PayDuplicate,
+                    "a payment with this agent and UETR already settled",
+                ));
+            }
+            let sender = cx.sender;
+            cx.escrow_in(&sender, *amount)?;
+            let entry = DedupEntry {
+                tx_id: cx.tx_id,
+                height: cx.ctx.height.get(),
+                expires_day: day.saturating_add(DEDUP_RETENTION_DAYS),
+                debtor: sender,
+                creditor: EXTERNAL_ESCROW,
+                amount: *amount,
+                returned: 0,
+                recall: recall::NONE,
+            };
+            cx.apn.put_dedup(cx.overlay, &key, &entry);
+            let record = EscrowRecord {
+                sender,
+                sender_agent: sender_agent.spec.aic,
+                gateway: *gateway,
+                amount: *amount,
+                uetr_hash: *uetr_hash,
+                rail: *rail,
+                profile_hash: *profile_hash,
+                expiry_day: *expiry_day,
+                status: escrow_status::LOCKED,
+                locked_height: cx.ctx.height.get(),
+                closed_height: 0,
+            };
+            cx.overlay
+                .put(cx.apn.escrow_key(leg_id), record.to_ace_bytes());
+            cx.emit(
+                "aletheia.apn.external.locked.v1",
+                vec![*leg_id, *uetr_hash, sender.account_hash()],
+                amount.to_le_bytes().to_vec(),
+            );
+        }
+        ApnOp::ExternalLegSettle {
+            leg_id,
+            msg_id_hash,
+        } => {
+            if meter.charge(PAYMENT_EU).is_err() {
+                return Ok(Err(OutOfEu));
+            }
+            let mut record = cx.locked_leg(leg_id)?;
+            let sender = cx.sender;
+            let amount = record.amount;
+            cx.escrow_out(amount, None)?;
+            record.status = escrow_status::SETTLED;
+            record.closed_height = cx.ctx.height.get();
+            cx.overlay
+                .put(cx.apn.escrow_key(leg_id), record.to_ace_bytes());
+            // reserve_ref = H(UETR ‖ MsgId): both hashes are in the event.
+            let mut data = amount.to_le_bytes().to_vec();
+            data.extend_from_slice(record.uetr_hash.as_bytes());
+            data.extend_from_slice(msg_id_hash.as_bytes());
+            cx.emit(
+                "aletheia.apn.external.settled.v1",
+                vec![*leg_id, *msg_id_hash, sender.account_hash()],
+                data,
+            );
+        }
+        ApnOp::ExternalLegRelease { leg_id, reason } => {
+            if meter.charge(PAYMENT_EU).is_err() {
+                return Ok(Err(OutOfEu));
+            }
+            let mut record = cx.locked_leg(leg_id)?;
+            cx.escrow_out(record.amount, Some(&record.sender))?;
+            record.status = escrow_status::RELEASED;
+            record.closed_height = cx.ctx.height.get();
+            cx.overlay
+                .put(cx.apn.escrow_key(leg_id), record.to_ace_bytes());
+            let mut data = record.amount.to_le_bytes().to_vec();
+            data.extend_from_slice(reason);
+            cx.emit(
+                "aletheia.apn.external.released.v1",
+                vec![*leg_id, record.sender.account_hash()],
+                data,
+            );
+        }
+        ApnOp::ExternalInboundCredit {
+            rail,
+            uetr_hash,
+            msg_id_hash,
+            amount,
+            creditor,
+            creditor_agent,
+            standing,
+        } => {
+            if meter.charge(PAYMENT_EU).is_err() {
+                return Ok(Err(OutOfEu));
+            }
+            let operator = cx.sending_participant()?;
+            if operator.spec.role != aletheia_core::apn::role::GATEWAY_OPERATOR {
+                return Err(fail(
+                    ErrorCode::ApnNotParticipant,
+                    "only a gateway operator credits inbound payments",
+                ));
+            }
+            cx.within_gateway_limit(&operator, *amount)?;
+            let policy = crate::rules::v1::monetary::policy(records, cx.overlay)?;
+            if standing.gateway != operator.spec.aic || ctx.epoch.get() > standing.valid_until_epoch
+            {
+                return Err(fail(
+                    ErrorCode::ApnStandingExhausted,
+                    "the standing authorization names another gateway, or it expired",
+                ));
+            }
+            if let Err(out) = crate::rules::v1::monetary::check_signatures(
+                &policy.authority_keys,
+                policy.authority_threshold,
+                &standing.signatures,
+                &standing.digest(records.network()),
+                meter,
+                "standing authorization",
+            )? {
+                return Ok(Err(out));
+            }
+            // A replayed message is a duplicate, whatever else it gets wrong.
+            let unique = cx.apn.inbound_key(*rail, uetr_hash, msg_id_hash, *amount);
+            if cx.overlay.get(&unique)?.is_some() {
+                return Err(fail(
+                    ErrorCode::PayDuplicate,
+                    "this inbound credit was already minted",
+                ));
+            }
+            let used = cx
+                .apn
+                .standing_used(cx.overlay, &standing.authorization_id)?;
+            let after = used
+                .checked_add(*amount)
+                .filter(|total| *total <= standing.max_total)
+                .ok_or_else(|| {
+                    fail(
+                        ErrorCode::ApnStandingExhausted,
+                        format!("{used} of {} is already used", standing.max_total),
+                    )
+                })?;
+            let agent = cx.active(creditor_agent)?;
+            if !cx.apn.serves(cx.overlay, &agent, creditor)? {
+                return Err(fail(
+                    ErrorCode::ApnRoutingMismatch,
+                    format!(
+                        "{} does not serve the creditor's account",
+                        agent.spec.aic.text()
+                    ),
+                ));
+            }
+            crate::rules::v1::monetary::issue(
+                records, cx.overlay, &policy, ctx, creditor, *amount,
+            )?;
+            cx.touched.push((*creditor, AssetId::AEY));
+            cx.overlay.put(unique, ctx.height.get().to_ace_bytes());
+            cx.overlay.put(
+                cx.apn.standing_used_key(&standing.authorization_id),
+                after.to_ace_bytes(),
+            );
+            let mut data = amount.to_le_bytes().to_vec();
+            data.extend_from_slice(&rail.to_le_bytes());
+            cx.emit(
+                "aletheia.apn.external.inbound.v1",
+                vec![*uetr_hash, *msg_id_hash, creditor.account_hash()],
+                data,
+            );
+        }
         ApnOp::PaymentReturn {
             original,
             amount,
@@ -950,6 +1335,16 @@ pub(crate) fn end_block(
     overlay: &mut StateOverlay<'_>,
     ctx: &BlockContext,
 ) -> Result<Touched, AletheiaError> {
+    let touched = run_scheduled(records, overlay, ctx)?;
+    check_escrow(records, overlay)?;
+    Ok(touched)
+}
+
+fn run_scheduled(
+    records: &Records,
+    overlay: &mut StateOverlay<'_>,
+    ctx: &BlockContext,
+) -> Result<Touched, AletheiaError> {
     let apn = Apn { records };
     let mut touched = Touched::new();
     let Some(start) = apn.cursor(overlay)? else {
@@ -984,6 +1379,26 @@ pub(crate) fn end_block(
         overlay.put(apn.cursor_key(), cursor.to_ace_bytes());
     }
     Ok(touched)
+}
+
+/// I14 after every block: the AEY in LOCKED escrows is exactly the escrow account's locked
+/// balance, and the account holds nothing else. A violation makes the block invalid.
+pub(crate) fn check_escrow(
+    records: &Records,
+    overlay: &StateOverlay<'_>,
+) -> Result<(), AletheiaError> {
+    let total = Apn { records }.escrow_total(overlay)?;
+    let held = records.balance(overlay, &EXTERNAL_ESCROW, AssetId::AEY)?;
+    if held.locked != total || held.available != 0 {
+        return Err(fail(
+            ErrorCode::MonetaryInvariantViolated,
+            format!(
+                "I14: LOCKED escrows hold {total}, but the escrow account has {} locked and {} available",
+                held.locked, held.available
+            ),
+        ));
+    }
+    Ok(())
 }
 
 fn execute_scheduled(

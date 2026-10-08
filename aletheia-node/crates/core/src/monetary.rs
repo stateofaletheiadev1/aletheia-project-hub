@@ -59,7 +59,9 @@ impl AceDecode for IndexedSignature {
 
 /// Decodes a signature list: 1..=16 entries, indices strictly ascending, so a signer appears
 /// once and a list has one encoding.
-fn decode_signatures(input: &mut AceReader<'_>) -> Result<Vec<IndexedSignature>, AletheiaError> {
+pub(crate) fn decode_signatures(
+    input: &mut AceReader<'_>,
+) -> Result<Vec<IndexedSignature>, AletheiaError> {
     let offset = input.position();
     let signatures: Vec<IndexedSignature> = input.list(MAX_MONETARY_SIGNATURES)?;
     if signatures.is_empty() {

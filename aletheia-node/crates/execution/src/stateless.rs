@@ -204,6 +204,12 @@ fn check_field_ranges(
                     zero("payment request")
                 }
                 aletheia_core::apn::ApnOp::DirectDebit { amount: 0, .. } => zero("direct debit"),
+                aletheia_core::apn::ApnOp::ExternalLegLock { amount: 0, .. } => {
+                    zero("external leg")
+                }
+                aletheia_core::apn::ApnOp::ExternalInboundCredit { amount: 0, .. } => {
+                    zero("inbound credit")
+                }
                 aletheia_core::apn::ApnOp::ScheduledPayment { leg, .. } if leg.amount == 0 => {
                     zero("scheduled payment")
                 }

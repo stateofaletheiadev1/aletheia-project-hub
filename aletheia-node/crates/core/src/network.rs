@@ -181,10 +181,11 @@ pub enum DomainTag {
     PaymentRequest,
     Mandate,
     ScheduledPayment,
+    StandingAuthorization,
 }
 
 impl DomainTag {
-    pub const ALL: [DomainTag; 33] = [
+    pub const ALL: [DomainTag; 34] = [
         DomainTag::TxId,
         DomainTag::TxWitness,
         DomainTag::TxSignature,
@@ -218,6 +219,7 @@ impl DomainTag {
         DomainTag::PaymentRequest,
         DomainTag::Mandate,
         DomainTag::ScheduledPayment,
+        DomainTag::StandingAuthorization,
     ];
 
     pub const fn as_str(self) -> &'static str {
@@ -258,6 +260,7 @@ impl DomainTag {
             DomainTag::PaymentRequest => "ALETHEIA/APN-REQUEST/v1",
             DomainTag::Mandate => "ALETHEIA/APN-MANDATE/v1",
             DomainTag::ScheduledPayment => "ALETHEIA/APN-SCHEDULE/v1",
+            DomainTag::StandingAuthorization => "ALETHEIA/APN-STANDING/v1",
         }
     }
 

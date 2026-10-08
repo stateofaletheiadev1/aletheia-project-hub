@@ -45,7 +45,10 @@ fn overflow(what: &str) -> AletheiaError {
     fail(ErrorCode::ArithmeticOverflow, format!("{what} overflows"))
 }
 
-fn policy(records: &Records, overlay: &StateOverlay<'_>) -> Result<MonetaryPolicy, AletheiaError> {
+pub(crate) fn policy(
+    records: &Records,
+    overlay: &StateOverlay<'_>,
+) -> Result<MonetaryPolicy, AletheiaError> {
     records.monetary_policy(overlay)?.ok_or_else(|| {
         fail(
             ErrorCode::AssetNotIssuable,
@@ -70,7 +73,7 @@ fn ledger(
 /// At least `threshold` signatures, each from a registered key, each valid over `digest`.
 /// Indices are unique and ascending by decoding, so no key counts twice. Charges EU per
 /// signature checked.
-fn check_signatures(
+pub(crate) fn check_signatures(
     keys: &[[u8; 32]],
     threshold: u8,
     signatures: &[IndexedSignature],
@@ -180,8 +183,47 @@ pub(crate) fn mint(
         ));
     }
 
-    let asset = authorization.asset;
-    let amount = authorization.amount;
+    issue(
+        records,
+        overlay,
+        &policy,
+        ctx,
+        &authorization.destination,
+        authorization.amount,
+    )?;
+    let (asset, amount) = (authorization.asset, authorization.amount);
+    overlay.put(
+        records.mint_authorization_key(&authorization.authorization_id),
+        ctx.height.get().to_ace_bytes(),
+    );
+
+    let mut data = authorization.destination.to_ace_bytes();
+    data.extend_from_slice(&amount.to_le_bytes());
+    data.extend_from_slice(authorization.reserve_ref.as_bytes());
+    events.push(event(
+        "aletheia.monetary.mint.v1",
+        vec![
+            authorization.authorization_id,
+            authorization.destination.account_hash(),
+            asset_topic(asset),
+        ],
+        data,
+    ));
+    Ok(Ok(()))
+}
+
+/// New AEY to `destination`, inside the authorized capacity (I3), the epoch cap (I4) and,
+/// when enforced, the reserve ratio (I9); balances and the supply ledger move together.
+/// Shared by Mint and the APN inbound credit (Section 40C.7).
+pub(crate) fn issue(
+    records: &Records,
+    overlay: &mut StateOverlay<'_>,
+    policy: &MonetaryPolicy,
+    ctx: &BlockContext,
+    destination: &Address,
+    amount: u128,
+) -> Result<(), AletheiaError> {
+    let asset = AssetId::AEY;
     let mut supply = ledger(records, overlay, asset)?;
     if supply.issuance_epoch != ctx.epoch.get() {
         supply.issuance_epoch = ctx.epoch.get();
@@ -214,10 +256,10 @@ pub(crate) fn mint(
         ));
     }
     if policy.enforce_reserve_ratio {
-        check_reserve_ratio(records, overlay, &policy, ctx, outstanding)?;
+        check_reserve_ratio(records, overlay, policy, ctx, outstanding)?;
     }
 
-    credit(records, overlay, &authorization.destination, asset, amount)?;
+    credit(records, overlay, destination, asset, amount)?;
     supply.issued_total = supply
         .issued_total
         .checked_add(amount)
@@ -234,24 +276,7 @@ pub(crate) fn mint(
             .ok_or_else(|| overflow("liabilities"))?;
     }
     records.put_supply_ledger(overlay, asset, &supply);
-    overlay.put(
-        records.mint_authorization_key(&authorization.authorization_id),
-        ctx.height.get().to_ace_bytes(),
-    );
-
-    let mut data = authorization.destination.to_ace_bytes();
-    data.extend_from_slice(&amount.to_le_bytes());
-    data.extend_from_slice(authorization.reserve_ref.as_bytes());
-    events.push(event(
-        "aletheia.monetary.mint.v1",
-        vec![
-            authorization.authorization_id,
-            authorization.destination.account_hash(),
-            asset_topic(asset),
-        ],
-        data,
-    ));
-    Ok(Ok(()))
+    Ok(())
 }
 
 /// I9 at issuance: a fresh attestation whose value covers the new outstanding supply at the

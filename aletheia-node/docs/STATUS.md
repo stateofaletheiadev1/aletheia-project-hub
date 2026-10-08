@@ -143,7 +143,7 @@ partly written; see the end of this file.
 | Payment, batch, return, recall, anchors, account numbers, proxies (`rules/v1/apn.rs`; types 128, 129, 137-143) | 40B.6, 40B.7 | yes | yes | harness: routing, limits, schemes, suspension, duplicates, returns, recalls, batches | n/a | rustdoc | no |
 | Request-to-pay, mandates, direct debit (130-135; `rules/v1/apn.rs`, `apn_model.rs`) | 40B.7 | yes (+ E-29) | yes | harness: accept, decline, expiry, routing; maximum, frequency, window, suspend, cancel; calendar periods | n/a | rustdoc | no |
 | Scheduled payments (136) and the end-of-block step (`rules/v1/apn.rs`, `executor.rs`) | 40B.7 | yes (+ E-30) | yes | harness: runs on its day only, once; unfunded and duplicate fail without moving; future days only; idle-chain catch-up | n/a | rustdoc | no |
-| External-leg escrow (144-147), invariants I13-I15 | 40C.7 | yes | **no** | no | no | no | no |
+| External-leg escrow and inbound credits (144-147), invariants I13-I15 (`rules/v1/apn.rs`, shared issuance in `monetary.rs`) | 40C.7 | yes (+ E-31) | yes | harness: lock, settle (burn as redemption), release, I13 transitions, I15 no release by time, per-gateway limit; inbound mint once, standing cap, signatures, gateway only | n/a | rustdoc | no |
 | ISO 20022 gateway, ACP, rail profiles, validation layers, railsim, reconciliation | 40, 40C | yes | **no** | no | no | no | no |
 
 ## Phase 10: native registries and governance

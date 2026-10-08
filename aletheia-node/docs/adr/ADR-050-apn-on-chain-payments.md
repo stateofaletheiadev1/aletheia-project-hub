@@ -60,6 +60,26 @@ Decision: B (crates/core `apn.rs`, crates/execution `apn_model.rs`, `rules/v1/ap
      schedule as FAILED with its error code and moves nothing. Results are kept in state
      (status, error code, height): the step has no transaction, so it has no receipt or
      events. Balances it moves join the block's supply check.
-Consequences: external-leg escrow (144-147) follows in its own step. A way for the debtor
-to cancel a scheduled payment before its day is not in the spec and is not provided. KYC-tier
+ 12. External legs (144-147, Section 40C.7). A lock comes from an ACTIVE participant's
+     settlement account through an ACTIVE gateway operator (role 3), within the gateway's
+     per-payment maximum, de-duplicated by `(participant, UETR, 0)` like a payment. The AEY
+     sits as locked balance of one escrow account (module address 7); the supply ledger
+     moves it from circulating to locked. Only the leg's gateway settles (the escrow is
+     burned as a redemption: `burned_total`, `redeemed_total` and liabilities move) or
+     releases (back to the sender). I13 holds by construction: only LOCKED moves, to
+     SETTLED or RELEASED. I14 is checked after every block: the escrow total kept in state
+     equals the escrow account's locked balance and the account holds nothing available;
+     a mismatch makes the block invalid. I15: nothing releases by time; an expired leg stays
+     LOCKED for the gateway's investigation.
+ 13. Inbound credits (147) mint through the same checks as Mint (capacity, epoch cap,
+     reserve ratio) and are unique per `(rail, UETR hash, MsgId hash, amount)`. The R2 bound
+     is the Monetary Authority's standing authorization: `(id, gateway, max_total,
+     valid_until_epoch)` signed once by M of N authority keys under
+     `ALETHEIA/APN-STANDING/v1`, carried by every inbound credit; the chain counts what was
+     minted under each id and refuses more than `max_total`. A replay is reported as a
+     duplicate before any other check.
+Consequences: A way for the debtor to cancel a scheduled payment before its day is not in
+the spec and is not provided. A governed resolution of a leg stuck in investigation (I15)
+needs a governance action and is not provided yet; the gateway's definitive answer is the
+only way out today. KYC-tier
 amount limits per customer need the identity tiers and are not enforced yet.

@@ -51,6 +51,10 @@ pub const TX_TYPES: &[TxType] = &[
     TxType::new(141),
     TxType::new(142),
     TxType::new(143),
+    TxType::new(144),
+    TxType::new(145),
+    TxType::new(146),
+    TxType::new(147),
 ];
 
 pub const TX_LIMITS: TxLimits = TxLimits {

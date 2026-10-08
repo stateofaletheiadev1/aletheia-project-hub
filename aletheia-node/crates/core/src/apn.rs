@@ -439,6 +439,53 @@ pub fn schedule_id(network: &NetworkIdentity, debtor: &Address, nonce: u64) -> H
     network.domain_hash(DomainTag::ScheduledPayment, out.as_bytes())
 }
 
+/// The Monetary Authority's standing authorization for a gateway to mint AEY against
+/// confirmed inbound credits on partner nostro accounts, up to `max_total` over its life
+/// (Section 40C.7, R2). Signed once by M of N authority keys; every inbound credit carries it.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct StandingAuthorization {
+    pub authorization_id: Hash32,
+    pub gateway: Aic,
+    pub max_total: u128,
+    pub valid_until_epoch: u64,
+    pub signatures: Vec<crate::monetary::IndexedSignature>,
+}
+
+impl StandingAuthorization {
+    fn encode_fields(&self, out: &mut AceWriter) {
+        self.authorization_id.encode(out);
+        self.gateway.encode(out);
+        out.u128(self.max_total);
+        out.u64(self.valid_until_epoch);
+    }
+
+    /// What each authority key signs.
+    pub fn digest(&self, network: &NetworkIdentity) -> Hash32 {
+        let mut out = AceWriter::new();
+        self.encode_fields(&mut out);
+        network.domain_hash(DomainTag::StandingAuthorization, out.as_bytes())
+    }
+}
+
+impl AceEncode for StandingAuthorization {
+    fn encode(&self, out: &mut AceWriter) {
+        self.encode_fields(out);
+        out.list(&self.signatures);
+    }
+}
+
+impl AceDecode for StandingAuthorization {
+    fn decode(input: &mut AceReader<'_>) -> Result<StandingAuthorization, AletheiaError> {
+        Ok(StandingAuthorization {
+            authorization_id: Hash32::decode(input)?,
+            gateway: Aic::decode(input)?,
+            max_total: input.u128()?,
+            valid_until_epoch: input.u64()?,
+            signatures: crate::monetary::decode_signatures(input)?,
+        })
+    }
+}
+
 /// APN payloads.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ApnOp {
@@ -536,11 +583,39 @@ pub enum ApnOp {
     ProxyRegister { proxy: Hash32, address: Address },
     /// 143: the registering participant removes a proxy alias.
     ProxyRemove { proxy: Hash32 },
+    /// 144: a participant (the sender's settlement account) moves AEY into escrow for a
+    /// payment leaving on an external rail through `gateway`.
+    ExternalLegLock {
+        leg_id: Hash32,
+        amount: u128,
+        uetr_hash: Hash32,
+        rail: u16,
+        profile_hash: Hash32,
+        gateway: Aic,
+        expiry_day: u64,
+    },
+    /// 145: the gateway reports definitive external acceptance; the escrow is burned as a
+    /// redemption against the partner nostro.
+    ExternalLegSettle { leg_id: Hash32, msg_id_hash: Hash32 },
+    /// 146: the gateway reports definitive rejection (or a confirmed not-settled
+    /// investigation); the escrow returns to the sender.
+    ExternalLegRelease { leg_id: Hash32, reason: [u8; 4] },
+    /// 147: the gateway mints AEY to a creditor against a confirmed inbound credit.
+    ExternalInboundCredit {
+        rail: u16,
+        uetr_hash: Hash32,
+        msg_id_hash: Hash32,
+        amount: u128,
+        creditor: Address,
+        creditor_agent: Aic,
+        standing: StandingAuthorization,
+    },
 }
 
 impl ApnOp {
-    pub const TX_TYPES: [u16; 16] = [
-        128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143,
+    pub const TX_TYPES: [u16; 20] = [
+        128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145,
+        146, 147,
     ];
 
     pub const fn tx_type(&self) -> u16 {
@@ -561,6 +636,10 @@ impl ApnOp {
             ApnOp::AanAssign { .. } => 141,
             ApnOp::ProxyRegister { .. } => 142,
             ApnOp::ProxyRemove { .. } => 143,
+            ApnOp::ExternalLegLock { .. } => 144,
+            ApnOp::ExternalLegSettle { .. } => 145,
+            ApnOp::ExternalLegRelease { .. } => 146,
+            ApnOp::ExternalInboundCredit { .. } => 147,
         }
     }
 
@@ -703,6 +782,51 @@ impl ApnOp {
                 address.encode(out);
             }
             ApnOp::ProxyRemove { proxy } => proxy.encode(out),
+            ApnOp::ExternalLegLock {
+                leg_id,
+                amount,
+                uetr_hash,
+                rail,
+                profile_hash,
+                gateway,
+                expiry_day,
+            } => {
+                leg_id.encode(out);
+                out.u128(*amount);
+                uetr_hash.encode(out);
+                out.u16(*rail);
+                profile_hash.encode(out);
+                gateway.encode(out);
+                out.u64(*expiry_day);
+            }
+            ApnOp::ExternalLegSettle {
+                leg_id,
+                msg_id_hash,
+            } => {
+                leg_id.encode(out);
+                msg_id_hash.encode(out);
+            }
+            ApnOp::ExternalLegRelease { leg_id, reason } => {
+                leg_id.encode(out);
+                out.fixed(reason);
+            }
+            ApnOp::ExternalInboundCredit {
+                rail,
+                uetr_hash,
+                msg_id_hash,
+                amount,
+                creditor,
+                creditor_agent,
+                standing,
+            } => {
+                out.u16(*rail);
+                uetr_hash.encode(out);
+                msg_id_hash.encode(out);
+                out.u128(*amount);
+                creditor.encode(out);
+                creditor_agent.encode(out);
+                standing.encode(out);
+            }
         }
     }
 
@@ -806,6 +930,32 @@ impl ApnOp {
                 },
                 143 => ApnOp::ProxyRemove {
                     proxy: Hash32::decode(input)?,
+                },
+                144 => ApnOp::ExternalLegLock {
+                    leg_id: Hash32::decode(input)?,
+                    amount: input.u128()?,
+                    uetr_hash: Hash32::decode(input)?,
+                    rail: input.u16()?,
+                    profile_hash: Hash32::decode(input)?,
+                    gateway: Aic::decode(input)?,
+                    expiry_day: input.u64()?,
+                },
+                145 => ApnOp::ExternalLegSettle {
+                    leg_id: Hash32::decode(input)?,
+                    msg_id_hash: Hash32::decode(input)?,
+                },
+                146 => ApnOp::ExternalLegRelease {
+                    leg_id: Hash32::decode(input)?,
+                    reason: input.array()?,
+                },
+                147 => ApnOp::ExternalInboundCredit {
+                    rail: input.u16()?,
+                    uetr_hash: Hash32::decode(input)?,
+                    msg_id_hash: Hash32::decode(input)?,
+                    amount: input.u128()?,
+                    creditor: Address::decode(input)?,
+                    creditor_agent: Aic::decode(input)?,
+                    standing: StandingAuthorization::decode(input)?,
                 },
                 _ => {
                     return Err(bad(

@@ -11,14 +11,16 @@
 )]
 
 use aletheia_core::apn::{
-    Aan, Aic, ApnOp, Limits, ParticipantSpec, PaymentLeg, PaymentRef, frequency, mandate_id,
-    request_id, role, schedule_id, status,
+    Aan, Aic, ApnOp, Limits, ParticipantSpec, PaymentLeg, PaymentRef, StandingAuthorization,
+    frequency, mandate_id, request_id, role, schedule_id, status,
 };
 use aletheia_core::registry::{GovAction, RegistryOp, proposal_id};
 use aletheia_core::{
     AssetId, ChainId, ErrorCode, Hash32, NetworkIdentity, NetworkKind, Payload, Slot,
 };
-use aletheia_execution::apn_model::{Apn, day_of, mandate_status, request_status, schedule_status};
+use aletheia_execution::apn_model::{
+    Apn, day_of, escrow_status, mandate_status, request_status, schedule_status,
+};
 use aletheia_execution::{Receipt, ReceiptStatus};
 use aletheia_test_harness::{Devnet, GENESIS_TIME_MS, ONE_AEY, ONE_ALNT, keys};
 
@@ -30,6 +32,8 @@ const BANK_B: usize = 4;
 const ALICE: usize = 5;
 const BOB: usize = 6;
 const ANYONE: usize = 7;
+/// A gateway operator's settlement account (used by the external-leg tests).
+const GATEWAY: usize = 8;
 
 fn devnet() -> Devnet {
     let provisional = NetworkIdentity::new(ChainId::new(7771), NetworkKind::Devnet, Hash32::ZERO);
@@ -48,7 +52,25 @@ fn devnet() -> Devnet {
         council.join(", "),
         10 * ONE_AEY
     );
-    Devnet::with_genesis_extra(8, 100 * ONE_AEY, 1_000 * ONE_ALNT, &extra)
+    // A 2-of-3 Monetary Authority (authority keys from seeds 50-52) for inbound credits.
+    let authority_keys: Vec<String> = (0..3u8)
+        .map(|i| {
+            let key = aletheia_crypto::Ed25519SigningKey::from_seed(&aletheia_crypto::Secret::new(
+                [50 + i; 32],
+            ));
+            format!(
+                "\"{}\"",
+                aletheia_core::base16::encode(&key.public_key().to_bytes())
+            )
+        })
+        .collect();
+    let monetary = format!(
+        "\n[monetary]\nauthority_keys = [{keys}]\nauthority_threshold = 2\nredemption_agents = [{keys}]\nattestors = [{keys}]\nattestor_threshold = 2\nattestor_threshold_large_deviation = 3\nmax_deviation_bps = 1000\nmax_attestation_age_slots = 20\nreserve_feed_id = 1\nenforce_reserve_ratio = false\nmin_reserve_ratio_bps = 10000\naey_authorized_capacity = \"{}\"\naey_epoch_issuance_cap = \"{}\"\n",
+        2_000 * ONE_AEY,
+        500 * ONE_AEY,
+        keys = authority_keys.join(", "),
+    );
+    Devnet::with_genesis_extra(9, 100 * ONE_AEY, 1_000 * ONE_ALNT, &(extra + &monetary))
 }
 
 fn submit(net: &mut Devnet, from: usize, payload: Payload) -> Receipt {
@@ -988,4 +1010,239 @@ fn an_idle_chain_catches_up_on_missed_days() {
     assert_eq!(scheduled(&net, &first).status, schedule_status::EXECUTED);
     assert_eq!(scheduled(&net, &second).status, schedule_status::EXECUTED);
     assert_eq!(aey(&net, BOB), bob + 2 * ONE_AEY);
+}
+
+// ---- external legs: escrow and inbound credits ----
+
+fn gateway_aic() -> Aic {
+    aic("GATEXLGG")
+}
+
+fn authority(i: u8) -> aletheia_crypto::Ed25519SigningKey {
+    aletheia_crypto::Ed25519SigningKey::from_seed(&aletheia_crypto::Secret::new([50 + i; 32]))
+}
+
+/// `network()` plus a gateway operator at account 8.
+fn with_gateway() -> Devnet {
+    let mut net = network();
+    let mut gateway = spec(&net, gateway_aic(), GATEWAY, 3003);
+    gateway.role = role::GATEWAY_OPERATOR;
+    govern(&mut net, GovAction::UpsertParticipant(Box::new(gateway)));
+    net
+}
+
+fn lock(net: &mut Devnet, from: usize, leg_id: u8, amount: u128) -> Receipt {
+    apn(
+        net,
+        from,
+        ApnOp::ExternalLegLock {
+            leg_id: h(leg_id),
+            amount,
+            uetr_hash: h(leg_id),
+            rail: 2, // SEPA Instant, by profile
+            profile_hash: h(200),
+            gateway: gateway_aic(),
+            expiry_day: today() + 1,
+        },
+    )
+}
+
+fn escrowed(net: &Devnet) -> aletheia_execution::model::Balance {
+    net.balance(
+        &aletheia_execution::rules::v1::apn::EXTERNAL_ESCROW,
+        AssetId::AEY,
+    )
+}
+
+fn aey_supply(net: &Devnet) -> aletheia_monetary::SupplyLedger {
+    net.records()
+        .supply_ledger(&net.view(), AssetId::AEY)
+        .unwrap()
+        .unwrap()
+}
+
+fn escrow_status_of(net: &Devnet, leg_id: u8) -> u8 {
+    let records = net.records();
+    let view = net.view();
+    Apn { records: &records }
+        .escrow(&view, &h(leg_id))
+        .unwrap()
+        .unwrap()
+        .status
+}
+
+#[test]
+fn an_outbound_leg_is_escrowed_then_burned_when_the_rail_accepts() {
+    let mut net = with_gateway();
+    let (bank, supply) = (aey(&net, BANK_A), aey_supply(&net));
+    ok(&lock(&mut net, BANK_A, 100, 10 * ONE_AEY));
+    assert_eq!(aey(&net, BANK_A), bank - 10 * ONE_AEY);
+    assert_eq!(escrowed(&net).locked, 10 * ONE_AEY);
+    assert_eq!(aey_supply(&net).locked, supply.locked + 10 * ONE_AEY);
+
+    let settle = ApnOp::ExternalLegSettle {
+        leg_id: h(100),
+        msg_id_hash: h(101),
+    };
+    refused(
+        &apn(&mut net, BANK_B, settle.clone()),
+        ErrorCode::ApnNotParticipant,
+    );
+    ok(&apn(&mut net, GATEWAY, settle.clone()));
+    assert_eq!(escrowed(&net).locked, 0);
+    let after = aey_supply(&net);
+    assert_eq!(after.redeemed_total, supply.redeemed_total + 10 * ONE_AEY);
+    assert_eq!(after.locked, supply.locked);
+    assert_eq!(escrow_status_of(&net, 100), escrow_status::SETTLED);
+    // I13: a settled leg never moves again.
+    refused(
+        &apn(&mut net, GATEWAY, settle),
+        ErrorCode::ApnIllegalTransition,
+    );
+    let release = ApnOp::ExternalLegRelease {
+        leg_id: h(100),
+        reason: *b"AC04",
+    };
+    refused(
+        &apn(&mut net, GATEWAY, release),
+        ErrorCode::ApnIllegalTransition,
+    );
+}
+
+#[test]
+fn a_rejected_leg_returns_to_the_sender() {
+    let mut net = with_gateway();
+    let bank = aey(&net, BANK_A);
+    ok(&lock(&mut net, BANK_A, 110, 5 * ONE_AEY));
+    refused(
+        &lock(&mut net, BANK_A, 110, ONE_AEY),
+        ErrorCode::ApnAlreadyExists,
+    );
+    ok(&apn(
+        &mut net,
+        GATEWAY,
+        ApnOp::ExternalLegRelease {
+            leg_id: h(110),
+            reason: *b"AC04",
+        },
+    ));
+    assert_eq!(aey(&net, BANK_A), bank);
+    assert_eq!(escrowed(&net).locked, 0);
+    assert_eq!(escrow_status_of(&net, 110), escrow_status::RELEASED);
+}
+
+#[test]
+fn only_participants_lock_and_only_through_a_gateway() {
+    let mut net = with_gateway();
+    // A customer account is not a participant's settlement account.
+    refused(
+        &lock(&mut net, ALICE, 120, ONE_AEY),
+        ErrorCode::ApnNotParticipant,
+    );
+    // Naming a bank as the gateway is refused.
+    let r = apn(
+        &mut net,
+        BANK_A,
+        ApnOp::ExternalLegLock {
+            leg_id: h(121),
+            amount: ONE_AEY,
+            uetr_hash: h(121),
+            rail: 2,
+            profile_hash: h(200),
+            gateway: bank_b(),
+            expiry_day: today() + 1,
+        },
+    );
+    refused(&r, ErrorCode::ApnNotParticipant);
+    // The gateway's per-payment maximum applies.
+    refused(
+        &lock(&mut net, BANK_A, 122, 51 * ONE_AEY),
+        ErrorCode::ApnLimitExceeded,
+    );
+}
+
+#[test]
+fn an_expired_leg_stays_locked_until_a_definitive_answer() {
+    let mut net = with_gateway();
+    ok(&lock(&mut net, BANK_A, 130, 3 * ONE_AEY));
+    // Days pass with no answer: I15, the escrow is never released by time alone.
+    net.skip_slots(3 * SLOTS_PER_DAY);
+    assert_eq!(escrow_status_of(&net, 130), escrow_status::LOCKED);
+    assert_eq!(escrowed(&net).locked, 3 * ONE_AEY);
+}
+
+fn standing(net: &Devnet, id: u8, max_total: u128, signers: &[u8]) -> StandingAuthorization {
+    let mut standing = StandingAuthorization {
+        authorization_id: h(id),
+        gateway: gateway_aic(),
+        max_total,
+        valid_until_epoch: 100,
+        signatures: Vec::new(),
+    };
+    let digest = standing.digest(&net.network);
+    standing.signatures = signers
+        .iter()
+        .map(|i| aletheia_core::monetary::IndexedSignature {
+            index: *i,
+            signature: authority(*i).sign(&digest).to_bytes(),
+        })
+        .collect();
+    standing
+}
+
+fn inbound(
+    net: &mut Devnet,
+    from: usize,
+    msg: u8,
+    amount: u128,
+    standing: StandingAuthorization,
+) -> Receipt {
+    let bob = net.address(BOB);
+    apn(
+        net,
+        from,
+        ApnOp::ExternalInboundCredit {
+            rail: 2,
+            uetr_hash: h(msg),
+            msg_id_hash: h(msg),
+            amount,
+            creditor: bob,
+            creditor_agent: bank_b(),
+            standing,
+        },
+    )
+}
+
+#[test]
+fn an_inbound_credit_mints_once_within_the_standing_authorization() {
+    let mut net = with_gateway();
+    let auth = standing(&net, 140, 15 * ONE_AEY, &[0, 1]);
+    let (bob, supply) = (aey(&net, BOB), aey_supply(&net));
+    ok(&inbound(&mut net, GATEWAY, 141, 10 * ONE_AEY, auth.clone()));
+    assert_eq!(aey(&net, BOB), bob + 10 * ONE_AEY);
+    assert_eq!(
+        aey_supply(&net).issued_total,
+        supply.issued_total + 10 * ONE_AEY
+    );
+    // The same message again: refused by its uniqueness key.
+    refused(
+        &inbound(&mut net, GATEWAY, 141, 10 * ONE_AEY, auth.clone()),
+        ErrorCode::PayDuplicate,
+    );
+    // 10 + 10 is above the authorization's 15.
+    refused(
+        &inbound(&mut net, GATEWAY, 142, 10 * ONE_AEY, auth.clone()),
+        ErrorCode::ApnStandingExhausted,
+    );
+    ok(&inbound(&mut net, GATEWAY, 143, 5 * ONE_AEY, auth.clone()));
+    // Only the gateway named in the authorization, and only with enough signatures.
+    refused(
+        &inbound(&mut net, BANK_B, 144, ONE_AEY, auth),
+        ErrorCode::ApnNotParticipant,
+    );
+    let weak = standing(&net, 145, 15 * ONE_AEY, &[0]);
+    refused(
+        &inbound(&mut net, GATEWAY, 146, ONE_AEY, weak),
+        ErrorCode::MonetaryAuthorizationInvalid,
+    );
 }

@@ -531,6 +531,13 @@ class = "reject"
 message = "The debit is above the mandate's maximum or comes too soon for its frequency."
 
 [[code]]
+code = 6019
+name = "APN_STANDING_EXHAUSTED"
+variant = "ApnStandingExhausted"
+class = "reject"
+message = "The inbound credit is above what the Monetary Authority's standing authorization has left, or the authorization expired or names another gateway."
+
+[[code]]
 code = 7001
 name = "STO_IO"
 variant = "StoIo"
