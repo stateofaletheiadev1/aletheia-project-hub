@@ -21,7 +21,7 @@ test("three layers inside their radii, closed, at most ~2,200 points each", () =
   const layers = sealLayers(hash(7));
   assert.equal(layers.length, 3);
   for (const [index, layer] of layers.entries()) {
-    const radius = [44, 31, 17][index];
+    const radius = [44, 31, 17][index] ?? 0;
     const coords = points(layer.d);
     assert.ok(coords.length > 100 && coords.length <= 2_200, `layer ${index}: ${coords.length} points`);
     for (const [x, y] of coords) assert.ok(Math.hypot(x, y) <= radius + 0.01, `layer ${index} leaves its ring`);
@@ -30,7 +30,7 @@ test("three layers inside their radii, closed, at most ~2,200 points each", () =
 });
 
 test("coordinates are rounded to 0.01 seal units", () => {
-  assert.match(sealLayers(hash(3))[0].d, /^M-?\d+\.\d{2} -?\d+\.\d{2}L/);
+  assert.match(sealLayers(hash(3))[0]!.d, /^M-?\d+\.\d{2} -?\d+\.\d{2}L/);
 });
 
 test("a hash of the wrong length is refused", () => {

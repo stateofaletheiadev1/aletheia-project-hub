@@ -74,7 +74,7 @@ function polymod(values: Iterable<number>): number {
     const top = checksum >>> 25;
     checksum = (((checksum & 0x1ffffff) << 5) ^ value) >>> 0;
     for (let bit = 0; bit < 5; bit++) {
-      if ((top >>> bit) & 1) checksum = (checksum ^ GENERATOR[bit]) >>> 0;
+      if ((top >>> bit) & 1) checksum = (checksum ^ (GENERATOR[bit] ?? 0)) >>> 0;
     }
   }
   return checksum;
@@ -177,7 +177,7 @@ export function parseIdentifier(kind: IdentifierKind, text: string, network: Net
   if (payload.length !== form.payloadLen) {
     return fail(form.malformed, `payload is ${payload.length} bytes, expected ${form.payloadLen}`);
   }
-  if (kind === "address" && !ACTIVE_ADDRESS_TYPES.has(payload[0])) {
+  if (kind === "address" && !ACTIVE_ADDRESS_TYPES.has(payload[0] ?? -1)) {
     return fail(form.malformed, `address type ${payload[0]} is not active`);
   }
   return { ok: true, payload };

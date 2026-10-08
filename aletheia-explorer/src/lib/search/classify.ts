@@ -62,7 +62,7 @@ export function classify(input: string, network: NetworkKind): SearchTarget {
 
   const epoch = /^epoch\s+(.+)$/i.exec(text);
   if (epoch) {
-    const value = parseGroupedInteger(epoch[1]);
+    const value = parseGroupedInteger(epoch[1] ?? "");
     return value === null
       ? refused("search.epoch-invalid", `"${epoch[1]}" is not an epoch number.`)
       : { kind: "epoch", epoch: value };

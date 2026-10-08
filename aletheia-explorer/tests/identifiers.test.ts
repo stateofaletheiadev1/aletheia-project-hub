@@ -14,7 +14,7 @@ const fromHex = (text: string) => Uint8Array.from(Buffer.from(text, "hex"));
 
 test("renders and parses every valid address vector exactly as the node does", () => {
   for (const vector of vectors("addresses.json").valid) {
-    const network = NETWORK_BY_CODE[vector.network_kind];
+    const network = NETWORK_BY_CODE[vector.network_kind]!;
     assert.equal(renderIdentifier("address", network, fromHex(vector.payload)), vector.text);
     const parsed = parseIdentifier("address", vector.text, network);
     assert.ok(parsed.ok, vector.text);
@@ -24,7 +24,7 @@ test("renders and parses every valid address vector exactly as the node does", (
 
 test("rejects every invalid address vector with the node's error name", () => {
   for (const vector of vectors("addresses.json").invalid) {
-    const parsed = parseIdentifier("address", vector.text, NETWORK_BY_CODE[vector.network_kind]);
+    const parsed = parseIdentifier("address", vector.text, NETWORK_BY_CODE[vector.network_kind]!);
     assert.ok(!parsed.ok, vector.reason);
     assert.equal(parsed.error, vector.error, vector.reason);
   }
@@ -32,7 +32,7 @@ test("rejects every invalid address vector with the node's error name", () => {
 
 test("transaction and block ids match the node on every network", () => {
   for (const vector of vectors("identifiers.json").cases) {
-    const network = NETWORK_BY_CODE[vector.network_kind];
+    const network = NETWORK_BY_CODE[vector.network_kind]!;
     const hash = fromHex(vector.hash);
     assert.equal(renderIdentifier("transaction", network, hash), vector.tx_id);
     assert.equal(renderIdentifier("block", network, hash), vector.block_id);

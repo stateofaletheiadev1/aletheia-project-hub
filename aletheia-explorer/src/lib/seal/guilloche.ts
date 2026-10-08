@@ -38,10 +38,10 @@ export function sealLayers(blockHash: Uint8Array): SealLayer[] {
     throw new RangeError(`a block hash is 32 bytes; got ${blockHash.length}`);
   }
   return LAYERS.map((layer, i) => {
-    const teethByte = blockHash[i * 3];
-    const penByte = blockHash[i * 3 + 1];
-    const angleByte = blockHash[i * 3 + 2];
-    const rolling = ROLLING_TEETH[teethByte % ROLLING_TEETH.length];
+    const teethByte = blockHash[i * 3] ?? 0;
+    const penByte = blockHash[i * 3 + 1] ?? 0;
+    const angleByte = blockHash[i * 3 + 2] ?? 0;
+    const rolling = ROLLING_TEETH[teethByte % ROLLING_TEETH.length] ?? 0;
     const pen = rolling * (layer.penMin + (penByte / 255) * (layer.penMax - layer.penMin));
     const rotation = (angleByte / 256) * 2 * Math.PI;
     return {
@@ -55,7 +55,7 @@ export function sealLayers(blockHash: Uint8Array): SealLayer[] {
 export function sealSvg(blockHash: Uint8Array, size = 96, color = "currentColor"): string {
   const ticks = Array.from({ length: TICK_COUNT }, (_, i) => {
     const angle = (i * 3 * Math.PI) / 180;
-    const [x1, y1, x2, y2] = [45.5, 45.5, 47, 47].map((r, k) => (k % 2 === 0 ? Math.cos(angle) : Math.sin(angle)) * r);
+    const [x1, y1, x2, y2] = [45.5, 45.5, 47, 47].map((r, k) => (k % 2 === 0 ? Math.cos(angle) : Math.sin(angle)) * r) as [number, number, number, number];
     return `<line x1="${x1.toFixed(2)}" y1="${y1.toFixed(2)}" x2="${x2.toFixed(2)}" y2="${y2.toFixed(2)}" stroke-width="0.4"/>`;
   }).join("");
   const paths = sealLayers(blockHash)

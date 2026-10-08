@@ -1,37 +1,45 @@
 # Aletheia Explorer
 
-"The Public Ledger": the public block explorer for Aletheia StableChain, specified in
-Section 41A of the master specification (`../aletheia-node/docs/spec/MASTER.md`) and
-ADR-024 / ADR-033.
+The public explorer of Aletheia StableChain, the ledger of the Sovereign Covenant State of
+Aletheia. Design and data path: ADR-060 in `../aletheia-node/docs/adr/`.
 
-## Status
+## Run it
 
-**Parked until the node is complete.** Design foundations exist (below); no application.
+```sh
+# 1. A devnet node with funded development accounts and its RPC on 127.0.0.1:7781
+cd ../aletheia-node
+cargo run -p aletheiad --features devnet-producer -- --config configs/devnet-explorer.toml
 
-Present now, with no npm dependencies (`npm run check` runs everything on Node 24):
-- `design/tokens.json`: the single colour source; `scripts/tokens.mjs` generates
-  `src/styles/tokens.css`, and `scripts/check-contrast.mjs` checks every text pair against
-  WCAG 2.2 AA in light, dark and high-contrast themes.
-- `src/styles/`: type scale, grid and ledger-table CSS (41A.3, 41A.5).
-- `src/lib/`: the guilloche seal, amount formatting with the precision tail, identifier
-  grouping, and search classification with a Bech32m port that is tested against the node's
-  published APS-0002 vectors.
+# 2. Optional: live traffic between the published development accounts (devnet only)
+cargo run -p devnet-traffic -- run http://127.0.0.1:7781 700
 
-Why parked: the Explorer is Phase 12C of the implementation plan (spec Section 62). It
-reads only finalized data through the explorer API (`crates/explorer-api` in
-`aletheia-node`), which sits on the indexer database, which in turn follows a running node.
-None of those exist yet; work here begins once the node exposes finalized blocks and the
-explorer API serves them.
+# 3. The Explorer on http://localhost:5173
+cd ../aletheia-explorer
+npm ci --ignore-scripts
+npm run dev
+```
 
-## What will live here
+`ALETHEIA_RPC` points the Explorer at another full node (default `http://127.0.0.1:7781`).
+`npm run build && npm start` serves the production build with `adapter-node`.
 
-- SvelteKit application with Svelte 5 runes (spec Section 41A.14).
-- Manrope as the only typeface; no UI kits, gradients or generic card grids (41A.3, 41A.2).
-- The generative guilloche seal derived from each block hash (41A.6).
-- Proof verification in the browser through the `crates/verify` WASM build
-  (`wasm-bindgen`, `wasm32-unknown-unknown`) - the seal is ornament, the Verify button is
-  proof (41A.12).
-- Amounts handled as `BigInt` only, never floating point (41A.7).
-- Version-aware rendering of every historical and unknown transaction type (41A.13).
-- CI gates: `scripts/check_ui_tells.sh`, visual regression, axe, Lighthouse budgets
-  (41A.16, 41A.19).
+## Pages
+
+- `/` dashboard: figures, live blocks and live transactions.
+- `/blocks`, `/blocks/<height or AL:B…>`: block register and block detail (Overview,
+  Transactions).
+- `/transactions`, `/tx/<AL:T…>`: transaction register and detail (Overview, Logs).
+- `/address/<AL:…>`: balances and recent activity.
+- `/search?q=…`: heights, `AL:T` / `AL:B` / `AL:` identifiers.
+
+## Checks
+
+`npm run check`: Svelte and TypeScript (strict), WCAG AA contrast of every colour pair in
+`src/app.css`, and the library tests (identifiers against the node's published vectors,
+amounts, search).
+
+## Layout
+
+- `src/app.css`: the only colour, type, spacing and motion source.
+- `src/lib/server/`: the node's REST client, the live follower, page loading.
+- `src/lib/components/`: header, footer, arms, flags, tiles, rows, tables, pager.
+- `static/brand/`: the national arms, prepared for the blue background.
