@@ -152,6 +152,13 @@ partly written; see the end of this file.
 | Rail simulator and chaos against the chain (`tests/railsim`) | 40C.12 | yes | yes (test-only) | every behaviour once + 8 random mixes: I13-I15 on chain, R8-R9 against the statement; outage, clock skew and statement-first scenarios not yet | n/a | rustdoc | n/a |
 | `pacs.004`, `pain.001`, XSD validation, operator conformance packs; PostgreSQL store, mTLS, HSM signer | 40, 40C | yes | **no** | no | no | no | no |
 
+## Phase 11B: PayNet integration (in progress)
+
+| Module | Spec | Specified | Implemented | Tested | Fuzzed | Documented | Benchmarked |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Finalized Event Stream core: cursors, ordered resumable envelopes, gap fields, kind registry, inclusion proofs, heartbeats, bounded buffers (`crates/event-stream`) | 40D.3, APS-0058 | yes | yes (gRPC/WebSocket transport with the RPC in Phase 12) | order and linkage, proofs and forgery, filters, slow-consumer disconnect, consumer duplicate/gap/skip, resume at any cursor (property) | no | rustdoc | no |
+| Reference PayNet: settlement submission rules, R4-R7, end-to-end suites (`tests/paynet-reference`) | 40D.4, 40D.6, 40D.10 | yes | **no** | no | no | no | no |
+
 ## Phase 10: native registries and governance
 
 | Module | APS | Specified | Implemented | Tested | Fuzzed | Documented | Benchmarked |

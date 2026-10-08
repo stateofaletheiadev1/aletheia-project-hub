@@ -9,6 +9,7 @@ members = [
   "crates/crypto",
   "crates/consensus",
   "crates/signer",
+  "crates/event-stream",
   "crates/execution",
   "crates/gateway",
   "crates/executor",
@@ -52,6 +53,7 @@ aletheia-vm = { path = "crates/vm" }
 aletheia-monetary = { path = "crates/monetary" }
 aletheia-p2p = { path = "crates/p2p" }
 aletheia-gateway = { path = "crates/gateway" }
+aletheia-event-stream = { path = "crates/event-stream" }
 aletheia-rails = { path = "crates/rails" }
 aletheia-rails-model = { path = "crates/rails-model" }
 aletheia-node = { path = "crates/node" }

@@ -95,6 +95,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "aletheia-event-stream"
+version = "0.1.0"
+dependencies = [
+ "aletheia-core",
+ "aletheia-crypto",
+ "aletheia-execution",
+ "aletheia-test-harness",
+ "proptest",
+]
+
+[[package]]
 name = "aletheia-execution"
 version = "0.1.0"
 dependencies = [

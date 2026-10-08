@@ -1,0 +1,20 @@
+[package]
+name = "aletheia-event-stream"
+description = "The Finalized Event Stream (APS-0058): ordered, resumable, finalized-only event envelopes with inclusion proofs, and the consumer-side checks."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+aletheia-core.workspace = true
+aletheia-crypto.workspace = true
+aletheia-execution.workspace = true
+
+[dev-dependencies]
+aletheia-test-harness.workspace = true
+proptest.workspace = true
+
+[lints]
+workspace = true
