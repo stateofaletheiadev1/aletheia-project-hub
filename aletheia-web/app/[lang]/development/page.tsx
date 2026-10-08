@@ -3,6 +3,8 @@
 import { useI18n } from '@/components/i18n/I18nProvider';
 import Link from '@/components/i18n/Link';
 import Image from 'next/image';
+import { useState } from 'react';
+import { NationalMap, NationalMapLegend, REGION_COLORS, type RegionId } from '@/components/development/NationalMap';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { PageHero } from '@/components/ui/PageHero';
 import { HexagonCross } from '@/components/brand/Logo';
@@ -105,45 +107,9 @@ const ROADMAP: { year: string; title: string; status: NationalStatus }[] = [
   { year: '2035', title: 'Four founding states fully inhabited', status: 'Vision' },
 ];
 
-/** Schematic territorial map: Antioch at the centre, four states in quadrants. */
-function TerritoryMap() {
-  const { t, tx } = useI18n();
-  const regions = [
-    { id: 'barbara', label: 'St. Barbara', d: 'M20 20 H190 L190 150 L130 190 H20 Z', tx: 80, ty: 95 },
-    { id: 'augustine', label: 'Augustine', d: 'M210 20 H380 V190 H270 L210 150 Z', tx: 300, ty: 95 },
-    { id: 'benedict', label: 'Benedict', d: 'M20 210 H130 L190 250 V380 H20 Z', tx: 80, ty: 305 },
-    { id: 'brendan', label: 'St. Brendan', d: 'M270 210 H380 V380 H210 V250 Z', tx: 300, ty: 305 },
-  ];
-  return (
-    <svg viewBox="0 0 400 400" className="w-full h-auto" role="img" aria-labelledby="map-title">
-      <title id="map-title">{t("Schematic map of Antioch and the four founding states")}</title>
-      <defs>
-        <pattern id="map-hex" width="18" height="15.6" patternUnits="userSpaceOnUse">
-          <polygon points="9,0.5 17.5,4.5 17.5,11 9,15 0.5,11 0.5,4.5" fill="none" stroke="#C49A4E" strokeOpacity="0.12" strokeWidth="0.6" />
-        </pattern>
-      </defs>
-      <rect width="400" height="400" fill="#0B1626" />
-      <rect width="400" height="400" fill="url(#map-hex)" />
-      {regions.map((r) => (
-        <a key={r.id} href={`#${r.id}`} className="group cursor-pointer" aria-label={t('{name} State', { name: t(r.label) })}>
-          <path d={r.d} className="fill-[#15294A] stroke-[#C49A4E]/50 transition-all duration-300 group-hover:fill-[#1C3660] group-hover:stroke-[#E4C689] group-focus:fill-[#1C3660]" strokeWidth="1.2" />
-          <text x={r.tx} y={r.ty} textAnchor="middle" className="fill-[#F4EEDF] text-[13px] font-bold tracking-wide pointer-events-none">{tx(r.label)}</text>
-          <text x={r.tx} y={r.ty + 16} textAnchor="middle" className="fill-[#C49A4E] text-[9px] uppercase tracking-[0.2em] pointer-events-none">{t("State")}</text>
-        </a>
-      ))}
-      <a href="#antioch" className="group cursor-pointer" aria-label={t("Antioch Federal District")}>
-        <circle cx="200" cy="200" r="70" fill="none" stroke="#C49A4E" strokeOpacity="0.25" strokeDasharray="3 4" className="animate-rotate-slow origin-center" style={{ transformBox: 'fill-box' }} />
-        <polygon points="200,145 248,172 248,228 200,255 152,228 152,172" className="fill-[#701824] stroke-[#E4C689] transition-all duration-300 group-hover:fill-[#8a1f2e]" strokeWidth="1.5" />
-        <text x="200" y="198" textAnchor="middle" className="fill-[#F4EEDF] text-[14px] font-bold pointer-events-none">{t("Antioch")}</text>
-        <text x="200" y="214" textAnchor="middle" className="fill-[#E4C689] text-[8px] uppercase tracking-[0.2em] pointer-events-none">{t("Federal District")}</text>
-      </a>
-      <text x="390" y="394" textAnchor="end" className="fill-[#C49A4E]/50 text-[8px] font-mono">{t("SCHEMATIC · NOT TO SCALE")}</text>
-    </svg>
-  );
-}
-
 export default function DevelopmentPage() {
   const { t, tx } = useI18n();
+  const [activeRegion, setActiveRegion] = useState<RegionId | null>(null);
   return (
     <div className="flex flex-col bg-parchment-canvas">
       <PageHero
@@ -182,16 +148,24 @@ export default function DevelopmentPage() {
           <div className="lg:col-span-5 space-y-6">
             <div className="flex items-center gap-3">
               <div className="eyebrow">{t("Interactive Territorial Map")}</div>
-              <StatusBadge status="Under Development" size="sm" />
+              <StatusBadge status="Proposed" size="sm" />
             </div>
             <h2 className="text-4xl font-bold tracking-tight text-navy leading-tight">{t("Select a territory to explore its mandate.")}</h2>
-            <p className="text-navy/65 leading-[1.85] font-light">{t("Each state carries one of the four quarters of the national arms and a distinct economic mandate. A GIS-grade spatial plan with zoning layers is in development; this schematic shows the constitutional arrangement.")}</p>
+            <p className="text-navy/65 leading-[1.85] font-light">{t("The proposed national map: the Antioch Federal District at the centre, ringed by the four founding states, each carrying one quarter of the national arms and a distinct economic mandate. Arterial roads run from Covenant Square to every state capital.")}</p>
             <ul className="space-y-2">
-              {[{ id: 'antioch', name: 'Antioch Federal District', accent: 'bg-burgundy' }, ...STATES].map((s) => (
+              {[{ id: 'antioch', name: 'Antioch Federal District', capital: 'Antioch' }, ...STATES].map((s) => (
                 <li key={s.id}>
-                  <a href={`#${s.id}`} className="group flex items-center justify-between py-3 px-4 bg-white border border-navy/10 rounded-sm hover:border-gold/50 hover:shadow-institutional transition-all">
+                  <a
+                    href={`#${s.id}`}
+                    onMouseEnter={() => setActiveRegion(s.id as RegionId)}
+                    onMouseLeave={() => setActiveRegion(null)}
+                    onFocus={() => setActiveRegion(s.id as RegionId)}
+                    onBlur={() => setActiveRegion(null)}
+                    className={`group flex items-center justify-between py-3 px-4 bg-white border rounded-sm hover:border-gold/50 hover:shadow-institutional transition-all ${activeRegion === s.id ? 'border-gold/60 shadow-institutional' : 'border-navy/10'}`}
+                  >
                     <span className="flex items-center gap-3 text-sm font-bold text-navy">
-                      <span className={`w-2.5 h-2.5 rounded-full ${s.accent}`} /> {tx(s.name)}
+                      <span className="w-3 h-3 rounded-sm border border-navy/25" style={{ backgroundColor: REGION_COLORS[s.id as RegionId].fill }} /> {tx(s.name)}
+                      <span className="text-[11px] font-normal text-navy/50">{tx(s.capital)}</span>
                     </span>
                     <ArrowRight className="w-4 h-4 text-gold group-hover:translate-x-1 transition-transform" />
                   </a>
@@ -200,9 +174,21 @@ export default function DevelopmentPage() {
             </ul>
           </div>
           <div className="lg:col-span-7">
-            <div className="rounded-sm overflow-hidden border border-gold/30 shadow-elevated gold-glow">
-              <TerritoryMap />
-            </div>
+            <figure className="bg-white rounded-sm border border-gold/30 shadow-elevated overflow-hidden">
+              <figcaption className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-5 py-3.5 border-b border-navy/10">
+                <span className="text-sm font-bold text-navy tracking-tight">{t("The Sovereign Covenant State of Aletheia")}</span>
+                <span className="text-[11px] font-mono text-navy/55">{t("National map · Federal District and four states · grid in km from Covenant Square")}</span>
+              </figcaption>
+              <p className="sm:hidden px-5 pt-3 text-[11px] text-navy/55">{t("Swipe sideways to explore the full map.")}</p>
+              <div className="overflow-x-auto">
+                <div className="min-w-[620px]">
+                  <NationalMap active={activeRegion} onActiveChange={setActiveRegion} />
+                </div>
+              </div>
+              <div className="px-5 py-3.5 border-t border-navy/10 bg-parchment-light/40">
+                <NationalMapLegend />
+              </div>
+            </figure>
           </div>
         </div>
       </section>
