@@ -181,6 +181,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "aletheia-paynet-reference"
+version = "0.1.0"
+dependencies = [
+ "aletheia-core",
+ "aletheia-crypto",
+ "aletheia-event-stream",
+ "aletheia-execution",
+ "aletheia-test-harness",
+ "proptest",
+]
+
+[[package]]
 name = "aletheia-rails"
 version = "0.1.0"
 dependencies = [

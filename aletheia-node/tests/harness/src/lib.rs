@@ -263,6 +263,40 @@ impl Devnet {
             .collect()
     }
 
+    /// Executes `tx` as the next block's first transaction without committing anything: the
+    /// `/transactions/simulate` a submitter calls before signing for real (Section 40D.4).
+    pub fn simulate(
+        &self,
+        tx: &SignedTransaction,
+    ) -> Result<aletheia_execution::Receipt, AletheiaError> {
+        let verified = self.verify(core::slice::from_ref(tx))?;
+        let verified = verified.into_iter().next().ok_or_else(|| {
+            AletheiaError::new(
+                aletheia_core::ErrorCode::TxFieldOutOfRange,
+                "nothing to simulate".to_owned(),
+            )
+        })?;
+        let height = Height::new(self.head.height.get() + 1);
+        let records = self.records();
+        let view = self.view();
+        let slot = self.next_slot();
+        let (rules, entry) = rules_for_height(&records, &view, height)?;
+        let timing = records.chain_timing(&view)?;
+        let ctx = BlockContext {
+            height,
+            slot,
+            epoch: self.epoch,
+            protocol_time_ms: timing.protocol_time_ms(slot)?,
+            proposer: ValidatorIndex::new(0),
+            parent_hash: self.head.block_hash(&self.network),
+            protocol_version: aletheia_core::ProtocolVersion::new(entry.protocol_version),
+        };
+        let mut overlay = aletheia_state::StateOverlay::new(&view);
+        rules
+            .apply_transaction(&records, &mut overlay, &verified, &ctx, 0)
+            .map(|(receipt, _)| receipt)
+    }
+
     /// Schedules `version` to activate at `activation_height`, committed with the next block.
     pub fn schedule_upgrade(&mut self, version: u16, activation_height: u64) {
         let entry = aletheia_execution::model::ProtocolScheduleEntry {

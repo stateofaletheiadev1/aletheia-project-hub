@@ -1,0 +1,21 @@
+[package]
+name = "aletheia-paynet-reference"
+description = "TEST-ONLY reference PayNet (spec Section 40D.10): exercises every chain interface PayNet uses, so the chain cannot break PayNet's contract without a red build."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+aletheia-core.workspace = true
+aletheia-crypto.workspace = true
+aletheia-event-stream.workspace = true
+aletheia-execution.workspace = true
+aletheia-test-harness.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true
+
+[lints]
+workspace = true

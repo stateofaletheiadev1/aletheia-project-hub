@@ -117,8 +117,8 @@ impl Subscription {
         self.disconnected
     }
 
-    /// Reads newly finalized blocks into the buffer. A subscriber whose buffer overflows is
-    /// disconnected; the node never waits for it.
+    /// Reads newly finalized blocks into the buffer. When the buffer is full the subscriber
+    /// gets what is queued and then a disconnect; the node never waits for it.
     pub fn pump(&mut self, source: &dyn FinalizedSource) {
         if self.disconnected {
             return;
@@ -175,7 +175,8 @@ impl Subscription {
                     };
                     self.last_sent = Some(cursor);
                     if self.buffer.len() >= self.capacity {
-                        self.buffer.clear();
+                        // What is queued is still delivered; the disconnect follows it, and
+                        // the subscriber resumes from its cursor.
                         self.buffer.push_back(Message::Disconnect {
                             code: "STREAM_CONSUMER_TOO_SLOW",
                         });

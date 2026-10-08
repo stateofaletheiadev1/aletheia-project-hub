@@ -129,12 +129,17 @@ fn a_slow_subscriber_is_disconnected_not_waited_for() {
     let mut sub = Subscription::new(request, net.network, 3);
     sub.pump(&Chain(&net));
     assert!(sub.is_disconnected());
+    // What fit in the buffer is delivered, then the disconnect.
+    for _ in 0..3 {
+        assert!(matches!(sub.next_message(), Some(Message::Event(_))));
+    }
     assert_eq!(
         sub.next_message(),
         Some(Message::Disconnect {
             code: "STREAM_CONSUMER_TOO_SLOW"
         })
     );
+    assert_eq!(sub.next_message(), None);
 }
 
 #[test]
