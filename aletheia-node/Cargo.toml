@@ -17,11 +17,13 @@ members = [
   "crates/storage",
   "crates/state",
   "crates/vm",
+  "crates/wallet",
   "crates/monetary",
   "crates/rails",
   "crates/rpc",
   "crates/rails-model",
   "crates/node",
+  "apps/aletheia-cli",
   "apps/aletheiad",
   "apps/arno",
   "apps/arno-exec",
@@ -52,6 +54,7 @@ aletheia-executor = { path = "crates/executor" }
 aletheia-storage = { path = "crates/storage" }
 aletheia-state = { path = "crates/state" }
 aletheia-vm = { path = "crates/vm" }
+aletheia-wallet = { path = "crates/wallet" }
 aletheia-monetary = { path = "crates/monetary" }
 aletheia-p2p = { path = "crates/p2p" }
 aletheia-gateway = { path = "crates/gateway" }

@@ -1,0 +1,32 @@
+[package]
+name = "aletheia-cli"
+description = "The user and operator client (spec Section 56): keys, balances, transfers, transactions, blocks; text or stable JSON output."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "aletheia-cli"
+path = "src/main.rs"
+
+[dependencies]
+aletheia-core.workspace = true
+aletheia-crypto.workspace = true
+aletheia-wallet.workspace = true
+clap = { version = "4", default-features = false, features = ["std", "derive", "help", "usage", "error-context"] }
+getrandom.workspace = true
+rpassword = "7"
+serde_json.workspace = true
+tokio = { version = "1", features = ["rt", "macros", "net", "io-util", "time"] }
+
+[dev-dependencies]
+aletheia-node = { workspace = true, features = ["devnet-producer"] }
+aletheia-rpc.workspace = true
+aletheia-storage.workspace = true
+aletheia-test-harness.workspace = true
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "net"] }
+
+[lints]
+workspace = true

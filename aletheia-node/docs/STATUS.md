@@ -159,7 +159,9 @@ partly written; see the end of this file.
 | Service layer, JSON-RPC 2.0 dispatcher, REST routes (`crates/rpc`): status, head, params, blocks, finality proofs, submit, simulate, transactions, receipts, accounts, balances, assets, supply | 37.1, 37.2 | yes | yes (transport-independent) | round trip through JSON-RPC, REST/JSON-RPC parity on every shared query, every protocol rule, identifier errors | dispatcher property test | rustdoc | no |
 | HTTP server (Axum), per-IP rate limit, 1 MiB bodies; node backend on the chain thread; `aletheiad` `[rpc]` section (`rpc/src/server.rs`, `node/src/rpc.rs`) | 37 | yes (+ ADR-056) | yes | `node/tests/rpc_http.rs`: transfer over HTTP to receipt, REST parity, escaped identifiers, 404, 429 | no | rustdoc | no |
 | WebSocket subscriptions; events, state proofs, validator set, contract views, registry and bridge methods; API keys; OpenAPI/OpenRPC; peer counts in status | 37 | yes | **no** | no | no | no | no |
-| Wallet (Section 41), `aletheia-cli` (Section 56), TS SDK | 41, 56 | yes | **no** | no | no | no | no |
+| Wallet: SLIP-0010 keys, Argon2id + XChaCha20-Poly1305 keystore, payment URIs, check-simulate-confirm-sign-submit-track flow (`crates/wallet`) | 41 | yes (+ ADR-057; coin type PROVISIONAL) | yes | SLIP-0010 vectors, keystore password and tamper, URIs, flow to FINALIZED, refusals | no | rustdoc | no |
+| `aletheia-cli`: status, keys, account, balance, transfer, tx, receipt, block; JSON output; network check (`apps/aletheia-cli`) | 56 | yes | yes (plain HTTP to local/private nodes) | the binary against a producing node: key, funding, transfer to FINALIZED, text and JSON output, wrong network and password | no | usage text | n/a |
+| BIP-39, hardware wallets, multisig, TLS client; TypeScript SDK | 41, 62 | yes | **no** | no | no | no | no |
 
 ## Phase 11B: PayNet integration
 

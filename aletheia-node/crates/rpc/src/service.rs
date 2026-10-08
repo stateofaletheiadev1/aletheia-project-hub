@@ -162,7 +162,7 @@ impl<B: Backend> Service<B> {
         let status = self.backend.status().await.map_err(|e| from_backend(&e))?;
         Ok(json!({
             "chainId": network.chain_id().get(),
-            "network": format!("{:?}", network.network_kind()).to_lowercase(),
+            "network": network.network_kind().to_string(),
             "protocolVersion": status.protocol_version,
             "peers": status.peers,
             "syncing": status.syncing,
