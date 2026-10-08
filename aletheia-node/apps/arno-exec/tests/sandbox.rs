@@ -115,7 +115,7 @@ fn lifecycle(run: &dyn ContractRunner) -> (Vec<CallResult>, State) {
     let (buyer, seller, arbiter) = ([1u8; 33], [2u8; 33], [3u8; 33]);
     let calls: Vec<(&str, Vec<Value>)> = vec![
         (
-            "Create",
+            "constructor",
             vec![
                 Value::Signer(buyer),
                 Value::Address(seller),
@@ -124,7 +124,7 @@ fn lifecycle(run: &dyn ContractRunner) -> (Vec<CallResult>, State) {
             ],
         ),
         (
-            "Fund",
+            "fund",
             vec![
                 Value::Signer(seller),
                 Value::Coins {
@@ -134,7 +134,7 @@ fn lifecycle(run: &dyn ContractRunner) -> (Vec<CallResult>, State) {
             ],
         ),
         (
-            "Fund",
+            "fund",
             vec![
                 Value::Signer(buyer),
                 Value::Coins {
@@ -143,8 +143,8 @@ fn lifecycle(run: &dyn ContractRunner) -> (Vec<CallResult>, State) {
                 },
             ],
         ),
-        ("Release", vec![Value::Signer(arbiter)]),
-        ("Status", vec![]),
+        ("release", vec![Value::Signer(arbiter)]),
+        ("status", vec![]),
     ];
     let mut host = MockHost::default();
     let mut results = Vec::new();
@@ -199,7 +199,7 @@ fn a_hanging_worker_ends_in_a_fail_stop_after_one_retry() {
     let (p, bytes) = escrow();
     let mut host = MockHost::default();
     let failure = stuck
-        .run(&p, &bytes, index(&p, "Status"), vec![], &mut host, 1_000)
+        .run(&p, &bytes, index(&p, "status"), vec![], &mut host, 1_000)
         .unwrap_err();
     assert!(matches!(failure.trap, Trap::Internal(_)), "{failure:?}");
     assert_eq!(failure.trap.code(), aletheia_core::ErrorCode::VmInternal);
@@ -214,7 +214,7 @@ fn a_worker_speaking_nonsense_is_never_believed() {
     let (p, bytes) = escrow();
     let mut host = MockHost::default();
     let failure = liar
-        .run(&p, &bytes, index(&p, "Status"), vec![], &mut host, 1_000)
+        .run(&p, &bytes, index(&p, "status"), vec![], &mut host, 1_000)
         .unwrap_err();
     assert!(matches!(failure.trap, Trap::Internal(_)), "{failure:?}");
 }

@@ -1,88 +1,72 @@
-{ Escrow: holds AEY until the arbiter releases it, or refunds the buyer after the deadline. }
-contract Escrow;
+// Escrow: holds AEY until the arbiter releases it, or refunds the buyer after the deadline.
+contract Escrow {
+    version 0.1;
+    uses Coins, Auth, Chain;
 
-version 0.1;
+    enum Phase { Open, Funded, Released, Refunded }
 
-uses Std.Coins, Std.Auth, Std.Chain;
+    error WrongPhase  "The escrow is not in the right phase for this action.";
+    error NotTheBuyer "Only the buyer can do this.";
+    error NotArbiter  "Only the arbiter can do this.";
+    error TooEarly    "The refund deadline has not passed yet.";
 
-type
-  Phase = (Open, Funded, Released, Refunded);
+    event EscrowFunded(Address buyer, UInt128 total);
+    event EscrowReleased(Address seller, UInt128 total);
+    event EscrowRefunded(Address buyer, UInt128 total);
 
-errors
-  WrongPhase  = 'The escrow is not in the right phase for this action.';
-  NotTheBuyer = 'Only the buyer can do this.';
-  NotArbiter  = 'Only the arbiter can do this.';
-  TooEarly    = 'The refund deadline has not passed yet.';
+    private Address buyer, seller, arbiter;
+    private Slot deadline;
+    private Vault of AEY safe;
+    private Phase state;
 
-events
-  EscrowFunded(Buyer: Address; Total: UInt128);
-  EscrowReleased(Seller: Address; Total: UInt128);
-  EscrowRefunded(Buyer: Address; Total: UInt128);
+    constructor(Signer caller, Address theSeller, Address theArbiter, Slot theDeadline)
+        changes storage
+    {
+        buyer    = caller.address;
+        seller   = theSeller;
+        arbiter  = theArbiter;
+        deadline = theDeadline;
+        safe     = Vault.Empty;
+        state    = Open;
+    }
 
-storage
-  Buyer, Seller, Arbiter: Address;
-  Deadline: Slot;
-  Safe: Vault of AEY;
-  State: Phase;
+    public function fund(Signer caller, Coins of AEY deposit)
+        changes storage, receives coins, emits events
+    {
+        require state is Open otherwise WrongPhase;
+        require caller.address is buyer otherwise NotTheBuyer;
+        UInt128 total = deposit.value;
+        safe.deposit(move deposit);        // deposit is used up here and can never be touched again
+        state = Funded;
+        emit EscrowFunded(buyer, total);
+    }
 
-constructor Create(Caller: Signer; ASeller, AnArbiter: Address; ADeadline: Slot);
-  changes storage;
-begin
-  Buyer    := Caller.Address;
-  Seller   := ASeller;
-  Arbiter  := AnArbiter;
-  Deadline := ADeadline;
-  Safe     := Vault.Empty;
-  State    := Open;
-end;
+    public function release(Signer caller)
+        changes storage, sends coins, emits events
+    {
+        require state is Funded otherwise WrongPhase;
+        require caller.address is arbiter otherwise NotArbiter;
+        Coins of AEY payout = safe.withdrawAll;
+        UInt128 total = payout.value;
+        transfer(move payout, seller);
+        state = Released;
+        emit EscrowReleased(seller, total);
+    }
 
-procedure Fund(Caller: Signer; Deposit: Coins of AEY); entry;
-  changes storage, receives coins, emits events;
-var
-  Total: UInt128;
-begin
-  require State = Open otherwise WrongPhase;
-  require Caller.Address = Buyer otherwise NotTheBuyer;
-  Total := Deposit.Value;
-  Safe.Deposit(move Deposit);        { Deposit is used up here and can never be touched again }
-  State := Funded;
-  emit EscrowFunded(Buyer, Total);
-end;
+    public function refund(Signer caller)
+        changes storage, sends coins, emits events
+    {
+        require state is Funded otherwise WrongPhase;
+        require caller.address is buyer otherwise NotTheBuyer;
+        require Chain.slot > deadline otherwise TooEarly;
+        Coins of AEY back = safe.withdrawAll;
+        UInt128 total = back.value;
+        transfer(move back, buyer);
+        state = Refunded;
+        emit EscrowRefunded(buyer, total);
+    }
 
-procedure Release(Caller: Signer); entry;
-  changes storage, sends coins, emits events;
-var
-  Payout: Coins of AEY;
-  Total: UInt128;
-begin
-  require State = Funded otherwise WrongPhase;
-  require Caller.Address = Arbiter otherwise NotArbiter;
-  Payout := Safe.WithdrawAll;
-  Total := Payout.Value;
-  Transfer(move Payout, Seller);
-  State := Released;
-  emit EscrowReleased(Seller, Total);
-end;
-
-procedure Refund(Caller: Signer); entry;
-  changes storage, sends coins, emits events;
-var
-  Back: Coins of AEY;
-  Total: UInt128;
-begin
-  require State = Funded otherwise WrongPhase;
-  require Caller.Address = Buyer otherwise NotTheBuyer;
-  require Chain.Slot > Deadline otherwise TooEarly;
-  Back := Safe.WithdrawAll;
-  Total := Back.Value;
-  Transfer(move Back, Buyer);
-  State := Refunded;
-  emit EscrowRefunded(Buyer, Total);
-end;
-
-function Status: Phase; view;
-begin
-  Result := State;
-end;
-
-end.
+    public view function status() returns Phase {
+        return state;
+    }
+}

@@ -1,16 +1,12 @@
-{ A3005: a routine that sends coins without declaring it. }
-contract Escrow;
-version 0.1;
-uses Std.Coins, Std.Auth;
+// A3005: a function that sends coins without declaring it.
+contract Escrow {
+    version 0.1;
+    uses Coins, Auth;
 
-storage
-  Seller: Address;
-  Safe: Vault of AEY;
+    private Address seller;
+    private Vault of AEY safe;
 
-procedure Release(Caller: Signer); entry;
-  changes storage;
-begin
-  Transfer(Safe.WithdrawAll, Seller);
-end;
-
-end.
+    public function release(Signer caller) changes storage {
+        transfer(safe.withdrawAll, seller);
+    }
+}

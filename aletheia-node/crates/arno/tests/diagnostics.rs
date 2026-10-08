@@ -88,7 +88,7 @@ fn a_clean_contract_yields_its_typed_program() {
     assert_eq!(program.routines.len(), 9);
     assert_eq!(program.storage.len(), 7);
     assert_eq!(program.enums[0].variants, ["Viewer", "Spender", "Admin"]);
-    let pay = program.routines.iter().find(|r| r.name == "Pay").unwrap();
+    let pay = program.routines.iter().find(|r| r.name == "pay").unwrap();
     assert_eq!(
         pay.effects_mask(),
         1 | 4 | 8,
@@ -103,16 +103,17 @@ proptest::proptest! {
     #[test]
     fn the_checks_never_panic(words in proptest::collection::vec(
         proptest::sample::select(vec![
-            "contract T; version 0.1;", "uses Std.Coins, Std.Auth, Std.Chain, Std.Math;",
-            "storage", "S: UInt64;", "V: Vault of AEY;", "L: List of UInt8 max 3;",
-            "M: Map of Address to UInt128;", "errors E = 'e';", "events Ev(A: UInt64);",
-            "procedure P(Caller: Signer; C: Coins of AEY); entry;", "function F: UInt64; view;",
-            "changes storage,", "sends coins;", "receives coins;", "var", "X: UInt64;",
-            "K: Coins of AEY;", "begin", "end;", "end.", "X := 1;", "S := X;", "K := V.WithdrawAll;",
-            "V.Deposit(move C);", "V.Deposit(move K);", "Transfer(move K, Caller.Address);",
-            "if X > 0 then", "else", "while X > 0 at most 3 times do", "for each X in L do",
-            "require X = 1 otherwise E;", "fail E;", "emit Ev(X);", "exit;", "P(Caller, move C);",
-            "Result := F;", "Result := Chain.Slot;", "case X of 1: X := 2; end;", "X := UInt64(S);",
+            "contract T { version 0.1;", "uses Coins, Auth, Chain, Math;", "private UInt64 s;",
+            "private Vault of AEY v;", "private List of UInt8 max 3 l;",
+            "private Map of Address to UInt128 m;", "error E \"e\";", "event Ev(UInt64 a);",
+            "public function p(Signer caller, Coins of AEY c)", "public view function f() returns UInt64",
+            "changes storage,", "sends coins", "receives coins", "{", "}", "UInt64 x;",
+            "Coins of AEY k;", "x = 1;", "s = x;", "k = v.withdrawAll;", "v.deposit(move c);",
+            "v.deposit(move k);", "transfer(move k, caller.address);", "if x > 0 {", "} else {",
+            "while x > 0 at most 3 times {", "for each y in l {", "for i from 1 to 3 {",
+            "require x is 1 otherwise E;", "fail E;", "emit Ev(x);", "return;", "return f();",
+            "p(caller, move c);", "return Chain.slot;", "switch x { case 1 -> x = 2; }",
+            "x = UInt64(s);",
         ]),
         0..60,
     )) {

@@ -1,14 +1,20 @@
-//! The parser (spec Sections 25.6, 26): hand-written recursive descent, precedence climbing
-//! for expressions, and error recovery so one mistake does not hide the rest.
+//! The parser (spec Section 26, syntax per ADR-049): hand-written recursive descent,
+//! precedence climbing for expressions, and error recovery so one mistake does not hide the
+//! rest.
+//!
+//! Arno is shaped like Java and Solidity (a `contract { }` with `public` and `private`
+//! members, braces and semicolons) but uses words where those languages use symbols:
+//! `is`, `is not`, `and`, `or`, `not`, `require ... otherwise`, `for each ... in`.
 //!
 //! Expression precedence, lowest first (see `docs/arno/grammar.ebnf`):
 //!
 //! ```text
-//! or xor  <  and  <  = <> < <= > >= (not chained)  <  + -  <  * div mod  <  not, unary -
+//! or xor  <  and  <  is, is not, < <= > >= (not chained)  <  + -  <  * div mod  <  not, unary -
 //! ```
 //!
-//! Comparisons bind tighter than `and`/`or`, so `X > 0 and Y > 0` reads as written. This
-//! departs from classic Pascal on purpose: Arno is meant to read like English.
+//! Local variables may be declared anywhere in a function body (`UInt128 total = 0;`); the
+//! parser collects them into the routine's variable list, so each name is declared once per
+//! function. `return X;` stores `X` in the routine's result and leaves the routine.
 
 use crate::ast::{
     BinaryOp, Block, CaseArm, ConstDecl, Directive, Effect, ErrorDecl, EventDecl, Expr, ExprKind,
@@ -33,9 +39,29 @@ struct Parser<'a> {
     position: usize,
     diagnostics: &'a mut Diagnostics,
     depth: u32,
+    /// Local variables declared so far in the routine being parsed.
+    locals: Vec<FieldGroup>,
+    /// Whether the routine being parsed declares `returns`.
+    returns_value: bool,
 }
 
 const EOF: TokenKind = TokenKind::Eof;
+
+/// Keywords that start a contract member; error recovery resumes at them.
+const MEMBER_START: [Keyword; 12] = [
+    Keyword::Constant,
+    Keyword::Type,
+    Keyword::Enum,
+    Keyword::Record,
+    Keyword::Error,
+    Keyword::Event,
+    Keyword::Public,
+    Keyword::Private,
+    Keyword::Constructor,
+    Keyword::Function,
+    Keyword::View,
+    Keyword::Reentrant,
+];
 
 impl Parser<'_> {
     fn token(&self) -> Option<&Token> {
@@ -139,6 +165,10 @@ impl Parser<'_> {
         }
     }
 
+    fn semicolon(&mut self, context: &str) -> Parse<Span> {
+        self.expect(&TokenKind::Semicolon, context)
+    }
+
     fn ident(&mut self, context: &str) -> Parse<Ident> {
         match self.peek().clone() {
             TokenKind::Ident(name) => {
@@ -179,7 +209,7 @@ impl Parser<'_> {
             self.diagnostics.error(
                 "A1105",
                 span,
-                format!("This is nested more than {MAX_NESTING} levels deep. Split it into smaller routines."),
+                format!("This is nested more than {MAX_NESTING} levels deep. Split it into smaller functions."),
             );
             return Err(Reported);
         }
@@ -191,38 +221,30 @@ impl Parser<'_> {
         self.depth = self.depth.saturating_sub(1);
     }
 
-    /// Skips to the next point a statement list can continue from.
+    /// Skips the rest of a broken statement: past its `;`, or past a `{ }` group it opened,
+    /// stopping before a `}` that closes the enclosing block.
     fn sync_statement(&mut self) {
-        while !matches!(
-            self.peek(),
-            TokenKind::Semicolon
-                | TokenKind::Eof
-                | TokenKind::Keyword(Keyword::End | Keyword::Else | Keyword::Begin)
-        ) {
-            self.bump();
-        }
-    }
-
-    /// Skips to the next declaration, section or routine.
-    fn sync_declaration(&mut self) {
+        let mut depth = 0u32;
         loop {
             match self.peek() {
-                TokenKind::Eof
-                | TokenKind::Keyword(
-                    Keyword::Const
-                    | Keyword::Type
-                    | Keyword::Errors
-                    | Keyword::Events
-                    | Keyword::Storage
-                    | Keyword::Constructor
-                    | Keyword::Procedure
-                    | Keyword::Function
-                    | Keyword::Begin
-                    | Keyword::Var,
-                ) => return,
-                TokenKind::Semicolon => {
+                TokenKind::Eof => return,
+                TokenKind::Semicolon if depth == 0 => {
                     self.bump();
                     return;
+                }
+                TokenKind::LBrace => {
+                    depth = depth.saturating_add(1);
+                    self.bump();
+                }
+                TokenKind::RBrace => {
+                    if depth == 0 {
+                        return;
+                    }
+                    depth = depth.saturating_sub(1);
+                    self.bump();
+                    if depth == 0 {
+                        return;
+                    }
                 }
                 _ => {
                     self.bump();
@@ -231,16 +253,54 @@ impl Parser<'_> {
         }
     }
 
-    // ---- units and declarations ----
+    /// Skips the rest of a broken member: past its `;` or its `{ }` body, or up to the next
+    /// keyword that starts a member, or up to the contract's closing `}`.
+    fn sync_member(&mut self) {
+        let mut depth = 0u32;
+        loop {
+            match self.peek() {
+                TokenKind::Eof => return,
+                TokenKind::Keyword(keyword) if depth == 0 && MEMBER_START.contains(keyword) => {
+                    return;
+                }
+                TokenKind::Semicolon if depth == 0 => {
+                    self.bump();
+                    return;
+                }
+                TokenKind::LBrace => {
+                    depth = depth.saturating_add(1);
+                    self.bump();
+                }
+                TokenKind::RBrace => {
+                    if depth == 0 {
+                        return;
+                    }
+                    depth = depth.saturating_sub(1);
+                    self.bump();
+                    if depth == 0 {
+                        return;
+                    }
+                }
+                _ => {
+                    self.bump();
+                }
+            }
+        }
+    }
+
+    // ---- the contract and its members ----
 
     fn unit(&mut self) -> Parse<Unit> {
         let start = self.span();
         self.expect_kw(Keyword::Contract, "at the start of the file")?;
         let name = self.ident("after 'contract'")?;
-        self.expect(&TokenKind::Semicolon, "after the contract name")?;
-        self.expect_kw(Keyword::Version, "after the contract name")?;
+        self.expect(&TokenKind::LBrace, "after the contract name")?;
+        self.expect_kw(
+            Keyword::Version,
+            "as the contract's first line (as in 'version 0.1;')",
+        )?;
         let (version, version_span) = self.version()?;
-        self.expect(&TokenKind::Semicolon, "after the version")?;
+        self.semicolon("after the version")?;
 
         let mut uses = Vec::new();
         if self.eat_kw(Keyword::Uses) {
@@ -250,11 +310,8 @@ impl Parser<'_> {
                     break;
                 }
             }
-            if self
-                .expect(&TokenKind::Semicolon, "after the uses list")
-                .is_err()
-            {
-                self.sync_declaration();
+            if self.semicolon("after the uses list").is_err() {
+                self.sync_member();
             }
         }
 
@@ -272,81 +329,76 @@ impl Parser<'_> {
             span: start,
         };
         loop {
-            match self.peek() {
-                TokenKind::Keyword(Keyword::Const) => {
-                    self.bump();
-                    self.const_section(&mut unit.consts);
-                }
-                TokenKind::Keyword(Keyword::Type) => {
-                    self.bump();
-                    self.type_section(&mut unit.types);
-                }
-                TokenKind::Keyword(Keyword::Errors) => {
-                    self.bump();
-                    self.errors_section(&mut unit.errors);
-                }
-                TokenKind::Keyword(Keyword::Events) => {
-                    self.bump();
-                    self.events_section(&mut unit.events);
-                }
-                TokenKind::Keyword(Keyword::Storage) => {
-                    self.bump();
-                    self.field_section(&mut unit.storage, "in the storage section");
-                }
-                TokenKind::Keyword(
-                    Keyword::Constructor | Keyword::Procedure | Keyword::Function,
-                ) => match self.routine() {
-                    Ok(routine) => unit.routines.push(routine),
-                    Err(Reported) => self.sync_declaration(),
-                },
-                TokenKind::Keyword(Keyword::End) => break,
+            let result = match self.peek() {
+                TokenKind::RBrace => break,
                 TokenKind::Eof => {
                     let span = self.span();
                     self.diagnostics.error(
                         "A1103",
                         span,
-                        "The contract must end with 'end.' after its last routine.",
+                        "The contract must end with '}' after its last member.",
                     );
                     return Err(Reported);
                 }
-                _ => {
-                    let _ = self.error_here(
-                        "a section (const, type, errors, events, storage) or a routine",
-                        "here",
-                    );
-                    // One report, then straight to the next thing that can start here.
-                    while !matches!(
-                        self.peek(),
-                        TokenKind::Eof
-                            | TokenKind::Keyword(
-                                Keyword::Const
-                                    | Keyword::Type
-                                    | Keyword::Errors
-                                    | Keyword::Events
-                                    | Keyword::Storage
-                                    | Keyword::Constructor
-                                    | Keyword::Procedure
-                                    | Keyword::Function
-                                    | Keyword::End
-                            )
-                    ) {
-                        self.bump();
-                    }
+                TokenKind::Keyword(Keyword::Constant) => self.constant(&mut unit.consts),
+                TokenKind::Keyword(Keyword::Type) => self.type_alias(&mut unit.types),
+                TokenKind::Keyword(Keyword::Enum) => self.enumeration(&mut unit.types),
+                TokenKind::Keyword(Keyword::Record) => self.record(&mut unit.types),
+                TokenKind::Keyword(Keyword::Error) => self.error_decl(&mut unit.errors),
+                TokenKind::Keyword(Keyword::Event) => self.event(&mut unit.events),
+                TokenKind::Keyword(Keyword::Constructor) => self
+                    .constructor()
+                    .map(|routine| unit.routines.push(routine)),
+                TokenKind::Keyword(
+                    Keyword::Function | Keyword::View | Keyword::Reentrant | Keyword::Public,
+                ) if self.routine_ahead() => {
+                    self.routine().map(|routine| unit.routines.push(routine))
+                }
+                TokenKind::Keyword(Keyword::Private) if self.routine_ahead() => {
+                    self.routine().map(|routine| unit.routines.push(routine))
+                }
+                TokenKind::Keyword(Keyword::Public | Keyword::Private)
+                | TokenKind::Ident(_)
+                | TokenKind::Keyword(Keyword::Array) => self.storage_field(&mut unit.storage),
+                _ => Err(self.error_here(
+                    "a member (a variable, function, constant, type, error or event)",
+                    "inside the contract",
+                )),
+            };
+            if result.is_err() {
+                let before = self.position;
+                self.sync_member();
+                if self.position == before {
+                    // Recovery must always move forward, or a stray `view` would loop forever.
+                    self.bump();
                 }
             }
         }
-        self.expect_kw(Keyword::End, "at the end of the contract")?;
-        let end = self.expect(&TokenKind::Dot, "after the final 'end'")?;
+        let end = self.expect(&TokenKind::RBrace, "at the end of the contract")?;
         if !self.at(&TokenKind::Eof) {
             let span = self.span();
             self.diagnostics.error(
                 "A1104",
                 span,
-                "Nothing may follow the final 'end.' of a contract.",
+                "Nothing may follow the contract's closing '}'.",
             );
         }
         unit.span = start.to(end);
         Ok(unit)
+    }
+
+    /// After `public`, `private`, `view` or `reentrant`: does a function follow the modifiers?
+    fn routine_ahead(&self) -> bool {
+        let mut ahead = 0usize;
+        loop {
+            match self.peek_at(ahead) {
+                TokenKind::Keyword(Keyword::Function) => return true,
+                TokenKind::Keyword(
+                    Keyword::Public | Keyword::Private | Keyword::View | Keyword::Reentrant,
+                ) => ahead = ahead.saturating_add(1),
+                _ => return false,
+            }
+        }
     }
 
     fn version(&mut self) -> Parse<((u16, u16), Span)> {
@@ -373,131 +425,145 @@ impl Parser<'_> {
         Ok(((major, minor), start.to(self.previous_span())))
     }
 
-    fn const_section(&mut self, out: &mut Vec<ConstDecl>) {
-        while matches!(self.peek(), TokenKind::Ident(_)) {
-            let declaration = (|| -> Parse<ConstDecl> {
-                let name = self.ident("for a constant")?;
-                self.expect(&TokenKind::Eq, "after the constant name")?;
-                let value = self.expr()?;
-                self.expect(&TokenKind::Semicolon, "after the constant")?;
-                Ok(ConstDecl { name, value })
-            })();
-            match declaration {
-                Ok(declaration) => out.push(declaration),
-                Err(Reported) => self.sync_declaration(),
-            }
-        }
+    /// `constant MaxStaff = 500;`
+    fn constant(&mut self, out: &mut Vec<ConstDecl>) -> Parse<()> {
+        self.bump();
+        let name = self.ident("for the constant")?;
+        self.expect(&TokenKind::Assign, "after the constant's name")?;
+        let value = self.expr()?;
+        self.semicolon("after the constant")?;
+        out.push(ConstDecl { name, value });
+        Ok(())
     }
 
-    fn type_section(&mut self, out: &mut Vec<TypeDecl>) {
-        while matches!(self.peek(), TokenKind::Ident(_)) {
-            let declaration = (|| -> Parse<TypeDecl> {
-                let name = self.ident("for a type")?;
-                self.expect(&TokenKind::Eq, "after the type name")?;
-                let def = if self.eat(&TokenKind::LParen) {
-                    let mut variants = vec![self.ident("in the enumeration")?];
-                    while self.eat(&TokenKind::Comma) {
-                        variants.push(self.ident("in the enumeration")?);
-                    }
-                    self.expect(&TokenKind::RParen, "to close the enumeration")?;
-                    TypeDef::Enum(variants)
-                } else if self.eat_kw(Keyword::Record) {
-                    let mut fields = Vec::new();
-                    self.field_section(&mut fields, "in the record");
-                    self.expect_kw(Keyword::End, "to close the record")?;
-                    TypeDef::Record(fields)
-                } else {
-                    TypeDef::Alias(self.type_expr()?)
-                };
-                self.expect(&TokenKind::Semicolon, "after the type")?;
-                Ok(TypeDecl { name, def })
-            })();
-            match declaration {
-                Ok(declaration) => out.push(declaration),
-                Err(Reported) => self.sync_declaration(),
-            }
-        }
+    /// `type Amount = UInt128;`
+    fn type_alias(&mut self, out: &mut Vec<TypeDecl>) -> Parse<()> {
+        self.bump();
+        let name = self.ident("for the type")?;
+        self.expect(&TokenKind::Assign, "after the type's name")?;
+        let def = TypeDef::Alias(self.type_expr()?);
+        self.semicolon("after the type")?;
+        out.push(TypeDecl { name, def });
+        Ok(())
     }
 
-    fn errors_section(&mut self, out: &mut Vec<ErrorDecl>) {
-        while matches!(self.peek(), TokenKind::Ident(_)) {
-            let declaration = (|| -> Parse<ErrorDecl> {
-                let name = self.ident("for an error")?;
-                self.expect(&TokenKind::Eq, "after the error name")?;
-                let message_span = self.span();
-                let TokenKind::Str(message) = self.peek().clone() else {
-                    return Err(self.error_here("an English message in quotes", "for the error"));
-                };
-                self.bump();
-                self.expect(&TokenKind::Semicolon, "after the error message")?;
-                Ok(ErrorDecl {
-                    name,
-                    message,
-                    message_span,
-                })
-            })();
-            match declaration {
-                Ok(declaration) => out.push(declaration),
-                Err(Reported) => self.sync_declaration(),
+    /// `enum Phase { Open, Funded, Closed }`
+    fn enumeration(&mut self, out: &mut Vec<TypeDecl>) -> Parse<()> {
+        self.bump();
+        let name = self.ident("for the enum")?;
+        self.expect(&TokenKind::LBrace, "after the enum's name")?;
+        let mut variants = vec![self.ident("in the enum")?];
+        while self.eat(&TokenKind::Comma) {
+            if self.at(&TokenKind::RBrace) {
+                break;
             }
+            variants.push(self.ident("in the enum")?);
         }
+        self.expect(&TokenKind::RBrace, "to close the enum")?;
+        out.push(TypeDecl {
+            name,
+            def: TypeDef::Enum(variants),
+        });
+        Ok(())
     }
 
-    fn events_section(&mut self, out: &mut Vec<EventDecl>) {
-        while matches!(self.peek(), TokenKind::Ident(_)) {
-            let declaration = (|| -> Parse<EventDecl> {
-                let name = self.ident("for an event")?;
-                let params = if self.at(&TokenKind::LParen) {
-                    self.params()?
-                } else {
-                    Vec::new()
-                };
-                self.expect(&TokenKind::Semicolon, "after the event")?;
-                Ok(EventDecl { name, params })
-            })();
-            match declaration {
-                Ok(declaration) => out.push(declaration),
-                Err(Reported) => self.sync_declaration(),
+    /// `record Employee { Address wallet; UInt128 salary; }`
+    fn record(&mut self, out: &mut Vec<TypeDecl>) -> Parse<()> {
+        self.bump();
+        let name = self.ident("for the record")?;
+        self.expect(&TokenKind::LBrace, "after the record's name")?;
+        let mut fields = Vec::new();
+        while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
+            match self.declared_names("in the record") {
+                Ok(group) => fields.push(group),
+                Err(Reported) => self.sync_statement(),
             }
         }
+        self.expect(&TokenKind::RBrace, "to close the record")?;
+        out.push(TypeDecl {
+            name,
+            def: TypeDef::Record(fields),
+        });
+        Ok(())
     }
 
-    /// `A, B: T;` groups while the next token is a name (storage, records, `var`).
-    fn field_section(&mut self, out: &mut Vec<FieldGroup>, context: &str) {
-        while matches!(self.peek(), TokenKind::Ident(_)) {
-            let group = (|| -> Parse<FieldGroup> {
-                let group = self.field_group(context)?;
-                self.expect(
-                    &TokenKind::Semicolon,
-                    &format!("after the declaration {context}"),
-                )?;
-                Ok(group)
-            })();
-            match group {
-                Ok(group) => out.push(group),
-                Err(Reported) => self.sync_declaration(),
-            }
+    /// `error NotOwner "Only the owner can do this.";`
+    fn error_decl(&mut self, out: &mut Vec<ErrorDecl>) -> Parse<()> {
+        self.bump();
+        let name = self.ident("for the error")?;
+        let message_span = self.span();
+        let TokenKind::Str(message) = self.peek().clone() else {
+            return Err(self.error_here(
+                "an English message in double quotes",
+                "after the error's name",
+            ));
+        };
+        self.bump();
+        self.semicolon("after the error message")?;
+        out.push(ErrorDecl {
+            name,
+            message,
+            message_span,
+        });
+        Ok(())
+    }
+
+    /// `event Paid(Address wallet, UInt128 amount);`
+    fn event(&mut self, out: &mut Vec<EventDecl>) -> Parse<()> {
+        self.bump();
+        let name = self.ident("for the event")?;
+        let params = if self.at(&TokenKind::LParen) {
+            self.params()?
+        } else {
+            Vec::new()
+        };
+        self.semicolon("after the event")?;
+        out.push(EventDecl { name, params });
+        Ok(())
+    }
+
+    /// `private Address owner;` (or without `private`). Storage is always private.
+    fn storage_field(&mut self, out: &mut Vec<FieldGroup>) -> Parse<()> {
+        if self.at_kw(Keyword::Public) {
+            let span = self.bump();
+            self.diagnostics.error(
+                "A1110",
+                span,
+                "Contract variables are always private. To let others read one, add a 'public view function' that returns it.",
+            );
+        } else {
+            self.eat_kw(Keyword::Private);
         }
+        out.push(self.declared_names("for the contract variable")?);
+        Ok(())
     }
 
-    fn field_group(&mut self, context: &str) -> Parse<FieldGroup> {
+    /// `Type a, b;` in records and storage.
+    fn declared_names(&mut self, context: &str) -> Parse<FieldGroup> {
+        let ty = self.type_expr()?;
         let mut names = vec![self.ident(context)?];
         while self.eat(&TokenKind::Comma) {
             names.push(self.ident(context)?);
         }
-        self.expect(&TokenKind::Colon, "between the names and their type")?;
-        let ty = self.type_expr()?;
+        self.semicolon(&format!("after the declaration {context}"))?;
         Ok(FieldGroup { names, ty })
     }
 
-    /// `( A, B: T; C: U )`.
+    /// `(Type a, Type b)`: one name per type, as in Java.
     fn params(&mut self) -> Parse<Vec<FieldGroup>> {
         self.expect(&TokenKind::LParen, "to start the parameters")?;
         let mut groups = Vec::new();
         if !self.at(&TokenKind::RParen) {
-            groups.push(self.field_group("in the parameters")?);
-            while self.eat(&TokenKind::Semicolon) {
-                groups.push(self.field_group("in the parameters")?);
+            loop {
+                let ty = self.type_expr()?;
+                let name = self.ident("for the parameter, after its type")?;
+                groups.push(FieldGroup {
+                    names: vec![name],
+                    ty,
+                });
+                if !self.eat(&TokenKind::Comma) {
+                    break;
+                }
             }
         }
         self.expect(&TokenKind::RParen, "to close the parameters")?;
@@ -534,7 +600,7 @@ impl Parser<'_> {
             let elem = self.type_expr()?;
             self.expect_word(
                 "max",
-                "after the list's element type (every list has a maximum)",
+                "after the list's item type (every list has a maximum)",
             )?;
             TypeExprKind::List {
                 elem: Box::new(elem),
@@ -588,40 +654,124 @@ impl Parser<'_> {
         })
     }
 
+    // ---- functions ----
+
+    /// `constructor(Signer caller, ...) changes storage { ... }`
+    fn constructor(&mut self) -> Parse<Routine> {
+        let start = self.bump();
+        let name = Ident {
+            name: "constructor".to_owned(),
+            span: start,
+        };
+        let params = self.params()?;
+        let effects = self.effects()?;
+        self.routine_body(
+            RoutineKind::Constructor,
+            name,
+            params,
+            None,
+            Vec::new(),
+            effects,
+            start,
+        )
+    }
+
+    /// `public view function name(Type a) returns Type changes storage { ... }`
+    ///
+    /// A public function without a result is an entry the outside world calls; a view function
+    /// is readable by anyone; a private function is a helper only this contract calls.
     fn routine(&mut self) -> Parse<Routine> {
         let start = self.span();
-        let kind = match self.peek() {
-            TokenKind::Keyword(Keyword::Constructor) => RoutineKind::Constructor,
-            TokenKind::Keyword(Keyword::Procedure) => RoutineKind::Procedure,
-            _ => RoutineKind::Function,
-        };
-        self.bump();
-        let name = self.ident("for the routine")?;
-        let params = if self.at(&TokenKind::LParen) {
-            self.params()?
-        } else {
-            Vec::new()
-        };
-        let returns = if self.eat(&TokenKind::Colon) {
+        let mut public = None;
+        let mut private = false;
+        let mut view = None;
+        let mut reentrant = None;
+        loop {
+            match self.peek() {
+                TokenKind::Keyword(Keyword::Public) => public = Some(self.bump()),
+                TokenKind::Keyword(Keyword::Private) => {
+                    let span = self.bump();
+                    private = true;
+                    if view.is_some() {
+                        self.private_view(span);
+                    }
+                }
+                TokenKind::Keyword(Keyword::View) => {
+                    let span = self.bump();
+                    if private {
+                        self.private_view(span);
+                    }
+                    view = Some(span);
+                }
+                TokenKind::Keyword(Keyword::Reentrant) => reentrant = Some(self.bump()),
+                _ => break,
+            }
+        }
+        self.expect_kw(Keyword::Function, "after the function's modifiers")?;
+        let name = self.ident("for the function")?;
+        let params = self.params()?;
+        let returns = if self.eat_kw(Keyword::Returns) {
             Some(self.type_expr()?)
         } else {
             None
         };
-        self.expect(&TokenKind::Semicolon, "after the routine heading")?;
+        let effects = self.effects()?;
 
         let mut directives = Vec::new();
-        loop {
-            let directive = match self.peek() {
-                TokenKind::Keyword(Keyword::Entry) => Directive::Entry,
-                TokenKind::Keyword(Keyword::View) => Directive::View,
-                TokenKind::Keyword(Keyword::Reentrant) => Directive::Reentrant,
-                _ => break,
-            };
-            let span = self.bump();
-            directives.push((directive, span));
-            self.expect(&TokenKind::Semicolon, "after the directive")?;
+        match (view, public) {
+            (Some(span), _) => directives.push((Directive::View, span)),
+            (None, Some(span)) => directives.push((Directive::Entry, span)),
+            (None, None) => {}
         }
+        if let Some(span) = reentrant {
+            directives.push((Directive::Reentrant, span));
+        }
+        let kind = if returns.is_some() {
+            RoutineKind::Function
+        } else {
+            RoutineKind::Procedure
+        };
+        self.routine_body(kind, name, params, returns, directives, effects, start)
+    }
 
+    fn private_view(&mut self, span: Span) {
+        self.diagnostics.error(
+            "A1112",
+            span,
+            "A view function can be read by anyone, so it cannot be private. Write 'public view function'.",
+        );
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn routine_body(
+        &mut self,
+        kind: RoutineKind,
+        name: Ident,
+        params: Vec<FieldGroup>,
+        returns: Option<TypeExpr>,
+        directives: Vec<(Directive, Span)>,
+        effects: Vec<(Effect, Span)>,
+        start: Span,
+    ) -> Parse<Routine> {
+        self.locals.clear();
+        self.returns_value = returns.is_some();
+        let mut body = self.block()?;
+        drop_trailing_exit(&mut body);
+        Ok(Routine {
+            kind,
+            name,
+            params,
+            returns,
+            directives,
+            effects,
+            vars: std::mem::take(&mut self.locals),
+            body,
+            span: start.to(self.previous_span()),
+        })
+    }
+
+    /// `changes storage, sends coins, ...` before the body; may be empty.
+    fn effects(&mut self) -> Parse<Vec<(Effect, Span)>> {
         let mut effects = Vec::new();
         if ["changes", "receives", "sends", "emits", "calls"]
             .iter()
@@ -633,33 +783,14 @@ impl Parser<'_> {
                     break;
                 }
             }
-            self.expect(&TokenKind::Semicolon, "after the effects list")?;
         }
-
-        let mut vars = Vec::new();
-        if self.eat_kw(Keyword::Var) {
-            self.field_section(&mut vars, "in the var block");
-        }
-        let body = self.block()?;
-        self.expect(&TokenKind::Semicolon, "after the routine's 'end'")?;
-        Ok(Routine {
-            kind,
-            name,
-            params,
-            returns,
-            directives,
-            effects,
-            vars,
-            body,
-            span: start.to(self.previous_span()),
-        })
+        Ok(effects)
     }
 
     fn effect(&mut self) -> Parse<(Effect, Span)> {
         let start = self.span();
-        let context = "in the effects list";
         let effect = if self.eat_word("changes") {
-            self.expect_kw(Keyword::Storage, "after 'changes'")?;
+            self.expect_word("storage", "after 'changes'")?;
             Effect::ChangesStorage
         } else if self.eat_word("receives") {
             self.expect_word("coins", "after 'receives'")?;
@@ -668,7 +799,7 @@ impl Parser<'_> {
             self.expect_word("coins", "after 'sends'")?;
             Effect::SendsCoins
         } else if self.eat_word("emits") {
-            self.expect_kw(Keyword::Events, "after 'emits'")?;
+            self.expect_word("events", "after 'emits'")?;
             Effect::EmitsEvents
         } else if self.eat_word("calls") {
             self.expect_word("contracts", "after 'calls'")?;
@@ -676,7 +807,7 @@ impl Parser<'_> {
         } else {
             return Err(self.error_here(
                 "an effect (changes storage, receives coins, sends coins, emits events, calls contracts)",
-                context,
+                "in the effects list",
             ));
         };
         Ok((effect, start.to(self.previous_span())))
@@ -685,30 +816,30 @@ impl Parser<'_> {
     // ---- statements ----
 
     fn block(&mut self) -> Parse<Block> {
-        let start = self.expect_kw(Keyword::Begin, "to start the block")?;
+        let start = self.expect(&TokenKind::LBrace, "to start the block")?;
         let mut stmts = Vec::new();
-        loop {
-            if self.at_kw(Keyword::End) || self.at(&TokenKind::Eof) {
-                break;
-            }
+        while !self.at(&TokenKind::RBrace) && !self.at(&TokenKind::Eof) {
+            let before = self.position;
             match self.stmt() {
                 Ok(stmt) => stmts.push(stmt),
                 Err(Reported) => self.sync_statement(),
             }
-            if self.eat(&TokenKind::Semicolon) {
-                continue;
+            if self.position == before && !self.at(&TokenKind::RBrace) {
+                self.bump();
             }
-            if self.at_kw(Keyword::End) || self.at(&TokenKind::Eof) {
-                break;
-            }
-            let _ = self.error_here("';' between statements", "here");
-            self.sync_statement();
-            self.eat(&TokenKind::Semicolon);
         }
-        let end = self.expect_kw(Keyword::End, "to close the block")?;
+        let end = self.expect(&TokenKind::RBrace, "to close the block")?;
         Ok(Block {
             stmts,
             span: start.to(end),
+        })
+    }
+
+    fn block_stmt(&mut self) -> Parse<Stmt> {
+        let block = self.block()?;
+        Ok(Stmt {
+            span: block.span,
+            kind: StmtKind::Block(block),
         })
     }
 
@@ -721,55 +852,17 @@ impl Parser<'_> {
 
     fn stmt_inner(&mut self) -> Parse<Stmt> {
         let start = self.span();
+        let declaration = self.declaration_ahead();
         let kind = match self.peek() {
-            TokenKind::Semicolon
-            | TokenKind::Keyword(Keyword::End | Keyword::Else)
-            | TokenKind::Eof => StmtKind::Empty,
-            TokenKind::Keyword(Keyword::Begin) => StmtKind::Block(self.block()?),
-            TokenKind::Keyword(Keyword::If) => {
+            _ if declaration => self.declaration()?,
+            TokenKind::Semicolon => {
                 self.bump();
-                let cond = self.expr()?;
-                self.expect_kw(Keyword::Then, "after the 'if' condition")?;
-                let then = self.stmt()?;
-                let otherwise = if self.eat_kw(Keyword::Else) {
-                    Some(Box::new(self.stmt()?))
-                } else {
-                    None
-                };
-                StmtKind::If {
-                    cond,
-                    then: Box::new(then),
-                    otherwise,
-                }
+                StmtKind::Empty
             }
-            TokenKind::Keyword(Keyword::Case) => self.case_stmt()?,
-            TokenKind::Keyword(Keyword::For) => {
-                self.bump();
-                if self.eat_word("each") {
-                    let var = self.ident("after 'for each'")?;
-                    self.expect_kw(Keyword::In, "after the loop variable")?;
-                    let collection = self.expr()?;
-                    self.expect_kw(Keyword::Do, "after the collection")?;
-                    StmtKind::ForEach {
-                        var,
-                        collection,
-                        body: Box::new(self.stmt()?),
-                    }
-                } else {
-                    let var = self.ident("after 'for'")?;
-                    self.expect(&TokenKind::Assign, "after the loop variable")?;
-                    let from = self.expr()?;
-                    self.expect_kw(Keyword::To, "after the loop's first value")?;
-                    let to = self.expr()?;
-                    self.expect_kw(Keyword::Do, "after the loop's last value")?;
-                    StmtKind::ForTo {
-                        var,
-                        from,
-                        to,
-                        body: Box::new(self.stmt()?),
-                    }
-                }
-            }
+            TokenKind::LBrace => StmtKind::Block(self.block()?),
+            TokenKind::Keyword(Keyword::If) => self.if_stmt()?,
+            TokenKind::Keyword(Keyword::Switch) => self.switch_stmt()?,
+            TokenKind::Keyword(Keyword::For) => self.for_stmt()?,
             TokenKind::Keyword(Keyword::While) => {
                 let keyword = self.bump();
                 let cond = self.expr()?;
@@ -786,25 +879,25 @@ impl Parser<'_> {
                     );
                     None
                 };
-                self.expect_kw(Keyword::Do, "after the while condition")?;
                 StmtKind::While {
                     cond,
                     bound,
-                    body: Box::new(self.stmt()?),
+                    body: Box::new(self.block_stmt()?),
                 }
             }
             TokenKind::Keyword(Keyword::Require) => {
                 self.bump();
                 let cond = self.expr()?;
                 self.expect_kw(Keyword::Otherwise, "after the 'require' condition")?;
-                StmtKind::Require {
-                    cond,
-                    error: self.ident("after 'otherwise' (the name of an error)")?,
-                }
+                let error = self.ident("after 'otherwise' (the name of an error)")?;
+                self.semicolon("after the 'require'")?;
+                StmtKind::Require { cond, error }
             }
             TokenKind::Keyword(Keyword::Fail) => {
                 self.bump();
-                StmtKind::Fail(self.ident("after 'fail' (the name of an error)")?)
+                let error = self.ident("after 'fail' (the name of an error)")?;
+                self.semicolon("after the 'fail'")?;
+                StmtKind::Fail(error)
             }
             TokenKind::Keyword(Keyword::Emit) => {
                 self.bump();
@@ -814,15 +907,13 @@ impl Parser<'_> {
                 } else {
                     Vec::new()
                 };
+                self.semicolon("after the 'emit'")?;
                 StmtKind::Emit { event, args }
             }
-            TokenKind::Keyword(Keyword::Exit) => {
-                self.bump();
-                StmtKind::Exit
-            }
+            TokenKind::Keyword(Keyword::Return) => self.return_stmt()?,
             _ => {
                 let target = self.expr()?;
-                if self.eat(&TokenKind::Assign) {
+                let kind = if self.eat(&TokenKind::Assign) {
                     StmtKind::Assign {
                         target,
                         value: self.expr()?,
@@ -836,10 +927,12 @@ impl Parser<'_> {
                     self.diagnostics.error(
                         "A1107",
                         target.span,
-                        "This expression does nothing on its own. A statement assigns with ':=' or calls a routine.",
+                        "This expression does nothing on its own. A statement assigns with '=' or calls a function.",
                     );
                     return Err(Reported);
-                }
+                };
+                self.semicolon("at the end of the statement")?;
+                kind
             }
         };
         Ok(Stmt {
@@ -848,37 +941,215 @@ impl Parser<'_> {
         })
     }
 
-    fn case_stmt(&mut self) -> Parse<StmtKind> {
+    /// `if X { } else if Y { } else { }`
+    fn if_stmt(&mut self) -> Parse<StmtKind> {
+        self.bump();
+        let cond = self.expr()?;
+        let then = self.block_stmt()?;
+        let otherwise = if self.eat_kw(Keyword::Else) {
+            if self.at_kw(Keyword::If) {
+                Some(Box::new(self.stmt()?))
+            } else {
+                Some(Box::new(self.block_stmt()?))
+            }
+        } else {
+            None
+        };
+        Ok(StmtKind::If {
+            cond,
+            then: Box::new(then),
+            otherwise,
+        })
+    }
+
+    /// `switch X { case A, B -> ...; default -> ...; }`
+    fn switch_stmt(&mut self) -> Parse<StmtKind> {
         self.bump();
         let subject = self.expr()?;
-        self.expect_kw(Keyword::Of, "after the 'case' value")?;
+        self.expect(&TokenKind::LBrace, "after the 'switch' value")?;
         let mut arms = Vec::new();
         let mut otherwise = None;
         loop {
-            if self.at_kw(Keyword::End) || self.at(&TokenKind::Eof) {
+            if self.at(&TokenKind::RBrace) || self.at(&TokenKind::Eof) {
                 break;
             }
-            if self.eat_kw(Keyword::Else) {
+            if self.eat_kw(Keyword::Default) {
+                self.expect(&TokenKind::Arrow, "after 'default'")?;
                 otherwise = Some(Box::new(self.stmt()?));
-                self.eat(&TokenKind::Semicolon);
                 break;
             }
+            self.expect_kw(Keyword::Case, "to start a 'switch' arm")?;
             let mut labels = vec![self.expr()?];
             while self.eat(&TokenKind::Comma) {
                 labels.push(self.expr()?);
             }
-            self.expect(&TokenKind::Colon, "after the case label")?;
+            self.expect(&TokenKind::Arrow, "after the case values")?;
             let body = self.stmt()?;
             arms.push(CaseArm { labels, body });
-            if !self.eat(&TokenKind::Semicolon) {
-                break;
-            }
         }
-        self.expect_kw(Keyword::End, "to close the 'case'")?;
+        self.expect(
+            &TokenKind::RBrace,
+            "to close the 'switch' ('default' must be the last arm)",
+        )?;
         Ok(StmtKind::Case {
             subject,
             arms,
             otherwise,
+        })
+    }
+
+    /// `for each [Type] x in list { }` or `for [Type] i from 1 to 10 { }`. Without a type,
+    /// the checker gives the variable the items' type (or UInt64 when counting).
+    fn for_stmt(&mut self) -> Parse<StmtKind> {
+        self.bump();
+        if self.eat_word("each") {
+            let var = self.loop_variable(|next| next == &TokenKind::Keyword(Keyword::In))?;
+            self.expect_kw(Keyword::In, "after the loop variable")?;
+            let collection = self.expr()?;
+            Ok(StmtKind::ForEach {
+                var,
+                collection,
+                body: Box::new(self.block_stmt()?),
+            })
+        } else {
+            let var = self.loop_variable(
+                |next| matches!(next, TokenKind::Ident(w) if w.eq_ignore_ascii_case("from")),
+            )?;
+            self.expect_word(
+                "from",
+                "after the loop variable (as in 'for i from 1 to 10')",
+            )?;
+            let from = self.expr()?;
+            self.expect_kw(Keyword::To, "after the loop's first value")?;
+            let to = self.expr()?;
+            Ok(StmtKind::ForTo {
+                var,
+                from,
+                to,
+                body: Box::new(self.block_stmt()?),
+            })
+        }
+    }
+
+    /// The loop variable, with an optional type before it that declares it.
+    fn loop_variable(&mut self, ends: impl Fn(&TokenKind) -> bool) -> Parse<Ident> {
+        if matches!(self.peek(), TokenKind::Ident(_)) && ends(self.peek_at(1)) {
+            return self.ident("for the loop variable");
+        }
+        let ty = self.type_expr()?;
+        let var = self.ident("for the loop variable, after its type")?;
+        self.locals.push(FieldGroup {
+            names: vec![var.clone()],
+            ty,
+        });
+        Ok(var)
+    }
+
+    /// `return;` or `return X;`.
+    fn return_stmt(&mut self) -> Parse<StmtKind> {
+        let keyword = self.bump();
+        if self.eat(&TokenKind::Semicolon) {
+            return Ok(StmtKind::Exit);
+        }
+        let value = self.expr()?;
+        self.semicolon("after the 'return'")?;
+        if !self.returns_value {
+            self.diagnostics.error(
+                "A1111",
+                value.span,
+                "This function has no 'returns' type, so 'return' cannot give back a value. Write 'return;', or add 'returns <Type>'.",
+            );
+            return Err(Reported);
+        }
+        let result = Expr {
+            kind: ExprKind::Name(Ident {
+                name: "Result".to_owned(),
+                span: keyword,
+            }),
+            span: keyword,
+        };
+        let span = keyword.to(self.previous_span());
+        Ok(StmtKind::Block(Block {
+            stmts: vec![
+                Stmt {
+                    kind: StmtKind::Assign {
+                        target: result,
+                        value,
+                    },
+                    span,
+                },
+                Stmt {
+                    kind: StmtKind::Exit,
+                    span: keyword,
+                },
+            ],
+            span,
+        }))
+    }
+
+    /// Does a local variable declaration (`Type name ...`) start here? Tries to read a type
+    /// followed by a name, then rewinds; nothing it reports while trying is kept.
+    fn declaration_ahead(&mut self) -> bool {
+        if !matches!(
+            self.peek(),
+            TokenKind::Ident(_) | TokenKind::Keyword(Keyword::Array)
+        ) {
+            return false;
+        }
+        if matches!(self.peek_at(1), TokenKind::Ident(_)) {
+            return true;
+        }
+        let (position, depth) = (self.position, self.depth);
+        let saved = std::mem::take(self.diagnostics);
+        let found = self.type_expr().is_ok() && matches!(self.peek(), TokenKind::Ident(_));
+        *self.diagnostics = saved;
+        self.position = position;
+        self.depth = depth;
+        found
+    }
+
+    /// `Type a = 1, b;`: the names join the function's variables; initial values become
+    /// assignments in place.
+    fn declaration(&mut self) -> Parse<StmtKind> {
+        let ty = self.type_expr()?;
+        let mut names = Vec::new();
+        let mut assignments = Vec::new();
+        loop {
+            let name = self.ident("for the variable, after its type")?;
+            if self.eat(&TokenKind::Assign) {
+                let value = self.expr()?;
+                let span = name.span.to(value.span);
+                assignments.push(Stmt {
+                    kind: StmtKind::Assign {
+                        target: Expr {
+                            span: name.span,
+                            kind: ExprKind::Name(name.clone()),
+                        },
+                        value,
+                    },
+                    span,
+                });
+            }
+            names.push(name);
+            if !self.eat(&TokenKind::Comma) {
+                break;
+            }
+        }
+        self.semicolon("after the variable declaration")?;
+        self.locals.push(FieldGroup { names, ty });
+        Ok(match assignments.len() {
+            0 => StmtKind::Empty,
+            1 => assignments.pop().map_or(StmtKind::Empty, |stmt| stmt.kind),
+            _ => {
+                let span = assignments
+                    .first()
+                    .map_or(Span::default(), |s| s.span)
+                    .to(self.previous_span());
+                StmtKind::Block(Block {
+                    stmts: assignments,
+                    span,
+                })
+            }
         })
     }
 
@@ -904,22 +1175,29 @@ impl Parser<'_> {
         result
     }
 
-    fn binary_op(&self) -> Option<(BinaryOp, u8)> {
+    /// The operator here: what it is, how tightly it binds, and how many tokens it spans.
+    fn binary_op(&self) -> Option<(BinaryOp, u8, usize)> {
         Some(match self.peek() {
-            TokenKind::Keyword(Keyword::Or) => (BinaryOp::Or, 1),
-            TokenKind::Keyword(Keyword::Xor) => (BinaryOp::Xor, 1),
-            TokenKind::Keyword(Keyword::And) => (BinaryOp::And, 2),
-            TokenKind::Eq => (BinaryOp::Eq, 3),
-            TokenKind::NotEq => (BinaryOp::NotEq, 3),
-            TokenKind::Lt => (BinaryOp::Lt, 3),
-            TokenKind::LtEq => (BinaryOp::LtEq, 3),
-            TokenKind::Gt => (BinaryOp::Gt, 3),
-            TokenKind::GtEq => (BinaryOp::GtEq, 3),
-            TokenKind::Plus => (BinaryOp::Add, 4),
-            TokenKind::Minus => (BinaryOp::Sub, 4),
-            TokenKind::Star => (BinaryOp::Mul, 5),
-            TokenKind::Keyword(Keyword::Div) => (BinaryOp::Div, 5),
-            TokenKind::Keyword(Keyword::Mod) => (BinaryOp::Mod, 5),
+            TokenKind::Keyword(Keyword::Or) => (BinaryOp::Or, 1, 1),
+            TokenKind::Keyword(Keyword::Xor) => (BinaryOp::Xor, 1, 1),
+            TokenKind::Keyword(Keyword::And) => (BinaryOp::And, 2, 1),
+            TokenKind::Keyword(Keyword::Is)
+                if self.peek_at(1) == &TokenKind::Keyword(Keyword::Not) =>
+            {
+                (BinaryOp::NotEq, 3, 2)
+            }
+            TokenKind::Keyword(Keyword::Is) => (BinaryOp::Eq, 3, 1),
+            TokenKind::EqEq => (BinaryOp::Eq, 3, 1),
+            TokenKind::BangEq => (BinaryOp::NotEq, 3, 1),
+            TokenKind::Lt => (BinaryOp::Lt, 3, 1),
+            TokenKind::LtEq => (BinaryOp::LtEq, 3, 1),
+            TokenKind::Gt => (BinaryOp::Gt, 3, 1),
+            TokenKind::GtEq => (BinaryOp::GtEq, 3, 1),
+            TokenKind::Plus => (BinaryOp::Add, 4, 1),
+            TokenKind::Minus => (BinaryOp::Sub, 4, 1),
+            TokenKind::Star => (BinaryOp::Mul, 5, 1),
+            TokenKind::Keyword(Keyword::Div) => (BinaryOp::Div, 5, 1),
+            TokenKind::Keyword(Keyword::Mod) => (BinaryOp::Mod, 5, 1),
             _ => return None,
         })
     }
@@ -927,20 +1205,34 @@ impl Parser<'_> {
     /// Precedence climbing: parses operators binding at least as tightly as `min`.
     fn binary(&mut self, min: u8) -> Parse<Expr> {
         let mut left = self.unary()?;
-        while let Some((op, precedence)) = self.binary_op() {
+        while let Some((op, precedence, width)) = self.binary_op() {
             if precedence < min {
                 break;
             }
-            self.bump();
+            if matches!(self.peek(), TokenKind::EqEq | TokenKind::BangEq) {
+                let span = self.span();
+                let word = if op == BinaryOp::Eq { "is" } else { "is not" };
+                self.diagnostics.error(
+                    "A1113",
+                    span,
+                    format!(
+                        "Arno compares with words: write '{word}' instead of '{}'.",
+                        self.peek().describe().trim_matches('\'')
+                    ),
+                );
+            }
+            for _ in 0..width {
+                self.bump();
+            }
             let right = self.binary(precedence.saturating_add(1))?;
             if precedence == 3
-                && let Some((_, 3)) = self.binary_op()
+                && let Some((_, 3, _)) = self.binary_op()
             {
                 let span = self.span();
                 self.diagnostics.error(
                     "A1108",
                     span,
-                    "Comparisons cannot be chained. Join them with 'and', for example 'A < B and B < C'.",
+                    "Comparisons cannot be chained. Join them with 'and', for example 'a < b and b < c'.",
                 );
                 return Err(Reported);
             }
@@ -1059,6 +1351,66 @@ impl Parser<'_> {
     }
 }
 
+/// Leaving at the very end of a body does nothing, so a `return X;` in tail position (last
+/// in the body, or last in a final `if`, `else` or `switch` arm) becomes just the assignment
+/// of `X` to the result. Loops are not entered: there, leaving ends more than the iteration.
+fn drop_trailing_exit(body: &mut Block) {
+    strip_tail(&mut body.stmts);
+}
+
+fn strip_tail(stmts: &mut Vec<Stmt>) {
+    let Some(last) = stmts.last_mut() else {
+        return;
+    };
+    match &mut last.kind {
+        StmtKind::Exit => {
+            stmts.pop();
+        }
+        StmtKind::Block(inner) => {
+            strip_tail(&mut inner.stmts);
+            if inner.stmts.len() == 1
+                && let Some(only) = inner.stmts.pop()
+            {
+                *last = only;
+            }
+        }
+        StmtKind::If {
+            then, otherwise, ..
+        } => {
+            strip_tail_stmt(then);
+            if let Some(otherwise) = otherwise {
+                strip_tail_stmt(otherwise);
+            }
+        }
+        StmtKind::Case {
+            arms, otherwise, ..
+        } => {
+            for arm in arms {
+                strip_tail_stmt(&mut arm.body);
+            }
+            if let Some(otherwise) = otherwise {
+                strip_tail_stmt(otherwise);
+            }
+        }
+        _ => {}
+    }
+}
+
+fn strip_tail_stmt(stmt: &mut Stmt) {
+    let mut one = vec![std::mem::replace(
+        stmt,
+        Stmt {
+            kind: StmtKind::Empty,
+            span: Span::default(),
+        },
+    )];
+    strip_tail(&mut one);
+    *stmt = one.pop().unwrap_or(Stmt {
+        kind: StmtKind::Empty,
+        span: Span::default(),
+    });
+}
+
 /// Parses a token stream (ending with `Eof`) into a unit. Returns `None` when the file is
 /// too broken to give a tree; diagnostics say why either way.
 pub fn parse(tokens: &[Token], diagnostics: &mut Diagnostics) -> Option<Unit> {
@@ -1067,6 +1419,8 @@ pub fn parse(tokens: &[Token], diagnostics: &mut Diagnostics) -> Option<Unit> {
         position: 0,
         diagnostics,
         depth: 0,
+        locals: Vec::new(),
+        returns_value: false,
     };
     parser.unit().ok()
 }

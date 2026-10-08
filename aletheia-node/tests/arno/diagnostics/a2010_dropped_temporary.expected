@@ -1,1 +1,1 @@
-a2010_dropped_temporary.arno(12,3): error A2010: This produces coins that are never moved. Coins cannot be dropped; assign them or hand them over.
+a2010_dropped_temporary.arno(9,9): error A2010: This produces coins that are never moved. Coins cannot be dropped; assign them or hand them over.

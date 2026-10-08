@@ -1,1 +1,1 @@
-a2005_coins_need_move.arno(12,16): error A2005: 'Deposit' holds Coins. Hand it over with 'move Deposit'.
+a2005_coins_need_move.arno(9,22): error A2005: 'deposit' holds Coins. Hand it over with 'move deposit'.

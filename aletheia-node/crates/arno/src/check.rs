@@ -129,7 +129,10 @@ impl Checker<'_> {
             self.error(
                 "A6004",
                 span,
-                format!("'{what}' comes from {unit}. Add '{unit}' to the uses list."),
+                format!(
+                    "'{what}' comes from {unit}. Add '{}' to the uses list.",
+                    unit.strip_prefix("Std.").unwrap_or(unit)
+                ),
             );
         }
     }
@@ -384,7 +387,11 @@ impl Checker<'_> {
 
     fn declarations(&mut self, unit: &ast::Unit) {
         for used in &unit.uses {
-            let name = used.text();
+            // `uses Coins` is short for `uses Std.Coins`.
+            let name = match used.parts.as_slice() {
+                [only] => format!("Std.{}", only.name),
+                _ => used.text(),
+            };
             let known = [
                 "Std.Coins",
                 "Std.Auth",
@@ -399,8 +406,13 @@ impl Checker<'_> {
                     "A6008",
                     used.span,
                     format!(
-                        "There is no standard unit named '{name}'. Known units: {}.",
-                        known.join(", ")
+                        "There is no standard unit named '{}'. Known units: {}.",
+                        used.text(),
+                        known
+                            .iter()
+                            .map(|k| k.trim_start_matches("Std."))
+                            .collect::<Vec<_>>()
+                            .join(", ")
                     ),
                 );
             }
@@ -575,7 +587,7 @@ impl Checker<'_> {
                 (RoutineKind::Function, None) => self.error(
                     "A5012",
                     routine.name.span,
-                    format!("Function '{}' needs a result type, as in 'function {}: UInt128;'.", routine.name.name, routine.name.name),
+                    format!("Function '{}' needs a result type, as in 'function {}() returns UInt128'.", routine.name.name, routine.name.name),
                 ),
                 (RoutineKind::Procedure | RoutineKind::Constructor, Some(_)) => self.error(
                     "A5012",
@@ -587,12 +599,12 @@ impl Checker<'_> {
             for (directive, span) in &routine.directives {
                 match (directive, routine.kind) {
                     (Directive::View, RoutineKind::Procedure | RoutineKind::Constructor) => {
-                        self.error("A3003", *span, "Only a function can be marked view.")
+                        self.error("A3003", *span, "A view function gives back a value: add 'returns <Type>'.")
                     }
                     (Directive::Entry, RoutineKind::Function) => self.error(
                         "A3004",
                         *span,
-                        "A function cannot be an entry; mark it view to let callers read it.",
+                        "A public function that returns a value must be a view: write 'public view function'.",
                     ),
                     _ => {}
                 }
@@ -602,17 +614,21 @@ impl Checker<'_> {
                 self.error(
                     "A3006",
                     routine.name.span,
-                    format!(
-                        "Entry routine '{}' must take the caller's Signer as its first parameter.",
-                        routine.name.name
-                    ),
+                    if routine.kind == RoutineKind::Constructor {
+                        "The constructor must take the caller's Signer as its first parameter.".to_owned()
+                    } else {
+                        format!(
+                            "Public function '{}' must take the caller's Signer as its first parameter.",
+                            routine.name.name
+                        )
+                    },
                 );
             }
             if !entry && params.contains(&Ty::Signer) {
                 self.error(
                     "A3007",
                     routine.name.span,
-                    "Only an entry routine or the constructor receives a Signer.",
+                    "Only a public function or the constructor receives a Signer.",
                 );
             }
             self.routines
@@ -725,7 +741,10 @@ impl Checker<'_> {
             let (code, message) = if spelling == name.name {
                 (
                     "A4008",
-                    format!("'{}' is already declared in this routine.", name.name),
+                    format!(
+                        "'{}' is already declared in this function. Each name is declared once per function.",
+                        name.name
+                    ),
                 )
             } else {
                 (
@@ -823,7 +842,7 @@ impl Checker<'_> {
                         | ExprKind::Builtin { .. }
                 );
                 if !is_call && value.ty != Ty::Error {
-                    self.error("A1107", expr.span, "This does nothing on its own. A statement assigns with ':=' or calls a routine.");
+                    self.error("A1107", expr.span, "This does nothing on its own. A statement assigns with '=' or calls a function.");
                 }
                 StmtKind::Eval(value)
             }
@@ -891,7 +910,7 @@ impl Checker<'_> {
                 to,
                 body: inner,
             } => {
-                let Some(id) = self.loop_var(body, var) else {
+                let Some(id) = self.loop_var(body, var, Ty::U64) else {
                     return;
                 };
                 let ty = Self::local_ty(body, id);
@@ -928,9 +947,6 @@ impl Checker<'_> {
                 collection,
                 body: inner,
             } => {
-                let Some(id) = self.loop_var(body, var) else {
-                    return;
-                };
                 let collection = self.expr(body, collection, None);
                 let (elem, bound) = match &collection.ty {
                     Ty::List { max, elem } => (elem.as_ref().clone(), u64::from(*max)),
@@ -953,6 +969,9 @@ impl Checker<'_> {
                         "Coins cannot be walked over with 'for each'.",
                     );
                 }
+                let Some(id) = self.loop_var(body, var, elem.clone()) else {
+                    return;
+                };
                 let var_ty = Self::local_ty(body, id);
                 if var_ty != elem && elem != Ty::Error && var_ty != Ty::Error {
                     let (v, e) = (self.describe(&var_ty), self.describe(&elem));
@@ -1013,8 +1032,8 @@ impl Checker<'_> {
                         "A6007",
                         event.span,
                         format!(
-                            "There is no event named '{}'. Declare it in the events section.",
-                            event.name
+                            "There is no event named '{}'. Declare it with 'event {}(...);'.",
+                            event.name, event.name
                         ),
                     );
                     return;
@@ -1059,19 +1078,14 @@ impl Checker<'_> {
         out.push(Stmt { kind, span });
     }
 
-    fn loop_var(&mut self, body: &Body, var: &ast::Ident) -> Option<LocalId> {
-        let found = body.scope.get(&var.key()).copied();
-        if found.is_none() {
-            self.error(
-                "A6005",
-                var.span,
-                format!(
-                    "'{}' is not declared. Declare the loop variable in the routine's var block.",
-                    var.name
-                ),
-            );
+    /// The loop variable: the one already declared under that name, or a new one of type
+    /// `inferred` (the items' type for `for each`, UInt64 when counting).
+    fn loop_var(&mut self, body: &mut Body, var: &ast::Ident, inferred: Ty) -> Option<LocalId> {
+        if let Some(id) = body.scope.get(&var.key()).copied() {
+            return Some(id);
         }
-        found
+        self.add_local(body, var, inferred);
+        body.scope.get(&var.key()).copied()
     }
 
     fn loop_bound(&mut self, expr: &ast::Expr, message: &str) -> Option<u128> {
@@ -1095,8 +1109,8 @@ impl Checker<'_> {
                 "A6003",
                 error.span,
                 format!(
-                    "There is no error named '{}'. Declare it in the errors section.",
-                    error.name
+                    "There is no error named '{}'. Declare it with 'error {} \"...\";'.",
+                    error.name, error.name
                 ),
             );
         }
@@ -1750,7 +1764,7 @@ impl Checker<'_> {
                 self.error(
                     "A6012",
                     member.span,
-                    format!("{described} has no routine '{}'.", member.name),
+                    format!("{described} has no function '{}'.", member.name),
                 );
                 return Self::poison(span);
             }
@@ -1854,7 +1868,7 @@ impl Checker<'_> {
             return self.method(body, base, member, args, span);
         }
         let A::Name(name) = &callee.kind else {
-            self.error("A6013", callee.span, "Only a named routine can be called.");
+            self.error("A6013", callee.span, "Only a named function can be called.");
             return Self::poison(span);
         };
         let arity = |this: &mut Self, n: usize| {
@@ -2108,7 +2122,7 @@ impl Checker<'_> {
             self.error(
                 "A6005",
                 name.span,
-                format!("There is no routine named '{}'.", name.name),
+                format!("There is no function named '{}'.", name.name),
             );
             for arg in args {
                 let _ = self.expr(body, arg, None);

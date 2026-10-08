@@ -1,14 +1,10 @@
-{ A3006: an entry routine without the caller's Signer. }
-contract Guard;
-version 0.1;
+// A3006: a public function without the caller's Signer.
+contract Guard {
+    version 0.1;
 
-storage
-  Open: Boolean;
+    private Boolean open;
 
-procedure Close; entry;
-  changes storage;
-begin
-  Open := False;
-end;
-
-end.
+    public function close() changes storage {
+        open = false;
+    }
+}

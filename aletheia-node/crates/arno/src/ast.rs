@@ -20,7 +20,7 @@ impl Ident {
     }
 }
 
-/// `A.B.C`, as in `uses Std.Coins`.
+/// `A.B.C`, as in `Std.Coins.AEY`.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct QualIdent {
     pub parts: Vec<Ident>,
@@ -297,8 +297,8 @@ impl BinaryOp {
             BinaryOp::Or => "or",
             BinaryOp::Xor => "xor",
             BinaryOp::And => "and",
-            BinaryOp::Eq => "=",
-            BinaryOp::NotEq => "<>",
+            BinaryOp::Eq => "is",
+            BinaryOp::NotEq => "is not",
             BinaryOp::Lt => "<",
             BinaryOp::LtEq => "<=",
             BinaryOp::Gt => ">",

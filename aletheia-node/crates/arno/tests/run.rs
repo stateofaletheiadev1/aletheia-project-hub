@@ -123,7 +123,7 @@ fn the_escrow_contract_runs_its_whole_lifecycle() {
     call(
         &p,
         &mut host,
-        "Create",
+        "constructor",
         vec![
             Value::Signer(buyer),
             Value::Address(seller),
@@ -134,7 +134,7 @@ fn the_escrow_contract_runs_its_whole_lifecycle() {
     .unwrap();
     // Status is Open (variant 0).
     assert_eq!(
-        call(&p, &mut host, "Status", vec![]).unwrap(),
+        call(&p, &mut host, "status", vec![]).unwrap(),
         Some(Value::Enum(0))
     );
 
@@ -142,7 +142,7 @@ fn the_escrow_contract_runs_its_whole_lifecycle() {
     let stranger = call(
         &p,
         &mut host.clone(),
-        "Fund",
+        "fund",
         vec![
             Value::Signer(seller),
             Value::Coins {
@@ -156,7 +156,7 @@ fn the_escrow_contract_runs_its_whole_lifecycle() {
     call(
         &p,
         &mut host,
-        "Fund",
+        "fund",
         vec![
             Value::Signer(buyer),
             Value::Coins {
@@ -167,7 +167,7 @@ fn the_escrow_contract_runs_its_whole_lifecycle() {
     )
     .unwrap();
     assert_eq!(
-        call(&p, &mut host, "Status", vec![]).unwrap(),
+        call(&p, &mut host, "status", vec![]).unwrap(),
         Some(Value::Enum(1)),
         "Funded"
     );
@@ -175,22 +175,22 @@ fn the_escrow_contract_runs_its_whole_lifecycle() {
 
     // The buyer cannot release; a refund before the deadline is too early.
     assert_eq!(
-        call(&p, &mut host.clone(), "Release", vec![Value::Signer(buyer)]),
+        call(&p, &mut host.clone(), "release", vec![Value::Signer(buyer)]),
         Err(Trap::Abort(error_index(&p, "NotArbiter")))
     );
     assert_eq!(
-        call(&p, &mut host.clone(), "Refund", vec![Value::Signer(buyer)]),
+        call(&p, &mut host.clone(), "refund", vec![Value::Signer(buyer)]),
         Err(Trap::Abort(error_index(&p, "TooEarly")))
     );
 
-    call(&p, &mut host, "Release", vec![Value::Signer(arbiter)]).unwrap();
+    call(&p, &mut host, "release", vec![Value::Signer(arbiter)]).unwrap();
     assert_eq!(
         host.transfers,
         vec![(1, 500, seller)],
         "the seller is paid everything in the vault"
     );
     assert_eq!(
-        call(&p, &mut host, "Status", vec![]).unwrap(),
+        call(&p, &mut host, "status", vec![]).unwrap(),
         Some(Value::Enum(2)),
         "Released"
     );
@@ -200,7 +200,7 @@ fn the_escrow_contract_runs_its_whole_lifecycle() {
         call(
             &p,
             &mut host.clone(),
-            "Release",
+            "release",
             vec![Value::Signer(arbiter)]
         ),
         Err(Trap::Abort(error_index(&p, "WrongPhase")))
@@ -212,12 +212,12 @@ fn the_treasury_contract_pays_with_a_fee_and_rounds_up() {
     let p = example("tests/arno/ok/features.arno");
     let (owner, member) = (addr(1), addr(9));
     let mut host = MockHost::default();
-    call(&p, &mut host, "Create", vec![Value::Signer(owner)]).unwrap();
+    call(&p, &mut host, "constructor", vec![Value::Signer(owner)]).unwrap();
     // Role Spender (1), limit 1,000.
     call(
         &p,
         &mut host,
-        "Enrol",
+        "enrol",
         vec![
             Value::Signer(owner),
             Value::Address(member),
@@ -229,7 +229,7 @@ fn the_treasury_contract_pays_with_a_fee_and_rounds_up() {
     call(
         &p,
         &mut host,
-        "Fund",
+        "fund",
         vec![
             Value::Signer(owner),
             Value::Coins {
@@ -243,7 +243,7 @@ fn the_treasury_contract_pays_with_a_fee_and_rounds_up() {
     call(
         &p,
         &mut host,
-        "Pay",
+        "pay",
         vec![Value::Signer(member), Value::U128(1_000)],
     )
     .unwrap();
@@ -252,41 +252,41 @@ fn the_treasury_contract_pays_with_a_fee_and_rounds_up() {
     let over = call(
         &p,
         &mut host.clone(),
-        "Pay",
+        "pay",
         vec![Value::Signer(member), Value::U128(1_001)],
     );
     assert_eq!(over, Err(Trap::Abort(error_index(&p, "TooMuch"))));
     let unknown = call(
         &p,
         &mut host.clone(),
-        "Pay",
+        "pay",
         vec![Value::Signer(addr(5)), Value::U128(1)],
     );
     assert_eq!(unknown, Err(Trap::Abort(error_index(&p, "Unknown"))));
 
     // The owner sweeps both vaults: 10,000 - 1,003 left in Funds, plus the 3 in Fees.
-    call(&p, &mut host, "Sweep", vec![Value::Signer(owner)]).unwrap();
+    call(&p, &mut host, "sweep", vec![Value::Signer(owner)]).unwrap();
     assert_eq!(host.transfers.last(), Some(&(1, 9_000, owner)));
 
     assert_eq!(
-        call(&p, &mut host, "Describe", vec![Value::Enum(0)]).unwrap(),
+        call(&p, &mut host, "describe", vec![Value::Enum(0)]).unwrap(),
         Some(Value::U8(1))
     );
     assert_eq!(
-        call(&p, &mut host, "Describe", vec![Value::Enum(2)]).unwrap(),
+        call(&p, &mut host, "describe", vec![Value::Enum(2)]).unwrap(),
         Some(Value::U8(2))
     );
     // Countdown(25): Min(25, 10) = 10 steps down, then 10 × Describe(Admin) = 20: 30.
     assert_eq!(
-        call(&p, &mut host, "Countdown", vec![Value::U64(25)]).unwrap(),
+        call(&p, &mut host, "countdown", vec![Value::U64(25)]).unwrap(),
         Some(Value::U64(30))
     );
 }
 
 fn traps(body: &str) -> Trap {
     let source = format!(
-        "contract T; version 0.1;\nerrors E = 'e';\nstorage S: List of UInt8 max 2;\n\
-         procedure P; changes storage;\nvar X: UInt8; Y: UInt64; Z: UInt128; N: Optional of UInt8;\nbegin\n{body}\nend;\nend."
+        "contract T {{ version 0.1;\nerror E \"e\";\nprivate List of UInt8 max 2 S;\n\
+         private function P() changes storage {{\nUInt8 X; UInt64 Y; UInt128 Z; Optional of UInt8 N;\n{body}\n}} }}"
     );
     let p = package(&source);
     call(&p, &mut MockHost::default(), "P", vec![]).unwrap_err()
@@ -294,28 +294,25 @@ fn traps(body: &str) -> Trap {
 
 #[test]
 fn every_runtime_failure_is_a_named_trap() {
-    assert_eq!(traps("X := 255; X := X + 1;"), Trap::Overflow);
-    assert_eq!(traps("Y := 0; Y := 5 div Y;"), Trap::DivisionByZero);
-    assert_eq!(traps("Y := 0; Y := Y - 1;"), Trap::Overflow);
+    assert_eq!(traps("X = 255; X = X + 1;"), Trap::Overflow);
+    assert_eq!(traps("Y = 0; Y = 5 div Y;"), Trap::DivisionByZero);
+    assert_eq!(traps("Y = 0; Y = Y - 1;"), Trap::Overflow);
+    assert_eq!(traps("Z = 300; X = UInt8(Z);"), Trap::ConversionOutOfRange);
     assert_eq!(
-        traps("Z := 300; X := UInt8(Z);"),
-        Trap::ConversionOutOfRange
-    );
-    assert_eq!(
-        traps("Y := 1; while Y > 0 at most 3 times do Y := Y + 1;"),
+        traps("Y = 1; while Y > 0 at most 3 times { Y = Y + 1; }"),
         Trap::LoopBoundExceeded
     );
-    assert_eq!(traps("S.Add(1); S.Add(2); S.Add(3);"), Trap::ListFull);
-    assert_eq!(traps("N := Nothing; X := N.Value;"), Trap::NothingToUnwrap);
-    assert_eq!(traps("Y := 0; X := S[Y];"), Trap::IndexOutOfRange);
-    assert_eq!(traps("require 1 = 2 otherwise E;"), Trap::Abort(0));
+    assert_eq!(traps("S.add(1); S.add(2); S.add(3);"), Trap::ListFull);
+    assert_eq!(traps("N = Nothing; X = N.value;"), Trap::NothingToUnwrap);
+    assert_eq!(traps("Y = 0; X = S[Y];"), Trap::IndexOutOfRange);
+    assert_eq!(traps("require 1 is 2 otherwise E;"), Trap::Abort(0));
     assert_eq!(traps("fail E;"), Trap::Abort(0));
 }
 
 #[test]
 fn a_loop_may_run_exactly_its_bound() {
     let p = package(
-        "contract T; version 0.1;\nfunction F: UInt64; view;\nvar Y: UInt64; I: UInt64;\nbegin\n  Y := 0;\n  while Y < 3 at most 3 times do Y := Y + 1;\n  for I := 1 to 5 do Y := Y + I;\n  Result := Y;\nend;\nend.",
+        "contract T { version 0.1;\npublic view function F() returns UInt64 {\n  UInt64 y = 0;\n  while y < 3 at most 3 times { y = y + 1; }\n  for i from 1 to 5 { y = y + i; }\n  return y;\n} }",
     );
     assert_eq!(
         call(&p, &mut MockHost::default(), "F", vec![]).unwrap(),
@@ -326,7 +323,7 @@ fn a_loop_may_run_exactly_its_bound() {
 #[test]
 fn short_circuit_and_skips_a_trapping_right_side() {
     let p = package(
-        "contract T; version 0.1;\nfunction F(D: UInt64): Boolean; view;\nbegin\n  Result := (D > 0) and (10 div D > 2);\nend;\nend.",
+        "contract T { version 0.1;\npublic view function F(UInt64 d) returns Boolean {\n  return d > 0 and 10 div d > 2;\n} }",
     );
     assert_eq!(
         call(&p, &mut MockHost::default(), "F", vec![Value::U64(0)]).unwrap(),
@@ -341,7 +338,7 @@ fn short_circuit_and_skips_a_trapping_right_side() {
 #[test]
 fn execution_stops_exactly_at_the_eu_limit() {
     let p = package(
-        "contract T; version 0.1;\nstorage S: UInt64;\nprocedure P; changes storage;\nbegin S := 1; end;\nend.",
+        "contract T { version 0.1;\nprivate UInt64 S;\nprivate function P() changes storage { S = 1; } }",
     );
     let full = run(&p, function(&p, "P"), vec![], &mut MockHost::default(), EU).unwrap();
     assert!(
@@ -377,9 +374,9 @@ fn runs_are_deterministic() {
     let script = |host: &mut MockHost| -> Vec<u64> {
         let mut eu = Vec::new();
         for (name, args) in [
-            ("Create", vec![Value::Signer(addr(1))]),
+            ("constructor", vec![Value::Signer(addr(1))]),
             (
-                "Enrol",
+                "enrol",
                 vec![
                     Value::Signer(addr(1)),
                     Value::Address(addr(9)),
@@ -388,7 +385,7 @@ fn runs_are_deterministic() {
                 ],
             ),
             (
-                "Fund",
+                "fund",
                 vec![
                     Value::Signer(addr(1)),
                     Value::Coins {
@@ -397,7 +394,7 @@ fn runs_are_deterministic() {
                     },
                 ],
             ),
-            ("Pay", vec![Value::Signer(addr(9)), Value::U128(50)]),
+            ("pay", vec![Value::Signer(addr(9)), Value::U128(50)]),
         ] {
             eu.push(run(&p, function(&p, name), args, host, EU).unwrap().eu_used);
         }
@@ -420,24 +417,24 @@ fn statement(seed: &mut u64, depth: u32) -> String {
         ["X", "Y", "S", "0", "1", "7", "18446744073709551615"][usize::try_from(k % 7).unwrap()]
     };
     let op = |k: u64| ["+", "-", "*", "div", "mod"][usize::try_from(k % 5).unwrap()];
-    let cmp = |k: u64| ["=", "<>", "<", "<=", ">", ">="][usize::try_from(k % 6).unwrap()];
+    let cmp = |k: u64| ["is", "is not", "<", "<=", ">", ">="][usize::try_from(k % 6).unwrap()];
     let choice = if depth == 0 { next(7) } else { next(12) };
     let (a, b, c) = (next(7), next(6), next(7));
     match choice {
-        0 => format!("X := {} {} {}", operand(a), op(b), operand(c)),
-        1 => format!("Y := {}", operand(a)),
-        2 => format!("S := {}", operand(a)),
-        3 => format!("B := ({} {} {}) or B", operand(a), cmp(b), operand(c)),
-        4 => format!("L.Add(UInt8({} mod 256))", operand(a)),
-        5 => "if L.Length > 0 then X := UInt64(L[L.Length])".to_owned(),
+        0 => format!("X = {} {} {};", operand(a), op(b), operand(c)),
+        1 => format!("Y = {};", operand(a)),
+        2 => format!("S = {};", operand(a)),
+        3 => format!("B = ({} {} {}) or B;", operand(a), cmp(b), operand(c)),
+        4 => format!("L.add(UInt8({} mod 256));", operand(a)),
+        5 => "if L.length > 0 { X = UInt64(L[L.length]); }".to_owned(),
         6 => format!(
-            "require {} {} {} otherwise E",
+            "require {} {} {} otherwise E;",
             operand(a),
             cmp(b),
             operand(c)
         ),
         7 => format!(
-            "if {} {} {} then {} else {}",
+            "if {} {} {} {{ {} }} else {{ {} }}",
             operand(a),
             cmp(b),
             operand(c),
@@ -445,17 +442,17 @@ fn statement(seed: &mut u64, depth: u32) -> String {
             statement(seed, depth - 1)
         ),
         8 => format!(
-            "while Y < {} at most 5 times do begin Y := Y + 1; {} end",
+            "while Y < {} at most 5 times {{ Y = Y + 1; {} }}",
             operand(a),
             statement(seed, depth - 1)
         ),
-        9 => format!("for I := 1 to 4 do {}", statement(seed, depth - 1)),
+        9 => format!("for I from 1 to 4 {{ {} }}", statement(seed, depth - 1)),
         10 => format!(
-            "case X of 0: {}; 1, 2: Y := 2; else Y := 3; end",
+            "switch X {{ case 0 -> {} case 1, 2 -> Y = 2; default -> Y = 3; }}",
             statement(seed, depth - 1)
         ),
         _ => format!(
-            "begin {}; {} end",
+            "{{ {} {} }}",
             statement(seed, depth - 1),
             statement(seed, depth - 1)
         ),
@@ -472,9 +469,9 @@ proptest::proptest! {
         let mut state = seed;
         let body: Vec<String> = (0..count).map(|_| statement(&mut state, 3)).collect();
         let source = format!(
-            "contract R; version 0.1;\nerrors E = 'e';\nstorage S: UInt64; L: List of UInt8 max 3;\n\
-             procedure P; changes storage;\nvar X, Y, I: UInt64; B: Boolean;\nbegin\n{};\nend;\nend.",
-            body.join(";\n")
+            "contract R {{ version 0.1;\nerror E \"e\";\nprivate UInt64 S; private List of UInt8 max 3 L;\n\
+             private function P() changes storage {{\nUInt64 X, Y, I; Boolean B;\n{}\n}} }}",
+            body.join("\n")
         );
         let p = package(&source);
         let (mut h1, mut h2) = (MockHost::default(), MockHost::default());

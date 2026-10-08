@@ -1,0 +1,1 @@
+a1110_public_variable.arno(5,5): error A1110: Contract variables are always private. To let others read one, add a 'public view function' that returns it.

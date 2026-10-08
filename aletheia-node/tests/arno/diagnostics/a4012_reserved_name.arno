@@ -1,9 +1,7 @@
-{ A4012: a routine named like a standard routine. }
-contract Shadow;
-version 0.1;
+// A4012: a function named like a standard function.
+contract Shadow {
+    version 0.1;
 
-procedure Transfer;
-begin
-end;
-
-end.
+    private function transfer() {
+    }
+}

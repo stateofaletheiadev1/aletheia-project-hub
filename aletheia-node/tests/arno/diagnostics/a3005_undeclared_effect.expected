@@ -1,1 +1,1 @@
-a3005_undeclared_effect.arno(10,11): error A3005: 'Release' sends coins, but its effects list does not include 'sends coins'.
+a3005_undeclared_effect.arno(9,21): error A3005: 'release' sends coins, but its effects list does not include 'sends coins'.

@@ -1,0 +1,1 @@
+a1111_return_value_without_returns.arno(9,16): error A1111: This function has no 'returns' type, so 'return' cannot give back a value. Write 'return;', or add 'returns <Type>'.

@@ -1,0 +1,11 @@
+// A1111: 'return X;' in a function that declares no result.
+contract Counter {
+    version 0.1;
+
+    private UInt64 count;
+
+    private function bump() changes storage {
+        count = count + 1;
+        return count;
+    }
+}

@@ -1,28 +1,28 @@
-(* Arno 0.1 grammar (spec Section 25.6, APS-0013). The parser in crates/arno/src/parser.rs
-   implements exactly this. Keywords are case-insensitive. Words in single quotes marked
-   (contextual) are ordinary identifiers everywhere except in the position shown.
+(* Arno 0.1 grammar (spec Section 25.6, APS-0013, syntax per ADR-049). The parser in
+   crates/arno/src/parser.rs implements exactly this. Keywords are case-insensitive. Words in
+   single quotes marked (contextual) are ordinary identifiers everywhere except in the
+   position shown.
 
-   Comments: { ... } and (* ... *). There is no line comment.
-   Literals: decimal integers with optional '_' separators (0 .. 2^128 - 1); text in single
-   quotes, '' for a quote inside text. There is no '/' operator. *)
+   Comments: // to the end of the line, and /* ... */.
+   Literals: decimal integers with optional '_' separators (0 .. 2^128 - 1); text in double
+   quotes, with \" for a quote and \\ for a backslash. There is no '/' operator. *)
 
-Unit          = "contract" Ident ";" "version" Version ";" [ UsesClause ]
-                { ConstSection | TypeSection | ErrorsSection | EventsSection | StorageSection }
-                { Routine } "end" "." ;
+Unit          = "contract" Ident "{" "version" Version ";" [ UsesClause ] { Member } "}" ;
 Version       = Integer "." Integer ;                       (* each part 0 .. 65535 *)
-UsesClause    = "uses" QualIdent { "," QualIdent } ";" ;
+UsesClause    = "uses" QualIdent { "," QualIdent } ";" ;    (* 'Coins' means 'Std.Coins' *)
 QualIdent     = Ident { "." Ident } ;
 
-ConstSection  = "const" { Ident "=" Expr ";" } ;
-TypeSection   = "type" { Ident "=" TypeDef ";" } ;
-TypeDef       = "(" Ident { "," Ident } ")"                  (* enumeration *)
-              | "record" { FieldGroup ";" } "end"
-              | Type ;
-ErrorsSection = "errors" { Ident "=" Text ";" } ;
-EventsSection = "events" { Ident [ Params ] ";" } ;
-StorageSection= "storage" { FieldGroup ";" } ;
-FieldGroup    = Ident { "," Ident } ":" Type ;
-Params        = "(" [ FieldGroup { ";" FieldGroup } ] ")" ;
+Member        = Constant | TypeAlias | Enum | Record | ErrorDecl | EventDecl
+              | Variable | Constructor | Function ;
+Constant      = "constant" Ident "=" Expr ";" ;
+TypeAlias     = "type" Ident "=" Type ";" ;
+Enum          = "enum" Ident "{" Ident { "," Ident } [ "," ] "}" ;
+Record        = "record" Ident "{" { Declared } "}" ;
+ErrorDecl     = "error" Ident Text ";" ;
+EventDecl     = "event" Ident [ Params ] ";" ;
+Variable      = [ "private" ] Declared ;                    (* 'public' is refused: A1110 *)
+Declared      = Type Ident { "," Ident } ";" ;
+Params        = "(" [ Type Ident { "," Type Ident } ] ")" ;
 
 Type          = "array" "[" Expr ".." Expr "]" "of" Type
               | 'List' "of" Type 'max' Expr                  (* contextual: List, max *)
@@ -35,35 +35,36 @@ Type          = "array" "[" Expr ".." Expr "]" "of" Type
               | 'Bytes' 'max' Expr
               | QualIdent ;
 
-Routine       = ( "constructor" | "procedure" | "function" ) Ident [ Params ] [ ":" Type ] ";"
-                { Directive ";" } [ Effects ";" ] [ VarSection ] Block ";" ;
-Directive     = "entry" | "view" | "reentrant" ;
+Constructor   = "constructor" Params [ Effects ] Block ;
+Function      = { "public" | "private" | "view" | "reentrant" } "function" Ident Params
+                [ "returns" Type ] [ Effects ] Block ;
 Effects       = Effect { "," Effect } ;
-Effect        = 'changes' "storage" | 'receives' 'coins' | 'sends' 'coins'
-              | 'emits' "events" | 'calls' 'contracts' ;
-VarSection    = "var" { FieldGroup ";" } ;
+Effect        = 'changes' 'storage' | 'receives' 'coins' | 'sends' 'coins'
+              | 'emits' 'events' | 'calls' 'contracts' ;
 
-Block         = "begin" [ Statement { ";" Statement } ] "end" ;
-Statement     = [ Assign | Call | IfStmt | CaseStmt | ForStmt | ForEachStmt | WhileStmt
-              | RequireStmt | FailStmt | EmitStmt | "exit" | Block ] ;   (* may be empty *)
-Assign        = Designator ":=" Expr ;
-Call          = Designator ;                                (* a routine, with or without ( ) *)
-IfStmt        = "if" Expr "then" Statement [ "else" Statement ] ;
-CaseStmt      = "case" Expr "of" { CaseArm ";" } [ "else" Statement [ ";" ] ] "end" ;
-CaseArm       = Expr { "," Expr } ":" Statement ;
-ForStmt       = "for" Ident ":=" Expr "to" Expr "do" Statement ;
-ForEachStmt   = "for" 'each' Ident "in" Expr "do" Statement ;
-WhileStmt     = "while" Expr 'at' 'most' Expr 'times' "do" Statement ;   (* bound required: A4002 *)
-RequireStmt   = "require" Expr "otherwise" Ident ;
-FailStmt      = "fail" Ident ;
-EmitStmt      = "emit" Ident [ "(" [ Expr { "," Expr } ] ")" ] ;
+Block         = "{" { Statement } "}" ;
+Statement     = ";" | Block | IfStmt | SwitchStmt | ForStmt | ForEachStmt | WhileStmt
+              | RequireStmt | FailStmt | EmitStmt | ReturnStmt | LocalDecl
+              | Designator "=" Expr ";"                      (* assignment *)
+              | Designator ";" ;                             (* a call, with or without ( ) *)
+LocalDecl     = Type Ident [ "=" Expr ] { "," Ident [ "=" Expr ] } ";" ;
+IfStmt        = "if" Expr Block [ "else" ( IfStmt | Block ) ] ;
+SwitchStmt    = "switch" Expr "{" { "case" Expr { "," Expr } "->" Statement }
+                [ "default" "->" Statement ] "}" ;
+ForStmt       = "for" [ Type ] Ident 'from' Expr "to" Expr Block ;
+ForEachStmt   = "for" 'each' [ Type ] Ident "in" Expr Block ;
+WhileStmt     = "while" Expr 'at' 'most' Expr 'times' Block ;   (* bound required: A4002 *)
+RequireStmt   = "require" Expr "otherwise" Ident ";" ;
+FailStmt      = "fail" Ident ";" ;
+EmitStmt      = "emit" Ident [ "(" [ Expr { "," Expr } ] ")" ] ";" ;
+ReturnStmt    = "return" [ Expr ] ";" ;
 
 (* Expressions, lowest precedence first. Comparisons bind tighter than and/or, so
-   'X > 0 and Y > 0' reads as written (a deliberate difference from classic Pascal), and
-   comparisons do not chain (A1108). *)
+   'x > 0 and y > 0' reads as written, and comparisons do not chain (A1108). 'is not' is
+   one operator. *)
 Expr          = AndExpr { ( "or" | "xor" ) AndExpr } ;
 AndExpr       = Comparison { "and" Comparison } ;
-Comparison    = Sum [ ( "=" | "<>" | "<" | "<=" | ">" | ">=" ) Sum ] ;
+Comparison    = Sum [ ( "is" | "is" "not" | "<" | "<=" | ">" | ">=" ) Sum ] ;
 Sum           = Product { ( "+" | "-" ) Product } ;
 Product       = Unary { ( "*" | "div" | "mod" ) Unary } ;
 Unary         = ( "not" | "-" ) Unary | Postfix ;

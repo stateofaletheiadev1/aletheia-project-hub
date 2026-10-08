@@ -1,1 +1,1 @@
-a6003_unknown_error.arno(10,26): error A6003: There is no error named 'NotOpen'. Declare it in the errors section.
+a6003_unknown_error.arno(8,32): error A6003: There is no error named 'NotOpen'. Declare it with 'error NotOpen "...";'.

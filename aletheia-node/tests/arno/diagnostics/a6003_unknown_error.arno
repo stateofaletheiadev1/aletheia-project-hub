@@ -1,13 +1,10 @@
-{ A6003: 'otherwise' names an error that is not declared. }
-contract Guard;
-version 0.1;
+// A6003: 'otherwise' names an error that is not declared.
+contract Guard {
+    version 0.1;
 
-storage
-  Open: Boolean;
+    private Boolean open;
 
-procedure Check;
-begin
-  require Open otherwise NotOpen;
-end;
-
-end.
+    private function check() {
+        require open otherwise NotOpen;
+    }
+}

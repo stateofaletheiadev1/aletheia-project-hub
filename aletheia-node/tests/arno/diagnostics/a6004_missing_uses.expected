@@ -1,1 +1,1 @@
-a6004_missing_uses.arno(7,13): error A6004: 'Chain' comes from Std.Chain. Add 'Std.Chain' to the uses list.
+a6004_missing_uses.arno(6,16): error A6004: 'Chain' comes from Std.Chain. Add 'Chain' to the uses list.

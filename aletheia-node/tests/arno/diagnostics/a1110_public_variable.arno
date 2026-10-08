@@ -1,0 +1,6 @@
+// A1110: contract variables are private; a view function shares them.
+contract Counter {
+    version 0.1;
+
+    public UInt64 count;
+}

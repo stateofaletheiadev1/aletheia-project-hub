@@ -1,14 +1,11 @@
-{ A4002: a while-loop without a bound. }
-contract Payroll;
-version 0.1;
+// A4002: a while-loop without a bound.
+contract Payroll {
+    version 0.1;
 
-procedure Countdown;
-var
-  Remaining: UInt64;
-begin
-  Remaining := 10;
-  while Remaining > 0 do
-    Remaining := Remaining - 1;
-end;
-
-end.
+    private function countdown() {
+        UInt64 remaining = 10;
+        while remaining > 0 {
+            remaining = remaining - 1;
+        }
+    }
+}

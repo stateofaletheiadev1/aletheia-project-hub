@@ -165,7 +165,7 @@ impl FnGen<'_> {
             let span = self.routine.name_span;
             return Err(self.fail(
                 span,
-                "This routine is too long to compile. Split it into smaller routines.",
+                "This function is too long to compile. Split it into smaller functions.",
             ));
         }
         self.code.push(instr);
@@ -189,7 +189,7 @@ impl FnGen<'_> {
             let span = self.routine.name_span;
             return Err(self.fail(
                 span,
-                "This routine needs more than 255 registers. Split it into smaller routines.",
+                "This function needs more than 255 registers. Split it into smaller functions.",
             ));
         }
         self.registers.push(ty);
@@ -968,7 +968,7 @@ pub fn generate(
                 diagnostics.error(
                     "A7001",
                     routine.name_span,
-                    "This routine has more than 255 variables. Split it into smaller routines.",
+                    "This function has more than 255 variables. Split it into smaller functions.",
                 );
                 return Err(Failed);
             }

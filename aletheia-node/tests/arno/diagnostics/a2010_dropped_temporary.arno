@@ -1,15 +1,11 @@
-{ A2010: coins produced and thrown away in one statement. }
-contract Leak;
-version 0.1;
-uses Std.Coins, Std.Auth;
+// A2010: coins produced and thrown away in one statement.
+contract Leak {
+    version 0.1;
+    uses Coins, Auth;
 
-storage
-  Safe: Vault of AEY;
+    private Vault of AEY safe;
 
-procedure Drain(Caller: Signer); entry;
-  changes storage;
-begin
-  Safe.WithdrawAll;
-end;
-
-end.
+    public function drain(Signer caller) changes storage {
+        safe.withdrawAll;
+    }
+}

@@ -1,147 +1,118 @@
-{ A contract that uses most of Arno 0.1. It must check with no messages. }
-contract Treasury;
+// A contract that uses most of Arno 0.1. It must check with no messages.
+contract Treasury {
+    version 0.1;
+    uses Coins, Auth, Chain, Math;
 
-version 0.1;
+    constant MaxMembers = 50;
+    constant FeeBps = 25;
+    constant Ten = 2 * 5;
 
-uses Std.Coins, Std.Auth, Std.Chain, Std.Math;
+    enum Role { Viewer, Spender, Admin }
 
-const
-  MaxMembers = 50;
-  FeeBps = 25;
-  Ten = 2 * 5;
+    record Member {
+        Address wallet;
+        Role level;
+        UInt128 limit;
+    }
 
-type
-  Role = (Viewer, Spender, Admin);
-  Member = record
-    Wallet: Address;
-    Level: Role;
-    Limit: UInt128;
-  end;
+    error NotAdmin "Only an admin can do this.";
+    error TooMuch  "The amount is above the member's limit.";
+    error Unknown  "This address is not a member.";
+    error Empty    "The treasury holds nothing.";
 
-errors
-  NotAdmin    = 'Only an admin can do this.';
-  TooMuch     = 'The amount is above the member''s limit.';
-  Unknown     = 'This address is not a member.';
-  Empty       = 'The treasury holds nothing.';
+    event Paid(Address wallet, UInt128 amount, UInt128 fee);
+    event Joined(Address wallet);
 
-events
-  Paid(Wallet: Address; Amount: UInt128; Fee: UInt128);
-  Joined(Wallet: Address);
+    private Address owner;
+    private List of Member max MaxMembers members;
+    private Map of Address to UInt128 limits;
+    private Vault of AEY funds, fees;
+    private Optional of Slot lastPaid;
+    private Height opened;
 
-storage
-  Owner: Address;
-  Members: List of Member max MaxMembers;
-  Limits: Map of Address to UInt128;
-  Funds: Vault of AEY;
-  Fees: Vault of AEY;
-  LastPaid: Optional of Slot;
-  Opened: Height;
+    constructor(Signer caller) changes storage {
+        owner = caller.address;
+        funds = Vault.Empty;
+        fees = Vault.Empty;
+        lastPaid = Nothing;
+        opened = Chain.height;
+    }
 
-constructor Create(Caller: Signer);
-  changes storage;
-begin
-  Owner := Caller.Address;
-  Funds := Vault.Empty;
-  Fees := Vault.Empty;
-  LastPaid := Nothing;
-  Opened := Chain.Height;
-end;
+    public view function isAdmin(Address who) returns Boolean {
+        if who is owner {
+            return true;
+        }
+        for each person in members {
+            if person.wallet is who and person.level is Admin {
+                return true;
+            }
+        }
+        return false;
+    }
 
-function IsAdmin(Who: Address): Boolean; view;
-var
-  Person: Member;
-begin
-  Result := Who = Owner;
-  for each Person in Members do
-    if Person.Wallet = Who and Person.Level = Admin then
-      Result := True;
-end;
+    public view function feeOn(UInt128 amount) returns UInt128 {
+        return mulDiv(amount, FeeBps, 10000, RoundUp);
+    }
 
-function FeeOn(Amount: UInt128): UInt128; view;
-begin
-  Result := MulDiv(Amount, FeeBps, 10000, RoundUp);
-end;
+    public function enrol(Signer caller, Address who, Role level, UInt128 limit)
+        changes storage, emits events
+    {
+        require isAdmin(caller.address) otherwise NotAdmin;
+        Member person;
+        person.wallet = who;
+        person.level = level;
+        person.limit = limit;
+        members.add(person);
+        limits.put(who, limit);
+        emit Joined(who);
+    }
 
-procedure Enrol(Caller: Signer; Who: Address; Level: Role; Limit: UInt128); entry;
-  changes storage, emits events;
-var
-  Person: Member;
-begin
-  require IsAdmin(Caller.Address) otherwise NotAdmin;
-  Person.Wallet := Who;
-  Person.Level := Level;
-  Person.Limit := Limit;
-  Members.Add(Person);
-  Limits.Put(Who, Limit);
-  emit Joined(Who);
-end;
+    public function fund(Signer caller, Coins of AEY deposit) changes storage, receives coins {
+        funds.deposit(move deposit);
+    }
 
-procedure Fund(Caller: Signer; Deposit: Coins of AEY); entry;
-  changes storage, receives coins;
-begin
-  Funds.Deposit(move Deposit);
-end;
+    public function pay(Signer caller, UInt128 amount)
+        changes storage, sends coins, emits events
+    {
+        Optional of UInt128 allowed = limits.get(caller.address);
+        require allowed.isSome otherwise Unknown;
+        require amount <= allowed.value otherwise TooMuch;
+        require funds.balance > 0 otherwise Empty;
+        UInt128 charged = feeOn(amount);
+        Coins of AEY payment = funds.withdraw(amount + charged);
+        Coins of AEY fee = split(payment, charged);
+        fees.deposit(move fee);
+        transfer(move payment, caller.address);
+        lastPaid = some(Chain.slot);
+        emit Paid(caller.address, amount, charged);
+    }
 
-procedure Pay(Caller: Signer; Amount: UInt128); entry;
-  changes storage, sends coins, emits events;
-var
-  Limit: Optional of UInt128;
-  Payment: Coins of AEY;
-  Fee: Coins of AEY;
-  Charged: UInt128;
-begin
-  Limit := Limits.Get(Caller.Address);
-  require Limit.IsSome otherwise Unknown;
-  require Amount <= Limit.Value otherwise TooMuch;
-  require Funds.Balance > 0 otherwise Empty;
-  Charged := FeeOn(Amount);
-  Payment := Funds.Withdraw(Amount + Charged);
-  Fee := Split(Payment, Charged);
-  Fees.Deposit(move Fee);
-  Transfer(move Payment, Caller.Address);
-  LastPaid := Some(Chain.Slot);
-  emit Paid(Caller.Address, Amount, Charged);
-end;
+    public function sweep(Signer caller) changes storage, sends coins {
+        require caller.address is owner otherwise NotAdmin;
+        Coins of AEY all = funds.withdrawAll;
+        Coins of AEY more = fees.withdrawAll;
+        join(all, move more);
+        transfer(move all, owner);
+    }
 
-procedure Sweep(Caller: Signer); entry;
-  changes storage, sends coins;
-var
-  All: Coins of AEY;
-  More: Coins of AEY;
-begin
-  require Caller.Address = Owner otherwise NotAdmin;
-  All := Funds.WithdrawAll;
-  More := Fees.WithdrawAll;
-  Join(All, move More);
-  Transfer(move All, Owner);
-end;
+    public view function describe(Role level) returns UInt8 {
+        switch level {
+            case Viewer -> return 1;
+            case Spender, Admin -> return 2;
+            default -> return 0;
+        }
+    }
 
-function Describe(Level: Role): UInt8; view;
-begin
-  case Level of
-    Viewer: Result := 1;
-    Spender, Admin: Result := 2;
-  else
-    Result := 0;
-  end;
-end;
-
-function Countdown(Start: UInt64): UInt64; view;
-var
-  Left: UInt64;
-  Steps: UInt64;
-  I: UInt64;
-begin
-  Left := Min(Start, Ten);
-  Steps := 0;
-  while Left > 0 at most 100 times do
-  begin
-    Left := Left - 1;
-    Steps := Steps + 1;
-  end;
-  for I := 1 to Ten do
-    Steps := Steps + UInt64(Describe(Admin));
-  Result := Steps;
-end;
-
-end.
+    public view function countdown(UInt64 start) returns UInt64 {
+        UInt64 left = min(start, Ten);
+        UInt64 steps = 0;
+        while left > 0 at most 100 times {
+            left = left - 1;
+            steps = steps + 1;
+        }
+        for i from 1 to Ten {
+            steps = steps + UInt64(describe(Admin));
+        }
+        return steps;
+    }
+}

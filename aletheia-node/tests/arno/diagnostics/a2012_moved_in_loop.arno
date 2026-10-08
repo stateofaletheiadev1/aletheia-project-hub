@@ -1,18 +1,13 @@
-{ A2012: coins moved inside a loop. }
-contract Escrow;
-version 0.1;
-uses Std.Coins, Std.Auth;
+// A2012: coins moved inside a loop.
+contract Escrow {
+    version 0.1;
+    uses Coins, Auth;
 
-storage
-  Seller: Address;
+    private Address seller;
 
-procedure Spray(Caller: Signer; Deposit: Coins of AEY); entry;
-  receives coins, sends coins;
-var
-  I: UInt64;
-begin
-  for I := 1 to 3 do
-    Transfer(move Deposit, Seller);
-end;
-
-end.
+    public function spray(Signer caller, Coins of AEY deposit) receives coins, sends coins {
+        for i from 1 to 3 {
+            transfer(move deposit, seller);
+        }
+    }
+}

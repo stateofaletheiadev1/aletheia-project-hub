@@ -160,7 +160,7 @@ fn recursion(program: &Program, usages: &[Usage], diagnostics: &mut Diagnostics)
                     "A6001",
                     *span,
                     format!(
-                        "Routine '{}' calls itself. Recursion is not allowed in Arno 0.1.",
+                        "Function '{}' calls itself. Recursion is not allowed in Arno 0.1.",
                         name(me)
                     ),
                 );
@@ -170,7 +170,7 @@ fn recursion(program: &Program, usages: &[Usage], diagnostics: &mut Diagnostics)
                     "A6002",
                     *span,
                     format!(
-                        "Routines '{}' and '{}' call each other. Recursion is not allowed in Arno 0.1.",
+                        "Functions '{}' and '{}' call each other. Recursion is not allowed in Arno 0.1.",
                         name(me),
                         name(*callee)
                     ),

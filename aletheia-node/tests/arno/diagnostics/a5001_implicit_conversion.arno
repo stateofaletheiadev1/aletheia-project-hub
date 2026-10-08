@@ -1,14 +1,9 @@
-{ A5001: a wide number assigned to a narrower type without a conversion. }
-contract Payroll;
-version 0.1;
+// A5001: a wide number assigned to a narrower type without a conversion.
+contract Payroll {
+    version 0.1;
 
-procedure Narrow;
-var
-  Big: UInt128;
-  Small: UInt64;
-begin
-  Big := 5;
-  Small := Big;
-end;
-
-end.
+    private function narrow() {
+        UInt128 big = 5;
+        UInt64 small = big;
+    }
+}

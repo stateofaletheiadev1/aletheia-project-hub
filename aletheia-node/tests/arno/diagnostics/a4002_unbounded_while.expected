@@ -1,1 +1,1 @@
-a4002_unbounded_while.arno(10,3): error A4002: This while-loop needs a bound, for example 'at most 100 times'.
+a4002_unbounded_while.arno(7,9): error A4002: This while-loop needs a bound, for example 'at most 100 times'.

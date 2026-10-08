@@ -1,52 +1,44 @@
-contract Payroll;
+// Payroll: pays every active employee from one vault, or nobody if the vault is short.
+contract Payroll {
+    version 0.1;
+    uses Coins, Auth;
 
-version 0.1;
+    constant MaxStaff = 500;
 
-uses Std.Coins, Std.Auth;
+    record Employee {
+        Address wallet;
+        UInt128 salary;
+        Boolean active;
+    }
 
-const
-  MaxStaff = 500;
+    error NotOwner  "Only the payroll owner can do this.";
+    error NotEnough "The payroll vault does not hold enough AEY for this run.";
 
-type
-  Employee = record
-    Wallet: Address;
-    Salary: UInt128;
-    Active: Boolean;
-  end;
+    event SalaryPaid(Address wallet, UInt128 amount);
 
-errors
-  NotOwner     = 'Only the payroll owner can do this.';
-  NotEnough    = 'The payroll vault does not hold enough AEY for this run.';
+    private Address owner;
+    private List of Employee max MaxStaff staff;
+    private Vault of AEY funds;
 
-events
-  SalaryPaid(Wallet: Address; Amount: UInt128);
+    public function payEveryone(Signer caller)
+        changes storage, sends coins, emits events    // funds.withdraw changes the stored vault (ERRATA E-25)
+    {
+        require caller.address is owner otherwise NotOwner;
 
-storage
-  Owner: Address;
-  Staff: List of Employee max MaxStaff;
-  Funds: Vault of AEY;
+        UInt128 needed = 0;
+        for each person in staff {
+            if person.active {
+                needed = needed + person.salary;      // overflow would abort, never wrap
+            }
+        }
 
-procedure PayEveryone(Caller: Signer); entry;
-  changes storage, sends coins, emits events;    { Funds.Withdraw changes the stored vault (ERRATA E-25) }
-var
-  Person: Employee;
-  Needed: UInt128;
-begin
-  require Caller.Address = Owner otherwise NotOwner;
+        require funds.balance >= needed otherwise NotEnough;
 
-  Needed := 0;
-  for each Person in Staff do
-    if Person.Active then
-      Needed := Needed + Person.Salary;          { overflow would abort, never wrap }
-
-  require Funds.Balance >= Needed otherwise NotEnough;
-
-  for each Person in Staff do                     { bounded: Staff holds at most MaxStaff entries }
-    if Person.Active then
-    begin
-      Transfer(Funds.Withdraw(Person.Salary), Person.Wallet);
-      emit SalaryPaid(Person.Wallet, Person.Salary);
-    end;
-end;
-
-end.
+        for each person in staff {                    // bounded: staff holds at most MaxStaff entries
+            if person.active {
+                transfer(funds.withdraw(person.salary), person.wallet);
+                emit SalaryPaid(person.wallet, person.salary);
+            }
+        }
+    }
+}

@@ -1,13 +1,9 @@
-{ A4007: two names that differ only by letter case. }
-contract Payroll;
-version 0.1;
+// A4007: two names that differ only by letter case.
+contract Payroll {
+    version 0.1;
 
-procedure Sum;
-var
-  Total: UInt128;
-  total: UInt128;
-begin
-  Total := 1;
-end;
-
-end.
+    private function sum() {
+        UInt128 total;
+        UInt128 Total = 1;
+    }
+}

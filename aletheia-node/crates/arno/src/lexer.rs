@@ -1,9 +1,9 @@
-//! The lexer (spec Section 26): hand-written, over validated UTF-8, with case-insensitive
-//! keywords and `{ }` / `(* *)` comments.
+//! The lexer (spec Section 26, syntax per ADR-049): hand-written, over validated UTF-8, with
+//! case-insensitive keywords, `//` and `/* */` comments, and text in double quotes.
 //!
-//! Words that are keywords only in one position (`each`, `at`, `most`, `times`, `max`, and
-//! the effect words after `changes`, `receives`, ...) are ordinary identifiers here; the parser
-//! recognises them where they belong, so they stay usable as names elsewhere.
+//! Words that are keywords only in one position (`each`, `from`, `at`, `most`, `times`, `max`,
+//! and the effect words after `changes`, `receives`, ...) are ordinary identifiers here; the
+//! parser recognises them where they belong, so they stay usable as names elsewhere.
 
 use crate::diagnostics::Diagnostics;
 use crate::source::Span;
@@ -13,90 +13,88 @@ pub enum Keyword {
     Contract,
     Version,
     Uses,
-    Const,
+    Constant,
     Type,
-    Errors,
-    Events,
-    Storage,
+    Enum,
+    Record,
+    Error,
+    Event,
+    Public,
+    Private,
     Constructor,
-    Procedure,
     Function,
-    Entry,
     View,
     Reentrant,
-    Var,
-    Begin,
-    End,
+    Returns,
+    Return,
     If,
-    Then,
     Else,
-    Case,
-    Of,
     For,
     In,
     To,
-    Do,
     While,
+    Switch,
+    Case,
+    Default,
     Require,
     Otherwise,
     Fail,
     Emit,
     Move,
-    Exit,
+    Is,
     And,
     Or,
     Not,
     Xor,
     Div,
     Mod,
-    Record,
+    Of,
     Array,
     True,
     False,
 }
 
 impl Keyword {
-    pub const ALL: [Keyword; 43] = [
+    pub const ALL: [Keyword; 42] = [
         Keyword::Contract,
         Keyword::Version,
         Keyword::Uses,
-        Keyword::Const,
+        Keyword::Constant,
         Keyword::Type,
-        Keyword::Errors,
-        Keyword::Events,
-        Keyword::Storage,
+        Keyword::Enum,
+        Keyword::Record,
+        Keyword::Error,
+        Keyword::Event,
+        Keyword::Public,
+        Keyword::Private,
         Keyword::Constructor,
-        Keyword::Procedure,
         Keyword::Function,
-        Keyword::Entry,
         Keyword::View,
         Keyword::Reentrant,
-        Keyword::Var,
-        Keyword::Begin,
-        Keyword::End,
+        Keyword::Returns,
+        Keyword::Return,
         Keyword::If,
-        Keyword::Then,
         Keyword::Else,
-        Keyword::Case,
-        Keyword::Of,
         Keyword::For,
         Keyword::In,
         Keyword::To,
-        Keyword::Do,
         Keyword::While,
+        Keyword::Switch,
+        Keyword::Case,
+        Keyword::Default,
         Keyword::Require,
         Keyword::Otherwise,
         Keyword::Fail,
         Keyword::Emit,
         Keyword::Move,
-        Keyword::Exit,
+        Keyword::Is,
         Keyword::And,
         Keyword::Or,
         Keyword::Not,
         Keyword::Xor,
         Keyword::Div,
         Keyword::Mod,
-        Keyword::Record,
+        Keyword::Of,
         Keyword::Array,
         Keyword::True,
         Keyword::False,
@@ -108,43 +106,42 @@ impl Keyword {
             Keyword::Contract => "contract",
             Keyword::Version => "version",
             Keyword::Uses => "uses",
-            Keyword::Const => "const",
+            Keyword::Constant => "constant",
             Keyword::Type => "type",
-            Keyword::Errors => "errors",
-            Keyword::Events => "events",
-            Keyword::Storage => "storage",
+            Keyword::Enum => "enum",
+            Keyword::Record => "record",
+            Keyword::Error => "error",
+            Keyword::Event => "event",
+            Keyword::Public => "public",
+            Keyword::Private => "private",
             Keyword::Constructor => "constructor",
-            Keyword::Procedure => "procedure",
             Keyword::Function => "function",
-            Keyword::Entry => "entry",
             Keyword::View => "view",
             Keyword::Reentrant => "reentrant",
-            Keyword::Var => "var",
-            Keyword::Begin => "begin",
-            Keyword::End => "end",
+            Keyword::Returns => "returns",
+            Keyword::Return => "return",
             Keyword::If => "if",
-            Keyword::Then => "then",
             Keyword::Else => "else",
-            Keyword::Case => "case",
-            Keyword::Of => "of",
             Keyword::For => "for",
             Keyword::In => "in",
             Keyword::To => "to",
-            Keyword::Do => "do",
             Keyword::While => "while",
+            Keyword::Switch => "switch",
+            Keyword::Case => "case",
+            Keyword::Default => "default",
             Keyword::Require => "require",
             Keyword::Otherwise => "otherwise",
             Keyword::Fail => "fail",
             Keyword::Emit => "emit",
             Keyword::Move => "move",
-            Keyword::Exit => "exit",
+            Keyword::Is => "is",
             Keyword::And => "and",
             Keyword::Or => "or",
             Keyword::Not => "not",
             Keyword::Xor => "xor",
             Keyword::Div => "div",
             Keyword::Mod => "mod",
-            Keyword::Record => "record",
+            Keyword::Of => "of",
             Keyword::Array => "array",
             Keyword::True => "true",
             Keyword::False => "false",
@@ -164,11 +161,13 @@ pub enum TokenKind {
     /// As written; names compare case-insensitively.
     Ident(String),
     Int(u128),
-    /// Contents with `''` already turned into `'`.
+    /// Contents with `\"` and `\\` already turned into `"` and `\`.
     Str(String),
+    /// `=`, which assigns.
     Assign,
-    Eq,
-    NotEq,
+    /// `==` and `!=`: not Arno, but recognised so the message can say what to write.
+    EqEq,
+    BangEq,
     Lt,
     LtEq,
     Gt,
@@ -176,10 +175,13 @@ pub enum TokenKind {
     Plus,
     Minus,
     Star,
+    Arrow,
     LParen,
     RParen,
     LBracket,
     RBracket,
+    LBrace,
+    RBrace,
     Comma,
     Semicolon,
     Colon,
@@ -203,9 +205,9 @@ impl TokenKind {
 
     fn symbol(&self) -> &'static str {
         match self {
-            TokenKind::Assign => ":=",
-            TokenKind::Eq => "=",
-            TokenKind::NotEq => "<>",
+            TokenKind::Assign => "=",
+            TokenKind::EqEq => "==",
+            TokenKind::BangEq => "!=",
             TokenKind::Lt => "<",
             TokenKind::LtEq => "<=",
             TokenKind::Gt => ">",
@@ -213,10 +215,13 @@ impl TokenKind {
             TokenKind::Plus => "+",
             TokenKind::Minus => "-",
             TokenKind::Star => "*",
+            TokenKind::Arrow => "->",
             TokenKind::LParen => "(",
             TokenKind::RParen => ")",
             TokenKind::LBracket => "[",
             TokenKind::RBracket => "]",
+            TokenKind::LBrace => "{",
+            TokenKind::RBrace => "}",
             TokenKind::Comma => ",",
             TokenKind::Semicolon => ";",
             TokenKind::Colon => ":",
@@ -268,38 +273,25 @@ impl Lexer<'_> {
         }
     }
 
-    /// Skips whitespace and comments. Returns false at the end of input.
+    /// Skips whitespace and comments.
     fn skip_trivia(&mut self) {
         loop {
             match (self.peek(), self.peek_second()) {
                 (Some(c), _) if c.is_whitespace() => {
                     self.bump();
                 }
-                (Some('{'), _) => {
-                    let start = self.position;
-                    self.bump();
-                    loop {
-                        match self.bump() {
-                            Some('}') => break,
-                            Some(_) => {}
-                            None => {
-                                self.diagnostics.error(
-                                    "A1003",
-                                    Span::new(start, start.saturating_add(1)),
-                                    "This comment is never closed. Add '}' where it should end.",
-                                );
-                                return;
-                            }
-                        }
+                (Some('/'), Some('/')) => {
+                    while self.peek().is_some_and(|c| c != '\n') {
+                        self.bump();
                     }
                 }
-                (Some('('), Some('*')) => {
+                (Some('/'), Some('*')) => {
                     let start = self.position;
                     self.bump();
                     self.bump();
                     loop {
                         match self.bump() {
-                            Some('*') if self.peek() == Some(')') => {
+                            Some('*') if self.peek() == Some('/') => {
                                 self.bump();
                                 break;
                             }
@@ -308,7 +300,7 @@ impl Lexer<'_> {
                                 self.diagnostics.error(
                                     "A1003",
                                     Span::new(start, start.saturating_add(2)),
-                                    "This comment is never closed. Add '*)' where it should end.",
+                                    "This comment is never closed. Add '*/' where it should end.",
                                 );
                                 return;
                             }
@@ -387,16 +379,17 @@ impl Lexer<'_> {
         let mut contents = String::new();
         loop {
             match self.bump() {
-                Some('\'') if self.peek() == Some('\'') => {
-                    self.bump();
-                    contents.push('\'');
+                Some('\\') if matches!(self.peek(), Some('"' | '\\')) => {
+                    if let Some(c) = self.bump() {
+                        contents.push(c);
+                    }
                 }
-                Some('\'') => break,
+                Some('"') => break,
                 Some('\n') | None => {
                     self.diagnostics.error(
                         "A1002",
                         Span::new(start, start.saturating_add(1)),
-                        "This text is never closed. Add a closing quote (') on the same line.",
+                        "This text is never closed. Add a closing quote (\") on the same line.",
                     );
                     break;
                 }
@@ -427,24 +420,27 @@ impl Lexer<'_> {
             let kind = match c {
                 c if c.is_ascii_alphabetic() || c == '_' => self.word(start),
                 c if c.is_ascii_digit() => self.number(start),
-                '\'' => self.string(start),
-                ':' if self.eat('=') => TokenKind::Assign,
-                ':' => TokenKind::Colon,
-                '=' => TokenKind::Eq,
-                '<' if self.eat('>') => TokenKind::NotEq,
+                '"' => self.string(start),
+                '=' if self.eat('=') => TokenKind::EqEq,
+                '=' => TokenKind::Assign,
+                '!' if self.eat('=') => TokenKind::BangEq,
                 '<' if self.eat('=') => TokenKind::LtEq,
                 '<' => TokenKind::Lt,
                 '>' if self.eat('=') => TokenKind::GtEq,
                 '>' => TokenKind::Gt,
                 '+' => TokenKind::Plus,
+                '-' if self.eat('>') => TokenKind::Arrow,
                 '-' => TokenKind::Minus,
                 '*' => TokenKind::Star,
                 '(' => TokenKind::LParen,
                 ')' => TokenKind::RParen,
                 '[' => TokenKind::LBracket,
                 ']' => TokenKind::RBracket,
+                '{' => TokenKind::LBrace,
+                '}' => TokenKind::RBrace,
                 ',' => TokenKind::Comma,
                 ';' => TokenKind::Semicolon,
+                ':' => TokenKind::Colon,
                 '.' if self.eat('.') => TokenKind::DotDot,
                 '.' => TokenKind::Dot,
                 '/' => {
@@ -506,14 +502,14 @@ mod tests {
 
     #[test]
     fn keywords_are_case_insensitive_and_names_keep_their_spelling() {
-        let (tokens, errors) = kinds("BEGIN Begin begin MyName");
+        let (tokens, errors) = kinds("PUBLIC Public public MyName");
         assert!(errors.is_empty());
         assert_eq!(
             tokens,
             vec![
-                TokenKind::Keyword(Keyword::Begin),
-                TokenKind::Keyword(Keyword::Begin),
-                TokenKind::Keyword(Keyword::Begin),
+                TokenKind::Keyword(Keyword::Public),
+                TokenKind::Keyword(Keyword::Public),
+                TokenKind::Keyword(Keyword::Public),
                 TokenKind::Ident("MyName".to_owned()),
                 TokenKind::Eof
             ]
@@ -522,19 +518,23 @@ mod tests {
 
     #[test]
     fn operators_comments_and_literals() {
-        let (tokens, errors) = kinds("X := 1_000 { brace } (* paren *) <> <= >= .. 'it''s'");
+        let (tokens, errors) = kinds(
+            "x = 1_000 // to the end of the line\n /* block */ <= >= -> .. { } \"say \\\"hi\\\"\"",
+        );
         assert!(errors.is_empty(), "{errors:?}");
         assert_eq!(
             tokens,
             vec![
-                TokenKind::Ident("X".to_owned()),
+                TokenKind::Ident("x".to_owned()),
                 TokenKind::Assign,
                 TokenKind::Int(1000),
-                TokenKind::NotEq,
                 TokenKind::LtEq,
                 TokenKind::GtEq,
+                TokenKind::Arrow,
                 TokenKind::DotDot,
-                TokenKind::Str("it's".to_owned()),
+                TokenKind::LBrace,
+                TokenKind::RBrace,
+                TokenKind::Str("say \"hi\"".to_owned()),
                 TokenKind::Eof
             ]
         );
@@ -556,8 +556,8 @@ mod tests {
 
     #[test]
     fn problems_are_reported_with_codes_and_skipped() {
-        assert_eq!(kinds("{ never closed").1, vec!["A1003"]);
-        assert_eq!(kinds("'open").1, vec!["A1002"]);
+        assert_eq!(kinds("/* never closed").1, vec!["A1003"]);
+        assert_eq!(kinds("\"open").1, vec!["A1002"]);
         assert_eq!(
             kinds("340282366920938463463374607431768211456").1,
             vec!["A1004"]

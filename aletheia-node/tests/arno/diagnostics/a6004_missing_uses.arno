@@ -1,10 +1,8 @@
-{ A6004: Chain used without 'uses Std.Chain'. }
-contract Clock;
-version 0.1;
+// A6004: Chain used without 'uses Chain'.
+contract Clock {
+    version 0.1;
 
-function Now: Slot; view;
-begin
-  Result := Chain.Slot;
-end;
-
-end.
+    public view function now() returns Slot {
+        return Chain.slot;
+    }
+}

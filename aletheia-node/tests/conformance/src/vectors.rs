@@ -564,7 +564,7 @@ fn vm_execution() -> Value {
     let cases = vec![
         vm_case(
             "arithmetic",
-            "contract V; version 0.1;\nfunction F(A, B: UInt64): UInt64; view;\nbegin Result := A * B + 7; end;\nend.",
+            "contract V { version 0.1;\npublic view function F(UInt64 A, UInt64 B) returns UInt64 { return A * B + 7; } }",
             &[
                 ("F", le_u64(&[6, 7]), EU),
                 ("F", le_u64(&[u64::MAX, 2]), EU),
@@ -572,7 +572,7 @@ fn vm_execution() -> Value {
         ),
         vm_case(
             "signed-division",
-            "contract V; version 0.1;\nfunction D(A, B: Int64): Int64; view;\nbegin Result := A div B; end;\nfunction M(A, B: Int64): Int64; view;\nbegin Result := A mod B; end;\nend.",
+            "contract V { version 0.1;\npublic view function D(Int64 A, Int64 B) returns Int64 { return A div B; }\npublic view function M(Int64 A, Int64 B) returns Int64 { return A mod B; } }",
             &[
                 ("D", le_i64(&[-7, 2]), EU),
                 ("M", le_i64(&[-7, 2]), EU),
@@ -581,7 +581,7 @@ fn vm_execution() -> Value {
         ),
         vm_case(
             "muldiv-rounding",
-            "contract V; version 0.1;\nuses Std.Math;\nfunction Down(A, B, C: UInt128): UInt128; view;\nbegin Result := MulDiv(A, B, C, RoundDown); end;\nfunction Up(A, B, C: UInt128): UInt128; view;\nbegin Result := MulDiv(A, B, C, RoundUp); end;\nend.",
+            "contract V { version 0.1;\nuses Math;\npublic view function Down(UInt128 A, UInt128 B, UInt128 C) returns UInt128 { return mulDiv(A, B, C, RoundDown); }\npublic view function Up(UInt128 A, UInt128 B, UInt128 C) returns UInt128 { return mulDiv(A, B, C, RoundUp); } }",
             &[
                 ("Down", le_u128(&[1_000, 25, 10_000]), EU),
                 ("Up", le_u128(&[1_000, 25, 10_000]), EU),
@@ -589,7 +589,7 @@ fn vm_execution() -> Value {
         ),
         vm_case(
             "storage-counter",
-            "contract V; version 0.1;\nstorage Count: UInt64;\nprocedure Inc; changes storage;\nbegin Count := Count + 1; end;\nfunction Get: UInt64; view;\nbegin Result := Count; end;\nend.",
+            "contract V { version 0.1;\nprivate UInt64 Count;\nprivate function Inc() changes storage { Count = Count + 1; }\npublic view function Get() returns UInt64 { return Count; } }",
             &[
                 ("Inc", Vec::new(), EU),
                 ("Inc", Vec::new(), EU),
@@ -599,12 +599,12 @@ fn vm_execution() -> Value {
         ),
         vm_case(
             "bounded-loops",
-            "contract V; version 0.1;\nfunction Exact: UInt64; view;\nvar Y: UInt64;\nbegin Y := 0; while Y < 3 at most 3 times do Y := Y + 1; Result := Y; end;\nfunction Over: UInt64; view;\nvar Y: UInt64;\nbegin Y := 0; while Y < 4 at most 3 times do Y := Y + 1; Result := Y; end;\nend.",
+            "contract V { version 0.1;\npublic view function Exact() returns UInt64 { UInt64 Y = 0; while Y < 3 at most 3 times { Y = Y + 1; } return Y; }\npublic view function Over() returns UInt64 { UInt64 Y = 0; while Y < 4 at most 3 times { Y = Y + 1; } return Y; } }",
             &[("Exact", Vec::new(), EU), ("Over", Vec::new(), EU)],
         ),
         vm_case(
             "map-and-list",
-            "contract V; version 0.1;\nstorage M: Map of UInt64 to UInt64; L: List of UInt64 max 2;\nprocedure Put(K, V: UInt64); changes storage;\nbegin M.Put(K, V); L.Add(K); end;\nfunction Get(K: UInt64): UInt64; view;\nvar O: Optional of UInt64;\nbegin O := M.Get(K); if O.IsSome then Result := O.Value else Result := 0; end;\nend.",
+            "contract V { version 0.1;\nprivate Map of UInt64 to UInt64 M;\nprivate List of UInt64 max 2 L;\nprivate function Put(UInt64 K, UInt64 V) changes storage { M.put(K, V); L.add(K); }\npublic view function Get(UInt64 K) returns UInt64 { Optional of UInt64 O = M.get(K); if O.isSome { return O.value; } else { return 0; } } }",
             &[
                 ("Put", le_u64(&[5, 50]), EU),
                 ("Put", le_u64(&[6, 60]), EU),
@@ -615,12 +615,12 @@ fn vm_execution() -> Value {
         ),
         vm_case(
             "events-and-aborts",
-            "contract V; version 0.1;\nerrors Low = 'Too low.';\nevents Seen(V: UInt64);\nprocedure Check(V: UInt64); emits events;\nbegin require V > 10 otherwise Low; emit Seen(V); end;\nend.",
+            "contract V { version 0.1;\nerror Low \"Too low.\";\nevent Seen(UInt64 V);\nprivate function Check(UInt64 V) emits events { require V > 10 otherwise Low; emit Seen(V); } }",
             &[("Check", le_u64(&[11]), EU), ("Check", le_u64(&[3]), EU)],
         ),
         vm_case(
             "out-of-eu",
-            "contract V; version 0.1;\nstorage S: UInt64;\nprocedure W; changes storage;\nbegin S := 1; end;\nend.",
+            "contract V { version 0.1;\nprivate UInt64 S;\nprivate function W() changes storage { S = 1; } }",
             &[
                 ("W", Vec::new(), 4_000),
                 ("W", Vec::new(), EU),
@@ -629,7 +629,7 @@ fn vm_execution() -> Value {
         ),
         vm_case(
             "chain-facts-and-hash",
-            "contract V; version 0.1;\nuses Std.Chain, Std.Crypto;\nfunction Now: Slot; view;\nbegin Result := Chain.Slot; end;\nfunction H: Hash; view;\nbegin Result := Blake3('abc'); end;\nend.",
+            "contract V { version 0.1;\nuses Chain, Crypto;\npublic view function Now() returns Slot { return Chain.slot; }\npublic view function H() returns Hash { return blake3(\"abc\"); } }",
             &[("Now", Vec::new(), EU), ("H", Vec::new(), EU)],
         ),
     ];

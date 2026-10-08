@@ -1,15 +1,11 @@
-{ A2005: a named Coins value passed without 'move'. }
-contract Escrow;
-version 0.1;
-uses Std.Coins, Std.Auth;
+// A2005: a named Coins value passed without 'move'.
+contract Escrow {
+    version 0.1;
+    uses Coins, Auth;
 
-storage
-  Safe: Vault of AEY;
+    private Vault of AEY safe;
 
-procedure Fund(Caller: Signer; Deposit: Coins of AEY); entry;
-  changes storage, receives coins;
-begin
-  Safe.Deposit(Deposit);
-end;
-
-end.
+    public function fund(Signer caller, Coins of AEY deposit) changes storage, receives coins {
+        safe.deposit(deposit);
+    }
+}

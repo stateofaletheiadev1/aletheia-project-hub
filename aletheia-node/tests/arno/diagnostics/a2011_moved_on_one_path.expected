@@ -1,1 +1,1 @@
-a2011_moved_on_one_path.arno(13,3): error A2011: 'Deposit' is moved on one path but not on another. Move it on every path, or on none.
+a2011_moved_on_one_path.arno(11,9): error A2011: 'deposit' is moved on one path but not on another. Move it on every path, or on none.

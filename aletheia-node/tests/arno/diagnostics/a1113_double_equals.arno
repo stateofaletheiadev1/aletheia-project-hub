@@ -1,0 +1,10 @@
+// A1113: '==' where Arno says 'is'.
+contract Guard {
+    version 0.1;
+
+    private Boolean open;
+
+    public view function isOpen() returns Boolean {
+        return open == true;
+    }
+}

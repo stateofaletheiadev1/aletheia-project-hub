@@ -3222,64 +3222,64 @@ consistent state.
 
 # 25. Arno Smart-Contract Language (APS-0013) **\[DECISION ADR-019\]**
 
-Arno is an independent language in the **Pascal / Delphi (Object Pascal)
-family**. It is designed to read almost like English so that auditors,
-regulators and business analysts can follow a contract, not only
-programmers. It is **not** Solidity, not Rust-like, and not C-like: no
-braces, no semicolon-soup expressions, no symbols where a word works.
+Arno is an independent language shaped like **Java and Solidity** (a
+`contract { }` with `public` and `private` members, braces and
+semicolons) that uses **English words where those languages use
+symbols**, so that auditors, regulators and business analysts can follow
+a contract, not only programmers. The syntax follows ADR-049, which
+replaced the original Pascal-family syntax (ERRATA E-27).
 
   -----------------------------------------------------------------------
   Pillar                      Mechanism
   --------------------------- -------------------------------------------
-  Reads like English          Keyword-driven: `contract`, `procedure`,
-                              `function`, `begin` ... `end`,
-                              `if … then … else`, `require … otherwise`,
-                              `emit`, `move`, `for each … in … do`,
-                              `while … at most N times do`
+  Reads like English          `is`, `is not`, `and`, `or`, `not`,
+                              `require … otherwise`, `for each … in`,
+                              `while … at most N times`, `emit`, `move`
 
-  Pascal structure            `contract` unit with ordered sections:
-                              `version`, `uses`, `const`, `type`,
-                              `errors`, `events`, `storage`, then
-                              routines; file ends with `end.`
+  Familiar shape              `contract Name { }` holding constants,
+                              enums, records, errors, events, private
+                              variables, a `constructor` and
+                              `public` / `private` / `view` functions
 
-  Familiar operators          `:=` assignment, `=` / `<>` comparison,
+  Familiar operators          `=` assignment, `is` / `is not` comparison
+                              (`==` is refused with a hint),
                               `and` / `or` / `not` / `xor`, `div` / `mod`
                               for integer division
 
   Case                        Keywords and identifiers are
-                              case-insensitive (Pascal tradition); two
-                              identifiers that differ only by case are a
-                              compile error; `arno fmt` rewrites
-                              canonical casing (keywords lowercase,
-                              identifiers as declared)
+                              case-insensitive; two identifiers that
+                              differ only by case are a compile error;
+                              `arno fmt` rewrites canonical casing
+                              (keywords lowercase, identifiers as
+                              declared)
 
-  Statically typed            Every variable declared in a `var` block
-                              with its type; no implicit conversions, no
-                              type guessing
+  Statically typed            Every variable is declared with its type
+                              (`UInt128 total = 0;`); no implicit
+                              conversions, no type guessing beyond a
+                              `for each` variable taking its items' type
 
   Deterministic               No `Real`/`Double`/`Single` types exist;
-                              time only via `Chain.ProtocolTime`; every
+                              time only via `Chain.protocolTime`; every
                               loop has a compile-time bound
 
   Asset-safe                  `Coins of <Asset>` is a linear type: it
                               must be moved exactly once (into a `Vault`,
-                              a `Transfer`, or returned). Copying or
+                              a `transfer`, or returned). Copying or
                               silently dropping coins does not compile
 
-  Explicit authorization      Entry routines receive a `Signer`
+  Explicit authorization      Public functions receive a `Signer`
                               parameter; authority is a value you check,
                               not a hidden global
 
-  Explicit effects            Each routine declares what it does:
+  Explicit effects            Each function declares what it does:
                               `changes storage`, `receives coins`,
                               `sends coins`, `emits events`,
                               `calls contracts`. Anything undeclared is a
                               compile error
 
   Safe by default             Integer overflow aborts the transaction;
-                              re-entry is forbidden unless the routine
-                              carries the `reentrant` directive; call
-                              depth ≤ 16
+                              re-entry is forbidden unless the function
+                              is marked `reentrant`; call depth ≤ 16
 
   Versioned                   `version 0.1;` --- the VM executes each
                               contract under the semantics of its
@@ -3291,199 +3291,184 @@ Source extension: `.arno`
 ## 25.1 Shape of an Arno Contract
 
 ``` text
-contract <Name>;
-version <major.minor>;
-uses <Std units>;
+contract <Name> {
+    version <major.minor>;
+    uses <standard units>;                       // Coins, Auth, Chain, Math, ...
 
-const    <compile-time constants>
-type     <enumerations, records>
-errors   <named errors with English messages>
-events   <event declarations>
-storage  <persistent fields>
+    constant <Name> = <value>;
+    enum <Name> { <A>, <B> }
+    record <Name> { <Type> <field>; ... }
+    error <Name> "<English message>";
+    event <Name>(<Type> <field>, ...);
 
-constructor Create(...);   <effects>;   begin ... end;
-procedure  <Name>(...); entry;  <effects>;  var ...  begin ... end;
-function   <Name>(...): <Type>; view;              begin ... Result := ...; end;
+    private <Type> <variable>;                   // contract storage, always private
 
-end.
+    constructor(Signer caller, ...) <effects> { ... }
+
+    public function <name>(Signer caller, ...) <effects> { ... }       // callable entry
+    public view function <name>(...) returns <Type> { return ...; }    // read by anyone
+    private function <name>(...) [returns <Type>] <effects> { ... }    // internal helper
+}
 ```
 
 ## 25.2 Example --- Escrow
 
 ``` arno
-{ Escrow: holds AEY until the arbiter releases it, or refunds the buyer after the deadline. }
-contract Escrow;
+// Escrow: holds AEY until the arbiter releases it, or refunds the buyer after the deadline.
+contract Escrow {
+    version 0.1;
+    uses Coins, Auth, Chain;
 
-version 0.1;
+    enum Phase { Open, Funded, Released, Refunded }
 
-uses Std.Coins, Std.Auth, Std.Chain;
+    error WrongPhase  "The escrow is not in the right phase for this action.";
+    error NotTheBuyer "Only the buyer can do this.";
+    error NotArbiter  "Only the arbiter can do this.";
+    error TooEarly    "The refund deadline has not passed yet.";
 
-type
-  Phase = (Open, Funded, Released, Refunded);
+    event EscrowFunded(Address buyer, UInt128 total);
+    event EscrowReleased(Address seller, UInt128 total);
+    event EscrowRefunded(Address buyer, UInt128 total);
 
-errors
-  WrongPhase  = 'The escrow is not in the right phase for this action.';
-  NotTheBuyer = 'Only the buyer can do this.';
-  NotArbiter  = 'Only the arbiter can do this.';
-  TooEarly    = 'The refund deadline has not passed yet.';
+    private Address buyer, seller, arbiter;
+    private Slot deadline;
+    private Vault of AEY safe;
+    private Phase state;
 
-events
-  EscrowFunded(Buyer: Address; Total: UInt128);
-  EscrowReleased(Seller: Address; Total: UInt128);
-  EscrowRefunded(Buyer: Address; Total: UInt128);
+    constructor(Signer caller, Address theSeller, Address theArbiter, Slot theDeadline)
+        changes storage
+    {
+        buyer    = caller.address;
+        seller   = theSeller;
+        arbiter  = theArbiter;
+        deadline = theDeadline;
+        safe     = Vault.Empty;
+        state    = Open;
+    }
 
-storage
-  Buyer, Seller, Arbiter: Address;
-  Deadline: Slot;
-  Safe: Vault of AEY;
-  State: Phase;
+    public function fund(Signer caller, Coins of AEY deposit)
+        changes storage, receives coins, emits events
+    {
+        require state is Open otherwise WrongPhase;
+        require caller.address is buyer otherwise NotTheBuyer;
+        UInt128 total = deposit.value;
+        safe.deposit(move deposit);        // deposit is used up here and can never be touched again
+        state = Funded;
+        emit EscrowFunded(buyer, total);
+    }
 
-constructor Create(Caller: Signer; ASeller, AnArbiter: Address; ADeadline: Slot);
-  changes storage;
-begin
-  Buyer    := Caller.Address;
-  Seller   := ASeller;
-  Arbiter  := AnArbiter;
-  Deadline := ADeadline;
-  Safe     := Vault.Empty;
-  State    := Open;
-end;
+    public function release(Signer caller)
+        changes storage, sends coins, emits events
+    {
+        require state is Funded otherwise WrongPhase;
+        require caller.address is arbiter otherwise NotArbiter;
+        Coins of AEY payout = safe.withdrawAll;
+        UInt128 total = payout.value;
+        transfer(move payout, seller);
+        state = Released;
+        emit EscrowReleased(seller, total);
+    }
 
-procedure Fund(Caller: Signer; Deposit: Coins of AEY); entry;
-  changes storage, receives coins, emits events;
-var
-  Total: UInt128;
-begin
-  require State = Open otherwise WrongPhase;
-  require Caller.Address = Buyer otherwise NotTheBuyer;
-  Total := Deposit.Value;
-  Safe.Deposit(move Deposit);        { Deposit is used up here and can never be touched again }
-  State := Funded;
-  emit EscrowFunded(Buyer, Total);
-end;
+    public function refund(Signer caller)
+        changes storage, sends coins, emits events
+    {
+        require state is Funded otherwise WrongPhase;
+        require caller.address is buyer otherwise NotTheBuyer;
+        require Chain.slot > deadline otherwise TooEarly;
+        Coins of AEY back = safe.withdrawAll;
+        UInt128 total = back.value;
+        transfer(move back, buyer);
+        state = Refunded;
+        emit EscrowRefunded(buyer, total);
+    }
 
-procedure Release(Caller: Signer); entry;
-  changes storage, sends coins, emits events;
-var
-  Payout: Coins of AEY;
-  Total: UInt128;
-begin
-  require State = Funded otherwise WrongPhase;
-  require Caller.Address = Arbiter otherwise NotArbiter;
-  Payout := Safe.WithdrawAll;
-  Total := Payout.Value;
-  Transfer(move Payout, Seller);
-  State := Released;
-  emit EscrowReleased(Seller, Total);
-end;
-
-procedure Refund(Caller: Signer); entry;
-  changes storage, sends coins, emits events;
-var
-  Back: Coins of AEY;
-  Total: UInt128;
-begin
-  require State = Funded otherwise WrongPhase;
-  require Caller.Address = Buyer otherwise NotTheBuyer;
-  require Chain.Slot > Deadline otherwise TooEarly;
-  Back := Safe.WithdrawAll;
-  Total := Back.Value;
-  Transfer(move Back, Buyer);
-  State := Refunded;
-  emit EscrowRefunded(Buyer, Total);
-end;
-
-function Status: Phase; view;
-begin
-  Result := State;
-end;
-
-end.
+    public view function status() returns Phase {
+        return state;
+    }
+}
 ```
+
+`move deposit` hands the named coins over: after it, `deposit` cannot
+be used again, and leaving a function while still holding coins does
+not compile.
 
 ## 25.3 Example --- Payroll (loops, records, lists)
 
 ``` arno
-contract Payroll;
+// Payroll: pays every active employee from one vault, or nobody if the vault is short.
+contract Payroll {
+    version 0.1;
+    uses Coins, Auth;
 
-version 0.1;
+    constant MaxStaff = 500;
 
-uses Std.Coins, Std.Auth;
+    record Employee {
+        Address wallet;
+        UInt128 salary;
+        Boolean active;
+    }
 
-const
-  MaxStaff = 500;
+    error NotOwner  "Only the payroll owner can do this.";
+    error NotEnough "The payroll vault does not hold enough AEY for this run.";
 
-type
-  Employee = record
-    Wallet: Address;
-    Salary: UInt128;
-    Active: Boolean;
-  end;
+    event SalaryPaid(Address wallet, UInt128 amount);
 
-errors
-  NotOwner     = 'Only the payroll owner can do this.';
-  NotEnough    = 'The payroll vault does not hold enough AEY for this run.';
+    private Address owner;
+    private List of Employee max MaxStaff staff;
+    private Vault of AEY funds;
 
-events
-  SalaryPaid(Wallet: Address; Amount: UInt128);
+    public function payEveryone(Signer caller)
+        changes storage, sends coins, emits events    // funds.withdraw changes the stored vault (ERRATA E-25)
+    {
+        require caller.address is owner otherwise NotOwner;
 
-storage
-  Owner: Address;
-  Staff: List of Employee max MaxStaff;
-  Funds: Vault of AEY;
+        UInt128 needed = 0;
+        for each person in staff {
+            if person.active {
+                needed = needed + person.salary;      // overflow would abort, never wrap
+            }
+        }
 
-procedure PayEveryone(Caller: Signer); entry;
-  sends coins, emits events;
-var
-  Person: Employee;
-  Needed: UInt128;
-begin
-  require Caller.Address = Owner otherwise NotOwner;
+        require funds.balance >= needed otherwise NotEnough;
 
-  Needed := 0;
-  for each Person in Staff do
-    if Person.Active then
-      Needed := Needed + Person.Salary;          { overflow would abort, never wrap }
-
-  require Funds.Balance >= Needed otherwise NotEnough;
-
-  for each Person in Staff do                     { bounded: Staff holds at most MaxStaff entries }
-    if Person.Active then
-    begin
-      Transfer(Funds.Withdraw(Person.Salary), Person.Wallet);
-      emit SalaryPaid(Person.Wallet, Person.Salary);
-    end;
-end;
-
-end.
+        for each person in staff {                    // bounded: staff holds at most MaxStaff entries
+            if person.active {
+                transfer(funds.withdraw(person.salary), person.wallet);
+                emit SalaryPaid(person.wallet, person.salary);
+            }
+        }
+    }
+}
 ```
 
 A temporary `Coins` value produced by a call (such as
-`Funds.Withdraw(...)`) and passed straight into another call is moved
+`funds.withdraw(...)`) and passed straight into another call is moved
 automatically; only named `Coins` variables need the explicit `move`
 keyword, so a reader always sees where a named value is handed over.
 
 ## 25.4 Statement Cheat-Sheet
 
 ``` text
-X := Y + 1;                               assignment
-if A and not B then ... else ...;         conditions (and / or / not / xor)
-case State of Open: ...; Funded: ...; end;
-for I := 1 to N do ...;                   N must have a declared maximum
-for each Item in Staff do ...;            over bounded lists / arrays
-while Remaining > 0 at most 100 times do ...;   every while-loop carries its bound
-require Condition otherwise ErrorName;    abort with a named error (state reverted)
-fail ErrorName;                           abort unconditionally
-emit EventName(Arguments);                record an event
-move X                                    hand over a named Coins value (X is unusable afterwards)
-Result := Value;                          set a function's return value
-exit;                                     leave the current routine
+x = y + 1;                                   assignment
+UInt128 total = 0;                           declare a local variable (once per function)
+if a and not b { ... } else if c { ... } else { ... }
+switch state { case Open -> ...; case Funded, Released -> ...; default -> ...; }
+for i from 1 to N { ... }                    N must be a constant
+for each item in staff { ... }               over bounded lists / arrays
+while remaining > 0 at most 100 times { ... }   every while-loop carries its bound
+require condition otherwise ErrorName;       abort with a named error (state reverted)
+fail ErrorName;                              abort unconditionally
+emit EventName(arguments);                   record an event
+move x                                       hand over a named Coins value (x is unusable afterwards)
+return value;                                give back a function's result and leave
+return;                                      leave a function that returns nothing
 ```
 
-Arithmetic: `+ - *`, integer `div` (rounds toward zero) and `mod`. The
-`/` operator does not exist. Money math uses
-`MulDiv(A, B, C, RoundDown)` or `MulDiv(A, B, C, RoundUp)` from
-`Std.Math`, which uses a 256-bit intermediate.
+Comparisons: `is`, `is not`, `<`, `<=`, `>`, `>=`. Arithmetic: `+ - *`,
+integer `div` (rounds toward zero) and `mod`. The `/` operator does not
+exist. Money math uses `mulDiv(a, b, c, RoundDown)` or
+`mulDiv(a, b, c, RoundUp)` from `Std.Math`, which uses a 256-bit
+intermediate.
 
 ## 25.5 Types (v0.1)
 
@@ -3509,12 +3494,11 @@ Arithmetic: `+ - *`, integer `div` (rounds toward zero) and `mod`. The
 
   `Bytes[N]` / `Bytes max N`            Fixed / bounded raw bytes
 
-  `(A, B, C)`                           Enumeration
+  `enum Name { A, B, C }`               Enumeration
 
-  `record ... end`                      Structured value
+  `record Name { ... }`                 Structured value
 
-  `array[1..N] of T`                    Fixed-size array (1-based, Pascal
-                                        style)
+  `array[1..N] of T`                    Fixed-size array (1-based)
 
   `List of T max N`                     Bounded list
 
@@ -3533,29 +3517,31 @@ Arithmetic: `+ - *`, integer `div` (rounds toward zero) and `mod`. The
 
 Not in v0.1: pointers, `nil`, classes, inheritance, virtual methods,
 dynamic dispatch, recursion, exceptions (`try`/`except`), floating
-point. Records, procedures and functions give the Object Pascal feel
-without object machinery. `interface` declarations for application
+point. Contracts, records and functions give the shape of Java and
+Solidity without class machinery. `interface` declarations for application
 standards (APS-0300 range) are reserved for Arno v0.2.
 
 ## 25.6 Grammar Excerpt (EBNF, full grammar in `docs/arno/grammar.ebnf`)
 
 ``` ebnf
-Unit          = "contract" Ident ";" "version" Version ";" [ UsesClause ]
-                { ConstSection | TypeSection | ErrorsSection | EventsSection | StorageSection }
-                { Routine } "end" "." ;
-UsesClause    = "uses" QualIdent { "," QualIdent } ";" ;
-Routine       = ( "constructor" | "procedure" | "function" ) Ident [ Params ] [ ":" Type ] ";"
-                { Directive ";" } [ Effects ";" ] [ VarSection ] Block ";" ;
-Directive     = "entry" | "view" | "reentrant" ;
+Unit          = "contract" Ident "{" "version" Version ";" [ UsesClause ] { Member } "}" ;
+Member        = Constant | TypeAlias | Enum | Record | ErrorDecl | EventDecl
+              | Variable | Constructor | Function ;
+Variable      = [ "private" ] Type Ident { "," Ident } ";" ;
+Constructor   = "constructor" Params [ Effects ] Block ;
+Function      = { "public" | "private" | "view" | "reentrant" } "function" Ident Params
+                [ "returns" Type ] [ Effects ] Block ;
+Params        = "(" [ Type Ident { "," Type Ident } ] ")" ;
 Effects       = Effect { "," Effect } ;
 Effect        = "changes" "storage" | "receives" "coins" | "sends" "coins"
               | "emits" "events" | "calls" "contracts" ;
-Block         = "begin" [ Statement { ";" Statement } ] "end" ;
-Statement     = Assign | Call | IfStmt | CaseStmt | ForStmt | ForEachStmt | WhileStmt
-              | RequireStmt | FailStmt | EmitStmt | "exit" | Block ;
-RequireStmt   = "require" Expr "otherwise" Ident ;
-WhileStmt     = "while" Expr "at" "most" ConstExpr "times" "do" Statement ;
-ForEachStmt   = "for" "each" Ident "in" Designator "do" Statement ;
+Block         = "{" { Statement } "}" ;
+Statement     = LocalDecl | Assign | Call | IfStmt | SwitchStmt | ForStmt | ForEachStmt
+              | WhileStmt | RequireStmt | FailStmt | EmitStmt | ReturnStmt | Block ;
+RequireStmt   = "require" Expr "otherwise" Ident ";" ;
+WhileStmt     = "while" Expr "at" "most" ConstExpr "times" Block ;
+ForEachStmt   = "for" "each" [ Type ] Ident "in" Designator Block ;
+Comparison    = Sum [ ( "is" | "is" "not" | "<" | "<=" | ">" | ">=" ) Sum ] ;
 MoveExpr      = "move" Ident ;
 ```
 
@@ -3569,14 +3555,14 @@ The compiler MUST produce these errors (each has a test in
 readable sentence:
 
 ``` text
-escrow.arno(31,21): error A2004: 'Deposit' was already moved on line 30 and cannot be used again.
-escrow.arno(44,3):  error A2010: Coins value 'Payout' is never moved. Coins cannot be dropped.
-escrow.arno(52,5):  error A3001: Function 'Status' is marked view but changes storage.
-escrow.arno(18,3):  error A3005: 'Release' sends coins, but its effects list does not include 'sends coins'.
-payroll.arno(60,7): error A4002: This while-loop needs a bound, for example 'at most 100 times'.
-payroll.arno(12,9): error A4007: 'Total' and 'total' differ only by letter case. Use one name.
-payroll.arno(70,14): error A5001: Implicit conversion from UInt128 to UInt64 is not allowed. Use UInt64(...) with a range check.
-payroll.arno(80,3): error A6001: Routine 'Walk' calls itself. Recursion is not allowed in Arno 0.1.
+escrow.arno(31,22): error A2004: 'deposit' was already moved on line 30 and cannot be used again.
+escrow.arno(44,9):  error A2010: Coins value 'payout' is never moved. Coins cannot be dropped.
+escrow.arno(52,26): error A3001: Function 'status' is marked view but changes storage.
+escrow.arno(18,21): error A3005: 'release' sends coins, but its effects list does not include 'sends coins'.
+payroll.arno(60,9): error A4002: This while-loop needs a bound, for example 'at most 100 times'.
+payroll.arno(12,17): error A4007: 'total' and 'Total' differ only by letter case. Use one name.
+payroll.arno(70,24): error A5001: Implicit conversion from UInt128 to UInt64 is not allowed. Use UInt64(...) with a range check.
+payroll.arno(80,9): error A6001: Function 'walk' calls itself. Recursion is not allowed in Arno 0.1.
 ```
 
 ## 25.8 Standard Library
@@ -3630,7 +3616,7 @@ Arno Source (.arno)
 Hand-written lexer/parser (no ANTLR/Bison) for full control of
 plain-English error messages (Section 25.7), determinism and supply
 chain. `arno fmt` is the canonical formatter (indentation, keyword
-casing, `begin`/`end` alignment); CI rejects unformatted example
+casing, brace alignment); CI rejects unformatted example
 contracts.
 
 Reproducibility: same source + same compiler version + same config ⇒

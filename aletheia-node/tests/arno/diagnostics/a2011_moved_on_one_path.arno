@@ -1,17 +1,15 @@
-{ A2011: coins moved on one branch only. }
-contract Escrow;
-version 0.1;
-uses Std.Coins, Std.Auth;
+// A2011: coins moved on one branch only.
+contract Escrow {
+    version 0.1;
+    uses Coins, Auth;
 
-storage
-  Seller: Address;
-  Safe: Vault of AEY;
+    private Address seller;
 
-procedure Fund(Caller: Signer; Deposit: Coins of AEY; Now: Boolean); entry;
-  changes storage, receives coins, sends coins;
-begin
-  if Now then
-    Transfer(move Deposit, Seller);
-end;
-
-end.
+    public function fund(Signer caller, Coins of AEY deposit, Boolean now)
+        receives coins, sends coins
+    {
+        if now {
+            transfer(move deposit, seller);
+        }
+    }
+}
