@@ -7,7 +7,7 @@ use aletheia_core::{
     AceDecode, AceEncode, Address, AletheiaError, AssetId, Hash32, Height, NetworkIdentity,
 };
 use aletheia_execution::Receipt;
-use aletheia_execution::model::{Account, AssetConfig, Balance};
+use aletheia_execution::model::{Account, AssetConfig, Balance, ValidatorRecord};
 use aletheia_monetary::SupplyLedger;
 use aletheia_rpc::{Backend, BlockRef, Located, NodeStatus};
 use aletheia_storage::KvStore;
@@ -29,6 +29,7 @@ pub(crate) enum RpcQuery {
     Balance(Address, AssetId),
     Assets,
     Supply(AssetId),
+    Validators(u64),
     Simulate(Vec<u8>),
 }
 
@@ -43,6 +44,7 @@ pub(crate) enum RpcAnswer {
     Balance(Balance),
     Assets(Vec<(AssetId, AssetConfig)>),
     Supply(Option<Box<SupplyLedger>>),
+    Validators(Option<Vec<ValidatorRecord>>),
     Simulated(Box<Receipt>),
 }
 
@@ -130,6 +132,7 @@ pub(crate) fn answer<S: KvStore>(
             RpcAnswer::Assets(out)
         }
         RpcQuery::Supply(asset) => RpcAnswer::Supply(ledger.supply_at_tip(asset)?.map(Box::new)),
+        RpcQuery::Validators(epoch) => RpcAnswer::Validators(ledger.validators_at_tip(epoch)?),
         RpcQuery::Simulate(bytes) => RpcAnswer::Simulated(Box::new(ledger.simulate(&bytes)?)),
     })
 }
@@ -222,6 +225,13 @@ impl Backend for NodeBackend {
     async fn supply(&self, asset: AssetId) -> Result<Option<SupplyLedger>, AletheiaError> {
         match self.ask(RpcQuery::Supply(asset)).await? {
             RpcAnswer::Supply(s) => Ok(s.map(|s| *s)),
+            _ => Err(unexpected()),
+        }
+    }
+
+    async fn validators(&self, epoch: u64) -> Result<Option<Vec<ValidatorRecord>>, AletheiaError> {
+        match self.ask(RpcQuery::Validators(epoch)).await? {
+            RpcAnswer::Validators(v) => Ok(v),
             _ => Err(unexpected()),
         }
     }

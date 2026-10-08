@@ -7,7 +7,7 @@ use aletheia_core::block::Proposal;
 use aletheia_core::tx::SignedTransaction;
 use aletheia_core::{Address, AletheiaError, AssetId, Hash32, NetworkIdentity};
 use aletheia_execution::Receipt;
-use aletheia_execution::model::{Account, AssetConfig, Balance};
+use aletheia_execution::model::{Account, AssetConfig, Balance, ValidatorRecord};
 use aletheia_monetary::SupplyLedger;
 
 /// The node's state as the status endpoints report it.
@@ -85,6 +85,13 @@ pub trait Backend: Send + Sync {
         &self,
         asset: AssetId,
     ) -> impl Future<Output = Result<Option<SupplyLedger>, AletheiaError>> + Send;
+
+    /// The validator set of `epoch` at the finalized tip, in validator-index order. `None`
+    /// when no set is recorded (a devnet or regtest chain run by the single-node producer).
+    fn validators(
+        &self,
+        epoch: u64,
+    ) -> impl Future<Output = Result<Option<Vec<ValidatorRecord>>, AletheiaError>> + Send;
 
     /// Admits a signed transaction to the mempool; returns its id.
     fn submit(&self, bytes: Vec<u8>) -> impl Future<Output = Result<Hash32, AletheiaError>> + Send;

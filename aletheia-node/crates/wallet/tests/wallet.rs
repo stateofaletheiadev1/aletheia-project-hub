@@ -111,6 +111,12 @@ impl Backend for DevnetBackend {
     async fn supply(&self, _asset: AssetId) -> Result<Option<SupplyLedger>, AletheiaError> {
         Ok(None)
     }
+    async fn validators(
+        &self,
+        _epoch: u64,
+    ) -> Result<Option<Vec<aletheia_execution::model::ValidatorRecord>>, AletheiaError> {
+        Ok(None)
+    }
     async fn submit(&self, bytes: Vec<u8>) -> Result<Hash32, AletheiaError> {
         let mut net = self.0.lock().unwrap();
         let tx = SignedTransaction::from_ace_bytes(&bytes)?;

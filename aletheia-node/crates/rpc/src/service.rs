@@ -32,6 +32,7 @@ pub const METHODS: &[&str] = &[
     "getBalance",
     "getAssets",
     "getMonetarySupply",
+    "getValidatorSet",
 ];
 
 fn text<'a>(params: &'a Params, name: &str) -> Result<&'a str, RpcError> {
@@ -152,6 +153,15 @@ impl<B: Backend> Service<B> {
             "getMonetarySupply" => {
                 only(params, &["asset"])?;
                 self.supply(parse_asset(text(params, "asset")?)?).await
+            }
+            "getValidatorSet" => {
+                only(params, &["epoch"])?;
+                let epoch = if params.contains_key("epoch") {
+                    Some(number(params, "epoch")?)
+                } else {
+                    None
+                };
+                self.validator_set(epoch).await
             }
             other => Err(RpcError::method_not_found(other)),
         }
@@ -345,6 +355,48 @@ impl<B: Backend> Service<B> {
                 })
                 .collect(),
         ))
+    }
+
+    /// The validator set of `epoch` (default: the finalized tip's epoch). A chain run by the
+    /// single-node producer records none and reports `"mode": "single-producer"`.
+    pub async fn validator_set(&self, epoch: Option<u64>) -> Result<Value, RpcError> {
+        let status = self.backend.status().await.map_err(|e| from_backend(&e))?;
+        let tip_epoch = match self
+            .backend
+            .block(BlockRef::Height(status.finalized_height))
+            .await
+            .map_err(|e| from_backend(&e))?
+        {
+            Some(proposal) => proposal.block.header.epoch.get(),
+            None => 0,
+        };
+        let epoch = epoch.unwrap_or(tip_epoch);
+        if epoch > tip_epoch {
+            return Err(RpcError::not_found(format!(
+                "epoch {epoch} has not begun; the chain is in epoch {tip_epoch}"
+            )));
+        }
+        let set = self
+            .backend
+            .validators(epoch)
+            .await
+            .map_err(|e| from_backend(&e))?;
+        let members = set.unwrap_or_default();
+        let total = members
+            .iter()
+            .fold(0u64, |sum, v| sum.saturating_add(v.voting_power));
+        Ok(json!({
+            "epoch": epoch,
+            "height": status.finalized_height,
+            "mode": if members.is_empty() { "single-producer" } else { "validator-set" },
+            "totalVotingPower": total.to_string(),
+            "validators": members.iter().enumerate().map(|(index, v)| json!({
+                "index": index,
+                "consensusKey": base16::encode(&v.consensus_key),
+                "nodeKey": base16::encode(&v.node_key),
+                "votingPower": v.voting_power.to_string(),
+            })).collect::<Vec<_>>(),
+        }))
     }
 
     pub async fn supply(&self, asset: AssetId) -> Result<Value, RpcError> {

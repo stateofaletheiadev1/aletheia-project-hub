@@ -18,7 +18,7 @@ use aletheia_core::{
     base16,
 };
 use aletheia_execution::Receipt;
-use aletheia_execution::model::{Account, AssetConfig, Balance};
+use aletheia_execution::model::{Account, AssetConfig, Balance, ValidatorRecord};
 use aletheia_monetary::SupplyLedger;
 use aletheia_rpc::rest::route;
 use aletheia_rpc::{Backend, BlockRef, Located, NodeStatus, Service, jsonrpc};
@@ -121,6 +121,11 @@ impl Backend for DevnetBackend {
     async fn supply(&self, asset: AssetId) -> Result<Option<SupplyLedger>, AletheiaError> {
         let net = self.0.lock().unwrap();
         net.records().supply_ledger(&net.view(), asset)
+    }
+
+    async fn validators(&self, epoch: u64) -> Result<Option<Vec<ValidatorRecord>>, AletheiaError> {
+        let net = self.0.lock().unwrap();
+        net.records().validator_set(&net.view(), epoch)
     }
 
     async fn submit(&self, bytes: Vec<u8>) -> Result<Hash32, AletheiaError> {
@@ -285,6 +290,7 @@ async fn rest_and_json_rpc_return_identical_data() {
             json!({ "asset": "AEY" }),
             "/monetary/AEY/supply".to_owned(),
         ),
+        ("getValidatorSet", json!({}), "/validators".to_owned()),
     ];
     for (method, params, path) in pairs {
         let via_rpc = rpc(&service, method, params).await;
@@ -292,6 +298,18 @@ async fn rest_and_json_rpc_return_identical_data() {
         assert_eq!(via_rest.status, 200, "{path}: {}", via_rest.body);
         assert_eq!(result(&via_rpc), &via_rest.body, "{method} vs {path}");
     }
+    // A chosen epoch arrives as a query parameter.
+    let via_rpc = rpc(&service, "getValidatorSet", json!({ "epoch": 0 })).await;
+    let query = [("epoch".to_owned(), "0".to_owned())];
+    let via_rest = route(&service, "GET", "/validators", &query, &[]).await;
+    assert_eq!(via_rest.status, 200, "{}", via_rest.body);
+    assert_eq!(result(&via_rpc), &via_rest.body);
+    assert_eq!(via_rest.body["epoch"], 0);
+    let future = rpc(&service, "getValidatorSet", json!({ "epoch": 9_999 })).await;
+    assert!(
+        future.get("error").is_some(),
+        "an epoch that has not begun is refused: {future}"
+    );
     let balance = rpc(
         &service,
         "getBalance",

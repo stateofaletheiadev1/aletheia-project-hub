@@ -1112,6 +1112,14 @@ impl<S: KvStore> Ledger<S> {
         Records::new(self.network).supply_ledger(&self.tip_view(), asset)
     }
 
+    /// The validator set recorded for `epoch`, read at the tip.
+    pub fn validators_at_tip(
+        &self,
+        epoch: u64,
+    ) -> Result<Option<Vec<aletheia_execution::model::ValidatorRecord>>, AletheiaError> {
+        Records::new(self.network).validator_set(&self.tip_view(), epoch)
+    }
+
     /// The protocol version in force at the tip.
     pub fn tip_version(&self) -> Result<u16, AletheiaError> {
         let records = Records::new(self.network);

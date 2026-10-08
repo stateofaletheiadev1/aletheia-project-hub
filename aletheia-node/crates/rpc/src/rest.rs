@@ -138,6 +138,14 @@ async fn dispatch<B: Backend>(
             Ok(Value::Array(out))
         }
         ("GET", ["assets"]) => service.call("getAssets", &Map::new()).await,
+        ("GET", ["validators"]) => match q("epoch") {
+            Some(epoch) => {
+                service
+                    .call("getValidatorSet", &params(&[("epoch", s(epoch))]))
+                    .await
+            }
+            None => service.call("getValidatorSet", &Map::new()).await,
+        },
         ("GET", ["monetary", asset, "supply"]) => {
             service
                 .call("getMonetarySupply", &params(&[("asset", s(asset))]))
