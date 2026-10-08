@@ -1,0 +1,59 @@
+# SEPA Credit Transfer
+#
+# DRAFT: written from the scheme operator's public material as understood when drafted. It is
+# not active until two reviewers have checked every value against the operator's current
+# publications and the partner's implementation guide (spec Section 40C.3) and recorded it in
+# docs/apn/profile-verification/. Values left empty are set at that verification.
+
+rail                = "sepa-sct"
+operator            = "European Payments Council (scheme) / CSM per partner"
+rulebook            = "SCT Rulebook, version in force on effective_from"
+status              = "draft"
+effective_from      = "2025-10-05"
+effective_until     = ""
+source_documents    = [
+  "EPC SCT Rulebook (version in force on effective_from)",
+  "EPC SCT Interbank Implementation Guidelines",
+]
+reviewed_by         = []
+reviewed_on         = ""
+
+[messages]
+credit_transfer     = "pacs.008.001.08"
+status_report       = "pacs.002.001.10"
+payment_return      = "pacs.004.001.09"
+recall              = "camt.056.001.08"
+recall_answer       = "camt.029.001.09"
+
+[currency]
+allowed             = ["EUR"]
+minor_units         = 2
+
+[timing]
+operating_calendar  = "business-days"       # TARGET2 calendar via the partner's CSM; D+1
+time_zone           = "Europe/Berlin"
+
+[limits]
+scheme_max_amount   = ""                    # no scheme cap below the schema maximum
+partner_max_amount  = "from-partner-agreement"
+
+[charset]
+set                 = "epc-latin"
+on_violation        = "reject"
+
+[fields]
+end_to_end_id_max   = 35
+remittance_unstructured_max = 140
+remittance_unstructured_lines = 1
+charge_bearer       = "SLEV"
+account             = "iban"
+agent_bic           = "optional"            # optional when the IBAN is sufficient
+uetr                = "optional"
+duplicate_key       = "end-to-end-account-amount-date"
+
+[address]
+mode                = "structured-or-hybrid-when-provided"
+
+[returns]
+return_window_business_days = 3
+recall_window_business_days = 10

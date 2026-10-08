@@ -1,0 +1,17 @@
+[package]
+name = "aletheia-rails-model"
+description = "The Aletheia Canonical Payment (ACP): the off-chain model every external rail maps into and out of."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+serde.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true
+
+[lints]
+workspace = true

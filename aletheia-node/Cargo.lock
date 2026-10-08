@@ -158,6 +158,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "aletheia-rails"
+version = "0.1.0"
+dependencies = [
+ "aletheia-rails-model",
+ "blake3",
+ "proptest",
+ "serde",
+ "toml",
+]
+
+[[package]]
+name = "aletheia-rails-model"
+version = "0.1.0"
+dependencies = [
+ "proptest",
+ "serde",
+]
+
+[[package]]
 name = "aletheia-signer"
 version = "0.1.0"
 dependencies = [

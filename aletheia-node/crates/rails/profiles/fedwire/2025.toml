@@ -1,0 +1,60 @@
+# Fedwire Funds Service (through a U.S. partner)
+#
+# DRAFT: written from the scheme operator's public material as understood when drafted. It is
+# not active until two reviewers have checked every value against the operator's current
+# publications and the partner's implementation guide (spec Section 40C.3) and recorded it in
+# docs/apn/profile-verification/. Values left empty are set at that verification.
+
+rail                = "fedwire"
+operator            = "Federal Reserve Banks (Fedwire Funds Service) / U.S. partner bank"
+rulebook            = "Fedwire Funds Service ISO 20022 implementation, release in force on effective_from"
+status              = "draft"
+effective_from      = "2025-07-14"
+effective_until     = ""
+source_documents    = [
+  "Fedwire Funds Service ISO 20022 implementation guide (release in force on effective_from)",
+  "Operating Circular 6 (Funds Transfers Through the Fedwire Funds Service)",
+  "Partner bank implementation guide",
+]
+reviewed_by         = []
+reviewed_on         = ""
+
+[messages]
+credit_transfer     = "pacs.008.001.08"
+institution_transfer = "pacs.009.001.08"
+status_report       = "pacs.002.001.10"
+payment_return      = "pacs.004.001.10"
+recall              = "camt.056.001.08"
+recall_answer       = "camt.029.001.09"
+
+[currency]
+allowed             = ["USD"]               # USD only; AEY never appears as a currency
+minor_units         = 2
+
+[timing]
+operating_calendar  = "business-days"       # Federal Reserve holidays; hours and cut-offs set at verification
+time_zone           = "America/New_York"
+
+[limits]
+scheme_max_amount   = ""
+partner_max_amount  = "from-partner-agreement"
+
+[charset]
+set                 = "printable-ascii"     # conservative until verified against the guide
+on_violation        = "reject"
+
+[fields]
+end_to_end_id_max   = 35
+remittance_unstructured_max = 140
+remittance_unstructured_lines = 1
+charge_bearer       = ""
+account             = "any"
+agent_bic           = "optional"            # agents are routed by ABA routing number
+uetr                = "required"
+duplicate_key       = "uetr"
+
+[address]
+mode                = "structured-or-hybrid-when-provided"
+
+[returns]
+# Settlement is final; a recall is a request, never a right.

@@ -16,6 +16,8 @@ members = [
   "crates/state",
   "crates/vm",
   "crates/monetary",
+  "crates/rails",
+  "crates/rails-model",
   "crates/node",
   "apps/aletheiad",
   "apps/arno",
@@ -47,6 +49,8 @@ aletheia-state = { path = "crates/state" }
 aletheia-vm = { path = "crates/vm" }
 aletheia-monetary = { path = "crates/monetary" }
 aletheia-p2p = { path = "crates/p2p" }
+aletheia-rails = { path = "crates/rails" }
+aletheia-rails-model = { path = "crates/rails-model" }
 aletheia-node = { path = "crates/node" }
 aletheia-test-harness = { path = "tests/harness" }
 

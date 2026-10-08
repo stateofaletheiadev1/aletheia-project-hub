@@ -1,0 +1,62 @@
+# FedNow Service (through a U.S. partner)
+#
+# DRAFT: written from the scheme operator's public material as understood when drafted. It is
+# not active until two reviewers have checked every value against the operator's current
+# publications and the partner's implementation guide (spec Section 40C.3) and recorded it in
+# docs/apn/profile-verification/. Values left empty are set at that verification.
+
+rail                = "fednow"
+operator            = "Federal Reserve Banks (FedNow Service) / U.S. partner bank"
+rulebook            = "FedNow Service operating procedures and ISO 20022 implementation, release in force on effective_from"
+status              = "draft"
+effective_from      = "2025-10-05"
+effective_until     = ""
+source_documents    = [
+  "FedNow Service Operating Procedures (release in force on effective_from)",
+  "FedNow ISO 20022 implementation guide",
+  "Operating Circular 8 (Funds Transfers Through the FedNow Service)",
+]
+reviewed_by         = []
+reviewed_on         = ""
+
+[messages]
+credit_transfer     = "pacs.008.001.08"
+status_report       = "pacs.002.001.10"
+payment_return      = "pacs.004.001.10"
+request_for_payment = "pain.013.001.07"
+request_for_payment_response = "pain.014.001.07"
+recall              = "camt.056.001.08"
+recall_answer       = "camt.029.001.09"
+
+[currency]
+allowed             = ["USD"]
+minor_units         = 2
+
+[timing]
+operating_calendar  = "always"              # 24/7/365
+investigation_after_seconds = 30            # ours: ask for status if no definitive answer
+# The scheme time-out is set at verification from the operating procedures.
+
+[limits]
+scheme_max_amount   = ""                    # the network limit is set at verification from the operator's current publication
+partner_max_amount  = "from-partner-agreement"
+
+[charset]
+set                 = "printable-ascii"
+on_violation        = "reject"
+
+[fields]
+end_to_end_id_max   = 35
+remittance_unstructured_max = 140
+remittance_unstructured_lines = 1
+charge_bearer       = ""
+account             = "any"
+agent_bic           = "optional"
+uetr                = "required"
+duplicate_key       = "uetr"
+
+[address]
+mode                = "structured-or-hybrid-when-provided"
+
+[returns]
+# Returns and recalls follow the operating procedures; windows are set at verification.

@@ -1,0 +1,60 @@
+# SWIFT CBPR+ (cross-border, through correspondent banks)
+#
+# DRAFT: written from the scheme operator's public material as understood when drafted. It is
+# not active until two reviewers have checked every value against the operator's current
+# publications and the partner's implementation guide (spec Section 40C.3) and recorded it in
+# docs/apn/profile-verification/. Values left empty are set at that verification.
+
+rail                = "swift-cbpr-plus"
+operator            = "Swift (CBPR+ usage guidelines) / correspondent bank per partner"
+rulebook            = "CBPR+ Usage Guidelines, release in force on effective_from"
+status              = "draft"
+effective_from      = "2025-11-22"
+effective_until     = ""
+source_documents    = [
+  "Swift CBPR+ Usage Guidelines (release in force on effective_from)",
+  "Correspondent bank implementation guide (per partner)",
+]
+reviewed_by         = []
+reviewed_on         = ""
+
+[messages]
+credit_transfer     = "pacs.008.001.08"
+institution_transfer = "pacs.009.001.08"
+status_report       = "pacs.002.001.10"
+payment_return      = "pacs.004.001.09"
+recall              = "camt.056.001.08"
+recall_answer       = "camt.029.001.09"
+business_header     = "head.001.001.02"
+
+[currency]
+allowed             = ["EUR", "USD", "GBP"]   # the correspondent's currencies (per partner)
+minor_units         = 2
+
+[timing]
+operating_calendar  = "business-days"         # the correspondent's; set per partner
+time_zone           = "Europe/London"
+
+[limits]
+scheme_max_amount   = ""
+partner_max_amount  = "from-partner-agreement"
+
+[charset]
+set                 = "swift-x"               # conservative: the narrow set always passes
+on_violation        = "reject"
+
+[fields]
+end_to_end_id_max   = 35
+remittance_unstructured_max = 140
+remittance_unstructured_lines = 1
+charge_bearer       = ""                      # DEBT, CRED or SHAR
+account             = "any"
+agent_bic           = "required"
+uetr                = "required"              # carried unchanged by every hop
+duplicate_key       = "uetr"
+
+[address]
+mode                = "structured-or-hybrid-required"   # unstructured addresses retire from November 2026
+
+[returns]
+# No rulebook windows: returns and recalls follow the correspondent agreement.
