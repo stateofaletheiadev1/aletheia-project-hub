@@ -24,17 +24,25 @@ export function Footer() {
     <footer className="bg-navy text-parchment border-t border-gold/40 mt-auto">
       {/* Platform Status Legal Notice (Mandatory per §3.4) */}
       <div className="bg-navy-deep border-b border-gold/20 py-3.5 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-2.5">
-            <span className="w-2 h-2 rounded-full bg-gold shrink-0" />
-            <span className="font-semibold text-gold tracking-wide uppercase text-[11px]">{t("Platform Status Notice:")}</span>
-            <span className="text-parchment/80">{t("The Sovereign Covenant State of Aletheia is a maritime republic in its founding phase. Features, services, and institutions are categorized strictly as")}<span className="text-gold font-medium">{' '}{t("Operational")}</span>, 
-              <span className="text-gold font-medium">{' '}{t("Under Development")}</span>{t(", or")}<span className="text-gold font-medium">{' '}{t("Planned")}</span>.
+        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3 text-xs">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <span className="inline-flex items-center gap-2 whitespace-nowrap font-semibold text-gold tracking-wider uppercase text-[11px]">
+              <span className="w-2 h-2 rounded-full bg-gold shrink-0" />
+              {t("Platform Status")}
+            </span>
+            <span className="text-parchment/80">{t("Aletheia is a maritime republic in its founding phase. Every institution is labelled:")}</span>
+            <span className="flex flex-wrap items-center gap-1.5">
+              {(['Operational', 'Under Development', 'Planned'] as const).map((status) => (
+                <span
+                  key={status}
+                  className="whitespace-nowrap px-2 py-0.5 border border-gold/35 bg-gold/5 rounded-sm text-[10px] font-semibold uppercase tracking-wider text-gold"
+                >{tx(status)}</span>
+              ))}
             </span>
           </div>
           <Link
             href="/transparency"
-            className="text-gold underline hover:text-gold-tint shrink-0 font-medium transition-colors"
+            className="text-gold underline underline-offset-2 hover:text-gold-tint shrink-0 whitespace-nowrap font-medium transition-colors"
           >{t("Review Status & Disclaimers →")}</Link>
         </div>
       </div>
