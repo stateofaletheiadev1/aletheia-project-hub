@@ -1,5 +1,6 @@
 (* Arno 0.1 grammar (spec Section 25.6, APS-0013, syntax per ADR-049). The parser in
-   crates/arno/src/parser.rs implements exactly this. Keywords are case-insensitive. Words in
+   crates/arno/src/parser.rs implements exactly this. Keywords are lowercase and names are
+   case-sensitive (ADR-054). Words in
    single quotes marked (contextual) are ordinary identifiers everywhere except in the
    position shown.
 

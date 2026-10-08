@@ -10,13 +10,14 @@ pub struct Ident {
 }
 
 impl Ident {
-    /// The case-insensitive key names are compared by.
+    /// The key names are compared by: the name exactly as written (names are
+    /// case-sensitive, as in Java; ADR-054).
     pub fn key(&self) -> String {
-        self.name.to_ascii_lowercase()
+        self.name.clone()
     }
 
     pub fn is(&self, word: &str) -> bool {
-        self.name.eq_ignore_ascii_case(word)
+        self.name == word
     }
 }
 

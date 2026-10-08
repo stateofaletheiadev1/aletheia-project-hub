@@ -127,7 +127,7 @@ partly written; see the end of this file.
 
 | Module | APS | Specified | Implemented | Tested | Fuzzed | Documented | Benchmarked |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Lexer, parser, diagnostics (`arno/lexer.rs`, `parser.rs`, `diagnostics.rs`); Java/Solidity-shaped syntax with English operators | 25.6, 25.7, 26 | yes (+ `docs/arno/grammar.ebnf`, ADR-049, E-27) | yes | reference contracts, recovery, property | `arno_compile` | rustdoc | no |
+| Lexer, parser, diagnostics (`arno/lexer.rs`, `parser.rs`, `diagnostics.rs`); Java/Solidity-shaped syntax with English operators | 25.6, 25.7, 26 | yes (+ `docs/arno/grammar.ebnf`, ADR-049, ADR-054, E-27, E-32) | yes | reference contracts, recovery, property | `arno_compile` | rustdoc | no |
 | Names, types, coins, effects, bounds, recursion (`check.rs`, `linear.rs`, `effects.rs`) | 25 | yes (+ E-25) | yes | `tests/arno/diagnostics` (19 golden files), clean contracts, property | `arno_compile` | rustdoc | no |
 | Code generation and packaging (`codegen.rs`) | 26, 27 | yes | yes | reference packages verified, byte-identical, golden hashes, 400 random well-typed programs | `arno_compile` | rustdoc | no |
 | Bytecode format and verifier (`vm/opcode.rs`, `package.rs`, `verifier.rs`) | 27, APS-0014 | yes (+ ADR-046) | yes | one test per rule, property | `arnobc_verify` | rustdoc | no |

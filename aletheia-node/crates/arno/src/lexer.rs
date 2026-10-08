@@ -1,5 +1,5 @@
 //! The lexer (spec Section 26, syntax per ADR-049): hand-written, over validated UTF-8, with
-//! case-insensitive keywords, `//` and `/* */` comments, and text in double quotes.
+//! lowercase, case-sensitive keywords (ADR-054), `//` and `/* */` comments, and text in double quotes.
 //!
 //! Words that are keywords only in one position (`each`, `from`, `at`, `most`, `times`, `max`,
 //! and the effect words after `changes`, `receives`, ...) are ordinary identifiers here; the
@@ -151,7 +151,7 @@ impl Keyword {
     pub fn from_word(word: &str) -> Option<Keyword> {
         Keyword::ALL
             .into_iter()
-            .find(|keyword| keyword.as_str().eq_ignore_ascii_case(word))
+            .find(|keyword| keyword.as_str() == word)
     }
 }
 
@@ -501,14 +501,14 @@ mod tests {
     }
 
     #[test]
-    fn keywords_are_case_insensitive_and_names_keep_their_spelling() {
+    fn keywords_are_lowercase_and_other_spellings_are_names() {
         let (tokens, errors) = kinds("PUBLIC Public public MyName");
         assert!(errors.is_empty());
         assert_eq!(
             tokens,
             vec![
-                TokenKind::Keyword(Keyword::Public),
-                TokenKind::Keyword(Keyword::Public),
+                TokenKind::Ident("PUBLIC".to_owned()),
+                TokenKind::Ident("Public".to_owned()),
                 TokenKind::Keyword(Keyword::Public),
                 TokenKind::Ident("MyName".to_owned()),
                 TokenKind::Eof

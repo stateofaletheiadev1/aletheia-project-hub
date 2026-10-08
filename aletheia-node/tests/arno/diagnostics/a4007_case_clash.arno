@@ -1,9 +1,0 @@
-// A4007: two names that differ only by letter case.
-contract Payroll {
-    version 0.1;
-
-    private function sum() {
-        UInt128 total;
-        UInt128 Total = 1;
-    }
-}

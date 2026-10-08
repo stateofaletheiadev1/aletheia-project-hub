@@ -232,7 +232,7 @@ fn structural_errors_are_named() {
         codes("contract T { version 0.1; private function p() { if a < b < c { return; } } }"),
         ["A1108"]
     );
-    assert!(codes("contract Return { version 0.1; }").contains(&"A1102"));
+    assert!(codes("contract return { version 0.1; }").contains(&"A1102"));
     assert_eq!(
         codes("contract T { version 0.1; private view function f() returns UInt8 { return 1; } }"),
         ["A1112"]

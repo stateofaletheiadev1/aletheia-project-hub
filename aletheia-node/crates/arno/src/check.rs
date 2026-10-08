@@ -2,8 +2,8 @@
 //! checked program ([`crate::hir`]). The coins and effect rules run afterwards, on the result
 //! ([`crate::linear`], [`crate::effects`]).
 //!
-//! Names are case-insensitive. Two declarations whose names differ only by letter case are an
-//! error (A4007); a name declared twice is A4008. Integer literals take the type their context
+//! Names are case-sensitive, as in Java (ADR-054): `Employee employee` declares two names. A
+//! name declared twice is A4008. Integer literals take the type their context
 //! expects, and nothing else converts implicitly (A5001).
 
 use std::collections::{BTreeMap, BTreeSet};
@@ -33,7 +33,7 @@ struct Checker<'a> {
     diagnostics: &'a mut Diagnostics,
     program: Program,
     uses: BTreeSet<String>,
-    /// Every global declaration by lowercase name: spelling and span (A4007, A4008).
+    /// Every global declaration by name: spelling and span (A4008).
     declared: BTreeMap<String, (String, Span)>,
     consts: BTreeMap<String, u128>,
     types: BTreeMap<String, Ty>,
@@ -55,48 +55,82 @@ struct Body {
 }
 
 fn key(name: &str) -> String {
-    name.to_ascii_lowercase()
+    name.to_owned()
 }
 
 /// Names the language and standard library give meaning to; a contract cannot declare them.
 const RESERVED_NAMES: &[&str] = &[
-    "boolean",
-    "uint8",
-    "uint16",
-    "uint32",
-    "uint64",
-    "uint128",
-    "int64",
-    "address",
-    "hash",
-    "height",
-    "slot",
-    "epoch",
-    "signer",
-    "text",
-    "bytes",
-    "list",
-    "map",
-    "optional",
-    "coins",
-    "vault",
-    "aey",
-    "alnt",
+    "Boolean",
+    "UInt8",
+    "UInt16",
+    "UInt32",
+    "UInt64",
+    "UInt128",
+    "Int64",
+    "Address",
+    "Hash",
+    "Height",
+    "Slot",
+    "Epoch",
+    "Signer",
+    "Text",
+    "Bytes",
+    "List",
+    "Map",
+    "Optional",
+    "Coins",
+    "Vault",
+    "AEY",
+    "ALnT",
     "transfer",
     "split",
     "join",
-    "muldiv",
+    "mulDiv",
     "min",
     "max",
     "blake3",
-    "verifyed25519",
+    "verifyEd25519",
     "some",
-    "nothing",
-    "chain",
-    "result",
-    "rounddown",
-    "roundup",
+    "Nothing",
+    "Chain",
+    "Result",
+    "RoundDown",
+    "RoundUp",
 ];
+
+/// Member and method names of the built-in types, as spelled.
+const MEMBER_NAMES: &[&str] = &[
+    "address",
+    "value",
+    "balance",
+    "length",
+    "isSome",
+    "deposit",
+    "withdraw",
+    "withdrawAll",
+    "add",
+    "remove",
+    "get",
+    "contains",
+    "put",
+    "height",
+    "slot",
+    "epoch",
+    "protocolTime",
+    "txId",
+    "Empty",
+];
+
+/// " Names are case-sensitive: did you mean 'x'?" when `name` matches a known name apart from
+/// letter case, else nothing.
+fn case_hint<'a>(name: &str, known: impl IntoIterator<Item = &'a str>) -> String {
+    known
+        .into_iter()
+        .find(|k| *k != name && k.eq_ignore_ascii_case(name))
+        .map_or_else(String::new, |k| {
+            format!(" Names are case-sensitive: did you mean '{k}'?")
+        })
+}
 
 fn reserved(ident: &ast::Ident) -> bool {
     RESERVED_NAMES.contains(&ident.key().as_str())
@@ -150,32 +184,19 @@ impl Checker<'_> {
             );
             return false;
         }
-        let lower = ident.key();
-        if let Some((spelling, span)) = self.declared.get(&lower).cloned() {
-            if spelling == ident.name {
-                self.error(
-                    "A4008",
-                    ident.span,
-                    format!(
-                        "'{}' is already declared. Use a different name.",
-                        ident.name
-                    ),
-                );
-            } else {
-                self.error(
-                    "A4007",
-                    ident.span,
-                    format!(
-                        "'{}' and '{}' differ only by letter case. Use one name.",
-                        spelling, ident.name
-                    ),
-                );
-            }
-            let _ = span;
+        let key = ident.key();
+        if self.declared.contains_key(&key) {
+            self.error(
+                "A4008",
+                ident.span,
+                format!(
+                    "'{}' is already declared. Use a different name.",
+                    ident.name
+                ),
+            );
             return false;
         }
-        self.declared
-            .insert(lower, (ident.name.clone(), ident.span));
+        self.declared.insert(key, (ident.name.clone(), ident.span));
         true
     }
 
@@ -282,19 +303,19 @@ impl Checker<'_> {
                     return Ty::Error;
                 };
                 let builtin = match ident.key().as_str() {
-                    "boolean" => Some(Ty::Bool),
-                    "uint8" => Some(Ty::U8),
-                    "uint16" => Some(Ty::U16),
-                    "uint32" => Some(Ty::U32),
-                    "uint64" => Some(Ty::U64),
-                    "uint128" => Some(Ty::U128),
-                    "int64" => Some(Ty::I64),
-                    "address" => Some(Ty::Address),
-                    "hash" => Some(Ty::Hash),
-                    "height" => Some(Ty::Height),
-                    "slot" => Some(Ty::Slot),
-                    "epoch" => Some(Ty::Epoch),
-                    "signer" => {
+                    "Boolean" => Some(Ty::Bool),
+                    "UInt8" => Some(Ty::U8),
+                    "UInt16" => Some(Ty::U16),
+                    "UInt32" => Some(Ty::U32),
+                    "UInt64" => Some(Ty::U64),
+                    "UInt128" => Some(Ty::U128),
+                    "Int64" => Some(Ty::I64),
+                    "Address" => Some(Ty::Address),
+                    "Hash" => Some(Ty::Hash),
+                    "Height" => Some(Ty::Height),
+                    "Slot" => Some(Ty::Slot),
+                    "Epoch" => Some(Ty::Epoch),
+                    "Signer" => {
                         self.require_unit("Std.Auth", "Signer", ty.span);
                         Some(Ty::Signer)
                     }
@@ -306,13 +327,25 @@ impl Checker<'_> {
                 match self.types.get(&ident.key()) {
                     Some(found) => found.clone(),
                     None => {
-                        let hint = match ident.key().as_str() {
+                        let hint = match ident.name.to_ascii_lowercase().as_str() {
                             "real" | "double" | "single" | "float" => {
                                 " Arno has no floating-point types; use whole numbers of base units."
                             }
                             "text" => " Write 'Text max N' with a maximum length.",
                             "bytes" => " Write 'Bytes[N]' or 'Bytes max N'.",
                             _ => "",
+                        }
+                        .to_owned();
+                        let hint = if hint.is_empty() {
+                            case_hint(
+                                &ident.name,
+                                RESERVED_NAMES
+                                    .iter()
+                                    .copied()
+                                    .chain(self.types.keys().map(String::as_str)),
+                            )
+                        } else {
+                            hint
                         };
                         self.error(
                             "A5017",
@@ -401,7 +434,7 @@ impl Checker<'_> {
                 "Std.Math",
                 "Std.Text",
             ];
-            if !known.iter().any(|k| k.eq_ignore_ascii_case(&name)) {
+            if !known.iter().any(|k| *k == name) {
                 self.error(
                     "A6008",
                     used.span,
@@ -452,7 +485,7 @@ impl Checker<'_> {
                 }
                 ast::TypeDef::Record(groups) => {
                     let mut fields: Vec<(String, Ty)> = Vec::new();
-                    let mut seen: BTreeMap<String, String> = BTreeMap::new();
+                    let mut seen: BTreeSet<String> = BTreeSet::new();
                     for group in groups {
                         let ty = self.resolve_type(&group.ty);
                         if ty.contains_coins_or_signer() {
@@ -463,28 +496,14 @@ impl Checker<'_> {
                             );
                         }
                         for name in &group.names {
-                            if let Some(spelling) = seen.get(&name.key()) {
-                                let (code, message) = if *spelling == name.name {
-                                    (
-                                        "A4008",
-                                        format!(
-                                            "'{}' is already a field of this record.",
-                                            name.name
-                                        ),
-                                    )
-                                } else {
-                                    (
-                                        "A4007",
-                                        format!(
-                                            "'{spelling}' and '{}' differ only by letter case. Use one name.",
-                                            name.name
-                                        ),
-                                    )
-                                };
-                                self.error(code, name.span, message);
+                            if !seen.insert(name.key()) {
+                                self.error(
+                                    "A4008",
+                                    name.span,
+                                    format!("'{}' is already a field of this record.", name.name),
+                                );
                                 continue;
                             }
-                            seen.insert(name.key(), name.name.clone());
                             fields.push((name.name.clone(), ty.clone()));
                         }
                     }
@@ -713,49 +732,25 @@ impl Checker<'_> {
                 ),
             );
         }
-        if let Some((spelling, _)) = self.declared.get(&name.key()).cloned() {
-            let (code, message) = if spelling == name.name {
-                (
-                    "A4008",
-                    format!(
-                        "'{}' is already declared for the whole contract. Use a different name.",
-                        name.name
-                    ),
-                )
-            } else {
-                (
-                    "A4007",
-                    format!(
-                        "'{spelling}' and '{}' differ only by letter case. Use one name.",
-                        name.name
-                    ),
-                )
-            };
-            self.error(code, name.span, message);
+        if self.declared.contains_key(&name.key()) {
+            self.error(
+                "A4008",
+                name.span,
+                format!(
+                    "'{}' is already declared for the whole contract. Use a different name.",
+                    name.name
+                ),
+            );
         }
-        if let Some(existing) = body.scope.get(&name.key()).copied() {
-            let spelling = body
-                .locals
-                .get(usize::from(existing))
-                .map_or(String::new(), |l| l.name.clone());
-            let (code, message) = if spelling == name.name {
-                (
-                    "A4008",
-                    format!(
-                        "'{}' is already declared in this function. Each name is declared once per function.",
-                        name.name
-                    ),
-                )
-            } else {
-                (
-                    "A4007",
-                    format!(
-                        "'{spelling}' and '{}' differ only by letter case. Use one name.",
-                        name.name
-                    ),
-                )
-            };
-            self.error(code, name.span, message);
+        if body.scope.contains_key(&name.key()) {
+            self.error(
+                "A4008",
+                name.span,
+                format!(
+                    "'{}' is already declared in this function. Each name is declared once per function.",
+                    name.name
+                ),
+            );
             return;
         }
         let id = len_u16(body.locals.len());
@@ -1228,10 +1223,7 @@ impl Checker<'_> {
                     .records
                     .get(usize::from(record))
                     .map_or_else(Vec::new, |r| r.fields.clone());
-                match fields
-                    .iter()
-                    .position(|(name, _)| name.eq_ignore_ascii_case(&member.name))
-                {
+                match fields.iter().position(|(name, _)| *name == member.name) {
                     Some(index) => {
                         let ty = fields.get(index).map_or(Ty::Error, |(_, t)| t.clone());
                         Some((Place::Field(Box::new(place), len_u16(index)), ty))
@@ -1537,7 +1529,18 @@ impl Checker<'_> {
         self.error(
             "A6005",
             span,
-            format!("There is nothing named '{}'.", ident.name),
+            format!(
+                "There is nothing named '{}'.{}",
+                ident.name,
+                case_hint(
+                    &ident.name,
+                    RESERVED_NAMES
+                        .iter()
+                        .copied()
+                        .chain(self.declared.keys().map(String::as_str))
+                        .chain(body.scope.keys().map(String::as_str))
+                )
+            ),
         );
         Self::poison(span)
     }
@@ -1561,10 +1564,10 @@ impl Checker<'_> {
                     "height" => (Builtin::ChainHeight, Ty::Height),
                     "slot" => (Builtin::ChainSlot, Ty::Slot),
                     "epoch" => (Builtin::ChainEpoch, Ty::Epoch),
-                    "protocoltime" => (Builtin::ChainProtocolTime, Ty::U64),
-                    "txid" => (Builtin::ChainTxId, Ty::Hash),
+                    "protocolTime" => (Builtin::ChainProtocolTime, Ty::U64),
+                    "txId" => (Builtin::ChainTxId, Ty::Hash),
                     _ => {
-                        self.error("A6005", member.span, format!("Chain has no '{}'. It has Height, Slot, Epoch, ProtocolTime and TxId.", member.name));
+                        self.error("A6005", member.span, format!("Chain has no '{}'. It has height, slot, epoch, protocolTime and txId.", member.name));
                         return Self::poison(span);
                     }
                 };
@@ -1620,7 +1623,7 @@ impl Checker<'_> {
             }
         }
         // Mutating members without arguments (`Safe.WithdrawAll`).
-        if member.is("WithdrawAll") {
+        if member.is("withdrawAll") {
             return self.method(body, base, member, &[], span);
         }
         let base_expr = self.expr(body, base, None);
@@ -1644,7 +1647,7 @@ impl Checker<'_> {
             (Ty::Text(_) | Ty::BytesMax(_), "length") => {
                 builtin(Builtin::TextLength, Ty::U64, base_expr)
             }
-            (Ty::Optional(_), "issome") => builtin(Builtin::OptionalIsSome, Ty::Bool, base_expr),
+            (Ty::Optional(_), "isSome") => builtin(Builtin::OptionalIsSome, Ty::Bool, base_expr),
             (Ty::Optional(inner), "value") => {
                 let inner = inner.as_ref().clone();
                 builtin(Builtin::OptionalValue, inner, base_expr)
@@ -1655,10 +1658,7 @@ impl Checker<'_> {
                     .records
                     .get(usize::from(*record))
                     .map_or_else(Vec::new, |r| r.fields.clone());
-                match fields
-                    .iter()
-                    .position(|(name, _)| name.eq_ignore_ascii_case(&member.name))
-                {
+                match fields.iter().position(|(name, _)| *name == member.name) {
                     Some(index) => {
                         let field_ty = fields.get(index).map_or(Ty::Error, |(_, t)| t.clone());
                         match base_expr.kind {
@@ -1693,7 +1693,11 @@ impl Checker<'_> {
                 self.error(
                     "A5024",
                     member.span,
-                    format!("{described} has no member '{}'.", member.name),
+                    format!(
+                        "{described} has no member '{}'.{}",
+                        member.name,
+                        case_hint(&member.name, MEMBER_NAMES.iter().copied())
+                    ),
                 );
                 Self::poison(span)
             }
@@ -1757,14 +1761,18 @@ impl Checker<'_> {
             (Ty::Vault(_), "deposit" | "withdraw")
             | (Ty::List { .. }, "add")
             | (Ty::Map { .. }, "remove" | "get" | "contains") => 1,
-            (Ty::Vault(_), "withdrawall") => 0,
+            (Ty::Vault(_), "withdrawAll") => 0,
             (Ty::Map { .. }, "put") => 2,
             (other, _) => {
                 let described = self.describe(other);
                 self.error(
                     "A6012",
                     member.span,
-                    format!("{described} has no function '{}'.", member.name),
+                    format!(
+                        "{described} has no function '{}'.{}",
+                        member.name,
+                        case_hint(&member.name, MEMBER_NAMES.iter().copied())
+                    ),
                 );
                 return Self::poison(span);
             }
@@ -1889,15 +1897,15 @@ impl Checker<'_> {
         };
         // Integer and chain-position conversions with a range check.
         let target = match name.key().as_str() {
-            "uint8" => Some(Ty::U8),
-            "uint16" => Some(Ty::U16),
-            "uint32" => Some(Ty::U32),
-            "uint64" => Some(Ty::U64),
-            "uint128" => Some(Ty::U128),
-            "int64" => Some(Ty::I64),
-            "slot" => Some(Ty::Slot),
-            "height" => Some(Ty::Height),
-            "epoch" => Some(Ty::Epoch),
+            "UInt8" => Some(Ty::U8),
+            "UInt16" => Some(Ty::U16),
+            "UInt32" => Some(Ty::U32),
+            "UInt64" => Some(Ty::U64),
+            "UInt128" => Some(Ty::U128),
+            "Int64" => Some(Ty::I64),
+            "Slot" => Some(Ty::Slot),
+            "Height" => Some(Ty::Height),
+            "Epoch" => Some(Ty::Epoch),
             _ => None,
         };
         if let Some(target) = target {
@@ -1985,7 +1993,7 @@ impl Checker<'_> {
                     .with_ty_unit()
                 };
             }
-            "muldiv" => {
+            "mulDiv" => {
                 self.require_unit("Std.Math", "MulDiv", name.span);
                 if !arity(self, 4) {
                     return Self::poison(span);
@@ -2074,7 +2082,7 @@ impl Checker<'_> {
                     span,
                 );
             }
-            "verifyed25519" => {
+            "verifyEd25519" => {
                 self.require_unit("Std.Crypto", "VerifyEd25519", name.span);
                 if !arity(self, 3) {
                     return Self::poison(span);
@@ -2122,7 +2130,17 @@ impl Checker<'_> {
             self.error(
                 "A6005",
                 name.span,
-                format!("There is no function named '{}'.", name.name),
+                format!(
+                    "There is no function named '{}'.{}",
+                    name.name,
+                    case_hint(
+                        &name.name,
+                        RESERVED_NAMES
+                            .iter()
+                            .copied()
+                            .chain(self.routines.keys().map(String::as_str))
+                    )
+                ),
             );
             for arg in args {
                 let _ = self.expr(body, arg, None);

@@ -24,9 +24,9 @@ impl Asset {
     }
 
     pub fn from_name(name: &str) -> Option<Asset> {
-        if name.eq_ignore_ascii_case("AEY") {
+        if name == "AEY" {
             Some(Asset::Aey)
-        } else if name.eq_ignore_ascii_case("ALnT") {
+        } else if name == "ALnT" {
             Some(Asset::Alnt)
         } else {
             None

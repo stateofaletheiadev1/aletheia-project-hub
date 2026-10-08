@@ -3246,12 +3246,11 @@ replaced the original Pascal-family syntax (ERRATA E-27).
                               `and` / `or` / `not` / `xor`, `div` / `mod`
                               for integer division
 
-  Case                        Keywords and identifiers are
-                              case-insensitive; two identifiers that
-                              differ only by case are a compile error;
-                              `arno fmt` rewrites canonical casing
-                              (keywords lowercase, identifiers as
-                              declared)
+  Case                        As in Java: keywords are lowercase and
+                              names are case-sensitive (`Employee
+                              employee` is two names); a name that
+                              differs from a known one only by case
+                              gets a "did you mean" hint (ADR-054)
 
   Statically typed            Every variable is declared with its type
                               (`UInt128 total = 0;`); no implicit
@@ -3560,7 +3559,7 @@ escrow.arno(44,9):  error A2010: Coins value 'payout' is never moved. Coins cann
 escrow.arno(52,26): error A3001: Function 'status' is marked view but changes storage.
 escrow.arno(18,21): error A3005: 'release' sends coins, but its effects list does not include 'sends coins'.
 payroll.arno(60,9): error A4002: This while-loop needs a bound, for example 'at most 100 times'.
-payroll.arno(12,17): error A4007: 'total' and 'Total' differ only by letter case. Use one name.
+escrow.arno(9,9):   error A6005: There is no function named 'Transfer'. Names are case-sensitive: did you mean 'transfer'?
 payroll.arno(70,24): error A5001: Implicit conversion from UInt128 to UInt64 is not allowed. Use UInt64(...) with a range check.
 payroll.arno(80,9): error A6001: Function 'walk' calls itself. Recursion is not allowed in Arno 0.1.
 ```
@@ -3599,7 +3598,7 @@ payroll.arno(80,9): error A6001: Function 'walk' calls itself. Recursion is not 
 
 ``` text
 Arno Source (.arno)
-    ↓  Lexer            (hand-written, UTF-8 validated, case-insensitive keywords, { } and (* *) comments)
+    ↓  Lexer            (hand-written, UTF-8 validated, lowercase keywords, case-sensitive names, // and /* */ comments)
     ↓  Parser           (hand-written recursive descent + Pratt for expressions; error recovery)
     ↓  AST              (arena-allocated, immutable after parse)
     ↓  Name resolution  (modules, imports, symbols)

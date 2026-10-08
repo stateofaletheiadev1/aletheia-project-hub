@@ -120,3 +120,22 @@ proptest::proptest! {
         let _ = check_source(&SourceFile::new("fuzz.arno", words.join("\n")));
     }
 }
+
+#[test]
+fn names_are_case_sensitive_like_java() {
+    // A type and a variable may share a name apart from case, as may two variables.
+    let file = SourceFile::new(
+        "people.arno",
+        "contract People {\n    version 0.1;\n    record Employee { Address wallet; }\n    private UInt64 total;\n    public view function count(Address who) returns UInt64 {\n        Employee employee;\n        employee.wallet = who;\n        UInt64 Total = total + 1;\n        return Total;\n    }\n}",
+    );
+    let (program, diagnostics) = check_source(&file);
+    assert!(
+        diagnostics.is_empty(),
+        "{:?}",
+        diagnostics
+            .iter()
+            .map(|d| d.render(&file))
+            .collect::<Vec<_>>()
+    );
+    assert!(program.is_some());
+}

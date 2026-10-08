@@ -107,9 +107,9 @@ impl Parser<'_> {
         self.peek() == &TokenKind::Keyword(keyword)
     }
 
-    /// An identifier spelled `word` (case-insensitive): contextual keywords.
+    /// An identifier spelled exactly `word`: contextual keywords.
     fn at_word(&self, word: &str) -> bool {
-        matches!(self.peek(), TokenKind::Ident(name) if name.eq_ignore_ascii_case(word))
+        matches!(self.peek(), TokenKind::Ident(name) if name == word)
     }
 
     fn eat(&mut self, kind: &TokenKind) -> bool {
@@ -628,7 +628,7 @@ impl Parser<'_> {
             self.bump();
             TypeExprKind::Vault(self.qual_ident("for the asset")?)
         } else if self.at_word("Text")
-            && matches!(self.peek_at(1), TokenKind::Ident(w) if w.eq_ignore_ascii_case("max"))
+            && matches!(self.peek_at(1), TokenKind::Ident(w) if w == "max")
         {
             self.bump();
             self.bump();
@@ -640,7 +640,7 @@ impl Parser<'_> {
             self.expect(&TokenKind::RBracket, "to close the byte count")?;
             TypeExprKind::BytesFixed(Box::new(size))
         } else if self.at_word("Bytes")
-            && matches!(self.peek_at(1), TokenKind::Ident(w) if w.eq_ignore_ascii_case("max"))
+            && matches!(self.peek_at(1), TokenKind::Ident(w) if w == "max")
         {
             self.bump();
             self.bump();
@@ -1012,9 +1012,8 @@ impl Parser<'_> {
                 body: Box::new(self.block_stmt()?),
             })
         } else {
-            let var = self.loop_variable(
-                |next| matches!(next, TokenKind::Ident(w) if w.eq_ignore_ascii_case("from")),
-            )?;
+            let var =
+                self.loop_variable(|next| matches!(next, TokenKind::Ident(w) if w == "from"))?;
             self.expect_word(
                 "from",
                 "after the loop variable (as in 'for i from 1 to 10')",

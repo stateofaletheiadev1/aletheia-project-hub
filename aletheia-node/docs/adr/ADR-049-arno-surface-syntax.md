@@ -40,10 +40,8 @@ Decision: D (crates/arno `lexer.rs`, `parser.rs`; grammar in `docs/arno/grammar.
      `div`, `mod`; `=` assigns. `==` and `!=` are recognised only to say "write 'is'"
      (A1113). There is still no `/` (A1008).
   7. Comments are `//` and `/* */`; text is in double quotes with `\"` and `\\` escapes.
-  8. Names stay case-insensitive and names differing only by case are still an error
-     (A4007), so `Employee employee` is refused; write `Employee person`. Keywords are
-     lowercase by convention; the examples use camelCase for members and PascalCase for
-     types, errors, events and enum values.
+  8. (Superseded by ADR-054: names are case-sensitive, as in Java.) The examples use
+     camelCase for members and PascalCase for types, errors, events and enum values.
   9. `return x;` stores the result and leaves; at the end of a function (also in a final
      `if`/`else`/`switch` arm) it compiles exactly like the old `Result := x;`.
 Verification: the three reference contracts, written in the new syntax with the old names,

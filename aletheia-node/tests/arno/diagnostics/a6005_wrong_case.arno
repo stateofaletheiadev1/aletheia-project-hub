@@ -1,0 +1,11 @@
+// A6005: names are case-sensitive; a built-in spelled with other capitals gets a hint.
+contract Escrow {
+    version 0.1;
+    uses Coins, Auth;
+
+    private Address seller;
+
+    public function pay(Signer caller, Coins of AEY deposit) receives coins, sends coins {
+        Transfer(move deposit, seller);
+    }
+}
