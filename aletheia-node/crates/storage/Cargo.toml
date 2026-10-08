@@ -6,14 +6,17 @@ edition.workspace = true
 license.workspace = true
 rust-version.workspace = true
 publish.workspace = true
+build = "build.rs"
 
 [dependencies]
 aletheia-core.workspace = true
 crc32c = "0.6"
 zstd = { version = "0.13", default-features = false }
 # Production backend (spec 5.1, 42.2). Behind a feature so tooling and quick test runs need no
-# C++ toolchain; aletheiad and CI build with it.
-rocksdb = { version = "0.24", default-features = false, features = ["lz4", "zstd"], optional = true }
+# C++ toolchain; aletheiad and CI build with it. `bindgen-runtime` loads libclang from
+# LIBCLANG_PATH when the bindings are generated, so the build needs no LLVM on PATH. Developer
+# machines link a prebuilt RocksDB (ADR-059, scripts/rocksdb-prebuilt.sh).
+rocksdb = { version = "0.24", default-features = false, features = ["lz4", "zstd", "bindgen-runtime"], optional = true }
 
 [features]
 rocksdb = ["dep:rocksdb"]
