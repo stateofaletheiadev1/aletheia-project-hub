@@ -163,6 +163,13 @@ partly written; see the end of this file.
 | `aletheia-cli`: status, keys, account, balance, transfer, tx, receipt, block; JSON output; network check (`apps/aletheia-cli`) | 56 | yes | yes (plain HTTP to local/private nodes) | the binary against a producing node: key, funding, transfer to FINALIZED, text and JSON output, wrong network and password | no | usage text | n/a |
 | BIP-39, hardware wallets, multisig, TLS client; TypeScript SDK | 41, 62 | yes | **no** | no | no | no | no |
 
+## Phase 12B: Bridge (in progress)
+
+| Module | Spec | Specified | Implemented | Tested | Fuzzed | Documented | Benchmarked |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Bridge messages, attestation and control digests, routes, guardian sets, payloads 112-117, exact conversion (`core/bridge.rs`) | 40A.5, 40A.6, 40A.10 | yes (+ ADR-058, E-33) | yes | unit | via `tx_decode` | rustdoc | no |
+| Out, in, settle, flag, pause, resume; guardian quorum (Tier B); limits, delay, equivocation pause; governance of routes and sets; I10-I12 after every block (`rules/v1/bridge.rs`, `bridge_model.rs`) | 40A.4, 40A.8, 40A.9 | yes | yes | `tests/harness/tests/bridge.rs`: forged attestations, replay, wrong destination, sequence gaps, decimal mismatch, expiry, limits, pauses, equivocation, large-transfer delay and flags, governance bounds, I10-I12 under random flows | no | rustdoc | no |
+| Light clients (119), issuer co-signatures, governance resolution of flagged messages, relayer, guardian daemon, remote endpoints, `getBridgeRoutes`/`getBridgeTransfer`, metrics | 40A.3, 40A.11 | yes | **no** | no | no | no | no |
 ## Phase 11B: PayNet integration
 
 | Module | Spec | Specified | Implemented | Tested | Fuzzed | Documented | Benchmarked |

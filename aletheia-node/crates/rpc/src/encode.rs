@@ -104,6 +104,7 @@ pub fn payload_name(payload: &Payload) -> &'static str {
         Payload::ContractCall(_) => "ContractCall",
         Payload::Registry(_) => "Registry",
         Payload::Apn(_) => "Apn",
+        Payload::Bridge(_) => "Bridge",
         #[allow(unreachable_patterns)]
         _ => "Other",
     }

@@ -15,6 +15,7 @@
 
 pub mod apn;
 pub mod balances;
+pub mod bridge;
 pub mod contract;
 pub mod limits;
 pub mod monetary;
@@ -220,6 +221,9 @@ pub fn run_payload(
             registry::apply(records, overlay, verified, op, ctx, meter, events)
         }
         Payload::Apn(op) => apn::apply(records, overlay, verified, op, ctx, meter, events, touched),
+        Payload::Bridge(op) => {
+            bridge::apply(records, overlay, verified, op, ctx, meter, events, touched)
+        }
         #[cfg(feature = "test-protocol-v2")]
         Payload::TestRemark(_) => Err(invalid(
             ErrorCode::TxTypeNotActive,
@@ -295,6 +299,9 @@ pub fn touched_balances(
         // Payments, returns and accepted recalls report their balances at run time
         // (`Touched`): a return's recipient is known only from state.
         Payload::Apn(_) => &[],
+        // Bridge transfers report their balances at run time: an inbound recipient is in
+        // the message, a delayed one settles in a later transaction.
+        Payload::Bridge(_) => &[],
         #[cfg(feature = "test-protocol-v2")]
         Payload::TestRemark(_) => &[],
     };
@@ -305,14 +312,16 @@ pub fn touched_balances(
     touched
 }
 
-/// Work the protocol does after a block's transactions (scheduled payments). Returns the
-/// balances it moved, for the supply check.
+/// Work the protocol does after a block's transactions (scheduled payments), then the
+/// bridge invariants I10-I12. Returns the balances it moved, for the supply check.
 pub fn end_block(
     records: &Records,
     overlay: &mut StateOverlay<'_>,
     ctx: &BlockContext,
 ) -> Result<Touched, AletheiaError> {
-    apn::end_block(records, overlay, ctx)
+    let touched = apn::end_block(records, overlay, ctx)?;
+    bridge::end_block(records, overlay, ctx)?;
+    Ok(touched)
 }
 
 /// Applies one transaction at position `index` of the block. `Err` means the block is

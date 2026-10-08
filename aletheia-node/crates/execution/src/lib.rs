@@ -13,6 +13,7 @@
 )]
 
 pub mod apn_model;
+pub mod bridge_model;
 pub mod builder;
 pub mod context;
 pub mod continuity;

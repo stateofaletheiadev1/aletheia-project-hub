@@ -241,6 +241,19 @@ fn check_field_ranges(
             };
         }
         Payload::Registry(_) => return Ok(()),
+        Payload::Bridge(op) => {
+            return match op.as_ref() {
+                aletheia_core::bridge::BridgeOp::BridgeOut { amount: 0, .. } => {
+                    zero("bridge transfer")
+                }
+                aletheia_core::bridge::BridgeOp::BridgeIn { message, .. }
+                    if message.amount == 0 =>
+                {
+                    zero("bridge message")
+                }
+                _ => Ok(()),
+            };
+        }
         #[cfg(feature = "test-protocol-v2")]
         Payload::TestRemark(_) => return Ok(()),
     };

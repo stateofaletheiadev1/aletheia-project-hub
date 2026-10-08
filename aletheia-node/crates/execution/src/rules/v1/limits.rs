@@ -35,6 +35,12 @@ pub const TX_TYPES: &[TxType] = &[
     TxType::new(80),
     TxType::new(81),
     TxType::new(82),
+    TxType::new(112),
+    TxType::new(113),
+    TxType::new(114),
+    TxType::new(115),
+    TxType::new(116),
+    TxType::new(117),
     TxType::new(128),
     TxType::new(129),
     TxType::new(130),
@@ -87,3 +93,9 @@ pub const REGISTRY_EU: u64 = 3_000;
 pub const PAYMENT_EU: u64 = 4_000;
 /// Any other APN operation, and a batch's own overhead.
 pub const APN_EU: u64 = 3_000;
+
+/// A bridge transfer out, or the settlement of a delayed one.
+pub const BRIDGE_EU: u64 = 5_000;
+/// A bridge operation that verifies a guardian quorum: proofs of possession and one
+/// aggregate pairing check.
+pub const BRIDGE_VERIFY_EU: u64 = 40_000;

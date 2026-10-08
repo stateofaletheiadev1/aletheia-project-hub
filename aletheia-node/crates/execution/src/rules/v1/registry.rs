@@ -768,6 +768,7 @@ fn check_action(action: &GovAction) -> Result<(), AletheiaError> {
                 format!("participant status {status} does not exist"),
             ))
         }
+        GovAction::UpsertBridgeRoute(route) => crate::rules::v1::bridge::check_route(route),
         _ => Ok(()),
     }
 }
@@ -1081,6 +1082,16 @@ fn governance_execute(
             participant.status = *status;
             participant.updated_epoch = epoch;
             apn.put_participant(cx.overlay, &participant);
+        }
+        GovAction::UpsertBridgeRoute(route) => {
+            let bridge_epoch = crate::rules::v1::bridge::epoch(records, cx.overlay, cx.ctx)?;
+            crate::rules::v1::bridge::upsert_route(records, cx.overlay, route, bridge_epoch)?;
+        }
+        GovAction::RegisterGuardianSet(set) => {
+            crate::rules::v1::bridge::register_guardians(records, cx.overlay, set)?;
+        }
+        GovAction::SetBridgeRoutePaused { route_id, paused } => {
+            crate::rules::v1::bridge::set_paused(records, cx.overlay, *route_id, *paused)?;
         }
     }
     proposal.status = ProposalStatus::Executed;

@@ -122,6 +122,7 @@ pub enum Payload {
     Registry(Box<crate::registry::RegistryOp>),
     /// Aletheia Payment Network (types 128-143).
     Apn(Box<crate::apn::ApnOp>),
+    Bridge(Box<crate::bridge::BridgeOp>),
     /// Test-only opaque note, at most 256 bytes (feature `test-protocol-v2`).
     #[cfg(feature = "test-protocol-v2")]
     TestRemark(Vec<u8>),
@@ -142,6 +143,7 @@ impl Payload {
             Payload::ContractCall(_) => TxType::CONTRACT_CALL,
             Payload::Registry(op) => TxType(op.tx_type()),
             Payload::Apn(op) => TxType(op.tx_type()),
+            Payload::Bridge(op) => TxType(op.tx_type()),
             #[cfg(feature = "test-protocol-v2")]
             Payload::TestRemark(_) => TxType::TEST_REMARK,
         }
@@ -162,6 +164,7 @@ impl Payload {
             Payload::ContractCall(call) => call.encode(out),
             Payload::Registry(op) => op.encode_content(out),
             Payload::Apn(op) => op.encode_content(out),
+            Payload::Bridge(op) => op.encode_content(out),
             #[cfg(feature = "test-protocol-v2")]
             Payload::TestRemark(note) => out.bytes(note),
         }
@@ -188,6 +191,15 @@ impl Payload {
                 .map(|deploy| Payload::ContractDeploy(Box::new(deploy))),
             TxType::CONTRACT_CALL => crate::monetary::ContractCall::decode(input)
                 .map(|call| Payload::ContractCall(Box::new(call))),
+            TxType(bridge) if crate::bridge::BridgeOp::TX_TYPES.contains(&bridge) => {
+                match crate::bridge::BridgeOp::decode_content(bridge, input) {
+                    Some(op) => op.map(|op| Payload::Bridge(Box::new(op))),
+                    None => Err(AletheiaError::new(
+                        ErrorCode::DecodeNonCanonical,
+                        "not a bridge type".to_owned(),
+                    )),
+                }
+            }
             TxType(apn) if crate::apn::ApnOp::TX_TYPES.contains(&apn) => {
                 match crate::apn::ApnOp::decode_content(apn, input) {
                     Some(op) => op.map(|op| Payload::Apn(Box::new(op))),

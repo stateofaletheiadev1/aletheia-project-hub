@@ -196,6 +196,12 @@ pub enum GovAction {
     /// Suspends, reinstates or terminates a participant. Suspension takes effect without a
     /// timelock (for cause, Section 40B.2).
     SetParticipantStatus { aic: crate::apn::Aic, status: u8 },
+    /// Opens or reconfigures a bridge route (Section 40A.6). Routes start paused.
+    UpsertBridgeRoute(Box<crate::bridge::BridgeRoute>),
+    /// Registers or replaces a bridge guardian set.
+    RegisterGuardianSet(Box<crate::bridge::GuardianSet>),
+    /// The council pauses (immediately) or resumes (after a timelock) a route.
+    SetBridgeRoutePaused { route_id: u32, paused: bool },
 }
 
 impl GovAction {
@@ -206,6 +212,9 @@ impl GovAction {
                 status: crate::apn::status::SUSPENDED,
                 ..
             } => 0,
+            GovAction::SetBridgeRoutePaused { paused: true, .. } => 0,
+            GovAction::SetBridgeRoutePaused { .. } => 1,
+            GovAction::UpsertBridgeRoute(_) | GovAction::RegisterGuardianSet(_) => 4,
             GovAction::RegisterIssuer { .. }
             | GovAction::SetIssuerActive { .. }
             | GovAction::SetFeePrice { .. }
@@ -283,6 +292,19 @@ impl AceEncode for GovAction {
                 aic.encode(out);
                 out.u8(*status);
             }
+            GovAction::UpsertBridgeRoute(route) => {
+                out.u8(9);
+                route.encode(out);
+            }
+            GovAction::RegisterGuardianSet(set) => {
+                out.u8(10);
+                set.encode(out);
+            }
+            GovAction::SetBridgeRoutePaused { route_id, paused } => {
+                out.u8(11);
+                out.u32(*route_id);
+                out.bool(*paused);
+            }
         }
     }
 }
@@ -328,6 +350,14 @@ impl AceDecode for GovAction {
             8 => GovAction::SetParticipantStatus {
                 aic: crate::apn::Aic::decode(input)?,
                 status: input.u8()?,
+            },
+            9 => GovAction::UpsertBridgeRoute(Box::new(crate::bridge::BridgeRoute::decode(input)?)),
+            10 => {
+                GovAction::RegisterGuardianSet(Box::new(crate::bridge::GuardianSet::decode(input)?))
+            }
+            11 => GovAction::SetBridgeRoutePaused {
+                route_id: input.u32()?,
+                paused: input.bool()?,
             },
             _ => return Err(bad("unknown governance action")),
         })

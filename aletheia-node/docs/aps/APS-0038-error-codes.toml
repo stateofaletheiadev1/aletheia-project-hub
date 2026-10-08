@@ -538,6 +538,90 @@ class = "reject"
 message = "The inbound credit is above what the Monetary Authority's standing authorization has left, or the authorization expired or names another gateway."
 
 [[code]]
+code = 6101
+name = "BRIDGE_ROUTE_UNKNOWN"
+variant = "BridgeRouteUnknown"
+class = "reject"
+message = "No bridge route has that id."
+
+[[code]]
+code = 6102
+name = "BRIDGE_ROUTE_PAUSED"
+variant = "BridgeRoutePaused"
+class = "reject"
+message = "The bridge route is paused; new bridge messages wait until it resumes."
+
+[[code]]
+code = 6103
+name = "BRIDGE_ASSET_NOT_ON_ROUTE"
+variant = "BridgeAssetNotOnRoute"
+class = "reject"
+message = "The asset does not move in that direction on this route."
+
+[[code]]
+code = 6104
+name = "BRIDGE_LIMIT_EXCEEDED"
+variant = "BridgeLimitExceeded"
+class = "reject"
+message = "The transfer is above the route's per-transaction, per-epoch or exposure limit."
+
+[[code]]
+code = 6105
+name = "BRIDGE_AMOUNT_NOT_CONVERTIBLE"
+variant = "BridgeAmountNotConvertible"
+class = "reject"
+message = "The amount does not convert exactly to the remote token's units."
+
+[[code]]
+code = 6106
+name = "BRIDGE_ATTESTATION_INVALID"
+variant = "BridgeAttestationInvalid"
+class = "reject"
+message = "The guardian attestation has too few signers or does not verify."
+
+[[code]]
+code = 6107
+name = "BRIDGE_SEQUENCE_GAP"
+variant = "BridgeSequenceGap"
+class = "reject"
+message = "The message is not the next one on its route: it was already consumed or one is missing."
+
+[[code]]
+code = 6108
+name = "BRIDGE_MESSAGE_EXPIRED"
+variant = "BridgeMessageExpired"
+class = "reject"
+message = "The bridge message expired."
+
+[[code]]
+code = 6109
+name = "BRIDGE_WRONG_DESTINATION"
+variant = "BridgeWrongDestination"
+class = "reject"
+message = "The bridge message is not for this chain or this route."
+
+[[code]]
+code = 6110
+name = "BRIDGE_MESSAGE_UNKNOWN"
+variant = "BridgeMessageUnknown"
+class = "reject"
+message = "No pending bridge message has that id."
+
+[[code]]
+code = 6111
+name = "BRIDGE_MESSAGE_HELD"
+variant = "BridgeMessageHeld"
+class = "reject"
+message = "The bridge message is flagged or still in its large-transfer delay."
+
+[[code]]
+code = 6112
+name = "BRIDGE_GUARDIAN_SET_UNKNOWN"
+variant = "BridgeGuardianSetUnknown"
+class = "reject"
+message = "No guardian set has that id."
+
+[[code]]
 code = 7001
 name = "STO_IO"
 variant = "StoIo"
