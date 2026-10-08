@@ -736,8 +736,93 @@ fn check_action(action: &GovAction) -> Result<(), AletheiaError> {
             ErrorCode::GovOutOfBounds,
             "a fee price cannot be zero",
         )),
+        GovAction::UpsertParticipant(spec) => {
+            use aletheia_core::apn::role;
+            if !(role::DIRECT_PARTICIPANT..=role::TECHNICAL_SERVICE_PROVIDER).contains(&spec.role) {
+                return Err(fail(
+                    ErrorCode::GovOutOfBounds,
+                    format!("participant role {} does not exist", spec.role),
+                ));
+            }
+            let indirect = spec.role == role::INDIRECT_PARTICIPANT;
+            if indirect != spec.sponsor.is_some() || spec.sponsor == Some(spec.aic) {
+                return Err(fail(
+                    ErrorCode::GovOutOfBounds,
+                    "an indirect participant has a sponsor (another participant); no other role has one",
+                ));
+            }
+            if spec.routing_code > 9_999 {
+                return Err(fail(
+                    ErrorCode::GovOutOfBounds,
+                    "a routing code has four digits",
+                ));
+            }
+            Ok(())
+        }
+        GovAction::SetParticipantStatus { status, .. }
+            if !(aletheia_core::apn::status::APPLIED..=aletheia_core::apn::status::TERMINATED)
+                .contains(status) =>
+        {
+            Err(fail(
+                ErrorCode::GovOutOfBounds,
+                format!("participant status {status} does not exist"),
+            ))
+        }
         _ => Ok(()),
     }
+}
+
+/// Admits a participant as ACTIVE, or replaces an existing participant's record keeping its
+/// status and certification epoch. One settlement account belongs to one participant.
+fn upsert_participant(
+    cx: &mut Cx<'_, '_>,
+    records: &Records,
+    spec: &aletheia_core::apn::ParticipantSpec,
+    epoch: u64,
+) -> Result<(), AletheiaError> {
+    let apn = crate::apn_model::Apn { records };
+    if let Some(holder) = apn.participant_at(cx.overlay, &spec.settlement_address)?
+        && holder.spec.aic != spec.aic
+    {
+        return Err(fail(
+            ErrorCode::ApnAlreadyExists,
+            format!(
+                "the settlement account belongs to {}",
+                holder.spec.aic.text()
+            ),
+        ));
+    }
+    if let Some(sponsor) = &spec.sponsor
+        && apn.participant(cx.overlay, sponsor)?.is_none()
+    {
+        return Err(fail(
+            ErrorCode::ApnParticipantUnknown,
+            format!("no sponsor {}", sponsor.text()),
+        ));
+    }
+    let existing = apn.participant(cx.overlay, &spec.aic)?;
+    if let Some(old) = &existing {
+        if old.status == aletheia_core::apn::status::TERMINATED {
+            return Err(fail(
+                ErrorCode::ApnIllegalTransition,
+                format!("participant {} is terminated", spec.aic.text()),
+            ));
+        }
+        if old.spec.settlement_address != spec.settlement_address {
+            cx.overlay
+                .delete(apn.by_address_key(&old.spec.settlement_address));
+        }
+    }
+    let participant = crate::apn_model::Participant {
+        spec: spec.clone(),
+        status: existing
+            .as_ref()
+            .map_or(aletheia_core::apn::status::ACTIVE, |p| p.status),
+        certified_epoch: existing.as_ref().map_or(epoch, |p| p.certified_epoch),
+        updated_epoch: epoch,
+    };
+    apn.put_participant(cx.overlay, &participant);
+    Ok(())
 }
 
 fn settle(proposal: &mut Proposal, policy: &GovernancePolicy, epoch: u64) {
@@ -977,6 +1062,25 @@ fn governance_execute(
             policy.council = members.clone();
             policy.threshold = *threshold;
             cx.reg.put_policy(cx.overlay, &policy);
+        }
+        GovAction::UpsertParticipant(spec) => upsert_participant(cx, records, spec, epoch)?,
+        GovAction::SetParticipantStatus { aic, status } => {
+            let apn = crate::apn_model::Apn { records };
+            let mut participant = apn.participant(cx.overlay, aic)?.ok_or_else(|| {
+                fail(
+                    ErrorCode::ApnParticipantUnknown,
+                    format!("no participant {}", aic.text()),
+                )
+            })?;
+            if participant.status == aletheia_core::apn::status::TERMINATED {
+                return Err(fail(
+                    ErrorCode::ApnIllegalTransition,
+                    format!("participant {} is terminated", aic.text()),
+                ));
+            }
+            participant.status = *status;
+            participant.updated_epoch = epoch;
+            apn.put_participant(cx.overlay, &participant);
         }
     }
     proposal.status = ProposalStatus::Executed;

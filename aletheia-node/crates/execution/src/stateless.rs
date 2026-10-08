@@ -189,6 +189,20 @@ fn check_field_ranges(
             };
         }
         Payload::ReserveAttestation(_) => return Ok(()),
+        Payload::Apn(op) => {
+            return match op.as_ref() {
+                aletheia_core::apn::ApnOp::Payment { leg, .. } if leg.amount == 0 => {
+                    zero("payment")
+                }
+                aletheia_core::apn::ApnOp::BatchPayment { legs, .. }
+                    if legs.is_empty() || legs.iter().any(|l| l.amount == 0) =>
+                {
+                    zero("batch payment (or it has no legs, and)")
+                }
+                aletheia_core::apn::ApnOp::PaymentReturn { amount: 0, .. } => zero("return"),
+                _ => Ok(()),
+            };
+        }
         Payload::ContractDeploy(deploy) => {
             return if deploy.package.is_empty() {
                 Err(reject(

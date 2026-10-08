@@ -191,15 +191,26 @@ pub enum GovAction {
         members: Vec<Address>,
         threshold: u8,
     },
+    /// Admits (or updates) an APN participant as ACTIVE (Section 40B.2).
+    UpsertParticipant(Box<crate::apn::ParticipantSpec>),
+    /// Suspends, reinstates or terminates a participant. Suspension takes effect without a
+    /// timelock (for cause, Section 40B.2).
+    SetParticipantStatus { aic: crate::apn::Aic, status: u8 },
 }
 
 impl GovAction {
     /// The timelock class (Section 35): how many governance epochs must pass after approval.
     pub const fn timelock_epochs(&self) -> u64 {
         match self {
+            GovAction::SetParticipantStatus {
+                status: crate::apn::status::SUSPENDED,
+                ..
+            } => 0,
             GovAction::RegisterIssuer { .. }
             | GovAction::SetIssuerActive { .. }
-            | GovAction::SetFeePrice { .. } => 1,
+            | GovAction::SetFeePrice { .. }
+            | GovAction::UpsertParticipant(_)
+            | GovAction::SetParticipantStatus { .. } => 1,
             GovAction::SetAeyCapacity { .. } => 4,
             GovAction::ScheduleUpgrade { .. } | GovAction::SetCouncil { .. } => 8,
         }
@@ -263,6 +274,15 @@ impl AceEncode for GovAction {
                 out.list(members);
                 out.u8(*threshold);
             }
+            GovAction::UpsertParticipant(spec) => {
+                out.u8(7);
+                spec.encode(out);
+            }
+            GovAction::SetParticipantStatus { aic, status } => {
+                out.u8(8);
+                aic.encode(out);
+                out.u8(*status);
+            }
         }
     }
 }
@@ -301,6 +321,13 @@ impl AceDecode for GovAction {
             6 => GovAction::SetCouncil {
                 members: input.list(MAX_COUNCIL)?,
                 threshold: input.u8()?,
+            },
+            7 => {
+                GovAction::UpsertParticipant(Box::new(crate::apn::ParticipantSpec::decode(input)?))
+            }
+            8 => GovAction::SetParticipantStatus {
+                aic: crate::apn::Aic::decode(input)?,
+                status: input.u8()?,
             },
             _ => return Err(bad("unknown governance action")),
         })

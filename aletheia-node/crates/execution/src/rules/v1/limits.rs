@@ -35,6 +35,15 @@ pub const TX_TYPES: &[TxType] = &[
     TxType::new(80),
     TxType::new(81),
     TxType::new(82),
+    TxType::new(128),
+    TxType::new(129),
+    TxType::new(137),
+    TxType::new(138),
+    TxType::new(139),
+    TxType::new(140),
+    TxType::new(141),
+    TxType::new(142),
+    TxType::new(143),
 ];
 
 pub const TX_LIMITS: TxLimits = TxLimits {
@@ -61,3 +70,9 @@ pub const SIGNATURE_EU: u64 = 3_000;
 
 /// A registry or governance operation.
 pub const REGISTRY_EU: u64 = 3_000;
+
+/// One APN payment leg, return or accepted recall: a transfer plus the participant, limit
+/// and de-duplication records it reads and writes.
+pub const PAYMENT_EU: u64 = 4_000;
+/// Any other APN operation, and a batch's own overhead.
+pub const APN_EU: u64 = 3_000;

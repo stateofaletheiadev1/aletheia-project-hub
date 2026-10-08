@@ -405,11 +405,102 @@ class = "fail-stop"
 message = "A state overlay revert was requested without a matching checkpoint."
 
 [[code]]
+code = 6001
+name = "APN_PARTICIPANT_UNKNOWN"
+variant = "ApnParticipantUnknown"
+class = "reject"
+message = "No APN participant is registered with this AIC."
+
+[[code]]
+code = 6002
+name = "APN_PARTICIPANT_INACTIVE"
+variant = "ApnParticipantInactive"
+class = "reject"
+message = "The participant is not ACTIVE (applied, certified, suspended or terminated)."
+
+[[code]]
+code = 6003
+name = "APN_SCHEME_NOT_CERTIFIED"
+variant = "ApnSchemeNotCertified"
+class = "reject"
+message = "The participant is not certified for this payment scheme."
+
+[[code]]
+code = 6004
+name = "APN_LIMIT_EXCEEDED"
+variant = "ApnLimitExceeded"
+class = "reject"
+message = "The payment exceeds the participant per-payment or daily limit."
+
+[[code]]
+code = 6005
+name = "APN_NOT_PARTICIPANT"
+variant = "ApnNotParticipant"
+class = "reject"
+message = "Only the participant settlement account may do this."
+
+[[code]]
+code = 6006
+name = "APN_PAYMENT_UNKNOWN"
+variant = "ApnPaymentUnknown"
+class = "reject"
+message = "No payment matches the reference (debtor agent, UETR hash, leg)."
+
+[[code]]
+code = 6007
+name = "APN_RETURN_EXCEEDS"
+variant = "ApnReturnExceeds"
+class = "reject"
+message = "The return would send back more than the original payment."
+
+[[code]]
+code = 6008
+name = "APN_AAN_MALFORMED"
+variant = "ApnAanMalformed"
+class = "reject"
+message = "The account number is not ALX followed by 18 digits."
+
+[[code]]
+code = 6009
+name = "APN_AAN_CHECK_DIGITS"
+variant = "ApnAanCheckDigits"
+class = "reject"
+message = "The account number check digits do not match (ISO 7064 MOD 97-10)."
+
+[[code]]
 code = 6010
 name = "PAY_DUPLICATE"
 variant = "PayDuplicate"
 class = "reject"
 message = "A payment with the same de-duplication key is already settled."
+
+[[code]]
+code = 6011
+name = "APN_ILLEGAL_TRANSITION"
+variant = "ApnIllegalTransition"
+class = "reject"
+message = "The payment status cannot change that way."
+
+[[code]]
+code = 6012
+name = "APN_AIC_MALFORMED"
+variant = "ApnAicMalformed"
+class = "reject"
+message = "The institution code is not a valid 8- or 11-character AIC."
+
+[[code]]
+code = 6013
+name = "APN_ROUTING_MISMATCH"
+variant = "ApnRoutingMismatch"
+class = "reject"
+message = "The account number is outside the participant routing range."
+
+[[code]]
+code = 6014
+name = "APN_ALREADY_EXISTS"
+variant = "ApnAlreadyExists"
+class = "reject"
+message = "The account number, proxy, anchor batch or recall already exists."
 
 [[code]]
 code = 7001

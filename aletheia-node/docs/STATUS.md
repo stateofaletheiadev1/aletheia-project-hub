@@ -4,7 +4,7 @@ Spec Section 1.2: one row per module. "Implemented" means code exists on `main`.
 means unit and property tests run in `cargo test --workspace`. Nothing below is described as
 done unless it is.
 
-Current phase: **Phase 10 (native registries)**, exit criteria met (table below). Phase 9 met except the 7-day fuzz campaign (scheduled `node:fuzz-vm` job, not yet run); Phases 6-8 met.
+Current phase: **Phase 11 (APN on-chain payments)**, in progress (table below). Phase 10 exit criteria met. Phase 9 met except the 7-day fuzz campaign (scheduled `node:fuzz-vm` job, not yet run); Phases 6-8 met.
 partly written; see the end of this file.
 
 ## crates/core
@@ -133,6 +133,17 @@ partly written; see the end of this file.
 | Bytecode format and verifier (`vm/opcode.rs`, `package.rs`, `verifier.rs`) | 27, APS-0014 | yes (+ ADR-046) | yes | one test per rule, property | `arnobc_verify` | rustdoc | no |
 | `arno` command: check, compile, inspect | 26 | yes | yes | by hand | n/a | usage text | n/a |
 | SSA IR with CSE, `arno fmt`, `arno-test` | 26 | yes | **no**: code is generated from the checked tree with fixed registers; formatter and test runner not yet built | no | no | no | no |
+
+## Phase 11: Aletheia Payment Network, on-chain (in progress)
+
+| Module | Spec | Specified | Implemented | Tested | Fuzzed | Documented | Benchmarked |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| AIC, AAN (MOD 97-10), payment legs, de-duplication key, APN payloads (`core/apn.rs`) | 40B.2, 40B.3.1, 40D.5 | yes (+ ADR-050, E-28) | yes | unit | via `tx_decode` | rustdoc | no |
+| Participant directory under governance (`apn_model.rs`, `rules/v1/registry.rs`) | 40B.2 | yes | yes | `tests/harness/tests/apn.rs` | n/a | rustdoc | no |
+| Payment, batch, return, recall, anchors, account numbers, proxies (`rules/v1/apn.rs`; types 128, 129, 137-143) | 40B.6, 40B.7 | yes | yes | harness: routing, limits, schemes, suspension, duplicates, returns, recalls, batches | n/a | rustdoc | no |
+| Request-to-pay, mandates, direct debit, scheduled payments (130-136) | 40B.7 | yes | **no** | no | no | no | no |
+| External-leg escrow (144-147), invariants I13-I15 | 40C.7 | yes | **no** | no | no | no | no |
+| ISO 20022 gateway, ACP, rail profiles, validation layers, railsim, reconciliation | 40, 40C | yes | **no** | no | no | no | no |
 
 ## Phase 10: native registries and governance
 

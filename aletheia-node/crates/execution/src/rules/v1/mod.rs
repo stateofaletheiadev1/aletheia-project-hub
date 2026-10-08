@@ -13,6 +13,7 @@
 //! 4. the nonce advances, creating the account record on its first transaction;
 //! 5. the receipt commits to the transaction's ordered write set.
 
+pub mod apn;
 pub mod balances;
 pub mod contract;
 pub mod limits;
@@ -218,6 +219,7 @@ pub fn run_payload(
         Payload::Registry(op) => {
             registry::apply(records, overlay, verified, op, ctx, meter, events)
         }
+        Payload::Apn(op) => apn::apply(records, overlay, verified, op, ctx, meter, events, touched),
         #[cfg(feature = "test-protocol-v2")]
         Payload::TestRemark(_) => Err(invalid(
             ErrorCode::TxTypeNotActive,
@@ -290,6 +292,9 @@ pub fn touched_balances(
             &[]
         }
         Payload::Registry(_) => &[],
+        // Payments, returns and accepted recalls report their balances at run time
+        // (`Touched`): a return's recipient is known only from state.
+        Payload::Apn(_) => &[],
         #[cfg(feature = "test-protocol-v2")]
         Payload::TestRemark(_) => &[],
     };
