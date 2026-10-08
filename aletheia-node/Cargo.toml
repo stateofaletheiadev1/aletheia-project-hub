@@ -19,6 +19,7 @@ members = [
   "crates/vm",
   "crates/monetary",
   "crates/rails",
+  "crates/rpc",
   "crates/rails-model",
   "crates/node",
   "apps/aletheiad",
@@ -56,6 +57,7 @@ aletheia-p2p = { path = "crates/p2p" }
 aletheia-gateway = { path = "crates/gateway" }
 aletheia-event-stream = { path = "crates/event-stream" }
 aletheia-rails = { path = "crates/rails" }
+aletheia-rpc = { path = "crates/rpc" }
 aletheia-rails-model = { path = "crates/rails-model" }
 aletheia-node = { path = "crates/node" }
 aletheia-test-harness = { path = "tests/harness" }

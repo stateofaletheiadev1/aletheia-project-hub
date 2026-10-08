@@ -227,6 +227,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "aletheia-rpc"
+version = "0.1.0"
+dependencies = [
+ "aletheia-core",
+ "aletheia-execution",
+ "aletheia-monetary",
+ "aletheia-test-harness",
+ "proptest",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
 name = "aletheia-signer"
 version = "0.1.0"
 dependencies = [

@@ -152,6 +152,14 @@ partly written; see the end of this file.
 | Rail simulator and chaos against the chain (`tests/railsim`) | 40C.12 | yes | yes (test-only) | every behaviour once + 8 random mixes: I13-I15 on chain, R8-R9 against the statement; outage, clock skew and statement-first scenarios not yet | n/a | rustdoc | n/a |
 | `pacs.004`, `pain.001`, XSD validation, operator conformance packs; PostgreSQL store, mTLS, HSM signer | 40, 40C | yes | **no** | no | no | no | no |
 
+## Phase 12: RPC, wallet, CLI (in progress)
+
+| Module | Spec | Specified | Implemented | Tested | Fuzzed | Documented | Benchmarked |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Service layer, JSON-RPC 2.0 dispatcher, REST routes (`crates/rpc`): status, head, params, blocks, finality proofs, submit, simulate, transactions, receipts, accounts, balances, assets, supply | 37.1, 37.2 | yes | yes (transport-independent) | round trip through JSON-RPC, REST/JSON-RPC parity on every shared query, every protocol rule, identifier errors | dispatcher property test | rustdoc | no |
+| HTTP server (axum), node backend, `aletheiad` wiring; WebSocket subscriptions; events, state proofs, validator set, contract views, registry and bridge methods; rate limits; OpenAPI/OpenRPC | 37 | yes | **no** | no | no | no | no |
+| Wallet (Section 41), `aletheia-cli` (Section 56), TS SDK | 41, 56 | yes | **no** | no | no | no | no |
+
 ## Phase 11B: PayNet integration
 
 | Module | Spec | Specified | Implemented | Tested | Fuzzed | Documented | Benchmarked |

@@ -1,0 +1,22 @@
+[package]
+name = "aletheia-rpc"
+description = "The public interfaces: one service layer behind REST (/api/v1) and JSON-RPC 2.0 (/rpc/v1)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+aletheia-core.workspace = true
+aletheia-execution.workspace = true
+aletheia-monetary.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+aletheia-test-harness.workspace = true
+proptest.workspace = true
+tokio = { version = "1", features = ["rt", "macros", "sync"] }
+
+[lints]
+workspace = true
