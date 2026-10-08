@@ -72,6 +72,7 @@ proptest = "1.7"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 toml = "0.9"
+axum = { version = "0.8", default-features = false, features = ["http1", "tokio", "query", "ws"] }
 quick-xml = { version = "0.38", default-features = false }
 
 [workspace.lints.rust]

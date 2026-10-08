@@ -157,7 +157,8 @@ partly written; see the end of this file.
 | Module | Spec | Specified | Implemented | Tested | Fuzzed | Documented | Benchmarked |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | Service layer, JSON-RPC 2.0 dispatcher, REST routes (`crates/rpc`): status, head, params, blocks, finality proofs, submit, simulate, transactions, receipts, accounts, balances, assets, supply | 37.1, 37.2 | yes | yes (transport-independent) | round trip through JSON-RPC, REST/JSON-RPC parity on every shared query, every protocol rule, identifier errors | dispatcher property test | rustdoc | no |
-| HTTP server (axum), node backend, `aletheiad` wiring; WebSocket subscriptions; events, state proofs, validator set, contract views, registry and bridge methods; rate limits; OpenAPI/OpenRPC | 37 | yes | **no** | no | no | no | no |
+| HTTP server (Axum), per-IP rate limit, 1 MiB bodies; node backend on the chain thread; `aletheiad` `[rpc]` section (`rpc/src/server.rs`, `node/src/rpc.rs`) | 37 | yes (+ ADR-056) | yes | `node/tests/rpc_http.rs`: transfer over HTTP to receipt, REST parity, escaped identifiers, 404, 429 | no | rustdoc | no |
+| WebSocket subscriptions; events, state proofs, validator set, contract views, registry and bridge methods; API keys; OpenAPI/OpenRPC; peer counts in status | 37 | yes | **no** | no | no | no | no |
 | Wallet (Section 41), `aletheia-cli` (Section 56), TS SDK | 41, 56 | yes | **no** | no | no | no | no |
 
 ## Phase 11B: PayNet integration

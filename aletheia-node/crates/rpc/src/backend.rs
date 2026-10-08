@@ -16,7 +16,8 @@ pub struct NodeStatus {
     pub finalized_height: u64,
     pub finalized_hash: Hash32,
     pub protocol_version: u16,
-    pub peers: u32,
+    /// Connected peers, when the node reports them.
+    pub peers: Option<u32>,
     pub syncing: bool,
 }
 

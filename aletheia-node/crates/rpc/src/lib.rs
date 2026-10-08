@@ -21,6 +21,7 @@ pub mod encode;
 pub mod error;
 pub mod jsonrpc;
 pub mod rest;
+pub mod server;
 pub mod service;
 
 pub use backend::{Backend, BlockRef, Located, NodeStatus};

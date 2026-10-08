@@ -139,6 +139,28 @@ async fn main() -> ExitCode {
         }
         Err(error) => return exit_for(&error),
     };
+    let rpc_task = match settings.rpc {
+        Some(rpc) => match tokio::net::TcpListener::bind(rpc.listen).await {
+            Ok(listener) => {
+                let bound = listener.local_addr().map_or(rpc.listen, |a| a);
+                oplog::line(&format!(
+                    "rpc listening on {bound} (REST /api/v1, JSON-RPC /rpc/v1)"
+                ));
+                let service = aletheia_rpc::Service::new(node.rpc_backend());
+                Some(tokio::spawn(aletheia_rpc::server::serve(
+                    listener,
+                    service,
+                    rpc.requests_per_second,
+                )))
+            }
+            Err(error) => {
+                oplog::error(&format!("cannot listen for rpc on {}: {error}", rpc.listen));
+                let _ = node.shutdown().await;
+                return ExitCode::from(EXIT_CONFIG);
+            }
+        },
+        None => None,
+    };
     let tip = node.tip();
     oplog::line(&format!(
         "following data_dir={} listen={} finalized_height={} hash={} state_root={}",
@@ -156,6 +178,9 @@ async fn main() -> ExitCode {
             Ok(())
         }
     };
+    if let Some(task) = rpc_task {
+        task.abort();
+    }
     let last = node.tip();
     let drained = node.shutdown().await;
     match outcome.and(drained) {

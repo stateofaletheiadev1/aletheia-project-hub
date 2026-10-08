@@ -1040,6 +1040,117 @@ impl<S: KvStore> Ledger<S> {
             .transpose()
     }
 
+    // ---- reads for the public RPC (Section 37): finalized data only ----
+
+    /// Where a finalized transaction is: its height and index in the block.
+    pub fn tx_position(&self, tx_id: &Hash32) -> Result<Option<(Height, u32)>, AletheiaError> {
+        let Some(bytes) = self.store.get(ColumnFamily::TxIndex, tx_id.as_bytes())? else {
+            return Ok(None);
+        };
+        let corrupt = || {
+            fail_stop(
+                ErrorCode::StoCorrupt,
+                format!("transaction index entry for {tx_id}"),
+            )
+        };
+        let height =
+            Height::from_ace_bytes(bytes.get(..8).ok_or_else(corrupt)?).map_err(|_| corrupt())?;
+        let index = bytes
+            .get(8..12)
+            .and_then(|b| <[u8; 4]>::try_from(b).ok())
+            .map(u32::from_le_bytes)
+            .ok_or_else(corrupt)?;
+        Ok(Some((height, index)))
+    }
+
+    /// The receipt of the transaction at `(height, index)`.
+    pub fn receipt_at(
+        &self,
+        height: Height,
+        index: u32,
+    ) -> Result<Option<aletheia_execution::Receipt>, AletheiaError> {
+        self.store
+            .get(ColumnFamily::Receipts, &receipt_key(height, index))?
+            .map(|bytes| {
+                aletheia_execution::Receipt::from_ace_bytes(&bytes).map_err(|e| {
+                    fail_stop(
+                        ErrorCode::StoCorrupt,
+                        format!("receipt at {height}/{index}: {}", e.detail()),
+                    )
+                })
+            })
+            .transpose()
+    }
+
+    /// The account record at the tip.
+    pub fn account_at_tip(
+        &self,
+        address: &aletheia_core::Address,
+    ) -> Result<Option<aletheia_execution::model::Account>, AletheiaError> {
+        Records::new(self.network).account(&self.tip_view(), address)
+    }
+
+    pub fn balance_at_tip(
+        &self,
+        address: &aletheia_core::Address,
+        asset: aletheia_core::AssetId,
+    ) -> Result<aletheia_execution::model::Balance, AletheiaError> {
+        Records::new(self.network).balance(&self.tip_view(), address, asset)
+    }
+
+    pub fn asset_at_tip(
+        &self,
+        asset: aletheia_core::AssetId,
+    ) -> Result<Option<aletheia_execution::model::AssetConfig>, AletheiaError> {
+        Records::new(self.network).asset(&self.tip_view(), asset)
+    }
+
+    pub fn supply_at_tip(
+        &self,
+        asset: aletheia_core::AssetId,
+    ) -> Result<Option<aletheia_monetary::SupplyLedger>, AletheiaError> {
+        Records::new(self.network).supply_ledger(&self.tip_view(), asset)
+    }
+
+    /// The protocol version in force at the tip.
+    pub fn tip_version(&self) -> Result<u16, AletheiaError> {
+        let records = Records::new(self.network);
+        let (_, entry) = rules_for_height(&records, &self.tip_view(), self.tip.height.next()?)?;
+        Ok(entry.protocol_version)
+    }
+
+    /// Executes a signed transaction as the first transaction of the next block, against the
+    /// tip, without committing anything (`simulateTransaction`).
+    pub fn simulate(&self, bytes: &[u8]) -> Result<aletheia_execution::Receipt, AletheiaError> {
+        let records = Records::new(self.network);
+        let view = self.tip_view();
+        let height = self.tip.height.next()?;
+        let (rules, entry) = rules_for_height(&records, &view, height)?;
+        let verified = StatelessValidator::new(self.network, rules).validate(bytes)?;
+        let (slot, epoch) = match self.read_block(self.tip.height)? {
+            Some(tip) => (
+                tip.block.header.slot.get().saturating_add(1),
+                tip.block.header.epoch,
+            ),
+            None => (1, aletheia_core::Epoch::new(0)),
+        };
+        let slot = aletheia_core::Slot::new(slot);
+        let timing = records.chain_timing(&view)?;
+        let ctx = BlockContext {
+            height,
+            slot,
+            epoch,
+            protocol_time_ms: timing.protocol_time_ms(slot)?,
+            proposer: aletheia_core::ValidatorIndex::new(0),
+            parent_hash: self.tip.hash,
+            protocol_version: aletheia_core::ProtocolVersion::new(entry.protocol_version),
+        };
+        let mut overlay = aletheia_state::StateOverlay::new(&view);
+        rules
+            .apply_transaction(&records, &mut overlay, &verified, &ctx, 0)
+            .map(|(receipt, _)| receipt)
+    }
+
     /// Clean shutdown: a checkpoint at the tip and the tip recorded in DATADIR (Section 44.5).
     pub fn shutdown(mut self) -> Result<(), AletheiaError> {
         self.wal.append(

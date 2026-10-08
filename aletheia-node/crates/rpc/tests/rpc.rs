@@ -60,7 +60,7 @@ impl Backend for DevnetBackend {
             finalized_height: net.head.height.get(),
             finalized_hash: net.head.block_hash(&net.network),
             protocol_version: net.head.version.get(),
-            peers: 0,
+            peers: None,
             syncing: false,
         })
     }

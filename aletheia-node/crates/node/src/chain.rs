@@ -70,6 +70,10 @@ pub(crate) enum ChainRequest {
         senders: Vec<Address>,
         reply: Reply<BTreeMap<Address, u64>>,
     },
+    Rpc {
+        query: crate::rpc::RpcQuery,
+        reply: Reply<crate::rpc::RpcAnswer>,
+    },
 }
 
 /// The async side's handle to the chain thread.
@@ -93,6 +97,14 @@ impl ChainHandle {
             .await
             .map_err(|_| stopped())?;
         response.await.map_err(|_| stopped())?
+    }
+
+    /// A public RPC read, answered from finalized data.
+    pub(crate) async fn rpc(
+        &self,
+        query: crate::rpc::RpcQuery,
+    ) -> Result<crate::rpc::RpcAnswer, AletheiaError> {
+        self.call(|reply| ChainRequest::Rpc { query, reply }).await
     }
 
     pub(crate) async fn admit(&self, bytes: Vec<u8>) -> Result<VerifiedTransaction, AletheiaError> {
@@ -299,6 +311,7 @@ fn serve<S: KvStore>(ledger: &mut Ledger<S>, request: ChainRequest) -> Result<()
                 });
             answer(reply, result)
         }
+        ChainRequest::Rpc { query, reply } => answer(reply, crate::rpc::answer(ledger, query)),
         ChainRequest::NextNonces { senders, reply } => {
             let result = senders
                 .into_iter()

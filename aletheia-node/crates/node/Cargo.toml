@@ -14,6 +14,7 @@ aletheia-crypto.workspace = true
 aletheia-execution.workspace = true
 aletheia-monetary.workspace = true
 aletheia-p2p.workspace = true
+aletheia-rpc.workspace = true
 aletheia-signer.workspace = true
 aletheia-state.workspace = true
 aletheia-storage.workspace = true
@@ -29,6 +30,8 @@ devnet-producer = []
 
 [dev-dependencies]
 aletheia-test-harness.workspace = true
+serde_json.workspace = true
+tokio = { version = "1", features = ["net", "io-util"] }
 
 [lints]
 workspace = true

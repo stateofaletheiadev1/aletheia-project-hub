@@ -58,6 +58,7 @@ impl core::fmt::Debug for NodeConfig {
 
 pub struct Node {
     local_addr: SocketAddr,
+    network: aletheia_core::NetworkIdentity,
     chain_handle: chain::ChainHandle,
     submissions: mpsc::Sender<Submission>,
     tip: watch::Receiver<LastFinalized>,
@@ -223,12 +224,23 @@ impl Node {
         let sync = tokio::spawn(service.run());
         Ok(Node {
             local_addr,
+            network,
             chain_handle,
             submissions: submit_tx,
             tip: tip_rx,
             sync: Some(sync),
             chain: chain_thread,
         })
+    }
+
+    /// The backend the public RPC serves from: finalized reads on the chain thread, and
+    /// submissions through the node's admission path.
+    pub fn rpc_backend(&self) -> crate::rpc::NodeBackend {
+        crate::rpc::NodeBackend {
+            chain: self.chain_handle.clone(),
+            submissions: self.submissions.clone(),
+            network: self.network,
+        }
     }
 
     pub fn local_addr(&self) -> SocketAddr {

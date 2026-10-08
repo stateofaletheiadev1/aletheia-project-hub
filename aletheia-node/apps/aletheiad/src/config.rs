@@ -22,6 +22,10 @@
 //! executor = "sandboxed"               # default; "in-process" on devnet/regtest only
 //! executor_path = "/usr/lib/aletheia/aletheia-arno-exec"   # default: beside aletheiad
 //! call_timeout_ms = 10000              # watchdog per contract call
+//!
+//! [rpc]                                # optional: REST /api/v1 and JSON-RPC /rpc/v1
+//! listen = "127.0.0.1:7781"
+//! requests_per_second = 50             # per client IP; default 50
 //! ```
 
 use std::net::SocketAddr;
@@ -42,6 +46,21 @@ struct FileConfig {
     peers: Vec<PeerSection>,
     devnet: Option<DevnetSection>,
     execution: Option<ExecutionSection>,
+    rpc: Option<RpcSection>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct RpcSection {
+    listen: SocketAddr,
+    requests_per_second: Option<u32>,
+}
+
+/// Where the public RPC listens, and its per-IP budget.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct RpcSettings {
+    pub(crate) listen: SocketAddr,
+    pub(crate) requests_per_second: u32,
 }
 
 #[derive(Debug, Deserialize)]
@@ -92,6 +111,7 @@ pub(crate) struct Settings {
     pub(crate) produce_every: Option<Duration>,
     pub(crate) consensus_key: Option<BlsSecretKey>,
     pub(crate) executor: Executor,
+    pub(crate) rpc: Option<RpcSettings>,
 }
 
 fn read(path: &std::path::Path, what: &str) -> Result<String, String> {
@@ -213,7 +233,14 @@ pub(crate) fn load(path: &std::path::Path) -> Result<Settings, String> {
         });
     }
 
+    let rpc = file.rpc.map(|section| RpcSettings {
+        listen: section.listen,
+        requests_per_second: section
+            .requests_per_second
+            .unwrap_or(aletheia_rpc::server::DEFAULT_REQUESTS_PER_SECOND),
+    });
     Ok(Settings {
+        rpc,
         data_dir: file.node.data_dir,
         genesis,
         listen: file.node.listen,

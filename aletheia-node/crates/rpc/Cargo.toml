@@ -12,11 +12,13 @@ aletheia-core.workspace = true
 aletheia-execution.workspace = true
 aletheia-monetary.workspace = true
 serde_json.workspace = true
+axum.workspace = true
+tokio = { version = "1", features = ["net", "rt", "sync", "time"] }
 
 [dev-dependencies]
 aletheia-test-harness.workspace = true
 proptest.workspace = true
-tokio = { version = "1", features = ["rt", "macros", "sync"] }
+tokio = { version = "1", features = ["rt", "macros", "sync", "net", "time", "io-util"] }
 
 [lints]
 workspace = true
