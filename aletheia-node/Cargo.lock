@@ -119,6 +119,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "aletheia-gateway"
+version = "0.1.0"
+dependencies = [
+ "aletheia-core",
+ "aletheia-rails",
+ "aletheia-rails-model",
+ "blake3",
+ "proptest",
+ "sha2",
+]
+
+[[package]]
 name = "aletheia-monetary"
 version = "0.1.0"
 dependencies = [

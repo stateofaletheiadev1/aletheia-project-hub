@@ -147,7 +147,8 @@ partly written; see the end of this file.
 | Canonical payment model: bounded texts, IBAN/BIC/LEI/UETR, exact cent-AEY conversion (`crates/rails-model`) | 40C.2, 40C.6 | yes (+ ADR-051) | yes | unit, property (conversion exact, render/parse) | no | rustdoc | no |
 | Rail profiles (7 drafts), reason table, validation layers 2-3 (`crates/rails`) | 40C.3, 40C.4, 40C.10 | yes | yes (profiles draft: `docs/apn/profile-verification/`) | integration per rule and rail, generated reason table | no | rustdoc | no |
 | ISO 20022 layer 1: hardened reader, `pacs.008` and `pacs.002` parse/render (`crates/rails/src/iso/`) | 40, 40C.4 | yes (+ ADR-052) | yes, except XSD validation against pinned schemas | hostile-input refusals, round trip (property), version/count/field checks, status classification; hand-written messages, operator sample packs not yet | reader property test | rustdoc | no |
-| `pacs.004`, `camt.05x`, `pain.001`; layer 4; gateway pipeline, audit ledger, inbox/outbox; railsim; reconciliation | 40, 40C | yes | **no** | no | no | no | no |
+| Gateway core: hash-chained audit ledger, inbox/outbox, pipeline with layer 4, screening (fail-closed), R2 hold, escrow lock/settle/release decisions (`crates/gateway`) | 40, 40C.7, 40C.8 | yes (+ ADR-053) | yes (in-memory stores; PostgreSQL store, mTLS transport and HSM signer not yet) | tamper detection, redelivery, rejections and holds, outbound lock and outbox, late ACSC after time-out, duplicates after settlement | no | rustdoc | no |
+| `pacs.004`, `camt.05x`, `pain.001`; railsim and chaos; R8-R9 reconciliation | 40, 40C.11, 40C.12 | yes | **no** | no | no | no | no |
 
 ## Phase 10: native registries and governance
 

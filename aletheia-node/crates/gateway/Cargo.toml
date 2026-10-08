@@ -1,0 +1,21 @@
+[package]
+name = "aletheia-gateway"
+description = "The ISO 20022 gateway core: hash-chained audit ledger, exactly-once inbox and outbox, and the four-layer pipeline mapping rail messages to APN operations."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+aletheia-core.workspace = true
+aletheia-rails.workspace = true
+aletheia-rails-model.workspace = true
+blake3.workspace = true
+sha2 = "0.10"
+
+[dev-dependencies]
+proptest.workspace = true
+
+[lints]
+workspace = true

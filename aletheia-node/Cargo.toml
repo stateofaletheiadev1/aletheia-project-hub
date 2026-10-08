@@ -10,6 +10,7 @@ members = [
   "crates/consensus",
   "crates/signer",
   "crates/execution",
+  "crates/gateway",
   "crates/executor",
   "crates/p2p",
   "crates/storage",
@@ -49,6 +50,7 @@ aletheia-state = { path = "crates/state" }
 aletheia-vm = { path = "crates/vm" }
 aletheia-monetary = { path = "crates/monetary" }
 aletheia-p2p = { path = "crates/p2p" }
+aletheia-gateway = { path = "crates/gateway" }
 aletheia-rails = { path = "crates/rails" }
 aletheia-rails-model = { path = "crates/rails-model" }
 aletheia-node = { path = "crates/node" }
