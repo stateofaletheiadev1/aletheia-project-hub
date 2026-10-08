@@ -117,6 +117,10 @@ error_codes! {
     ApnAicMalformed = 6012, "APN_AIC_MALFORMED", Reject;
     ApnRoutingMismatch = 6013, "APN_ROUTING_MISMATCH", Reject;
     ApnAlreadyExists = 6014, "APN_ALREADY_EXISTS", Reject;
+    ApnRecordUnknown = 6015, "APN_RECORD_UNKNOWN", Reject;
+    ApnRequestClosed = 6016, "APN_REQUEST_CLOSED", Reject;
+    ApnMandateNotUsable = 6017, "APN_MANDATE_NOT_USABLE", Reject;
+    ApnMandateLimit = 6018, "APN_MANDATE_LIMIT", Reject;
     StoIo = 7001, "STO_IO", FailStop;
     StoCorrupt = 7002, "STO_CORRUPT", FailStop;
     StoWalChecksum = 7003, "STO_WAL_CHECKSUM", FailStop;

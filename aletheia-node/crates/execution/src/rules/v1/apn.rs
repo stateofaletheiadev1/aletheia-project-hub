@@ -5,6 +5,9 @@
 //!
 //! ```text
 //! Payment, BatchPayment     the debtor (sender); both agents ACTIVE, each serving its account
+//! PaymentRequest            the payee; PaymentRequestResponse: the payer, paying through its agent
+//! MandateCreate, MandateAmend   the debtor;  MandateCancel: the debtor or the creditor
+//! DirectDebit               the mandate's creditor, within its maximum, window and frequency
 //! PaymentReturn             the original creditor, up to what is left of the original
 //! RecallRequest             the original debtor (a request: finality stands)
 //! RecallResponse            the original creditor; accepting returns what is left
@@ -18,12 +21,15 @@
 //! of protocol time. Each settled leg keeps a de-duplication entry for 400 days, keyed by
 //! `(debtor agent, UETR hash, leg)`: a second payment with the same key is refused.
 
-use aletheia_core::apn::{Aic, ApnOp, PaymentLeg, PaymentRef, status};
+use aletheia_core::apn::{
+    Aic, ApnOp, PaymentLeg, PaymentRef, frequency, mandate_id, request_id, status,
+};
 use aletheia_core::{AceEncode, Address, AletheiaError, AssetId, ErrorCode, Hash32};
 use aletheia_state::StateOverlay;
 
 use crate::apn_model::{
-    AnchorEntry, Apn, DEDUP_RETENTION_DAYS, DayTotals, DedupEntry, Mapping, Participant, day_of,
+    AnchorEntry, Apn, DEDUP_RETENTION_DAYS, DayTotals, DedupEntry, MandateRecord, Mapping,
+    Participant, RequestRecord, day_of, mandate_status, period, request_status,
 };
 use crate::context::{BlockContext, Meter, OutOfEu};
 use crate::model::{Records, module_address};
@@ -150,9 +156,16 @@ impl Cx<'_, '_> {
         Ok((key, entry))
     }
 
-    /// One credit from the sender: checks, limits, de-duplication, settlement, event.
+    fn mandate(&self, id: &Hash32) -> Result<MandateRecord, AletheiaError> {
+        self.apn
+            .mandate(self.overlay, id)?
+            .ok_or_else(|| fail(ErrorCode::ApnRecordUnknown, format!("no mandate {id}")))
+    }
+
+    /// One credit from `debtor`: checks, limits, de-duplication, settlement, event.
     fn pay(
         &mut self,
+        debtor: Address,
         debtor_agent: &Participant,
         scheme: Option<u8>,
         leg: &PaymentLeg,
@@ -179,7 +192,7 @@ impl Cx<'_, '_> {
             }
         }
         let creditor_agent = self.active(&leg.creditor_agent)?;
-        if !self.apn.serves(self.overlay, debtor_agent, &self.sender)? {
+        if !self.apn.serves(self.overlay, debtor_agent, &debtor)? {
             return Err(fail(
                 ErrorCode::ApnRoutingMismatch,
                 format!(
@@ -261,7 +274,7 @@ impl Cx<'_, '_> {
                 "a payment with this agent and UETR already settled",
             ));
         }
-        let sender = self.sender;
+        let sender = debtor;
         self.move_aey(&sender, &leg.creditor, leg.amount)?;
         let entry = DedupEntry {
             tx_id: self.tx_id,
@@ -320,7 +333,8 @@ pub(crate) fn apply(
                 return Ok(Err(OutOfEu));
             }
             let agent = cx.active(debtor_agent)?;
-            cx.pay(&agent, Some(*scheme), leg, purpose)?;
+            let sender = cx.sender;
+            cx.pay(sender, &agent, Some(*scheme), leg, purpose)?;
         }
         ApnOp::BatchPayment {
             debtor_agent,
@@ -337,13 +351,14 @@ pub(crate) fn apply(
                 if meter.charge(PAYMENT_EU).is_err() {
                     return Ok(Err(OutOfEu));
                 }
+                let sender = cx.sender;
                 if *atomic {
-                    cx.pay(&agent, None, leg, purpose)?;
+                    cx.pay(sender, &agent, None, leg, purpose)?;
                     continue;
                 }
                 cx.overlay.checkpoint();
                 let mark = (cx.events.len(), cx.touched.len());
-                match cx.pay(&agent, None, leg, purpose) {
+                match cx.pay(sender, &agent, None, leg, purpose) {
                     Ok(()) => cx.overlay.commit_checkpoint(),
                     Err(error) if !error.is_fail_stop() => {
                         cx.overlay.revert_to_checkpoint()?;
@@ -369,6 +384,281 @@ pub(crate) fn apply(
                     data.as_bytes().to_vec(),
                 );
             }
+        }
+        ApnOp::PaymentRequest {
+            payer,
+            amount,
+            creditor_agent,
+            uetr_hash,
+            remittance_hash,
+            expires_day,
+        } => {
+            if meter.charge(APN_EU).is_err() {
+                return Ok(Err(OutOfEu));
+            }
+            let agent = cx.active(creditor_agent)?;
+            let payee = cx.sender;
+            if !cx.apn.serves(cx.overlay, &agent, &payee)? {
+                return Err(fail(
+                    ErrorCode::ApnRoutingMismatch,
+                    format!(
+                        "{} does not serve the payee's account",
+                        agent.spec.aic.text()
+                    ),
+                ));
+            }
+            if *expires_day < cx.day() {
+                return Err(fail(
+                    ErrorCode::TxFieldOutOfRange,
+                    "the request expires in the past",
+                ));
+            }
+            let id = request_id(records.network(), &payee, body.nonce);
+            let record = RequestRecord {
+                payee,
+                payer: *payer,
+                amount: *amount,
+                creditor_agent: *creditor_agent,
+                uetr_hash: *uetr_hash,
+                remittance_hash: *remittance_hash,
+                expires_day: *expires_day,
+                status: request_status::PENDING,
+            };
+            cx.overlay
+                .put(cx.apn.request_key(&id), record.to_ace_bytes());
+            cx.emit(
+                "aletheia.apn.request.created.v1",
+                vec![id, payee.account_hash(), payer.account_hash()],
+                amount.to_le_bytes().to_vec(),
+            );
+        }
+        ApnOp::PaymentRequestResponse {
+            request_id: id,
+            accept,
+            debtor_agent,
+        } => {
+            if meter.charge(PAYMENT_EU).is_err() {
+                return Ok(Err(OutOfEu));
+            }
+            let mut record = cx.apn.request(cx.overlay, id)?.ok_or_else(|| {
+                fail(
+                    ErrorCode::ApnRecordUnknown,
+                    format!("no payment request {id}"),
+                )
+            })?;
+            if record.payer != cx.sender {
+                return Err(fail(
+                    ErrorCode::ApnNotParticipant,
+                    "only the payer answers a payment request",
+                ));
+            }
+            if record.status != request_status::PENDING || cx.day() > record.expires_day {
+                return Err(fail(
+                    ErrorCode::ApnRequestClosed,
+                    "the request was answered or expired",
+                ));
+            }
+            if *accept {
+                let agent = cx.active(debtor_agent)?;
+                let leg = PaymentLeg {
+                    creditor: record.payee,
+                    amount: record.amount,
+                    creditor_agent: record.creditor_agent,
+                    uetr_hash: record.uetr_hash,
+                    remittance_hash: record.remittance_hash,
+                };
+                let payer = cx.sender;
+                cx.pay(payer, &agent, None, &leg, b"RTPY")?;
+                record.status = request_status::PAID;
+            } else {
+                record.status = request_status::DECLINED;
+            }
+            cx.overlay
+                .put(cx.apn.request_key(id), record.to_ace_bytes());
+            cx.emit(
+                "aletheia.apn.request.answered.v1",
+                vec![*id],
+                vec![u8::from(*accept)],
+            );
+        }
+        ApnOp::MandateCreate {
+            creditor,
+            creditor_agent,
+            debtor_agent,
+            max_amount,
+            frequency: how_often,
+            first_day,
+            final_day,
+        } => {
+            if meter.charge(APN_EU).is_err() {
+                return Ok(Err(OutOfEu));
+            }
+            if *how_often > frequency::ON_DEMAND || *max_amount == 0 || first_day > final_day {
+                return Err(fail(
+                    ErrorCode::TxFieldOutOfRange,
+                    "a mandate needs a known frequency, a positive maximum and first day <= final day",
+                ));
+            }
+            let debtor = cx.sender;
+            let debtors_agent = cx.active(debtor_agent)?;
+            let creditors_agent = cx.active(creditor_agent)?;
+            if !cx.apn.serves(cx.overlay, &debtors_agent, &debtor)?
+                || !cx.apn.serves(cx.overlay, &creditors_agent, creditor)?
+            {
+                return Err(fail(
+                    ErrorCode::ApnRoutingMismatch,
+                    "each agent must serve its account",
+                ));
+            }
+            let id = mandate_id(records.network(), &debtor, body.nonce);
+            let record = MandateRecord {
+                debtor,
+                creditor: *creditor,
+                debtor_agent: *debtor_agent,
+                creditor_agent: *creditor_agent,
+                max_amount: *max_amount,
+                frequency: *how_often,
+                first_day: *first_day,
+                final_day: *final_day,
+                status: mandate_status::ACTIVE,
+                created_tx: cx.tx_id,
+                last_debit_day: None,
+                debits: 0,
+            };
+            cx.overlay
+                .put(cx.apn.mandate_key(&id), record.to_ace_bytes());
+            cx.emit(
+                "aletheia.apn.mandate.created.v1",
+                vec![id, debtor.account_hash(), creditor.account_hash()],
+                record.to_ace_bytes(),
+            );
+        }
+        ApnOp::MandateAmend {
+            mandate_id: id,
+            max_amount,
+            final_day,
+            suspended,
+        } => {
+            if meter.charge(APN_EU).is_err() {
+                return Ok(Err(OutOfEu));
+            }
+            let mut record = cx.mandate(id)?;
+            if record.debtor != cx.sender {
+                return Err(fail(
+                    ErrorCode::ApnNotParticipant,
+                    "only the debtor amends a mandate",
+                ));
+            }
+            if record.status == mandate_status::CANCELLED {
+                return Err(fail(
+                    ErrorCode::ApnMandateNotUsable,
+                    "the mandate is cancelled",
+                ));
+            }
+            if *max_amount == 0 || *final_day < record.first_day {
+                return Err(fail(
+                    ErrorCode::TxFieldOutOfRange,
+                    "a mandate keeps a positive maximum and a final day after its first",
+                ));
+            }
+            record.max_amount = *max_amount;
+            record.final_day = *final_day;
+            record.status = if *suspended {
+                mandate_status::SUSPENDED
+            } else {
+                mandate_status::ACTIVE
+            };
+            cx.overlay
+                .put(cx.apn.mandate_key(id), record.to_ace_bytes());
+            cx.emit(
+                "aletheia.apn.mandate.amended.v1",
+                vec![*id],
+                record.to_ace_bytes(),
+            );
+        }
+        ApnOp::MandateCancel { mandate_id: id } => {
+            if meter.charge(APN_EU).is_err() {
+                return Ok(Err(OutOfEu));
+            }
+            let mut record = cx.mandate(id)?;
+            if record.debtor != cx.sender && record.creditor != cx.sender {
+                return Err(fail(
+                    ErrorCode::ApnNotParticipant,
+                    "only the debtor or the creditor cancels a mandate",
+                ));
+            }
+            if record.status == mandate_status::CANCELLED {
+                return Err(fail(
+                    ErrorCode::ApnMandateNotUsable,
+                    "the mandate is already cancelled",
+                ));
+            }
+            record.status = mandate_status::CANCELLED;
+            cx.overlay
+                .put(cx.apn.mandate_key(id), record.to_ace_bytes());
+            cx.emit("aletheia.apn.mandate.cancelled.v1", vec![*id], Vec::new());
+        }
+        ApnOp::DirectDebit {
+            mandate_id: id,
+            amount,
+            uetr_hash,
+            remittance_hash,
+        } => {
+            if meter.charge(PAYMENT_EU).is_err() {
+                return Ok(Err(OutOfEu));
+            }
+            let mut record = cx.mandate(id)?;
+            if record.creditor != cx.sender {
+                return Err(fail(
+                    ErrorCode::ApnNotParticipant,
+                    "only the mandate's creditor debits it",
+                ));
+            }
+            let day = cx.day();
+            if record.status != mandate_status::ACTIVE
+                || day < record.first_day
+                || day > record.final_day
+            {
+                return Err(fail(
+                    ErrorCode::ApnMandateNotUsable,
+                    "the mandate is suspended, cancelled, or outside its validity window",
+                ));
+            }
+            if *amount > record.max_amount {
+                return Err(fail(
+                    ErrorCode::ApnMandateLimit,
+                    format!(
+                        "{amount} is above the mandate's maximum {}",
+                        record.max_amount
+                    ),
+                ));
+            }
+            let too_soon = match record.frequency {
+                frequency::ONCE => record.debits > 0,
+                frequency::ON_DEMAND => false,
+                how_often => record
+                    .last_debit_day
+                    .is_some_and(|last| period(how_often, last) == period(how_often, day)),
+            };
+            if too_soon {
+                return Err(fail(
+                    ErrorCode::ApnMandateLimit,
+                    "the mandate was already debited in this period",
+                ));
+            }
+            let agent = cx.active(&record.debtor_agent)?;
+            let leg = PaymentLeg {
+                creditor: record.creditor,
+                amount: *amount,
+                creditor_agent: record.creditor_agent,
+                uetr_hash: *uetr_hash,
+                remittance_hash: *remittance_hash,
+            };
+            cx.pay(record.debtor, &agent, None, &leg, b"DDBT")?;
+            record.last_debit_day = Some(day);
+            record.debits = record.debits.saturating_add(1);
+            cx.overlay
+                .put(cx.apn.mandate_key(id), record.to_ace_bytes());
         }
         ApnOp::PaymentReturn {
             original,

@@ -11,13 +11,14 @@
 )]
 
 use aletheia_core::apn::{
-    Aan, Aic, ApnOp, Limits, ParticipantSpec, PaymentLeg, PaymentRef, role, status,
+    Aan, Aic, ApnOp, Limits, ParticipantSpec, PaymentLeg, PaymentRef, frequency, mandate_id,
+    request_id, role, status,
 };
 use aletheia_core::registry::{GovAction, RegistryOp, proposal_id};
 use aletheia_core::{AssetId, ChainId, ErrorCode, Hash32, NetworkIdentity, NetworkKind, Payload};
-use aletheia_execution::apn_model::Apn;
+use aletheia_execution::apn_model::{Apn, day_of, mandate_status, request_status};
 use aletheia_execution::{Receipt, ReceiptStatus};
-use aletheia_test_harness::{Devnet, ONE_AEY, ONE_ALNT, keys};
+use aletheia_test_harness::{Devnet, GENESIS_TIME_MS, ONE_AEY, ONE_ALNT, keys};
 
 const EPOCH_SLOTS: u64 = 4;
 /// Accounts: 0-2 the council, 3 bank A's settlement account, 4 bank B's, 5 Alice (bank A's
@@ -594,4 +595,265 @@ fn message_anchors_are_written_once_by_a_participant() {
         .unwrap()
         .unwrap();
     assert_eq!((stored.count, stored.participant), (12, bank_a()));
+}
+
+// ---- request-to-pay ----
+
+fn today() -> u64 {
+    day_of(GENESIS_TIME_MS)
+}
+
+#[test]
+fn a_payment_request_settles_only_when_the_payer_accepts() {
+    let mut net = network();
+    let alice = net.address(ALICE);
+    let nonce = net.next_nonce(BOB);
+    let request = ApnOp::PaymentRequest {
+        payer: alice,
+        amount: 7 * ONE_AEY,
+        creditor_agent: bank_b(),
+        uetr_hash: h(60),
+        remittance_hash: h(61),
+        expires_day: today() + 30,
+    };
+    ok(&apn(&mut net, BOB, request));
+    let id = request_id(&net.network, &net.address(BOB), nonce);
+    let (alice_before, bob_before) = (aey(&net, ALICE), aey(&net, BOB));
+    let answer = |accept| ApnOp::PaymentRequestResponse {
+        request_id: id,
+        accept,
+        debtor_agent: bank_a(),
+    };
+    refused(
+        &apn(&mut net, ANYONE, answer(true)),
+        ErrorCode::ApnNotParticipant,
+    );
+    ok(&apn(&mut net, ALICE, answer(true)));
+    assert_eq!(aey(&net, ALICE), alice_before - 7 * ONE_AEY);
+    assert_eq!(aey(&net, BOB), bob_before + 7 * ONE_AEY);
+    refused(
+        &apn(&mut net, ALICE, answer(true)),
+        ErrorCode::ApnRequestClosed,
+    );
+    let records = net.records();
+    let view = net.view();
+    let stored = Apn { records: &records }
+        .request(&view, &id)
+        .unwrap()
+        .unwrap();
+    assert_eq!(stored.status, request_status::PAID);
+}
+
+#[test]
+fn a_declined_or_expired_request_pays_nothing() {
+    let mut net = network();
+    let alice = net.address(ALICE);
+    let bob_before = aey(&net, BOB);
+    let nonce = net.next_nonce(BOB);
+    ok(&apn(
+        &mut net,
+        BOB,
+        ApnOp::PaymentRequest {
+            payer: alice,
+            amount: ONE_AEY,
+            creditor_agent: bank_b(),
+            uetr_hash: h(62),
+            remittance_hash: h(0),
+            expires_day: today() + 1,
+        },
+    ));
+    let id = request_id(&net.network, &net.address(BOB), nonce);
+    ok(&apn(
+        &mut net,
+        ALICE,
+        ApnOp::PaymentRequestResponse {
+            request_id: id,
+            accept: false,
+            debtor_agent: bank_a(),
+        },
+    ));
+    assert_eq!(aey(&net, BOB), bob_before);
+    // A request whose last day already passed cannot be created.
+    refused(
+        &apn(
+            &mut net,
+            BOB,
+            ApnOp::PaymentRequest {
+                payer: alice,
+                amount: ONE_AEY,
+                creditor_agent: bank_b(),
+                uetr_hash: h(63),
+                remittance_hash: h(0),
+                expires_day: today() - 1,
+            },
+        ),
+        ErrorCode::TxFieldOutOfRange,
+    );
+    // The payee's bank must serve the payee.
+    refused(
+        &apn(
+            &mut net,
+            BOB,
+            ApnOp::PaymentRequest {
+                payer: alice,
+                amount: ONE_AEY,
+                creditor_agent: bank_a(),
+                uetr_hash: h(64),
+                remittance_hash: h(0),
+                expires_day: today() + 1,
+            },
+        ),
+        ErrorCode::ApnRoutingMismatch,
+    );
+}
+
+// ---- mandates and direct debit ----
+
+/// Alice authorizes Bob to debit her; returns the mandate id.
+fn mandate(net: &mut Devnet, how_often: u8, max_amount: u128, first_day: u64) -> Hash32 {
+    let bob = net.address(BOB);
+    let nonce = net.next_nonce(ALICE);
+    ok(&apn(
+        net,
+        ALICE,
+        ApnOp::MandateCreate {
+            creditor: bob,
+            creditor_agent: bank_b(),
+            debtor_agent: bank_a(),
+            max_amount,
+            frequency: how_often,
+            first_day,
+            final_day: first_day + 365,
+        },
+    ));
+    mandate_id(&net.network, &net.address(ALICE), nonce)
+}
+
+fn debit(net: &mut Devnet, id: Hash32, amount: u128, uetr: u8) -> Receipt {
+    apn(
+        net,
+        BOB,
+        ApnOp::DirectDebit {
+            mandate_id: id,
+            amount,
+            uetr_hash: h(uetr),
+            remittance_hash: h(0),
+        },
+    )
+}
+
+#[test]
+fn a_creditor_debits_within_the_mandate() {
+    let mut net = network();
+    let id = mandate(&mut net, frequency::MONTHLY, 5 * ONE_AEY, today());
+    let (alice, bob) = (aey(&net, ALICE), aey(&net, BOB));
+    refused(
+        &debit(&mut net, id, 6 * ONE_AEY, 70),
+        ErrorCode::ApnMandateLimit,
+    );
+    ok(&debit(&mut net, id, 5 * ONE_AEY, 71));
+    assert_eq!(aey(&net, ALICE), alice - 5 * ONE_AEY);
+    assert_eq!(aey(&net, BOB), bob + 5 * ONE_AEY);
+    // Monthly: a second debit in the same month is refused.
+    refused(
+        &debit(&mut net, id, ONE_AEY, 72),
+        ErrorCode::ApnMandateLimit,
+    );
+    // Only the creditor debits.
+    let r = apn(
+        &mut net,
+        ANYONE,
+        ApnOp::DirectDebit {
+            mandate_id: id,
+            amount: ONE_AEY,
+            uetr_hash: h(73),
+            remittance_hash: h(0),
+        },
+    );
+    refused(&r, ErrorCode::ApnNotParticipant);
+}
+
+#[test]
+fn frequencies_once_and_on_demand() {
+    let mut net = network();
+    let once = mandate(&mut net, frequency::ONCE, 2 * ONE_AEY, today());
+    ok(&debit(&mut net, once, ONE_AEY, 74));
+    refused(
+        &debit(&mut net, once, ONE_AEY, 75),
+        ErrorCode::ApnMandateLimit,
+    );
+    let any_time = mandate(&mut net, frequency::ON_DEMAND, 2 * ONE_AEY, today());
+    ok(&debit(&mut net, any_time, ONE_AEY, 76));
+    ok(&debit(&mut net, any_time, ONE_AEY, 77));
+    // Each debit is still a payment: the same UETR twice is a duplicate.
+    refused(
+        &debit(&mut net, any_time, ONE_AEY, 77),
+        ErrorCode::PayDuplicate,
+    );
+}
+
+#[test]
+fn the_debtor_controls_the_mandate() {
+    let mut net = network();
+    let id = mandate(&mut net, frequency::ON_DEMAND, 3 * ONE_AEY, today());
+    let amend = |suspended| ApnOp::MandateAmend {
+        mandate_id: id,
+        max_amount: 3 * ONE_AEY,
+        final_day: today() + 10,
+        suspended,
+    };
+    refused(
+        &apn(&mut net, BOB, amend(true)),
+        ErrorCode::ApnNotParticipant,
+    );
+    ok(&apn(&mut net, ALICE, amend(true)));
+    refused(
+        &debit(&mut net, id, ONE_AEY, 80),
+        ErrorCode::ApnMandateNotUsable,
+    );
+    ok(&apn(&mut net, ALICE, amend(false)));
+    ok(&debit(&mut net, id, ONE_AEY, 81));
+    // Either party may cancel; a cancelled mandate is final.
+    ok(&apn(&mut net, BOB, ApnOp::MandateCancel { mandate_id: id }));
+    refused(
+        &debit(&mut net, id, ONE_AEY, 82),
+        ErrorCode::ApnMandateNotUsable,
+    );
+    refused(
+        &apn(&mut net, ALICE, amend(false)),
+        ErrorCode::ApnMandateNotUsable,
+    );
+    let records = net.records();
+    let view = net.view();
+    let stored = Apn { records: &records }
+        .mandate(&view, &id)
+        .unwrap()
+        .unwrap();
+    assert_eq!(
+        (stored.status, stored.debits),
+        (mandate_status::CANCELLED, 1)
+    );
+}
+
+#[test]
+fn a_mandate_is_usable_only_inside_its_window() {
+    let mut net = network();
+    let later = mandate(&mut net, frequency::ON_DEMAND, ONE_AEY, today() + 5);
+    refused(
+        &debit(&mut net, later, ONE_AEY, 85),
+        ErrorCode::ApnMandateNotUsable,
+    );
+    refused(
+        &apn(
+            &mut net,
+            BOB,
+            ApnOp::DirectDebit {
+                mandate_id: h(9),
+                amount: ONE_AEY,
+                uetr_hash: h(86),
+                remittance_hash: h(0),
+            },
+        ),
+        ErrorCode::ApnRecordUnknown,
+    );
 }

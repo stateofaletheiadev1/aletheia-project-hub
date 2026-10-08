@@ -403,6 +403,34 @@ impl AceDecode for ParticipantSpec {
     }
 }
 
+/// How often a mandate may be debited (Section 40B.7). Periods are calendar periods of the
+/// UTC day of protocol time.
+pub mod frequency {
+    pub const ONCE: u8 = 0;
+    pub const WEEKLY: u8 = 1;
+    pub const MONTHLY: u8 = 2;
+    pub const QUARTERLY: u8 = 3;
+    pub const YEARLY: u8 = 4;
+    pub const ON_DEMAND: u8 = 5;
+}
+
+/// The id of a payment request: `H_domain("ALETHEIA/APN-REQUEST/v1", payee ‖ nonce)`.
+pub fn request_id(network: &NetworkIdentity, payee: &Address, nonce: u64) -> Hash32 {
+    let mut out = AceWriter::new();
+    payee.encode(&mut out);
+    out.u64(nonce);
+    network.domain_hash(DomainTag::PaymentRequest, out.as_bytes())
+}
+
+/// The id of a mandate: `H_domain("ALETHEIA/APN-MANDATE/v1", debtor ‖ nonce)`. The debtor's
+/// signature on the creating transaction is the mandate's signature.
+pub fn mandate_id(network: &NetworkIdentity, debtor: &Address, nonce: u64) -> Hash32 {
+    let mut out = AceWriter::new();
+    debtor.encode(&mut out);
+    out.u64(nonce);
+    network.domain_hash(DomainTag::Mandate, out.as_bytes())
+}
+
 /// APN payloads.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ApnOp {
@@ -420,6 +448,48 @@ pub enum ApnOp {
         legs: Vec<PaymentLeg>,
         purpose: [u8; 4],
         atomic: bool,
+    },
+    /// 130: the payee (sender) asks `payer` to pay; settles only when the payer accepts.
+    PaymentRequest {
+        payer: Address,
+        amount: u128,
+        creditor_agent: Aic,
+        uetr_hash: Hash32,
+        remittance_hash: Hash32,
+        expires_day: u64,
+    },
+    /// 131: the payer answers; accepting pays the request as a credit transfer through
+    /// `debtor_agent`.
+    PaymentRequestResponse {
+        request_id: Hash32,
+        accept: bool,
+        debtor_agent: Aic,
+    },
+    /// 132: the debtor (sender) authorizes `creditor` to debit it, within limits.
+    MandateCreate {
+        creditor: Address,
+        creditor_agent: Aic,
+        debtor_agent: Aic,
+        max_amount: u128,
+        frequency: u8,
+        first_day: u64,
+        final_day: u64,
+    },
+    /// 133: the debtor changes the maximum, the final day, or suspends or resumes.
+    MandateAmend {
+        mandate_id: Hash32,
+        max_amount: u128,
+        final_day: u64,
+        suspended: bool,
+    },
+    /// 134: the debtor or the creditor ends the mandate for good.
+    MandateCancel { mandate_id: Hash32 },
+    /// 135: the creditor (sender) collects under a mandate.
+    DirectDebit {
+        mandate_id: Hash32,
+        amount: u128,
+        uetr_hash: Hash32,
+        remittance_hash: Hash32,
     },
     /// 137: the original creditor (the sender) sends money back, linked to the original.
     PaymentReturn {
@@ -453,12 +523,20 @@ pub enum ApnOp {
 }
 
 impl ApnOp {
-    pub const TX_TYPES: [u16; 9] = [128, 129, 137, 138, 139, 140, 141, 142, 143];
+    pub const TX_TYPES: [u16; 15] = [
+        128, 129, 130, 131, 132, 133, 134, 135, 137, 138, 139, 140, 141, 142, 143,
+    ];
 
     pub const fn tx_type(&self) -> u16 {
         match self {
             ApnOp::Payment { .. } => 128,
             ApnOp::BatchPayment { .. } => 129,
+            ApnOp::PaymentRequest { .. } => 130,
+            ApnOp::PaymentRequestResponse { .. } => 131,
+            ApnOp::MandateCreate { .. } => 132,
+            ApnOp::MandateAmend { .. } => 133,
+            ApnOp::MandateCancel { .. } => 134,
+            ApnOp::DirectDebit { .. } => 135,
             ApnOp::PaymentReturn { .. } => 137,
             ApnOp::RecallRequest { .. } => 138,
             ApnOp::RecallResponse { .. } => 139,
@@ -492,6 +570,70 @@ impl ApnOp {
                 out.list(legs);
                 out.fixed(purpose);
                 out.bool(*atomic);
+            }
+            ApnOp::PaymentRequest {
+                payer,
+                amount,
+                creditor_agent,
+                uetr_hash,
+                remittance_hash,
+                expires_day,
+            } => {
+                payer.encode(out);
+                out.u128(*amount);
+                creditor_agent.encode(out);
+                uetr_hash.encode(out);
+                remittance_hash.encode(out);
+                out.u64(*expires_day);
+            }
+            ApnOp::PaymentRequestResponse {
+                request_id,
+                accept,
+                debtor_agent,
+            } => {
+                request_id.encode(out);
+                out.bool(*accept);
+                debtor_agent.encode(out);
+            }
+            ApnOp::MandateCreate {
+                creditor,
+                creditor_agent,
+                debtor_agent,
+                max_amount,
+                frequency,
+                first_day,
+                final_day,
+            } => {
+                creditor.encode(out);
+                creditor_agent.encode(out);
+                debtor_agent.encode(out);
+                out.u128(*max_amount);
+                out.u8(*frequency);
+                out.u64(*first_day);
+                out.u64(*final_day);
+            }
+            ApnOp::MandateAmend {
+                mandate_id,
+                max_amount,
+                final_day,
+                suspended,
+            } => {
+                mandate_id.encode(out);
+                out.u128(*max_amount);
+                out.u64(*final_day);
+                out.bool(*suspended);
+            }
+            ApnOp::MandateCancel { mandate_id } => mandate_id.encode(out),
+            ApnOp::DirectDebit {
+                mandate_id,
+                amount,
+                uetr_hash,
+                remittance_hash,
+            } => {
+                mandate_id.encode(out);
+                out.u128(*amount);
+                uetr_hash.encode(out);
+                remittance_hash.encode(out);
             }
             ApnOp::PaymentReturn {
                 original,
@@ -564,6 +706,43 @@ impl ApnOp {
                         atomic: input.bool()?,
                     }
                 }
+                130 => ApnOp::PaymentRequest {
+                    payer: Address::decode(input)?,
+                    amount: input.u128()?,
+                    creditor_agent: Aic::decode(input)?,
+                    uetr_hash: Hash32::decode(input)?,
+                    remittance_hash: Hash32::decode(input)?,
+                    expires_day: input.u64()?,
+                },
+                131 => ApnOp::PaymentRequestResponse {
+                    request_id: Hash32::decode(input)?,
+                    accept: input.bool()?,
+                    debtor_agent: Aic::decode(input)?,
+                },
+                132 => ApnOp::MandateCreate {
+                    creditor: Address::decode(input)?,
+                    creditor_agent: Aic::decode(input)?,
+                    debtor_agent: Aic::decode(input)?,
+                    max_amount: input.u128()?,
+                    frequency: input.u8()?,
+                    first_day: input.u64()?,
+                    final_day: input.u64()?,
+                },
+                133 => ApnOp::MandateAmend {
+                    mandate_id: Hash32::decode(input)?,
+                    max_amount: input.u128()?,
+                    final_day: input.u64()?,
+                    suspended: input.bool()?,
+                },
+                134 => ApnOp::MandateCancel {
+                    mandate_id: Hash32::decode(input)?,
+                },
+                135 => ApnOp::DirectDebit {
+                    mandate_id: Hash32::decode(input)?,
+                    amount: input.u128()?,
+                    uetr_hash: Hash32::decode(input)?,
+                    remittance_hash: Hash32::decode(input)?,
+                },
                 137 => ApnOp::PaymentReturn {
                     original: PaymentRef::decode(input)?,
                     amount: input.u128()?,

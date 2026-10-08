@@ -503,6 +503,34 @@ class = "reject"
 message = "The account number, proxy, anchor batch or recall already exists."
 
 [[code]]
+code = 6015
+name = "APN_RECORD_UNKNOWN"
+variant = "ApnRecordUnknown"
+class = "reject"
+message = "No payment request or mandate has that id."
+
+[[code]]
+code = 6016
+name = "APN_REQUEST_CLOSED"
+variant = "ApnRequestClosed"
+class = "reject"
+message = "The payment request was already answered, or it expired."
+
+[[code]]
+code = 6017
+name = "APN_MANDATE_NOT_USABLE"
+variant = "ApnMandateNotUsable"
+class = "reject"
+message = "The mandate is suspended, cancelled, or outside its validity window."
+
+[[code]]
+code = 6018
+name = "APN_MANDATE_LIMIT"
+variant = "ApnMandateLimit"
+class = "reject"
+message = "The debit is above the mandate's maximum or comes too soon for its frequency."
+
+[[code]]
 code = 7001
 name = "STO_IO"
 variant = "StoIo"

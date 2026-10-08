@@ -141,7 +141,8 @@ partly written; see the end of this file.
 | AIC, AAN (MOD 97-10), payment legs, de-duplication key, APN payloads (`core/apn.rs`) | 40B.2, 40B.3.1, 40D.5 | yes (+ ADR-050, E-28) | yes | unit | via `tx_decode` | rustdoc | no |
 | Participant directory under governance (`apn_model.rs`, `rules/v1/registry.rs`) | 40B.2 | yes | yes | `tests/harness/tests/apn.rs` | n/a | rustdoc | no |
 | Payment, batch, return, recall, anchors, account numbers, proxies (`rules/v1/apn.rs`; types 128, 129, 137-143) | 40B.6, 40B.7 | yes | yes | harness: routing, limits, schemes, suspension, duplicates, returns, recalls, batches | n/a | rustdoc | no |
-| Request-to-pay, mandates, direct debit, scheduled payments (130-136) | 40B.7 | yes | **no** | no | no | no | no |
+| Request-to-pay, mandates, direct debit (130-135; `rules/v1/apn.rs`, `apn_model.rs`) | 40B.7 | yes (+ E-29) | yes | harness: accept, decline, expiry, routing; maximum, frequency, window, suspend, cancel; calendar periods | n/a | rustdoc | no |
+| Scheduled payments (136): executed by the protocol when due | 40B.7 | yes | **no** (needs a block-boundary step) | no | no | no | no |
 | External-leg escrow (144-147), invariants I13-I15 | 40C.7 | yes | **no** | no | no | no | no |
 | ISO 20022 gateway, ACP, rail profiles, validation layers, railsim, reconciliation | 40, 40C | yes | **no** | no | no | no | no |
 

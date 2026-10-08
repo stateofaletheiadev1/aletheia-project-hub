@@ -200,6 +200,10 @@ fn check_field_ranges(
                     zero("batch payment (or it has no legs, and)")
                 }
                 aletheia_core::apn::ApnOp::PaymentReturn { amount: 0, .. } => zero("return"),
+                aletheia_core::apn::ApnOp::PaymentRequest { amount: 0, .. } => {
+                    zero("payment request")
+                }
+                aletheia_core::apn::ApnOp::DirectDebit { amount: 0, .. } => zero("direct debit"),
                 _ => Ok(()),
             };
         }

@@ -337,3 +337,208 @@ impl Apn<'_> {
         self.get(view, &self.anchor_key(batch), "message anchor")
     }
 }
+
+/// A payment request (namespace 104, key the request id).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct RequestRecord {
+    pub payee: Address,
+    pub payer: Address,
+    pub amount: u128,
+    pub creditor_agent: Aic,
+    pub uetr_hash: Hash32,
+    pub remittance_hash: Hash32,
+    pub expires_day: u64,
+    pub status: u8,
+}
+
+/// Payment request states.
+pub mod request_status {
+    pub const PENDING: u8 = 1;
+    pub const PAID: u8 = 2;
+    pub const DECLINED: u8 = 3;
+}
+
+impl AceEncode for RequestRecord {
+    fn encode(&self, out: &mut AceWriter) {
+        self.payee.encode(out);
+        self.payer.encode(out);
+        out.u128(self.amount);
+        self.creditor_agent.encode(out);
+        self.uetr_hash.encode(out);
+        self.remittance_hash.encode(out);
+        out.u64(self.expires_day);
+        out.u8(self.status);
+    }
+}
+
+impl AceDecode for RequestRecord {
+    fn decode(input: &mut AceReader<'_>) -> Result<RequestRecord, AletheiaError> {
+        Ok(RequestRecord {
+            payee: Address::decode(input)?,
+            payer: Address::decode(input)?,
+            amount: input.u128()?,
+            creditor_agent: Aic::decode(input)?,
+            uetr_hash: Hash32::decode(input)?,
+            remittance_hash: Hash32::decode(input)?,
+            expires_day: input.u64()?,
+            status: input.u8()?,
+        })
+    }
+}
+
+/// A direct-debit mandate (namespace 103, key the mandate id). Expiry is computed from
+/// `final_day`, never stored.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct MandateRecord {
+    pub debtor: Address,
+    pub creditor: Address,
+    pub debtor_agent: Aic,
+    pub creditor_agent: Aic,
+    pub max_amount: u128,
+    pub frequency: u8,
+    pub first_day: u64,
+    pub final_day: u64,
+    pub status: u8,
+    pub created_tx: Hash32,
+    pub last_debit_day: Option<u64>,
+    pub debits: u64,
+}
+
+/// Mandate states.
+pub mod mandate_status {
+    pub const ACTIVE: u8 = 1;
+    pub const SUSPENDED: u8 = 2;
+    pub const CANCELLED: u8 = 3;
+}
+
+impl AceEncode for MandateRecord {
+    fn encode(&self, out: &mut AceWriter) {
+        self.debtor.encode(out);
+        self.creditor.encode(out);
+        self.debtor_agent.encode(out);
+        self.creditor_agent.encode(out);
+        out.u128(self.max_amount);
+        out.u8(self.frequency);
+        out.u64(self.first_day);
+        out.u64(self.final_day);
+        out.u8(self.status);
+        self.created_tx.encode(out);
+        out.option(self.last_debit_day.as_ref());
+        out.u64(self.debits);
+    }
+}
+
+impl AceDecode for MandateRecord {
+    fn decode(input: &mut AceReader<'_>) -> Result<MandateRecord, AletheiaError> {
+        Ok(MandateRecord {
+            debtor: Address::decode(input)?,
+            creditor: Address::decode(input)?,
+            debtor_agent: Aic::decode(input)?,
+            creditor_agent: Aic::decode(input)?,
+            max_amount: input.u128()?,
+            frequency: input.u8()?,
+            first_day: input.u64()?,
+            final_day: input.u64()?,
+            status: input.u8()?,
+            created_tx: Hash32::decode(input)?,
+            last_debit_day: input.option()?,
+            debits: input.u64()?,
+        })
+    }
+}
+
+/// The calendar period a day falls in for a mandate frequency: debits in one period are
+/// limited to one. `None` for frequencies with no period (once, on demand).
+pub fn period(frequency: u8, day: u64) -> Option<u64> {
+    use aletheia_core::apn::frequency;
+    // Days since 1970-01-01 (a Thursday) to the civil date (H. Hinnant's algorithm).
+    let civil = |day: u64| -> (u64, u64) {
+        let z = day.saturating_add(719_468);
+        let era = z / 146_097;
+        let doe = z.saturating_sub(era.saturating_mul(146_097));
+        let yoe = doe
+            .saturating_sub(doe / 1_460)
+            .saturating_add(doe / 36_524)
+            .saturating_sub(doe / 146_096)
+            / 365;
+        let doy = doe.saturating_sub(
+            yoe.saturating_mul(365)
+                .saturating_add(yoe / 4)
+                .saturating_sub(yoe / 100),
+        );
+        let mp = doy.saturating_mul(5).saturating_add(2) / 153;
+        let month = if mp < 10 {
+            mp.saturating_add(3)
+        } else {
+            mp.saturating_sub(9)
+        };
+        let year = yoe
+            .saturating_add(era.saturating_mul(400))
+            .saturating_add(u64::from(month <= 2));
+        (year, month)
+    };
+    let (year, month) = civil(day);
+    match frequency {
+        // ISO weeks start on Monday; 1970-01-01 was a Thursday.
+        frequency::WEEKLY => Some(day.saturating_add(3) / 7),
+        frequency::MONTHLY => Some(year.saturating_mul(12).saturating_add(month)),
+        frequency::QUARTERLY => Some(
+            year.saturating_mul(4)
+                .saturating_add(month.saturating_sub(1) / 3),
+        ),
+        frequency::YEARLY => Some(year),
+        _ => None,
+    }
+}
+
+impl Apn<'_> {
+    pub fn request_key(&self, id: &Hash32) -> StateKey {
+        self.key(Namespace::PaymentRequests, &[&[0], id.as_bytes()])
+    }
+
+    pub fn request(
+        &self,
+        view: &dyn StateView,
+        id: &Hash32,
+    ) -> Result<Option<RequestRecord>, AletheiaError> {
+        self.get(view, &self.request_key(id), "payment request")
+    }
+
+    pub fn mandate_key(&self, id: &Hash32) -> StateKey {
+        self.key(Namespace::Mandates, &[id.as_bytes()])
+    }
+
+    pub fn mandate(
+        &self,
+        view: &dyn StateView,
+        id: &Hash32,
+    ) -> Result<Option<MandateRecord>, AletheiaError> {
+        self.get(view, &self.mandate_key(id), "mandate")
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use aletheia_core::apn::frequency;
+
+    #[test]
+    fn periods_follow_the_calendar() {
+        // 2026-01-31 is day 20484, 2026-02-01 day 20485, 2026-03-31 day 20543,
+        // 2026-04-01 day 20544, 2026-12-31 day 20818, 2027-01-01 day 20819.
+        let month = |d| period(frequency::MONTHLY, d);
+        assert_ne!(month(20_484), month(20_485));
+        assert_eq!(month(20_485), month(20_485 + 27));
+        let quarter = |d| period(frequency::QUARTERLY, d);
+        assert_eq!(quarter(20_485), quarter(20_543));
+        assert_ne!(quarter(20_543), quarter(20_544));
+        let year = |d| period(frequency::YEARLY, d);
+        assert_eq!(year(20_819), Some(2027));
+        assert_eq!(year(20_818), Some(2026));
+        // 2026-10-05 (day 20731) is a Monday; the Sunday before is another week.
+        let week = |d| period(frequency::WEEKLY, d);
+        assert_eq!(week(20_731), week(20_737));
+        assert_ne!(week(20_730), week(20_731));
+        assert_eq!(period(frequency::ON_DEMAND, 20_731), None);
+    }
+}

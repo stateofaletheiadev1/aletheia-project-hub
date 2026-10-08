@@ -38,6 +38,18 @@ Decision: B (crates/core `apn.rs`, crates/execution `apn_model.rs`, `rules/v1/ap
      account, and a proxy is removed only by the participant that registered it.
   8. Costs (devnet defaults, benchmarked before version 1 freezes): 4,000 EU per payment
      leg, return or accepted recall; 3,000 EU for other operations and a batch's overhead.
-Consequences: request-to-pay (130-131), mandates and direct debit (132-135), scheduled
-payments (136) and external-leg escrow (144-147) follow in later Phase 11 steps. KYC-tier
+  9. Request-to-pay (130-131): the payee creates a request (id `H_domain("ALETHEIA/APN-
+     REQUEST/v1", payee ‖ nonce)`, namespace 104) naming the payer, amount, its own agent,
+     UETR and last valid day; only the payer answers, once, before it expires. Accepting
+     pays it as an ordinary credit transfer through the payer's agent, with every payment
+     check and de-duplication.
+ 10. Mandates (132-135): the debtor creates a mandate (id `H_domain("ALETHEIA/APN-MANDATE/
+     v1", debtor ‖ nonce)`, namespace 103); the debtor's signature on that transaction is the
+     mandate signature. Frequencies once, weekly, monthly, quarterly, yearly, on demand; a
+     debit is allowed at most once per ISO week, calendar month, quarter or year of the UTC
+     day of protocol time. The debtor amends (maximum, final day, suspend or resume) and
+     either party cancels for good. A direct debit comes from the creditor, inside the
+     window and maximum, and settles as a payment from the debtor.
+Consequences: scheduled payments (136) need the protocol to act at block boundaries and
+follow in their own step, as does external-leg escrow (144-147). KYC-tier
 amount limits per customer need the identity tiers and are not enforced yet.
