@@ -5,6 +5,7 @@ Monorepo for the Sovereign Covenant State of Aletheia.
 | Path | What it is |
 | --- | --- |
 | `aletheia-web/` | National web platform: Next.js app. See `aletheia-web/CLAUDE.md` and `aletheia-web/AGENTS.md`. |
+| `aletheia-gov/` | Government website (aletheiagov.org): Next.js app. Brief in `aletheia-gov/aletheiagov-master-engineering-prompt-v2.md`, status in `aletheia-gov/PROGRESS.md`. |
 | `aletheia-node/` | Aletheia StableChain node: Rust Cargo workspace. Spec in `aletheia-node/docs/spec/MASTER.md`, progress in `aletheia-node/docs/STATUS.md`. |
 | `aletheia-explorer/` | Aletheia Explorer, "The Public Ledger" (spec Section 41A). Not started; Phase 12C. |
 

@@ -1,0 +1,551 @@
+@import "tailwindcss";
+@import "../styles/tokens.css";
+
+/* ------------------------------------------------------------------ */
+/* Theme: expose the generated scales to Tailwind utilities            */
+/* ------------------------------------------------------------------ */
+@theme inline {
+  --color-*: initial;
+  --color-transparent: transparent;
+  --color-current: currentColor;
+  --color-white: #fff;
+
+  --color-navy-50: var(--navy-50);
+  --color-navy-100: var(--navy-100);
+  --color-navy-200: var(--navy-200);
+  --color-navy-300: var(--navy-300);
+  --color-navy-400: var(--navy-400);
+  --color-navy-500: var(--navy-500);
+  --color-navy-600: var(--navy-600);
+  --color-navy-700: var(--navy-700);
+  --color-navy-800: var(--navy-800);
+  --color-navy-900: var(--navy-900);
+  --color-navy-950: var(--navy-950);
+
+  --color-parchment-50: var(--parchment-50);
+  --color-parchment-100: var(--parchment-100);
+  --color-parchment-200: var(--parchment-200);
+  --color-parchment-300: var(--parchment-300);
+  --color-parchment-400: var(--parchment-400);
+  --color-parchment-500: var(--parchment-500);
+
+  --color-gold-200: var(--gold-200);
+  --color-gold-300: var(--gold-300);
+  --color-gold-400: var(--gold-400);
+  --color-gold-500: var(--gold-500);
+  --color-gold-600: var(--gold-600);
+  --color-gold-700: var(--gold-700);
+  --color-gold-800: var(--gold-800);
+
+  --color-green-300: var(--green-300);
+  --color-green-600: var(--green-600);
+  --color-green-700: var(--green-700);
+
+  --color-ink-400: var(--ink-400);
+  --color-ink-500: var(--ink-500);
+  --color-ink-600: var(--ink-600);
+  --color-ink-700: var(--ink-700);
+  --color-ink-900: var(--ink-900);
+
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+
+  --ease-tide: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+
+  --breakpoint-xs: 30rem;
+}
+
+/* ------------------------------------------------------------------ */
+/* Semantic tokens                                                     */
+/* ------------------------------------------------------------------ */
+:root {
+  --dur-quick: 180ms;
+  --dur-base: 320ms;
+  --dur-reveal: 720ms;
+  --dur-hero: 2400ms;
+
+  --gutter: clamp(1.25rem, 4vw, 4rem);
+  --chapter-space: clamp(6rem, 12vw, 12rem);
+  --header-h: 4.5rem;
+
+  /* Hairlines: Seal Gold at 45 % on parchment, 30 % on navy (brief §6.4) */
+  --rule-ledger: color-mix(in oklab, var(--seal-gold) 45%, transparent);
+  --rule-sea: color-mix(in oklab, var(--seal-gold) 30%, transparent);
+
+  /* Very fine paper grain for ledger surfaces. Pure SVG noise, no image file. */
+  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.35  0 0 0 0 0.28  0 0 0 0 0.16  0 0 0 0.05 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+/* ------------------------------------------------------------------ */
+/* Base                                                                */
+/* ------------------------------------------------------------------ */
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    scroll-padding-top: calc(var(--header-h) + 1rem);
+    background: var(--navy-950);
+  }
+
+  body {
+    background-color: var(--parchment-100);
+    background-image: var(--grain);
+    color: var(--ink-900);
+    font-family: var(--font-sans);
+    font-size: 1.0625rem;
+    line-height: 1.65;
+    font-feature-settings: "ss01", "cv11";
+    font-variant-numeric: tabular-nums;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background: var(--navy-800);
+    color: var(--parchment-50);
+  }
+  .sea ::selection {
+    background: var(--seal-gold);
+    color: var(--navy-950);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--navy-800);
+    outline-offset: 2px;
+    border-radius: 1px;
+  }
+  .sea :focus-visible {
+    outline-color: var(--seal-gold);
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  img {
+    max-width: 100%;
+  }
+
+  hr {
+    border: 0;
+    border-top: 1px solid var(--rule-ledger);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Typography (brief §6.3)                                             */
+/* ------------------------------------------------------------------ */
+@layer components {
+  .t-display-xl {
+    font-size: clamp(3.5rem, 9vw, 9rem);
+    font-weight: 300;
+    letter-spacing: -0.04em;
+    line-height: 0.92;
+  }
+  .t-display {
+    font-size: clamp(2.75rem, 5.5vw, 5.5rem);
+    font-weight: 300;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    text-wrap: balance;
+  }
+  .t-h1 {
+    font-size: clamp(2.25rem, 4vw, 3.75rem);
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 1.06;
+    text-wrap: balance;
+  }
+  .t-h2 {
+    font-size: clamp(1.75rem, 2.6vw, 2.5rem);
+    font-weight: 500;
+    letter-spacing: -0.015em;
+    line-height: 1.12;
+    text-wrap: balance;
+  }
+  .t-h3 {
+    font-size: 1.375rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.3;
+  }
+  .t-lede {
+    font-size: clamp(1.25rem, 1.6vw, 1.5rem);
+    font-weight: 400;
+    letter-spacing: -0.005em;
+    line-height: 1.5;
+    text-wrap: pretty;
+  }
+  .t-body {
+    font-size: 1.0625rem;
+    line-height: 1.65;
+    max-width: 68ch;
+    text-wrap: pretty;
+  }
+  .t-meta {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    line-height: 1.4;
+  }
+  .t-ref {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    letter-spacing: 0;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Long-form prose inside the reading column */
+  .prose-ledger > * + * {
+    margin-top: 1.1em;
+  }
+  .prose-ledger h2 {
+    font-size: clamp(1.5rem, 2.2vw, 2rem);
+    font-weight: 500;
+    letter-spacing: -0.015em;
+    line-height: 1.15;
+    margin-top: 2.4em;
+  }
+  .prose-ledger h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin-top: 2em;
+  }
+  .prose-ledger p,
+  .prose-ledger li {
+    max-width: 68ch;
+    text-wrap: pretty;
+  }
+  .prose-ledger ul {
+    padding-left: 0;
+    list-style: none;
+  }
+  .prose-ledger ul > li {
+    position: relative;
+    padding-left: 1.5rem;
+  }
+  .prose-ledger ul > li + li {
+    margin-top: 0.5em;
+  }
+  .prose-ledger ul > li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.8em;
+    width: 0.75rem;
+    height: 1px;
+    background: var(--seal-gold);
+  }
+  .prose-ledger a,
+  .link-ledger {
+    color: var(--navy-800);
+    text-decoration: underline;
+    text-decoration-color: var(--rule-ledger);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.22em;
+    transition: text-decoration-color var(--dur-quick) var(--ease-standard);
+  }
+  .prose-ledger a:hover,
+  .link-ledger:hover {
+    text-decoration-color: var(--navy-800);
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* Layout: shell, 12-column grid, margin column (brief §6.4)         */
+  /* ---------------------------------------------------------------- */
+  .shell {
+    width: 100%;
+    max-width: 1440px;
+    margin-inline: auto;
+    padding-inline: var(--gutter);
+  }
+  .grid-12 {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: clamp(1rem, 2vw, 2rem);
+  }
+  .chapter {
+    padding-block: var(--chapter-space);
+  }
+
+  .sea {
+    background-color: var(--navy-950);
+    background-image: none;
+    color: var(--parchment-100);
+  }
+  .ledger {
+    background-color: var(--parchment-100);
+    background-image: var(--grain);
+    color: var(--ink-900);
+  }
+  .ledger-pale {
+    background-color: var(--parchment-50);
+    background-image: var(--grain);
+    color: var(--ink-900);
+  }
+
+  .rule {
+    border-color: var(--rule-ledger);
+  }
+  .sea .rule {
+    border-color: var(--rule-sea);
+  }
+
+  /* Section mark: 48px gold hairline then "§ 01" (brief §6.5.2) */
+  .section-mark {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.875rem;
+  }
+  .section-mark::before {
+    content: "";
+    width: 48px;
+    height: 1px;
+    background: var(--seal-gold);
+    flex: none;
+  }
+
+  /* Underline that draws in from the left on hover */
+  .draw-link {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-size: 0% 1px;
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    transition: background-size var(--dur-base) var(--ease-tide);
+    padding-bottom: 2px;
+  }
+  .draw-link:hover,
+  .draw-link:focus-visible {
+    background-size: 100% 1px;
+  }
+
+  .arrow-nudge {
+    display: inline-block;
+    transition: transform var(--dur-base) var(--ease-tide);
+  }
+  a:hover .arrow-nudge,
+  a:focus-visible .arrow-nudge {
+    transform: translateX(4px);
+  }
+  a:hover .arrow-nudge-down,
+  a:focus-visible .arrow-nudge-down {
+    transform: translateY(3px);
+  }
+
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Motion (brief §6.7). Content is visible without JavaScript: only    */
+/* elements a script has explicitly marked "pending" start hidden.     */
+/* ------------------------------------------------------------------ */
+@keyframes settle {
+  from {
+    transform: scale(1.06);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+@keyframes rise {
+  from {
+    transform: translateY(105%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.hero-settle {
+  animation: settle var(--dur-hero) var(--ease-tide) both;
+}
+.mask-line {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.06em;
+  margin-bottom: -0.06em;
+}
+.mask-line > span {
+  display: block;
+  animation: rise 1100ms var(--ease-tide) both;
+  animation-delay: calc(300ms + var(--i, 0) * 120ms);
+}
+.late-fade {
+  animation: fade-up 900ms var(--ease-tide) both;
+  animation-delay: var(--d, 900ms);
+}
+
+[data-reveal="pending"] {
+  opacity: 0;
+  transform: translateY(24px);
+}
+[data-reveal="shown"] {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity var(--dur-reveal) var(--ease-tide),
+    transform var(--dur-reveal) var(--ease-tide);
+  transition-delay: calc(var(--stagger, 0) * 60ms);
+}
+
+/* Image reveal from the bottom edge: a curtain in the surface colour scales away.
+   Transform-only, and the image itself is never clipped, so the browser's native
+   lazy loading still sees it (a clip-path'd image is treated as invisible). */
+[data-clip]::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  background: var(--curtain, var(--parchment-100));
+  transform-origin: 50% 0;
+  transform: scaleY(0);
+  pointer-events: none;
+}
+.sea [data-clip] {
+  --curtain: var(--navy-950);
+}
+[data-clip="pending"]::after {
+  transform: scaleY(1);
+}
+[data-clip="pending"] img {
+  transform: scale(1.08);
+}
+[data-clip="shown"]::after {
+  transition: transform 1200ms var(--ease-tide);
+}
+[data-clip="shown"] img {
+  transform: scale(1);
+  transition: transform 1800ms var(--ease-tide);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-settle,
+  .mask-line > span,
+  .late-fade {
+    animation: fade-in 1ms both;
+  }
+  [data-reveal="pending"],
+  [data-reveal="shown"] {
+    transform: none;
+    transition: opacity 200ms linear;
+    transition-delay: 0ms;
+  }
+  [data-clip]::after {
+    display: none;
+  }
+  [data-clip] img {
+    transform: none !important;
+    transition: none !important;
+  }
+  [data-parallax] {
+    transform: none !important;
+  }
+  html:focus-within {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    transition-duration: 1ms !important;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html:focus-within {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Route transitions where the browser supports cross-document view transitions */
+@view-transition {
+  navigation: auto;
+}
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 260ms;
+  animation-timing-function: var(--ease-standard);
+}
+
+/* ------------------------------------------------------------------ */
+/* Record menu (popover) and mobile drawer (dialog)                    */
+/* ------------------------------------------------------------------ */
+.record-menu {
+  position: fixed;
+  inset: var(--header-h) 0 auto 0;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid var(--rule-sea);
+  opacity: 0;
+  transform: translateY(-8px);
+  transition:
+    opacity var(--dur-base) var(--ease-tide),
+    transform var(--dur-base) var(--ease-tide),
+    overlay var(--dur-base) allow-discrete,
+    display var(--dur-base) allow-discrete;
+}
+.record-menu:popover-open {
+  opacity: 1;
+  transform: none;
+}
+@starting-style {
+  .record-menu:popover-open {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+.record-menu::backdrop {
+  background: transparent;
+}
+
+.drawer {
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  inset: 0;
+}
+.drawer::backdrop {
+  background: var(--navy-950);
+}
+.drawer[open] .drawer-item {
+  animation: fade-up 640ms var(--ease-tide) both;
+  animation-delay: calc(80ms + var(--i, 0) * 45ms);
+}
+@media (prefers-reduced-motion: reduce) {
+  .drawer[open] .drawer-item {
+    animation: fade-in 1ms both;
+  }
+}
