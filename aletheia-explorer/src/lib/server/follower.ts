@@ -17,6 +17,16 @@ const BACKFILL_CONCURRENCY = 4;
 
 type Listener = (message: StreamMessage) => void;
 
+/** One minute of protocol time: what the chain did in it. */
+export interface Minute {
+  readonly t: number;
+  blocks: number;
+  txs: number;
+  eu: number;
+}
+/** Minutes of history kept for the analytics (seven days). */
+const KEEP_MINUTES = 7 * 24 * 60;
+
 async function pool<T>(items: readonly T[], width: number, work: (item: T) => Promise<void>): Promise<void> {
   let next = 0;
   const lanes = Array.from({ length: Math.min(width, items.length) }, async () => {
@@ -46,6 +56,7 @@ class Follower {
   private alnt: string | null = null;
   private supplyAt = 0;
   private started = false;
+  private minutes = new Map<number, Minute>();
   private lastError = "";
 
   start(): void {
@@ -57,6 +68,26 @@ class Follower {
   subscribe(listener: Listener): () => void {
     this.listeners.add(listener);
     return () => this.listeners.delete(listener);
+  }
+
+  /** Adds a block to its minute of protocol time. */
+  private record(block: BlockSummary): void {
+    const t = Math.floor(block.protocolTimeMs / 60_000) * 60_000;
+    const minute = this.minutes.get(t) ?? { t, blocks: 0, txs: 0, eu: 0 };
+    minute.blocks += 1;
+    minute.txs += block.txCount;
+    minute.eu += block.euUsed;
+    this.minutes.set(t, minute);
+    if (this.minutes.size > KEEP_MINUTES) {
+      const oldest = Math.min(...this.minutes.keys());
+      this.minutes.delete(oldest);
+    }
+  }
+
+  /** Per-minute history, oldest first, and how far back it is complete. */
+  analytics(): { minutes: Minute[]; complete: boolean; latestMs: number | null } {
+    const minutes = [...this.minutes.values()].sort((a, b) => a.t - b.t).map((m) => ({ ...m }));
+    return { minutes, complete: this.countedFrom === 0, latestMs: this.blocks[0]?.protocolTimeMs ?? null };
   }
 
   snapshot(): StreamMessage {
@@ -152,6 +183,7 @@ class Follower {
       const txs = await this.lines(block);
       this.head = height;
       this.counted += block.txCount;
+      this.record(block);
       this.blocks = [block, ...this.blocks].slice(0, KEEP_BLOCKS);
       this.txs = [...txs, ...this.txs].slice(0, KEEP_TXS);
       this.emit({ kind: "block", stats: this.stats(), block, txs });
@@ -175,6 +207,7 @@ class Follower {
     this.txs = txs.slice(0, KEEP_TXS);
     this.head = target;
     this.counted = blocks.reduce((sum, b) => sum + b.txCount, 0);
+    for (const block of blocks) this.record(block);
     this.countedFrom = blocks.at(-1)?.height ?? target;
     this.emit(this.snapshot());
     void this.countBack();
@@ -193,6 +226,7 @@ class Follower {
           // the additions of the other lanes.
           const block = await rpc.blockAt(height);
           sum += block.txCount;
+          this.record(block);
         });
       } catch {
         await new Promise((resolve) => setTimeout(resolve, 2_000));

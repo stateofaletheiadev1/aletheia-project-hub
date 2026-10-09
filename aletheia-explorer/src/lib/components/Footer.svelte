@@ -11,31 +11,31 @@
       title: "Consensus & Staking",
       links: [
         ["Validators & Staking", "/validators"],
-        ["Governance", "/section/governance"],
-        ["Network Analytics", "/section/network"],
+        ["Governance", "/governance"],
+        ["Network Analytics", "/network"],
       ],
     },
     {
       title: "Sovereign Services",
       links: [
-        ["Land Registry", "/section/land"],
-        ["Identity & Residence", "/section/identity"],
+        ["Land Registry", "/land"],
+        ["Identity & Residence", "/identity"],
         ["National Treasury", "/treasury"],
       ],
     },
     {
       title: "Assets & Payments",
       links: [
-        ["Cross-Chain Bridge", "/section/bridge"],
-        ["Payment Network", "/section/payments"],
-        ["Arno Contracts", "/section/contracts"],
+        ["Cross-Chain Bridge", "/bridge"],
+        ["Payment Network", "/payments"],
+        ["Arno Contracts", "/contracts"],
       ],
     },
     {
       title: "Protocol Resources",
       links: [
-        ["Developer Docs", "/section/docs"],
-        ["Security Policy", "/section/security"],
+        ["Developer Docs", "/docs"],
+        ["Security Policy", "/security"],
       ],
     },
   ] as const;
