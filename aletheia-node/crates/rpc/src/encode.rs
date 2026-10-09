@@ -33,11 +33,22 @@ pub fn asset_name(asset: AssetId) -> String {
 }
 
 /// Decimals of the native assets (bridged assets carry theirs in their config).
-pub fn native_decimals(asset: AssetId) -> u8 {
+/// Decimals of the native assets (Section 18.3): AEY 18, ALnT 3. Other assets (bridged ones)
+/// carry their own decimals in the asset registry, so no display form is guessed for them.
+pub fn native_decimals(asset: AssetId) -> Option<u8> {
     match asset {
-        AssetId::AEY => 18,
-        _ => 18,
+        AssetId::AEY => Some(18),
+        AssetId::ALNT => Some(3),
+        _ => None,
     }
+}
+
+/// The human-readable amount for a native asset; `null` for any other asset, whose exact
+/// value is always in the `amount` field.
+pub fn display_or_null(amount: u128, asset: AssetId) -> Value {
+    native_decimals(asset).map_or(Value::Null, |decimals| {
+        Value::String(display(amount, decimals))
+    })
 }
 
 pub fn parse_asset(text: &str) -> Result<AssetId, RpcError> {
@@ -85,7 +96,7 @@ pub fn amount(value: u128, asset: AssetId) -> Value {
     json!({
         "asset": asset_name(asset),
         "amount": value.to_string(),
-        "display": display(value, native_decimals(asset)),
+        "display": display_or_null(value, asset),
     })
 }
 
@@ -199,7 +210,7 @@ pub fn transaction_json(
                         "recipient": address_text(network, &leg.recipient),
                         "asset": asset_name(leg.asset),
                         "amount": leg.amount.to_string(),
-                        "display": display(leg.amount, native_decimals(leg.asset)),
+                        "display": display_or_null(leg.amount, leg.asset),
                     }),
                 );
             }

@@ -234,6 +234,21 @@ async fn a_transfer_goes_in_and_reads_back_through_json_rpc() {
         result(&balance)["available"],
         (107 * ONE_AEY + 5).to_string()
     );
+    assert_eq!(result(&balance)["display"], "107.000000000000000005");
+    // ALnT has 3 decimals: its display form must not borrow AEY's 18.
+    let alnt = rpc(
+        &service,
+        "getBalance",
+        json!({ "address": to.to_text(network.network_kind()), "asset": "ALnT" }),
+    )
+    .await;
+    let units: u128 = result(&alnt)["available"]
+        .as_str()
+        .unwrap()
+        .parse()
+        .unwrap();
+    let expected = format!("{}.{:03}", units / 1_000, units % 1_000);
+    assert_eq!(result(&alnt)["display"], expected.as_str());
 
     // The same transaction again: refused, with the protocol error named.
     let again = rpc(&service, "submitTransaction", json!({ "tx": tx })).await;

@@ -7,9 +7,8 @@ use serde_json::{Map, Value, json};
 
 use crate::backend::{Backend, BlockRef};
 use crate::encode::{
-    address_text, amount, asset_name, block_summary, block_text, display, native_decimals,
-    parse_address, parse_asset, parse_block_id, parse_tx_id, receipt_json, transaction_json,
-    tx_text,
+    address_text, amount, asset_name, block_summary, block_text, display_or_null, parse_address,
+    parse_asset, parse_block_id, parse_tx_id, receipt_json, transaction_json, tx_text,
 };
 use crate::error::{RpcError, from_backend};
 
@@ -329,13 +328,12 @@ impl<B: Backend> Service<B> {
             .await
             .map_err(|e| from_backend(&e))?;
         let status = self.backend.status().await.map_err(|e| from_backend(&e))?;
-        let decimals = native_decimals(asset);
         Ok(json!({
             "address": address_text(&network, address),
             "asset": asset_name(asset),
             "available": balance.available.to_string(),
             "locked": balance.locked.to_string(),
-            "display": display(balance.available, decimals),
+            "display": display_or_null(balance.available, asset),
             "height": status.finalized_height,
         }))
     }
