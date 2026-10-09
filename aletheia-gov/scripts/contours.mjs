@@ -132,8 +132,9 @@ function svg({ seed, width = 1600, height = 1000, cell = 20, levels = 18, stroke
     const d = trace(grid, cols, rows, level, cell)
       .filter((line) => line.length > 4)
       .map((line) => {
-        const s = chaikin(line);
-        return "M" + s.map(([x, y]) => `${x.toFixed(1)} ${y.toFixed(1)}`).join("L");
+        // One smoothing round and whole-unit coordinates: invisible at this scale, half the bytes.
+        const s = chaikin(line, 1);
+        return "M" + s.map(([x, y]) => `${Math.round(x)} ${Math.round(y)}`).join("L");
       })
       .join("");
     if (d) paths.push(`<path d="${d}" stroke-width="${l % 5 === 0 ? 1.6 : 0.8}"/>`);

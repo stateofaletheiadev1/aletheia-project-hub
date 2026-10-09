@@ -62,11 +62,12 @@ export function Header() {
         }`}
       >
         <div className="shell flex h-full items-center justify-between gap-6 text-parchment-100">
-          <Link href="/" className="group flex items-center gap-3.5" aria-label="The Government of Aletheia, home">
+          <Link href="/" className="group flex items-center gap-3.5">
             <Mark size={26} />
             <span className="flex flex-col leading-none">
-              <span className="text-[0.625rem] font-semibold uppercase tracking-[0.2em] text-gold-400">The Government of</span>
+              <span className="text-[0.625rem] font-semibold uppercase tracking-[0.2em] text-gold-400">The Government of</span>{" "}
               <span className="mt-1 text-[1.0625rem] font-medium tracking-[0.14em] uppercase">Aletheia</span>
+              <span className="sr-only">, home</span>
             </span>
           </Link>
 

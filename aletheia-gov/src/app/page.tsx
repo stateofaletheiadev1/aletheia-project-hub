@@ -46,7 +46,7 @@ export default async function HomePage() {
               "linear-gradient(to top, var(--navy-950) 0%, color-mix(in oklab, var(--navy-950) 82%, transparent) 26%, color-mix(in oklab, var(--navy-950) 18%, transparent) 62%, color-mix(in oklab, var(--navy-950) 55%, transparent) 100%)",
           }}
         />
-        <Contours variant="a" opacity={0.05} />
+        <Contours variant="a" opacity={0.05} eager />
 
         <div className="shell relative flex h-full flex-col justify-end pb-[calc(4.25rem+clamp(2.5rem,7vh,5rem))]">
           <div className="grid-12 items-end">
@@ -63,14 +63,14 @@ export default async function HomePage() {
                 </span>
               </h1>
             </div>
-            <div className="late-fade col-span-2 hidden justify-end lg:flex" style={css({ "--d": "1400ms" })}>
+            <div className="late-fade col-span-2 hidden justify-end lg:flex" style={css({ "--d": "700ms" })}>
               <Arms height={96} priority className="h-24 w-auto opacity-95" />
             </div>
           </div>
         </div>
 
         {/* The ledger strip */}
-        <div className="late-fade ledger absolute inset-x-0 bottom-0" style={css({ "--d": "1700ms" })}>
+        <div className="late-fade ledger absolute inset-x-0 bottom-0" style={css({ "--d": "520ms" })}>
           <div className="shell flex h-[4.25rem] items-center justify-between gap-6 text-[0.8125rem]">
             <ul className="flex min-w-0 items-center gap-6 overflow-hidden whitespace-nowrap text-ink-700">
               <li className="font-semibold tracking-[0.04em] text-navy-800">{site.motto.latin}</li>

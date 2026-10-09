@@ -23,7 +23,7 @@ export function PageHead({
 }) {
   return (
     <header className="sea relative overflow-hidden">
-      <Contours variant={contour} opacity={0.07} parallax={0.05} />
+      <Contours variant={contour} opacity={0.07} parallax={0.05} eager />
       <div className="shell relative grid-12 items-end gap-y-12 pb-16 pt-[calc(var(--header-h)+4.5rem)] md:pb-24 md:pt-[calc(var(--header-h)+7rem)]">
         <div className={image ? "col-span-12 lg:col-span-7" : "col-span-12 lg:col-span-9"}>
           <SectionMark n={mark.n} label={mark.label} tone="sea" className="late-fade" />
@@ -32,11 +32,11 @@ export function PageHead({
               <span>{title}</span>
             </span>
           </h1>
-          <p className="t-lede late-fade mt-7 max-w-[46ch] text-parchment-300" style={{ "--d": "500ms" } as React.CSSProperties}>
+          <p className="t-lede late-fade mt-7 max-w-[46ch] text-parchment-300" style={{ "--d": "260ms" } as React.CSSProperties}>
             {lede}
           </p>
           {children ? (
-            <div className="late-fade mt-10" style={{ "--d": "700ms" } as React.CSSProperties}>
+            <div className="late-fade mt-10" style={{ "--d": "380ms" } as React.CSSProperties}>
               {children}
             </div>
           ) : null}
@@ -48,7 +48,7 @@ export function PageHead({
               priority
               reveal={false}
               sizes="(min-width: 1024px) 40vw, 100vw"
-              className="late-fade aspect-[4/3] lg:aspect-[4/5]"
+              className="aspect-[4/3] lg:aspect-[4/5]"
               caption={imageCaption}
             />
           </div>

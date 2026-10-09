@@ -5,7 +5,7 @@ import { SectionMark } from "@/components/editorial/SectionMark";
 export default function NotFound() {
   return (
     <section className="sea relative flex min-h-[88vh] items-center overflow-hidden">
-      <Contours variant="c" opacity={0.08} />
+      <Contours variant="c" opacity={0.08} eager />
       <div className="shell relative pb-24 pt-[calc(var(--header-h)+5rem)]">
         <SectionMark n="404" label="Not in the record" tone="sea" />
         <h1 id="page-title" tabIndex={-1} className="t-display mt-10 max-w-[14ch] text-parchment-50 outline-none">

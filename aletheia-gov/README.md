@@ -21,8 +21,10 @@ npm run typecheck
 npm run lint
 npm test
 npm run build && npm run check:public-env
-# with the production server running:
+npx playwright test                           # e2e, axe, keyboard, security, visual (starts its own server)
+# with the production server running (npm start):
 node scripts/audit.mjs                        # overflow, h1, console/CSP errors at 4 widths
+node scripts/lighthouse.mjs                   # performance budgets (build with APP_ENV=production)
 node scripts/screenshots.mjs                  # design review screenshots
 ```
 

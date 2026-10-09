@@ -1,4 +1,5 @@
-# CI for the monorepo. Node jobs run only when aletheia-node/ changes (spec Section 50).
+# CI for the monorepo. Node jobs run only when aletheia-node/ changes (spec Section 50);
+# gov jobs only when aletheia-gov/ changes (see the bottom of this file).
 # The toolchain comes from aletheia-node/rust-toolchain.toml; the image only supplies rustup
 # and a C compiler for blst.
 
@@ -112,3 +113,94 @@ node:sim:
     - if: $CI_PIPELINE_SOURCE == "schedule"
     - if: $CI_PIPELINE_SOURCE == "web"
       when: manual
+
+# ---------------------------------------------------------------------------
+# aletheia-gov (aletheiagov.org). Quality gates of its brief, section 20.
+# The Playwright image ships Node and the browsers the e2e suites need.
+# ---------------------------------------------------------------------------
+.gov:
+  image: mcr.microsoft.com/playwright:v1.64.0-noble
+  stage: check
+  variables:
+    npm_config_cache: $CI_PROJECT_DIR/.npm
+  before_script:
+    - cd aletheia-gov
+    - npm ci --no-audit --no-fund
+  cache:
+    key:
+      files: [aletheia-gov/package-lock.json]
+    paths: [.npm]
+  rules:
+    - changes:
+        - aletheia-gov/**/*
+        - .gitlab-ci.yml
+
+gov:check:
+  extends: .gov
+  script:
+    - npm run typecheck
+    - npm run lint
+    - npm test
+    - npm audit --omit=dev --audit-level=high
+    - npm run build
+    - npm run check:public-env
+
+gov:e2e:
+  extends: .gov
+  script:
+    - npm run build
+    # Visual baselines are per platform; Linux ones run in gov:visual once committed.
+    - npx playwright test --grep-invert "visual:"
+  artifacts:
+    when: on_failure
+    paths: [aletheia-gov/test-results/]
+
+gov:visual:
+  extends: .gov
+  script:
+    - npm run build
+    - npx playwright test visual
+  artifacts:
+    when: on_failure
+    paths: [aletheia-gov/test-results/]
+  rules:
+    - exists: [aletheia-gov/tests/visual/**/*-linux.png]
+      changes: [aletheia-gov/**/*, .gitlab-ci.yml]
+
+# Run by hand to produce the Linux visual baselines; commit them from the artifact.
+gov:visual-baseline:
+  extends: .gov
+  script:
+    - npm run build
+    - npx playwright test visual --update-snapshots
+  artifacts:
+    paths: [aletheia-gov/tests/visual/]
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "web"
+      when: manual
+
+gov:lighthouse:
+  extends: .gov
+  variables:
+    APP_ENV: production
+  script:
+    - npm run build
+    - (node scripts/start.mjs 3200 > server.log 2>&1 &)
+    - for i in $(seq 30); do node -e "fetch('http://127.0.0.1:3200/api/health').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))" && break; sleep 2; done
+    - export CHROMIUM_PATH="$(node -e "console.log(require('playwright').chromium.executablePath())")"
+    - node scripts/lighthouse.mjs http://127.0.0.1:3200
+  artifacts:
+    when: always
+    paths: [aletheia-gov/test-results/lighthouse.json]
+
+gov:secrets:
+  image:
+    name: ghcr.io/gitleaks/gitleaks:v8.28.0
+    entrypoint: [""]
+  stage: check
+  script:
+    - gitleaks dir aletheia-gov --redact --verbose
+  rules:
+    - changes:
+        - aletheia-gov/**/*
+        - .gitlab-ci.yml

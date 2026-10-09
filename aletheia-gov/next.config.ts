@@ -38,7 +38,17 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   turbopack: { root: path.dirname(fileURLToPath(import.meta.url)) },
   output: "standalone",
+  // The tracer copies sharp's native binding but not the libvips libraries it loads, so
+  // the standalone image optimiser fell back to the WebAssembly build (which needs a
+  // package that is not installed) and served full-size originals. Ship the native
+  // libraries for whichever platform is installed.
+  outputFileTracingIncludes: {
+    "/*": ["./node_modules/@img/sharp-*/lib/**/*", "./node_modules/@img/sharp-libvips-*/**/*"],
+  },
   poweredByHeader: false,
+  // Tailwind output is small; inlining removes the render-blocking stylesheet request
+  // that delayed first paint on slow connections (Lighthouse, brief §16).
+  experimental: { inlineCss: true },
   images: {
     formats: ["image/avif", "image/webp"],
     deviceSizes: [390, 640, 828, 1080, 1280, 1728, 2048, 2400],

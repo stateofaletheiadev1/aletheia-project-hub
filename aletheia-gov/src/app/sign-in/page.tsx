@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default function SignInPage() {
   return (
     <section className="sea relative flex min-h-[88vh] items-center overflow-hidden">
-      <Contours variant="b" opacity={0.07} />
+      <Contours variant="b" opacity={0.07} eager />
       <div className="shell relative grid-12 pb-24 pt-[calc(var(--header-h)+5rem)]">
         <div className="col-span-12 md:col-span-8 lg:col-span-5">
           <Mark size={40} />

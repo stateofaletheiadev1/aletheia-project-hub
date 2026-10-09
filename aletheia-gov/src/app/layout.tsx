@@ -10,6 +10,9 @@ const manrope = Manrope({
   subsets: ["latin", "latin-ext"],
   variable: "--font-manrope",
   display: "swap",
+  // CSS is inlined, so font files are discovered at once; without preload the browser
+  // fetches only the unicode ranges a page uses (usually Latin only).
+  preload: false,
 });
 
 const plexMono = IBM_Plex_Mono({
@@ -17,6 +20,7 @@ const plexMono = IBM_Plex_Mono({
   weight: ["400", "500"],
   variable: "--font-plex-mono",
   display: "swap",
+  preload: false,
 });
 
 export const metadata: Metadata = {

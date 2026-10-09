@@ -20,7 +20,7 @@ export default async function SearchPage(props: PageProps<"/search">) {
   return (
     <>
       <header className="sea relative overflow-hidden">
-        <Contours variant="a" opacity={0.07} />
+        <Contours variant="a" opacity={0.07} eager />
         <div className="shell relative pb-16 pt-[calc(var(--header-h)+4.5rem)] md:pb-20 md:pt-[calc(var(--header-h)+6rem)]">
           <SectionMark n="S" label="Search" tone="sea" />
           <h1 id="page-title" tabIndex={-1} className="t-h1 mt-8 text-parchment-50 outline-none">

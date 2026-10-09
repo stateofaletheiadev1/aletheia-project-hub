@@ -396,12 +396,12 @@
 }
 .mask-line > span {
   display: block;
-  animation: rise 1100ms var(--ease-tide) both;
-  animation-delay: calc(300ms + var(--i, 0) * 120ms);
+  animation: rise 900ms var(--ease-tide) both;
+  animation-delay: calc(60ms + var(--i, 0) * 120ms);
 }
 .late-fade {
-  animation: fade-up 900ms var(--ease-tide) both;
-  animation-delay: var(--d, 900ms);
+  animation: fade-up 700ms var(--ease-tide) both;
+  animation-delay: var(--d, 400ms);
 }
 
 [data-reveal="pending"] {
