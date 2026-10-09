@@ -1,3 +1,5 @@
+import { STABLECHAIN } from '@/lib/stablechain';
+
 export interface NavItem {
   label: string;
   href: string;
@@ -141,7 +143,8 @@ export const MAIN_NAVIGATION: NavItem[] = [
           { title: 'Central Bank & Reserve', href: '/central-bank', desc: 'Monetary Board, reserve invariants, and settlement policies' },
           { title: 'The Aletheian Guilder (AEY)', href: '/aey', desc: 'The sovereign unit of account backed by provable 100% reserves' },
           { title: 'AEY Paper Currency', href: '/aey/paper-currency', desc: 'Engraved banknotes, legal tender alongside StableChain AEY', status: 'Planned' },
-          { title: 'Aletheia StableChain', href: '/stablechain', desc: 'Cryptographic ledger infrastructure (500ms slots, zero gas volatility)', status: 'Under Development' },
+          { title: 'Aletheia StableChain', href: '/stablechain', desc: 'Cryptographic ledger infrastructure (500 ms slots, fixed fee schedule)', status: 'Under Development' },
+          { title: 'StableChain Block Explorer', href: STABLECHAIN.explorer, desc: 'Every block, transaction and account, read from finalized state', status: 'Under Development' },
         ],
       },
       {

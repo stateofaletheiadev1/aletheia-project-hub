@@ -7,6 +7,7 @@ import { useToast } from '@/components/ui/Toast';
 import Link from '@/components/i18n/Link';
 import { PortalShell } from '@/components/layout/PortalShell';
 import { StarOfTruth } from '@/components/brand/Logo';
+import { EXAMPLE } from '@/lib/stablechain';
 import {
   CheckCircle2,
   ArrowRight,
@@ -55,7 +56,8 @@ export default function ApplicationWizardPage() {
   const handleNext = () => {
     if (currentStep === 3 && !keyGenerated) {
       // Simulate cryptographic key generation
-      const mockKey = '0x' + Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
+      // An Ed25519 public key is 32 bytes, written as 64 lowercase hex characters (no 0x).
+      const mockKey = Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
       setGeneratedKeyHash(mockKey);
       setKeyGenerated(true);
     }
@@ -290,7 +292,7 @@ export default function ApplicationWizardPage() {
                       <span className="text-xs font-bold text-parchment uppercase tracking-wider">{t("Generated ECDSA P-256 State Key Hash:")}</span>
                     </div>
                     <code className="text-xs font-mono text-gold block break-all bg-navy-deep p-3 rounded-sm border border-navy/40">
-                      {tx(generatedKeyHash || '0x4F829104A18E9B20CA7891230BFE92147A209148')}
+                      {generatedKeyHash || EXAMPLE.citizenPublicKey}
                     </code>
                     <p className="text-[11px] text-parchment/65">{t("This key pair will sign your e-residency credential and corporate filings on the StableChain ledger.")}</p>
                   </div>

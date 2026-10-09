@@ -6,6 +6,7 @@ import { downloadPortalDocument } from '@/lib/pdf/portal';
 import Link from '@/components/i18n/Link';
 import { PortalShell } from '@/components/layout/PortalShell';
 import { StarOfTruth } from '@/components/brand/Logo';
+import { EXAMPLE, shortId } from '@/lib/stablechain';
 import {
   Fingerprint,
   Copy,
@@ -18,8 +19,8 @@ export default function PortalDigitalIdentityPage() {
   const [copiedKey, setCopiedKey] = useState(false);
   const [copiedDid, setCopiedDid] = useState(false);
 
-  const publicKey = '0x4F829104A18E9B20CA7891230BFE92147A209148';
-  const didUri = 'did:aletheia:0x4F829104A18E9B20CA7891230BFE92147A209148';
+  const publicKey = EXAMPLE.citizenPublicKey;
+  const didUri = `did:aletheia:${EXAMPLE.citizen}`;
 
   const handleCopyKey = () => {
     navigator.clipboard.writeText(publicKey);
@@ -161,7 +162,7 @@ export default function PortalDigitalIdentityPage() {
 
               <div className="w-40 h-40 mx-auto bg-parchment-light border border-navy/15 rounded-sm p-3 flex flex-col items-center justify-center">
                 <QrCode className="w-28 h-28 text-navy" />
-                <span className="text-[9px] font-mono text-navy/40 mt-1">{t("did:aletheia:0x4F82...")}</span>
+                <span className="text-[9px] font-mono text-navy/40 mt-1">{`did:aletheia:${shortId(EXAMPLE.citizen, 8, 4)}`}</span>
               </div>
 
               <div className="pt-2">

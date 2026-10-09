@@ -21,7 +21,7 @@ const INITIAL_LOGS: ActivityLog[] = [
     actor: 'Cmdr. S. Okafor',
     category: 'Citizenship',
     action: 'Approved Naturalisation petition for Sophia Andreou (GRC)',
-    hash: '0xfa12...9901',
+    hash: 'AL:Thm44l3…d29q',
     status: 'Committed',
   },
   {
@@ -30,7 +30,7 @@ const INITIAL_LOGS: ActivityLog[] = [
     actor: 'ST-BRENDAN-E-GATE-04',
     category: 'Border / E-Gate',
     action: 'Cleared ordinary entry for ALE-004928 (Dr. Elizabeth Thorne-Vance)',
-    hash: '0x88c1...e014',
+    hash: 'AL:T0e46wm…7r43',
     status: 'Committed',
   },
   {
@@ -39,7 +39,7 @@ const INITIAL_LOGS: ActivityLog[] = [
     actor: 'Registrar System',
     category: 'Incorporation',
     action: 'Charter ratified: Antioch Modular Energy AG (ALE-AG-2026-0008)',
-    hash: '0x33b9...aa82',
+    hash: 'AL:T9srtal…rdnh',
     status: 'Committed',
   },
   {
@@ -48,7 +48,7 @@ const INITIAL_LOGS: ActivityLog[] = [
     actor: 'Treasury Validator Node 01',
     category: 'Endowment',
     action: 'AEY supply invariant verified: 100% reserve parity maintained',
-    hash: '0x0012...771e',
+    hash: 'AL:Txn9s5y…n2wj',
     status: 'Validated',
   },
   {
@@ -57,7 +57,7 @@ const INITIAL_LOGS: ActivityLog[] = [
     actor: 'ADSS Cybersecurity CERT',
     category: 'Security',
     action: 'Post-Quantum key rotation cycle completed across validator perimeter',
-    hash: '0xdd41...bb33',
+    hash: 'AL:Tdhwcu5…jxa6',
     status: 'Validated',
   },
 ];
@@ -139,7 +139,7 @@ export default function AdminLiveActivityFeedPage() {
               <div className="flex items-center gap-3 shrink-0 text-right font-mono text-xs">
                 <div>
                   <span className="text-[10px] text-parchment/40 block">BLOCK PROOF</span>
-                  <span className="text-gold text-[11px]">{item.hash}</span>
+                  <span className="text-gold text-[11px]" translate="no" data-i18n-skip="">{item.hash}</span>
                 </div>
                 <span className="px-2 py-0.5 rounded-sm text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
                   {item.status}

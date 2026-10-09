@@ -31,7 +31,7 @@ const DOCUMENTS: VaultDocument[] = [
     type: 'Official Residency Certificate',
     issuedDate: '2026-10-01',
     authority: 'General Secretariat of State',
-    hash: '0x39a1fa91...b820',
+    hash: '281999f1…4ff9',
     size: '1.4 MB',
   },
   {
@@ -41,7 +41,7 @@ const DOCUMENTS: VaultDocument[] = [
     type: 'Commercial Register Charter',
     issuedDate: '2026-06-12',
     authority: 'Registrar of Companies',
-    hash: '0x88c212e4...e8a1',
+    hash: 'e5c24bef…e965',
     size: '2.1 MB',
   },
   {
@@ -51,7 +51,7 @@ const DOCUMENTS: VaultDocument[] = [
     type: 'Fiscal Status Attestation',
     issuedDate: '2026-10-02',
     authority: 'Ministry of Treasury & Finance',
-    hash: '0x19f099bb...fa88',
+    hash: 'e3f51901…6bd3',
     size: '890 KB',
   },
   {
@@ -61,7 +61,7 @@ const DOCUMENTS: VaultDocument[] = [
     type: 'Digital Apostille Notary',
     issuedDate: '2026-10-03',
     authority: 'High Court Notarial Bureau',
-    hash: '0x44d1200a...009f',
+    hash: '9523a629…5a9b',
     size: '1.8 MB',
   },
 ];
@@ -177,7 +177,7 @@ export default function PortalDocumentsPage() {
                   </div>
                   <div className="flex justify-between py-1 border-b border-navy/5">
                     <span className="text-navy/50">{t("On-Ledger Signature Root:")}</span>
-                    <span className="text-gold font-mono">{tx(selectedDoc.hash)}</span>
+                    <span className="text-gold font-mono" translate="no" data-i18n-skip="">{selectedDoc.hash}</span>
                   </div>
                 </div>
               </div>

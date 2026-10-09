@@ -9,6 +9,7 @@ import { usePathname } from '@/lib/i18n/navigation';
 import { StarOfTruth } from '@/components/brand/Logo';
 import { NationalFlag, StateEnsign } from '@/components/brand/Flags';
 
+import { STABLECHAIN } from '@/lib/stablechain';
 export function Footer() {
   const { t, tx } = useI18n();
   const pathname = usePathname();
@@ -143,6 +144,9 @@ export function Footer() {
               </li>
               <li>
                 <Link href="/stablechain" className="hover:text-gold transition-colors">{t("StableChain Distributed Rail")}</Link>
+              </li>
+              <li>
+                <a href={STABLECHAIN.explorer} target="_blank" rel="noopener noreferrer" className="hover:text-gold transition-colors">{t("StableChain Block Explorer")}</a>
               </li>
             </ul>
           </div>

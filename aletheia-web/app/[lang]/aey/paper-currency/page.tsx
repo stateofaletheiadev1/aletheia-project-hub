@@ -127,7 +127,7 @@ const TENDER_FORMS = [
     icon: Zap,
     eyebrow: 'Digital',
     title: 'StableChain AEY',
-    body: 'The same guilder as a digital balance on the Aletheia StableChain: 500 ms finality, citizen cards and wallets, and enterprise settlement.',
+    body: 'The same guilder as a digital balance on the Aletheia StableChain: final in about a second, citizen cards and wallets, and enterprise settlement.',
   },
   {
     icon: Globe,

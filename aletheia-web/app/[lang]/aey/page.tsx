@@ -29,7 +29,7 @@ const PAYMENT_INSTRUMENTS = [
     instrument: 'Citizen Biometric Card (e-Purse)',
     formFactor: 'Polycarbonate Contactless Card (EAL6+ Secure Element)',
     rail: 'Contactless NFC POS / Automated Kiosks',
-    velocity: '< 300 ms Tap Finality',
+    velocity: 'Final in About a Second',
     fee: '0.00 AEY (Free Domestic)',
     security: 'Dual-factor biometric match-on-card, air-gapped NFC cryptograms',
   },
@@ -43,10 +43,10 @@ const PAYMENT_INSTRUMENTS = [
   },
   {
     instrument: 'Enterprise Core Settlement (B2B)',
-    formFactor: 'High-Throughput REST & gRPC Ledger APIs',
+    formFactor: 'REST & JSON-RPC 2.0 Ledger Interfaces',
     rail: 'StableChain Smart Contract Clearing',
     velocity: 'Continuous Real-Time Batching',
-    fee: '0.0001 AEY Fixed Statutory Gas',
+    fee: 'Fixed Fee per Execution Unit',
     security: 'Multi-institutional HSM signers, programmable escrow, automated audit trails',
   },
   {
@@ -148,7 +148,7 @@ export default function AeyCurrencyPage() {
                 <div className="relative z-10 grid grid-cols-2 gap-3">
                   {[
                     { label: 'Reserve Backing', value: '100%', mono: true },
-                    { label: 'Block Finality', value: '500ms', mono: true },
+                    { label: 'Block Finality', value: '≈ 1 s', mono: true },
                     { label: 'Legal Tender', value: 'Paper + Digital', mono: false },
                     { label: 'EUR Parity', value: 'Fixed 1:1', mono: false },
                   ].map(({ label, value, mono }) => (
@@ -176,7 +176,7 @@ export default function AeyCurrencyPage() {
               { value: '1.0000', label: 'AEY / EUR Parity', sublabel: 'Fixed · Constitutional Art. 14' },
               { value: '2', label: 'Forms of Legal Tender', sublabel: 'Banknotes & StableChain' },
               { value: '100%', label: 'Segregated Reserves', sublabel: 'Daily cryptographic proof' },
-              { value: '500ms', label: 'Block Finality', sublabel: 'Deterministic slot settlement' },
+              { value: '≈ 1 s', label: 'Block Finality', sublabel: 'Two 500 ms slots, 2-chain BFT' },
             ].map(({ value, label, sublabel }) => (
               <div key={label} className="px-6 py-4 text-center first:pl-0 last:pr-0 space-y-0.5">
                 <div className="text-2xl font-bold font-mono text-gold tracking-tight">{tx(value)}</div>
@@ -240,16 +240,16 @@ export default function AeyCurrencyPage() {
               </div>
             </div>
 
-            <p className="text-xs text-navy/70 leading-relaxed">{t("Native unit of settlement on the Aletheia StableChain ledger. Enables sub-second payment finality for e-residents, corporate entities, and international suppliers worldwide.")}</p>
+            <p className="text-xs text-navy/70 leading-relaxed">{t("Native unit of settlement on the Aletheia StableChain ledger. Payments are final in about a second, for e-residents, corporate entities and international suppliers worldwide.")}</p>
 
             <div className="space-y-3 pt-2 border-t border-navy/10 text-xs">
               <div className="flex items-start gap-2">
                 <CheckCircle2 className="w-4 h-4 text-laurel shrink-0 mt-0.5" />
-                <span><strong>{t("500ms Instant Finality:")}</strong>{' '}{t("Commercial transactions settle without intermediary clearing houses.")}</span>
+                <span><strong>{t("Finality in About a Second:")}</strong>{' '}{t("Commercial transactions settle without intermediary clearing houses.")}</span>
               </div>
               <div className="flex items-start gap-2">
                 <CheckCircle2 className="w-4 h-4 text-laurel shrink-0 mt-0.5" />
-                <span><strong>{t("Zero-Cost Domestic Rails:")}</strong>{' '}{t("Free peer-to-peer citizen transactions; 0.0001 AEY fixed B2B contract gas.")}</span>
+                <span><strong>{t("Zero-Cost Domestic Rails:")}</strong>{' '}{t("Citizen peer-to-peer transfer fees are covered by the State; business contracts pay a fixed fee per execution unit.")}</span>
               </div>
               <div className="flex items-start gap-2">
                 <CheckCircle2 className="w-4 h-4 text-laurel shrink-0 mt-0.5" />

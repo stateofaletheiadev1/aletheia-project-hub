@@ -33,7 +33,7 @@ export function constitutionSpec(): Spec {
       paragraphs: a.clauses.map((c) => `${c.number}  ${c.text}`),
     })),
     attestation: ['Promulgated by the Constituent Assembly', 'Inscribed on the public ledger and published in the Official Gazette'],
-    hash: '0x8f2b7a4c91e3d085fa49b817e4521098ef7321ac90b34d76a218fce1b2049e91',
+    hash: '8f2b7a4c91e3d085fa49b817e4521098ef7321ac90b34d76a218fce1b2049e91',
     subject: 'Constitution',
   };
 }

@@ -127,7 +127,7 @@ export default function EconomyPage() {
             {[
               { label: 'Reserve Backing', value: '100%', sub: 'Tier-1 Assets', status: 'Operational' as const },
               { label: 'AEY/EUR Peg', value: '1 : 1', sub: '± 0.5% band', status: 'Operational' as const },
-              { label: 'Ledger Finality', value: '500ms', sub: 'StableChain slots', status: 'Under Development' as const },
+              { label: 'Ledger Finality', value: '≈ 1 s', sub: 'Two 500 ms slots', status: 'Under Development' as const },
               { label: 'Personal Tax', value: 'None', sub: 'Zero income tax', status: 'Operational' as const },
             ].map((m) => (
               <div key={m.label} className="stat-card rounded-sm p-5 space-y-2">
@@ -215,13 +215,13 @@ export default function EconomyPage() {
                 <span className="text-gold-metallic">{t("StableChain")}</span>
               </h2>
               <div className="rule-gold max-w-xs" />
-              <p className="text-parchment/65 leading-relaxed">{t("A deterministic DAG-based ledger purpose-built for state operations. 500ms slot finality, zero gas fee volatility, and constitutional-grade validator governance. Not a fork. A sovereign protocol.")}</p>
+              <p className="text-parchment/65 leading-relaxed">{t("A Byzantine-fault-tolerant ledger purpose-built for state operations: 500 ms slots, deterministic finality, a fixed fee schedule and constitutional-grade validator governance. Not a fork. A sovereign protocol.")}</p>
 
               <div className="grid grid-cols-2 gap-4">
                 {[
-                  { label: 'Slot Finality', value: '500ms', icon: <Zap className="w-4 h-4" /> },
-                  { label: 'Gas Model', value: 'Zero Volatility', icon: <Shield className="w-4 h-4" /> },
-                  { label: 'Architecture', value: 'DAG Ledger', icon: <Database className="w-4 h-4" /> },
+                  { label: 'Slot Time', value: '500 ms', icon: <Zap className="w-4 h-4" /> },
+                  { label: 'Fee Model', value: 'Fixed Schedule', icon: <Shield className="w-4 h-4" /> },
+                  { label: 'Architecture', value: 'BFT Chain', icon: <Database className="w-4 h-4" /> },
                   { label: 'Validators', value: 'State-Governed', icon: <Lock className="w-4 h-4" /> },
                 ].map((stat) => (
                   <div key={stat.label} className="sovereign-card-dark rounded-sm p-4">
@@ -257,10 +257,10 @@ export default function EconomyPage() {
                   </span>
                 ))}
                 <span className="text-parchment/40 block mt-2">{t("merkle_root:")}</span>
-                <span className="pl-4 text-gold/70 block break-all">{t("0xa3f9…c841")}</span>
+                <span className="pl-4 text-gold/70 block break-all">60847173…7c48</span>
                 <span className="text-parchment/40 block">{t("epoch_timestamp: 2026-10-01T20:00:00Z")}</span>
               </div>
-              <div className="absolute -top-2 -right-2 px-2.5 py-0.5 bg-laurel text-white text-[9px] font-bold uppercase tracking-wider rounded-[2px]">{t("Live Epoch")}</div>
+              <div className="absolute -top-2 -right-2 px-2.5 py-0.5 bg-laurel text-white text-[9px] font-bold uppercase tracking-wider rounded-[2px]">{t("Example Report")}</div>
             </div>
           </div>
         </div>

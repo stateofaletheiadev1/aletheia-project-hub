@@ -1,7 +1,6 @@
 'use client';
 
 import { useI18n } from '@/components/i18n/I18nProvider';
-import React, { useState, useEffect } from 'react';
 import Link from '@/components/i18n/Link';
 import { StarOfTruth } from '@/components/brand/Logo';
 import { StatusBadge } from '@/components/ui/StatusBadge';
@@ -14,19 +13,12 @@ import {
   FileCheck2,
 } from 'lucide-react';
 import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
+import { LiveChainCard, LiveChainStrip } from '@/components/stablechain/LiveChain';
+import { NetworkDetails } from '@/components/stablechain/NetworkDetails';
+import { STABLECHAIN } from '@/lib/stablechain';
 
 export default function StableChainPage() {
-  const { t, tx } = useI18n();
-  const [blockHeight, setBlockHeight] = useState(4829104);
-  const [tps, setTps] = useState(1482);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setBlockHeight((h) => h + 1);
-      setTps(1450 + Math.floor(Math.random() * 80));
-    }, 1500);
-    return () => clearInterval(interval);
-  }, []);
+  const { t } = useI18n();
 
   return (
     <div className="flex flex-col min-h-screen bg-parchment-canvas">
@@ -58,7 +50,7 @@ export default function StableChainPage() {
                 <span className="text-gold-metallic">{t("StableChain")}</span>
               </h1>
 
-              <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light max-w-2xl">{t("The cryptographic ledger infrastructure of the state. Engineered for 500ms deterministic finality, zero gas volatility, and native execution of constitutional statutes, corporate registries, and public expenditures.")}</p>
+              <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light max-w-2xl">{t("The cryptographic ledger infrastructure of the state. Engineered for 500 ms slots with deterministic finality, a fixed fee schedule, and native execution of constitutional statutes, corporate registries and public expenditures.")}</p>
 
               <div className="flex flex-wrap gap-4 pt-2">
                 <Link
@@ -72,6 +64,12 @@ export default function StableChainPage() {
                   href="/transparency"
                   className="btn-sovereign-ghost px-6 py-3.5 rounded-sm text-sm"
                 >{t("Live Ledger Proofs")}</Link>
+                <a
+                  href={STABLECHAIN.explorer}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-sovereign-ghost px-6 py-3.5 rounded-sm text-sm"
+                >{t("Block Explorer")}</a>
               </div>
             </div>
 
@@ -81,25 +79,7 @@ export default function StableChainPage() {
                 <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-gold to-transparent" />
                 <div className="absolute inset-0 bg-grid-gold opacity-[0.015] pointer-events-none" />
 
-                <div className="relative z-10 text-center space-y-1">
-                  <p className="text-[10px] font-bold tracking-[0.22em] uppercase text-gold/80">{t("Live Block Height")}</p>
-                  <div className="metric-display">#{blockHeight.toLocaleString()}</div>
-                  <p className="text-xs text-parchment/50 font-mono">{t("500ms deterministic slot · Merkle-committed")}</p>
-                </div>
-
-                <div className="relative z-10 grid grid-cols-2 gap-3">
-                  {[
-                    { label: 'Throughput', value: `${tps} TPS`, mono: true },
-                    { label: 'Slot Time', value: '500 ms', mono: true },
-                    { label: 'Fixed Gas', value: '0.0001 AEY', mono: true },
-                    { label: 'Validators', value: 'I1–I12', mono: false },
-                  ].map(({ label, value, mono }) => (
-                    <div key={label} className="stat-tile p-3 rounded-sm text-center space-y-1">
-                      <span className="text-[10px] font-bold tracking-[0.14em] uppercase text-gold/70 block">{tx(label)}</span>
-                      <span className={`text-sm font-bold text-parchment ${mono ? 'font-mono' : ''}`}>{tx(value)}</span>
-                    </div>
-                  ))}
-                </div>
+                <LiveChainCard />
               </div>
             </div>
           </div>
@@ -109,20 +89,7 @@ export default function StableChainPage() {
       {/* ── LIVE LEDGER METRICS TICKER ── */}
       <section className="bg-[#060C14] border-b border-gold/25 text-parchment py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 md:divide-x divide-gold/15 gap-y-2">
-            {[
-              { value: `#${blockHeight.toLocaleString()}`, label: 'Block Height', sublabel: 'Live · Merkle-committed' },
-              { value: '500ms', label: 'Slot Time', sublabel: 'Deterministic finality' },
-              { value: `${tps} TPS`, label: 'Throughput', sublabel: 'Live network load' },
-              { value: '0.0001 AEY', label: 'Fixed Gas', sublabel: 'Statutory invariant' },
-            ].map(({ value, label, sublabel }) => (
-              <div key={label} className="px-6 py-4 text-center first:pl-0 last:pr-0 space-y-0.5">
-                <div className="text-2xl font-bold font-mono text-gold tracking-tight">{tx(value)}</div>
-                <div className="text-[11px] font-bold uppercase tracking-[0.14em] text-parchment/80">{tx(label)}</div>
-                <div className="text-[10px] text-parchment/40 font-mono">{tx(sublabel)}</div>
-              </div>
-            ))}
-          </div>
+          <LiveChainStrip />
         </div>
       </section>
 
@@ -137,8 +104,8 @@ export default function StableChainPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="bg-white border border-navy/15 rounded-sm p-6 space-y-3 hover:shadow-md transition-shadow">
             <Zap className="w-8 h-8 text-gold" />
-            <h3 className="text-base font-bold text-navy">{t("Deterministic Zero Gas Volatility")}</h3>
-            <p className="text-xs text-navy/70 leading-relaxed">{t("Gas fees are pegged to fixed statutory micro-cents in AEY. Enterprises and citizens never experience network fee spikes during high traffic.")}</p>
+            <h3 className="text-base font-bold text-navy">{t("Fixed Fee Schedule")}</h3>
+            <p className="text-xs text-navy/70 leading-relaxed">{t("Fees are execution units at a fixed price per unit, in AEY or ALnT, set by governance and never auctioned. Citizens and enterprises never meet fee spikes in busy periods.")}</p>
           </div>
 
           <div className="bg-white border border-navy/15 rounded-sm p-6 space-y-3 hover:shadow-md transition-shadow">
@@ -161,7 +128,7 @@ export default function StableChainPage() {
               <Lock className="w-6 h-6 text-gold" />
               <h3 className="text-lg font-bold text-parchment">{t("Sovereign Mainnet — Closed State Infrastructure")}</h3>
             </div>
-            <span className="text-xs font-mono text-gold">{t("Protocol Version: APS-01 v1.2")}</span>
+            <span className="text-xs font-mono text-gold">{t("Protocol version {version}", { version: STABLECHAIN.protocolVersion })}</span>
           </div>
 
           <div className="bg-navy-deep border border-burgundy/30 rounded-sm px-5 py-4 flex items-start gap-3">
@@ -170,26 +137,15 @@ export default function StableChainPage() {
               <strong className="text-parchment">{t("The Aletheia StableChain operates exclusively as closed sovereign public utility infrastructure.")}</strong>{' '}{t("There is no public testnet. External parties are not permitted to build directly on the national ledger. Access is provided only through constitutionally authorised read-only APIs for transparency and audit purposes.")}</p>
           </div>
 
-          <div className="space-y-3 font-mono text-xs bg-navy-deep p-4 rounded-sm border border-navy/50">
-            <div className="flex flex-col sm:flex-row sm:justify-between gap-1 border-b border-parchment/10 pb-2">
-              <span className="text-gold">{t("Public Read API (Transparency):")}</span>
-              <span className="text-parchment/80 break-all">{t("https://api.stablechain.aletheia.gov/v1/public")}</span>
-            </div>
-            <div className="flex flex-col sm:flex-row sm:justify-between gap-1 border-b border-parchment/10 pb-2 pt-1">
-              <span className="text-gold">{t("Live Block Explorer:")}</span>
-              <span className="text-parchment/80 break-all">{t("https://explorer.stablechain.aletheia.gov")}</span>
-            </div>
-            <div className="flex justify-between pt-1">
-              <span className="text-gold">{t("EVM Chain ID:")}</span>
-              <span className="text-parchment/80">{t("9104 — Aletheia StableChain Mainnet")}</span>
-            </div>
-          </div>
+          <NetworkDetails />
 
           <div className="flex flex-wrap items-center gap-4 pt-2 border-t border-parchment/10">
             <Link href="/documents#aps-01-spec" className="text-sm font-semibold text-gold hover:text-gold-tint transition-colors flex items-center gap-1.5">
               <span>{t("APS-01 Technical Specification")}</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
+            <span className="text-parchment/20">·</span>
+            <a href={STABLECHAIN.explorer} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-parchment/60 hover:text-parchment transition-colors">{t("Block Explorer")}</a>
             <span className="text-parchment/20">·</span>
             <Link href="/transparency" className="text-sm font-semibold text-parchment/60 hover:text-parchment transition-colors">{t("Public Audit Portal")}</Link>
             <span className="text-parchment/20">·</span>

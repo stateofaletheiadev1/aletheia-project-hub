@@ -66,7 +66,7 @@ export default function PortalResidencyStatusPage() {
               },
               {
                 title: 'AEY Sovereign Settlement',
-                desc: 'Hold, receive, and disburse 100% reserve-backed Aletheian Guilders with zero gas fee volatility.',
+                desc: 'Hold, receive, and disburse 100% reserve-backed Aletheian Guilders at fixed, published fees.',
                 active: true,
               },
               {

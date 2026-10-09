@@ -35,6 +35,8 @@ const NON_TEXT_KEYS = new Set([
   'intl', 'ogLocale', 'native', 'english', 'changeFrequency', 'month', 'date', 'issuedDate', 'number', 'yieldPct',
   'minSub', 'clearance', 'badgeNumber', 'tokenType', 'aeyBalance', 'imagePosition', 'name_', 'serviceHref', 'link',
   'emoji', 'initials', 'value_', 'asOf', 'source', 'crossReferences', 'filename',
+  // HTTP headers set by route handlers.
+  'cache-control', 'accept', 'content-type',
 ]);
 const NON_TEXT_ATTRS = new Set(['className', 'href', 'id', 'key', 'src', 'type', 'name', 'role', 'rel', 'target', 'd', 'points', 'viewBox', 'fill', 'stroke', 'sizes', 'htmlFor', 'image', 'status', 'size', 'imagePosition', 'lang', 'method', 'autoComplete', 'inputMode', 'textAnchor', 'transform', 'style', 'tone', 'format', 'route']);
 

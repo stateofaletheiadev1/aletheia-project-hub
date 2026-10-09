@@ -189,7 +189,7 @@ export default function HomePage() {
                       { label: 'Territorial Entity', value: 'Antioch & 4 States' },
                       { label: 'Constitutional Law', value: '67 Articles Capped' },
                       { label: 'Executive Cabinet', value: 'Nine Ministries Max' },
-                      { label: 'Sovereign Ledger', value: '500ms Finality' },
+                      { label: 'Sovereign Ledger', value: '≈ 1 s Finality' },
                     ].map(({ label, value }) => (
                       <div key={label} className="stat-tile p-3 rounded-sm text-left space-y-1">
                         <span className="text-[10px] font-bold tracking-[0.14em] uppercase text-gold/70 block">{tx(label)}</span>
@@ -222,7 +222,7 @@ export default function HomePage() {
             {[
               { value: '100%', label: 'Reserve Backing', sub: 'AEY · EUR Parity', status: 'Operational' as const },
               { value: '1:1', label: 'AEY / EUR Peg', sub: 'Fixed, on-chain', status: 'Operational' as const },
-              { value: '500ms', label: 'Ledger Finality', sub: 'StableChain slots', status: 'Under Development' as const },
+              { value: '≈ 1 s', label: 'Ledger Finality', sub: 'Two 500 ms slots', status: 'Under Development' as const },
               { value: '0%', label: 'Personal Income Tax', sub: 'By constitutional decree', status: 'Operational' as const },
             ].map(({ value, label, sub, status }) => (
               <div key={label} className="py-6 px-6 text-center space-y-1.5">
@@ -267,7 +267,7 @@ export default function HomePage() {
               {
                 num: '02', title: 'StableChain Protocol & APN', status: 'Under Development' as const,
                 color: 'bg-gold',
-                desc: 'Deterministic DAG ledger engine, AEY reserve backing invariants, and zero-gas fee settlement rails operating on the sovereign closed mainnet.',
+                desc: 'Byzantine-fault-tolerant ledger with 500 ms slots, AEY reserve backing invariants, and fixed-fee settlement rails operating on the sovereign closed mainnet.',
               },
               {
                 num: '03', title: 'Territorial Antioch Build', status: 'Planned' as const,
@@ -572,12 +572,12 @@ export default function HomePage() {
             <div className="eyebrow" style={{ color: '#E4C689' }}>{t("Part V: The Financial Operating System")}</div>
             <h2 className="text-4xl lg:text-5xl font-bold tracking-tight text-parchment leading-[1.1]">{t("Critical national payment")}<br />{t("infrastructure, not a crypto")}<br /><span className="text-gold-metallic">{t("experiment.")}</span>
             </h2>
-            <p className="text-parchment/68 text-base leading-relaxed font-light max-w-2xl">{t("Aletheia rejects volatile token speculation. The state operates StableChain: an enterprise-grade DAG ledger delivering 500 ms slot finality, real-time public reserve verification, and fixed micro-cent settlement fees.")}</p>
+            <p className="text-parchment/68 text-base leading-relaxed font-light max-w-2xl">{t("Aletheia rejects volatile token speculation. The state operates StableChain: a Byzantine-fault-tolerant ledger with 500 ms slots and finality in about a second, real-time public reserve verification, and fixed settlement fees.")}</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {[
-              { val: '500 ms', label: 'Block Slot Finality', desc: 'Transactions settle deterministically every 500ms across state-authorized validator clusters.' },
+              { val: '500 ms', label: 'Block Slot', desc: 'A block every 500 ms, final two slots later, across state-authorised validator clusters.' },
               { val: '100%', label: 'Provable AEY Reserve', desc: 'AEY is pegged 1:1 with EUR. Cryptographic balance sheet proofs published every epoch.' },
               { val: '0%', label: 'Personal Income Tax', desc: 'State revenue funded by land leasehold dividends, APN fees, and the Covenant Endowment.' },
               { val: 'APN Rail', label: 'Payment Network', desc: 'Instant merchant settlement connecting retail point-of-sale directly to SEPA and SWIFT gateways.' },

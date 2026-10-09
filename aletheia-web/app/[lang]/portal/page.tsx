@@ -4,6 +4,7 @@ import { useI18n } from '@/components/i18n/I18nProvider';
 import React, { useState, useEffect } from 'react';
 import Link from '@/components/i18n/Link';
 import { PortalShell } from '@/components/layout/PortalShell';
+import { EXAMPLE, shortId } from '@/lib/stablechain';
 import {
   ShieldCheck,
   Building2,
@@ -41,7 +42,7 @@ export default function CivicPortalDashboard() {
   useEffect(() => { const timer = setTimeout(() => setMounted(true), 60); return () => clearTimeout(timer); }, []);
 
   const copyKey = () => {
-    navigator.clipboard.writeText('0x4F829104A18E9B20CA7891230BFE92147A209148');
+    navigator.clipboard.writeText(EXAMPLE.citizen);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -124,7 +125,7 @@ export default function CivicPortalDashboard() {
 
                       <div className="mt-4 flex items-center gap-2">
                         <Fingerprint className="w-3.5 h-3.5" style={{ color: 'rgba(196,154,78,0.55)' }} />
-                        <span className="text-[10px] font-mono" style={{ color: 'rgba(244,238,223,0.45)' }}>0x4F82…A209148</span>
+                        <span className="text-[10px] font-mono" style={{ color: 'rgba(244,238,223,0.45)' }} translate="no" data-i18n-skip="">{shortId(EXAMPLE.citizen, 9, 6)}</span>
                         <button
                           onClick={copyKey}
                           className="text-[9px] font-bold px-1.5 py-0.5 rounded-sm transition-all"

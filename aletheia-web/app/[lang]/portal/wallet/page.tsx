@@ -3,6 +3,7 @@
 import { useI18n } from '@/components/i18n/I18nProvider';
 import React, { useState } from 'react';
 import { PortalShell } from '@/components/layout/PortalShell';
+import { EXAMPLE, shortId } from '@/lib/stablechain';
 import {
   CreditCard,
   Send,
@@ -28,7 +29,7 @@ const TRANSACTIONS: Transaction[] = [
     description: 'Quarterly Sovereign Development Bond Coupon',
     amount: '+240.00 AEY',
     date: '2026-10-02',
-    hash: '0xfa12...9901',
+    hash: 'AL:Thm44l3…d29q',
   },
   {
     id: 'TX-900',
@@ -36,7 +37,7 @@ const TRANSACTIONS: Transaction[] = [
     description: 'Antioch Municipal Platform Berth Retainer',
     amount: '-150.00 AEY',
     date: '2026-09-28',
-    hash: '0x88c1...e014',
+    hash: 'AL:T0e46wm…7r43',
   },
   {
     id: 'TX-899',
@@ -44,7 +45,7 @@ const TRANSACTIONS: Transaction[] = [
     description: 'Inward Settlement from Kaelen Vance Marine Ltd',
     amount: '+4,500.00 AEY',
     date: '2026-09-15',
-    hash: '0x33b9...aa82',
+    hash: 'AL:T9srtal…rdnh',
   },
   {
     id: 'TX-898',
@@ -52,7 +53,7 @@ const TRANSACTIONS: Transaction[] = [
     description: 'E-Residency 3-Year Statutory Registration Fee',
     amount: '-100.00 AEY',
     date: '2026-09-01',
-    hash: '0x0012...771e',
+    hash: 'AL:Txn9s5y…n2wj',
   },
 ];
 
@@ -78,7 +79,7 @@ export default function PortalAeyWalletPage() {
         description: t('Direct transfer to {recipient}', { recipient: `${recipient.slice(0, 10)}...` }),
         amount: `-${num.toFixed(2)} AEY`,
         date: 'Just now',
-        hash: '0x' + Math.random().toString(16).slice(2, 10) + '...',
+        hash: shortId(EXAMPLE.tx[8 + (transactions.length % 4)]),
       },
       ...transactions,
     ]);
@@ -99,7 +100,7 @@ export default function PortalAeyWalletPage() {
               <h1 className="text-xl font-bold text-navy">{t("Aletheian Guilder (AEY) Wallet")}</h1>
               <span className="px-2 py-0.5 rounded-sm text-[10px] font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">{t("1 AEY = 1.00 EUR (100% Reserve Parity)")}</span>
             </div>
-            <p className="text-[12px] text-navy/50 mt-0.5">{t("Zero-gas transaction rails governed by Central Bank Reserve Invariants § 12")}</p>
+            <p className="text-[12px] text-navy/50 mt-0.5">{t("Fixed-fee transaction rails governed by Central Bank Reserve Invariants § 12")}</p>
           </div>
 
           <div className="flex items-center gap-2">
@@ -143,7 +144,7 @@ export default function PortalAeyWalletPage() {
 
             <div className="mt-6 pt-4 border-t border-gold/20 flex flex-wrap items-center justify-between text-xs font-mono text-parchment/60 gap-3">
               <span>{t("Settlement Slot Time:")}{' '}<strong>{t("500 ms")}</strong></span>
-              <span>{t("Gas Volatility:")}{' '}<strong>{t("Zero Gas Fee")}</strong></span>
+              <span>{t("Network Fee:")}{' '}<strong>{t("Fixed Schedule")}</strong></span>
               <span className="text-emerald-400">{t("Reserve Backing:")}{' '}<strong>100%</strong></span>
             </div>
           </div>
@@ -188,7 +189,7 @@ export default function PortalAeyWalletPage() {
                       <span>{tx(txn.description)}</span>
                     </td>
                     <td className="py-3 text-navy/50">{tx(txn.date)}</td>
-                    <td className="py-3 text-gold">{tx(txn.hash)}</td>
+                    <td className="py-3 text-gold" translate="no" data-i18n-skip="">{txn.hash}</td>
                     <td
                       className={`py-3 text-right font-bold ${
                         txn.type === 'Credit' ? 'text-emerald-700' : 'text-navy'
@@ -222,7 +223,7 @@ export default function PortalAeyWalletPage() {
                 <input
                   type="text"
                   required
-                  placeholder={t("did:aletheia:0x... or 0x...")}
+                  placeholder={t("AL:… address or did:aletheia:AL:…")}
                   value={recipient}
                   onChange={(e) => setRecipient(e.target.value)}
                   className="w-full px-3 py-2 bg-parchment-light border border-navy/20 rounded-sm text-navy focus:outline-none focus:border-gold"
@@ -244,12 +245,12 @@ export default function PortalAeyWalletPage() {
 
               <div className="p-3 rounded-sm bg-parchment-light text-[11px] text-navy/60 space-y-1">
                 <div className="flex justify-between">
-                  <span>{t("Network Gas Fee:")}</span>
+                  <span>{t("Network Fee:")}</span>
                   <span className="text-emerald-700 font-bold">{t("0.00 AEY (Subsidized)")}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>{t("Settlement Guarantee:")}</span>
-                  <span className="text-navy font-bold">{t("500ms DAG Finality")}</span>
+                  <span className="text-navy font-bold">{t("Final in About a Second")}</span>
                 </div>
               </div>
 

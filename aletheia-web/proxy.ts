@@ -49,7 +49,7 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Everything except Next internals, PDFs, metadata routes and files with an extension.
-  matcher: ['/((?!_next|pdf|sitemap\\.xml|robots\\.txt|.*\\.[a-zA-Z0-9]+$).*)'],
+  // Everything except Next internals, the API, PDFs, metadata routes and files with an extension.
+  matcher: ['/((?!_next|api|pdf|sitemap\\.xml|robots\\.txt|.*\\.[a-zA-Z0-9]+$).*)'],
 };
 

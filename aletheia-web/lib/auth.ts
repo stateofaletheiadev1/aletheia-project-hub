@@ -26,7 +26,7 @@ const DEFAULT_USER: UserSession = {
   role: 'E-Resident · Founder',
   status: 'E-Resident · Verified Tier I',
   avatarInitials: 'EV',
-  did: 'did:aletheia:0x4F829104A18E9B20CA7891230BFE92147A209148',
+  did: 'did:aletheia:AL:qp3f3ak4x56xchdg3n39eny2hs0xrhs25jvz7x64zv292slrn63pwhrwyxt',
   aeyBalance: '12,400.00',
 };
 

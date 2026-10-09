@@ -33,7 +33,7 @@ const INITIAL_CITIZENS: Citizen[] = [
     nationalityOfOrigin: 'Germany (DEU)',
     registeredDate: '2026-01-15',
     status: 'Active',
-    covenantHash: '0x9b2a...771e',
+    covenantHash: '0a504402…1266',
   },
   {
     id: 'CIT-002',
@@ -44,7 +44,7 @@ const INITIAL_CITIZENS: Citizen[] = [
     nationalityOfOrigin: 'United Kingdom (GBR)',
     registeredDate: '2026-02-10',
     status: 'Active',
-    covenantHash: '0x4f12...e8a1',
+    covenantHash: 'b634b998…9839',
   },
   {
     id: 'CIT-003',
@@ -55,7 +55,7 @@ const INITIAL_CITIZENS: Citizen[] = [
     nationalityOfOrigin: 'Greece (GRC)',
     registeredDate: '2026-03-22',
     status: 'Oath Pending',
-    covenantHash: '0x882c...3104',
+    covenantHash: '32b81ae5…fc3c',
   },
   {
     id: 'CIT-004',
@@ -66,7 +66,7 @@ const INITIAL_CITIZENS: Citizen[] = [
     nationalityOfOrigin: 'Malta (MLT)',
     registeredDate: '2026-01-10',
     status: 'Active',
-    covenantHash: '0x712a...009f',
+    covenantHash: 'eef55ab5…d65a',
   },
   {
     id: 'CIT-005',
@@ -77,7 +77,7 @@ const INITIAL_CITIZENS: Citizen[] = [
     nationalityOfOrigin: 'Sweden (SWE)',
     registeredDate: '2026-04-05',
     status: 'Under Review',
-    covenantHash: '0x33e1...fa88',
+    covenantHash: 'e08db137…e557',
   },
   {
     id: 'CIT-006',
@@ -88,7 +88,7 @@ const INITIAL_CITIZENS: Citizen[] = [
     nationalityOfOrigin: 'Estonia (EST)',
     registeredDate: '2026-05-18',
     status: 'Active',
-    covenantHash: '0x19a4...c012',
+    covenantHash: 'f87e3525…ac20',
   },
 ];
 

@@ -45,7 +45,7 @@ const MILESTONES = [
   {
     year: '2026',
     title: 'Constitutional Promulgation & Identity Infrastructure',
-    desc: 'Ratification of the Covenant of Aletheia, deployment of the StableChain testnet, rollout of ICAO Doc 9303 biometric passport specifications, and E-Residency activation.',
+    desc: 'Ratification of the Covenant of Aletheia, deployment of the StableChain private validation network, rollout of ICAO Doc 9303 biometric passport specifications, and E-Residency activation.',
     status: 'Operational' as const,
   },
   {

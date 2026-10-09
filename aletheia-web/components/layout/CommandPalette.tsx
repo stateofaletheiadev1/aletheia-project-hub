@@ -19,7 +19,7 @@ const SEARCH_DATABASE: SearchItem[] = [
   { title: 'Article 1: Founding Promises & Provable State', category: 'Constitution', href: '/constitution#art-1', desc: 'Truth in records, honest money, and lean constitutional government.' },
   { title: 'Article 8: Citizenship by Descent & Naturalisation', category: 'Constitution', href: '/constitution#art-8', desc: 'Eligibility, Covenant Oath, and rights of citizens.' },
   { title: 'Article 11: E-Residency & Digital Identity', category: 'Constitution', href: '/constitution#art-11', desc: 'Remote commercial rights, digital identity, zero physical residency.' },
-  { title: 'Article 16: StableChain & Monetary Invariants', category: 'Constitution', href: '/constitution#art-16', desc: '500ms block finality, 100% reserve invariants I1–I12.' },
+  { title: 'Article 16: StableChain & Monetary Invariants', category: 'Constitution', href: '/constitution#art-16', desc: '500 ms slots, finality in about a second, 100% reserve invariants.' },
   { title: 'Article 46: ADSS & Unified Security Architecture', category: 'Constitution', href: '/constitution#art-46', desc: 'One force, civilian command, institutional distinction of police.' },
   { title: 'Article 53: Aletheian Cybersecurity Department', category: 'Constitution', href: '/constitution#art-53', desc: 'Mandatory national cyber defence and validator infrastructure resilience.' },
   

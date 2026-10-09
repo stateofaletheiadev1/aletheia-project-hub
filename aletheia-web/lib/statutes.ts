@@ -23,7 +23,7 @@ export const STATUTE_DATABASE: Record<string, StatuteDetail> = {
     title: 'Constitutional Supremacy & Judicial Review Act',
     article: 'Constitution Article 1 § 3',
     date: '2026-01-20',
-    hash: '0x8f2b7a4c91e3d085fa49b817e4521098ef7321ac90b34d76a218fce1b2049e91',
+    hash: '8f2b7a4c91e3d085fa49b817e4521098ef7321ac90b34d76a218fce1b2049e91',
     preamble: 'An Act to solemnly affirm the inviolable supremacy of the Covenant of Aletheia as the highest law of the land, establishing the High Court of Justice as the sole arbiter of constitutional conformity and voiding all conflicting executive determinations.',
     sections: [
       { number: 'Section 1', heading: 'Supremacy Invariant', text: 'No statute, treaty, administrative decree, or municipal regulation shall have legal force or effect to the extent that it conflicts with any provision of the Covenant of Aletheia.' },
@@ -38,7 +38,7 @@ export const STATUTE_DATABASE: Record<string, StatuteDetail> = {
     title: 'Official Languages & Diplomatic Communication Act',
     article: 'Constitution Article 2 § 2',
     date: '2026-01-28',
-    hash: '0x14ea892018fa34091ec87201948ba209ef731204891230fca890214890ecb820',
+    hash: '14ea892018fa34091ec87201948ba209ef731204891230fca890214890ecb820',
     preamble: 'An Act providing for the official language regime of the Sovereign Covenant State, ensuring equal dignity for European languages and seamless global diplomatic representation.',
     sections: [
       { number: 'Section 1', heading: 'Official Languages', text: 'The official languages of The Sovereign Covenant State of Aletheia are English, German, Dutch, Serbian, and Italian. English shall serve as the primary procedural language for international commercial contracts.' },
@@ -53,7 +53,7 @@ export const STATUTE_DATABASE: Record<string, StatuteDetail> = {
     title: 'Maritime Zones & UNCLOS Jurisdiction Act',
     article: 'Constitution Article 3 § 4',
     date: '2026-02-05',
-    hash: '0x77ba90123ca87201948ea20914be872190847b2c01948fe2198034a890123ca7',
+    hash: '77ba90123ca87201948ea20914be872190847b2c01948fe2198034a890123ca7',
     preamble: 'An Act defining the maritime territorial limits, contiguous zone, and Exclusive Economic Zone of Aletheia in strict compliance with the United Nations Convention on the Law of the Sea.',
     sections: [
       { number: 'Section 1', heading: 'Territorial Sea Limit', text: 'The sovereignty of Aletheia extends to a territorial sea baseline of 12 nautical miles, encompassing all civil platforms, breakwaters, and natural baselines.' },
@@ -68,7 +68,7 @@ export const STATUTE_DATABASE: Record<string, StatuteDetail> = {
     title: 'Nationality & Naturalisation Act',
     article: 'Constitution Article 8 § 5',
     date: '2026-02-14',
-    hash: '0x3c9902ba14ff28e67a01d5e390c88461ab209ef731478201fa8892ca3401ef62',
+    hash: '3c9902ba14ff28e67a01d5e390c88461ab209ef731478201fa8892ca3401ef62',
     preamble: 'An Act setting forth the rights, duties, and acquisition criteria for Aletheian citizenship, defining naturalisation by physical residence and covenant awards.',
     sections: [
       { number: 'Section 1', heading: 'Citizenship by Covenant', text: 'Citizenship is a voluntary civic covenant. No person shall be compelled into citizenship, nor stripped of nationality for political expression.' },
@@ -84,7 +84,7 @@ export const STATUTE_DATABASE: Record<string, StatuteDetail> = {
     title: 'Digital E-Residency & Virtual Jurisdiction Act',
     article: 'Constitution Article 9 § 4',
     date: '2026-02-22',
-    hash: '0x55902148ea20914801fa8892ca3401ef6291a0123ca78091ecb87201948ba209e',
+    hash: '0b8b55989f1bad1fd64735d3603d8627212b6528bb88f5952f8e24570c6d9582',
     preamble: 'An Act establishing the digital identity framework of the Sovereign Covenant State, empowering international entrepreneurs to form companies, execute contracts, and utilize state settlement rails.',
     sections: [
       { number: 'Section 1', heading: 'Digital Identity Inscription', text: 'E-Residency is a cryptographic digital identity conferring legal capacity to sign contracts and form commercial entities under Aletheian jurisdiction.' },
@@ -99,7 +99,7 @@ export const STATUTE_DATABASE: Record<string, StatuteDetail> = {
     title: 'Monetary Architecture & Reserve Backing Act',
     article: 'Constitution Article 14 § 6',
     date: '2026-03-04',
-    hash: '0xaa18902ef34b890123ca78091ecb87201948ba209ef182049ec8720914be8721',
+    hash: 'aa18902ef34b890123ca78091ecb87201948ba209ef182049ec8720914be8721',
     preamble: 'An Act establishing the Aletheian Guilder (AEY) as the sole legal tender, guaranteeing 100% reserve backing and prohibiting inflationary monetization.',
     sections: [
       { number: 'Section 1', heading: 'Legal Tender & Unit of Account', text: 'The Aletheian Guilder (AEY) is the statutory currency of the Sovereign Covenant State, maintained at a fixed 1:1 parity with the European Euro.' },
@@ -114,7 +114,7 @@ export const STATUTE_DATABASE: Record<string, StatuteDetail> = {
     title: 'Executive Cabinet & Ministerial Portfolios Act',
     article: 'Constitution Article 15 § 5',
     date: '2026-03-12',
-    hash: '0x9920184fa9802ecb87201948ba340291ef732014890ecb8201948ea20914801fa',
+    hash: '44d270f72e1664c91dd71b7a01ef783a5dce93d3ab85c7fb12518bf2964088e4',
     preamble: 'An Act governing the structure, powers, and constitutional limits of the executive government, enforcing the statutory maximum of nine ministries.',
     sections: [
       { number: 'Section 1', heading: 'Cabinet Cap', text: 'The executive Cabinet shall consist of the Chancellor and not more than eight ministers of state. No additional ministry may be created without constitutional amendment.' },
@@ -129,7 +129,7 @@ export const STATUTE_DATABASE: Record<string, StatuteDetail> = {
     title: 'Aletheian Defence & Security Service (ADSS) Governance Act',
     article: 'Constitution Article 18 § 4',
     date: '2026-03-20',
-    hash: '0x4489021fa89023ebc87201948ea20914bca890214890ec8201948ea20914801e',
+    hash: '4489021fa89023ebc87201948ea20914bca890214890ec8201948ea20914801e',
     preamble: 'An Act regulating the armed defence forces, civilian police, and coast guard services, enforcing strict civilian control and prohibiting internal domestic military policing.',
     sections: [
       { number: 'Section 1', heading: 'Civilian Subordination', text: 'The Aletheian Defence & Security Service is subordinated to civilian authority. The civilian Minister of Security exercises executive direction over all operational commands.' },
@@ -144,7 +144,7 @@ export const STATUTE_DATABASE: Record<string, StatuteDetail> = {
     title: 'Critical National Infrastructure & Cyber Resilience Act',
     article: 'Constitution Article 19 § 3',
     date: '2026-03-29',
-    hash: '0x66189023ebca87201948ea20914801e991204890ecb8201948ea20914801fa88',
+    hash: '66189023ebca87201948ea20914801e991204890ecb8201948ea20914801fa88',
     preamble: 'An Act providing for the mandatory cyber hardening, post-quantum cryptographic standards, and optical air-gapping of sovereign ledgers and public utility grids.',
     sections: [
       { number: 'Section 1', heading: 'Validator Consensus Security', text: 'All state consensus validator nodes must be hosted on sovereign hardware with FIPS 140-3 Level 4 HSM key storage and multi-carrier BGP protection.' },

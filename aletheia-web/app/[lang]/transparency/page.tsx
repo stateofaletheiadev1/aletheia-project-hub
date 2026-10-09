@@ -122,21 +122,21 @@ export default function TransparencyPage() {
                   <td className="p-3 text-navy/80">{t("Ministry of Territorial Dev.")}</td>
                   <td className="p-3 font-sans text-navy/80">{t("St. Brendan Deepwater Seabed Core Analysis")}</td>
                   <td className="p-3 font-bold text-navy">{t("145,000 AEY")}</td>
-                  <td className="p-3 text-[10px] text-navy/50">{t("0x7f8a...92bc")}</td>
+                  <td className="p-3 text-[10px] text-navy/50" translate="no" data-i18n-skip="">AL:Trfppjn…an67</td>
                 </tr>
                 <tr>
                   <td className="p-3 font-bold text-navy">{t("EXP-2026-890")}</td>
                   <td className="p-3 text-navy/80">{t("ADSS Coast Guard")}</td>
                   <td className="p-3 font-sans text-navy/80">{t("Autonomous Navigational Buoy Array Maintenance")}</td>
                   <td className="p-3 font-bold text-navy">{t("42,500 AEY")}</td>
-                  <td className="p-3 text-[10px] text-navy/50">0x3b1c...44a1</td>
+                  <td className="p-3 text-[10px] text-navy/50" translate="no" data-i18n-skip="">AL:Tkvgqfz…83k3</td>
                 </tr>
                 <tr>
                   <td className="p-3 font-bold text-navy">{t("EXP-2026-889")}</td>
                   <td className="p-3 text-navy/80">{t("National Registry Dept.")}</td>
                   <td className="p-3 font-sans text-navy/80">{t("Polycarbonate e-Passport Blank Stock Procurement")}</td>
                   <td className="p-3 font-bold text-navy">{t("88,200 AEY")}</td>
-                  <td className="p-3 text-[10px] text-navy/50">{t("0x99ea...0012")}</td>
+                  <td className="p-3 text-[10px] text-navy/50" translate="no" data-i18n-skip="">AL:T4kmftt…kuha</td>
                 </tr>
               </tbody>
             </table>
