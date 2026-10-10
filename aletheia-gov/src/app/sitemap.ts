@@ -6,7 +6,7 @@ import { site } from "@/lib/site";
 const STATIC = [
   "", "/government", "/institutions", "/founding-programme", "/projects", "/opportunities", "/appointments",
   "/directory", "/documents", "/decisions", "/public-finance", "/dispatches", "/events", "/development",
-  "/build-aletheia", "/search", "/contact", "/privacy", "/terms", "/accessibility", "/image-credits",
+  "/build-aletheia", "/register-interest", "/search", "/contact", "/privacy", "/terms", "/accessibility", "/image-credits",
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {

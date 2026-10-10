@@ -19,6 +19,7 @@ export const PUBLIC_ROUTES = [
   "/events",
   "/development",
   "/build-aletheia",
+  "/register-interest",
   "/search",
   "/search?q=treasury",
   "/search?q=zzqqxx",

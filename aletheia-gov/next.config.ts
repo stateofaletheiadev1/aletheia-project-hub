@@ -48,7 +48,11 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   // Tailwind output is small; inlining removes the render-blocking stylesheet request
   // that delayed first paint on slow connections (Lighthouse, brief §16).
-  experimental: { inlineCss: true },
+  experimental: {
+    inlineCss: true,
+    // Registration of interest accepts a CV of up to 2 MB, plus multipart overhead.
+    serverActions: { bodySizeLimit: "2.2mb" },
+  },
   images: {
     formats: ["image/avif", "image/webp"],
     deviceSizes: [390, 640, 828, 1080, 1280, 1728, 2048, 2400],

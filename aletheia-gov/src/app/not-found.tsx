@@ -1,9 +1,12 @@
 import { Contours } from "@/components/brand/Contours";
 import { ArrowLink } from "@/components/editorial/ArrowLink";
 import { SectionMark } from "@/components/editorial/SectionMark";
+import { PublicFrame } from "@/components/navigation/PublicFrame";
 
 export default function NotFound() {
+  // Unmatched URLs render outside the (public) group, so this page brings its own frame.
   return (
+    <PublicFrame>
     <section className="sea relative flex min-h-[88vh] items-center overflow-hidden">
       <Contours variant="c" opacity={0.08} eager />
       <div className="shell relative pb-24 pt-[calc(var(--header-h)+5rem)]">
@@ -24,5 +27,6 @@ export default function NotFound() {
         </div>
       </div>
     </section>
+    </PublicFrame>
   );
 }

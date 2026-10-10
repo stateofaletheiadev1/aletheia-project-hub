@@ -1,8 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Mono, Manrope } from "next/font/google";
-import { Colophon } from "@/components/editorial/Colophon";
-import { MotionController } from "@/components/motion/MotionController";
-import { Header } from "@/components/navigation/Header";
 import { site } from "@/lib/site";
 import "./globals.css";
 
@@ -38,23 +35,12 @@ export const viewport: Viewport = {
   colorScheme: "light",
 };
 
+// The document shell only. The public site and the workbench each have their own frame:
+// app/(public)/layout.tsx and app/workbench/layout.tsx.
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en-GB" className={`${manrope.variable} ${plexMono.variable}`}>
-      <body>
-        <a
-          href="#main"
-          className="fixed left-4 top-4 z-[60] -translate-y-24 bg-parchment-50 px-4 py-3 text-[0.9375rem] font-semibold text-navy-800 focus:translate-y-0"
-        >
-          Skip to content
-        </a>
-        <Header />
-        <main id="main" tabIndex={-1} className="outline-none">
-          {children}
-        </main>
-        <Colophon />
-        <MotionController />
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

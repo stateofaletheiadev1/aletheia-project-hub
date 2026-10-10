@@ -62,7 +62,7 @@ export function Header() {
         }`}
       >
         <div className="shell flex h-full items-center justify-between gap-6 text-parchment-100">
-          <Link href="/" className="group flex items-center gap-3.5">
+          <Link href="/" className="group flex shrink-0 items-center gap-3.5 whitespace-nowrap">
             <Mark size={26} />
             <span className="flex flex-col leading-none">
               <span className="text-[0.625rem] font-semibold uppercase tracking-[0.2em] text-gold-400">The Government of</span>{" "}
@@ -71,8 +71,8 @@ export function Header() {
             </span>
           </Link>
 
-          <nav aria-label="Primary" className="hidden items-center gap-8 lg:flex">
-            <ul className="flex items-center gap-7">
+          <nav aria-label="Primary" className="hidden items-center gap-5 xl:flex 2xl:gap-8">
+            <ul className="flex items-center gap-5 2xl:gap-7">
               {primaryNav.map((l) => {
                 const active = isActive(pathname, l.href);
                 return (
@@ -111,15 +111,22 @@ export function Header() {
               <SearchIcon />
               Search
             </Link>
-            <Link href="/sign-in" className="text-[0.875rem] text-parchment-300 hover:text-parchment-50">
+            <Link href="/sign-in" className="whitespace-nowrap text-[0.875rem] text-parchment-300 hover:text-parchment-50">
               Sign in
+            </Link>
+            <Link
+              href="/register-interest"
+              aria-current={isActive(pathname, "/register-interest") ? "page" : undefined}
+              className="inline-flex min-h-10 items-center whitespace-nowrap bg-gold-500 px-4 text-[0.875rem] font-semibold text-navy-950 transition-colors hover:bg-gold-300"
+            >
+              Register interest
             </Link>
           </nav>
 
           <button
             type="button"
             onClick={openDrawer}
-            className="-mr-2 flex min-h-11 items-center gap-3 px-2 text-[0.875rem] font-semibold uppercase tracking-[0.14em] lg:hidden"
+            className="-mr-2 flex min-h-11 items-center gap-3 px-2 text-[0.875rem] font-semibold uppercase tracking-[0.14em] xl:hidden"
             aria-haspopup="dialog"
           >
             Menu
@@ -197,6 +204,7 @@ export function Header() {
               ))}
             </ul>
             <div className="drawer-item mt-12 flex gap-8 text-[0.9375rem] text-parchment-300" style={{ "--i": 9 } as React.CSSProperties}>
+              <Link href="/register-interest" className="font-semibold text-gold-300">Register interest</Link>
               <Link href="/build-aletheia">Build Aletheia</Link>
               <Link href="/sign-in">Sign in</Link>
             </div>

@@ -1,9 +1,9 @@
 // Official public references: AGV-{TYPE}-{YEAR}-{SEQ} (brief §6.5.1).
 // Generated server-side only; this module formats and validates them.
-export const REFERENCE_TYPES = ["DOC", "DEC", "OPP", "APP", "DSP", "FIN", "APT", "EVT", "INS", "PRJ"] as const;
+export const REFERENCE_TYPES = ["DOC", "DEC", "OPP", "APP", "DSP", "FIN", "APT", "EVT", "INS", "PRJ", "EOI"] as const;
 export type ReferenceType = (typeof REFERENCE_TYPES)[number];
 
-const PATTERN = /^AGV-(DOC|DEC|OPP|APP|DSP|FIN|APT|EVT|INS|PRJ)-(\d{4})-(\d{4,})$/;
+const PATTERN = /^AGV-(DOC|DEC|OPP|APP|DSP|FIN|APT|EVT|INS|PRJ|EOI)-(\d{4})-(\d{4,})$/;
 
 export function formatReference(type: ReferenceType, year: number, seq: number): string {
   if (!Number.isInteger(year) || year < 2000 || year > 9999) throw new RangeError("year out of range");

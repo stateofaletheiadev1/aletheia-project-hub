@@ -1,38 +1,55 @@
 # AletheiaDB integration
 
-## State on 9 October 2026
+## State on 10 October 2026
 
-**Not integrated.** The AletheiaDB source was expected at `aletheia-project-hub/aletheia-db/` and was not
-present on the build machine. Phases 0 and 1 of AletheiaDB (types, config) exist in a separate local
-repository; there is no HTTP API or SDK to integrate against yet. The owner is writing the AletheiaDB brief
-separately.
+**Integrated.** The site reads and writes AletheiaDB, our own document database, at
+`https://db.stateofaletheia.org`, through the TypeScript SDK (`@aletheia/aletheiadb`, vendored in
+`vendor/`). Nothing is hard-coded: public records, registrations of interest, CVs, officer
+accounts and the audit log all come from the database.
 
-Brief §1.8 forbids inventing database capabilities, so no adapter code, no contract tests and no write
-paths were written.
-
-## What the site does instead
-
-All public record access goes through one server-only module, `src/server/records/public-records.ts`:
-
-```ts
-listPublished(kind, { limit }) -> { kind, source: "aletheiadb" | "unavailable", items }
-lastPublishedAt() -> string | null
+```
+ALETHEIADB_URL=aletheiadb://<key id>:<secret>@db.stateofaletheia.org/<database>
 ```
 
-Today it returns `source: "unavailable"` with no items. Every register page renders a designed empty state
-and says that the public record database is not yet connected. Nothing is faked, cached as fake data, or
-held in memory as a stand-in.
+| Database | Used by | Contents |
+|---|---|---|
+| `gov` | The live site (Vercel) | Real records only |
+| `gov_demo` | Local development | Test data, labelled as such |
 
-`/api/health/ready` reports `recordStore: "not_configured"` and overall status `degraded`.
+Each site uses a `readWrite` key for its own database only. Keys are created on the database
+server with the root key (`aletheia-db/docs/OPERATIONS.md`, "API keys").
 
-## When AletheiaDB has an API
+## Collections
 
-1. Read the real API: endpoints, auth, query language, error shapes, consistency, concurrency, indexes, transactions.
-2. Add `src/server/aletheiadb/client.ts` (the only module that speaks to the engine) and `src/server/repositories/*`.
-   ESLint already forbids `app/` and `components/` from importing either.
-3. Write `tests/contract/aletheiadb.spec.ts` against a disposable database.
-4. Replace the body of `listPublished` with a call to a `publicRepository` that hard-codes `published` + `public`.
-5. Switch registers to tag-based revalidation (`revalidateTag(tag, "max")` in Next 16) on publish and withdraw.
+| Collection | Written by | Notes |
+|---|---|---|
+| `documents`, `decisions`, `dispatches`, `opportunities`, `public_finance`, `events` … | Publishing (scripts for now) | Public records; `src/server/records/public-records.ts` |
+| `counters` | Reference numbers | Optimistic-concurrency counters (`ref:EOI:2026`, …) |
+| `interest_registrations` | `/register-interest` and institution pages | ADR 0006 |
+| `attachments` | CV uploads | Encrypted 128 KiB chunks |
+| `subject_keys` | Encryption | One wrapped key per person (data-governance) |
+| `staff_users` | Workbench | ADR 0005 |
+| `audit_events` | Workbench, sign-in, scripts | Append-only by convention |
 
-The Git-backed design rules in brief §8.4 (application-layer encryption, crypto-shredding, no per-request
-writes) apply from the first write path.
+Collections and indexes are created by `scripts/db-bootstrap.mjs` (safe to re-run).
+
+## Boundaries
+
+- Only `src/server/**` talks to the database (`src/server/aletheiadb/client.ts`). An ESLint rule
+  stops `src/app/**` importing it directly.
+- Without `ALETHEIADB_URL`, the site still builds and serves every public page; record lists say
+  "No records published yet" and the registration form says it is not open.
+
+## Scripts
+
+All take `--env-file` with the target database's settings.
+
+| Script | Purpose |
+|---|---|
+| `db-bootstrap.mjs` | Create collections and indexes |
+| `admin-bootstrap.mjs` | Create the first administrators (refuses once one exists) |
+| `migrate-staff-keys.mjs` | Move officer accounts onto their own keys (one-off, safe to re-run) |
+| `erase-person.mjs` | Erase a registrant on request |
+| `list-interest.mjs` | List registrations from the command line |
+| `qa-account.mjs` | Test account for automated checks, practice database only |
+| `seed-demo.mjs` | Fill the practice database with labelled test records |

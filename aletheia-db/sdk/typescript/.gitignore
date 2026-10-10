@@ -1,2 +1,3 @@
 node_modules/
-dist/
+# dist/ is committed on purpose: consumers install this folder with file: and need no build step.
+# Regenerate with `npm run build` after changing src/.

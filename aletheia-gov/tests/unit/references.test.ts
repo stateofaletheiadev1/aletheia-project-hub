@@ -10,6 +10,7 @@ describe("official references", () => {
 
   it("round-trips through parse", () => {
     expect(parseReference("AGV-APP-2026-0042")).toEqual({ type: "APP", year: 2026, seq: 42 });
+    expect(parseReference("AGV-EOI-2026-0007")).toEqual({ type: "EOI", year: 2026, seq: 7 });
   });
 
   it("rejects malformed input", () => {
