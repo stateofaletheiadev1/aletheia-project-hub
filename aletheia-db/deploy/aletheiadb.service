@@ -1,0 +1,41 @@
+[Unit]
+Description=AletheiaDB (Sovereign Covenant State of Aletheia)
+Documentation=file:///srv/aletheiadb/README
+After=network-online.target
+Wants=network-online.target
+# Never write to the website disk: start only when the data volume is mounted.
+RequiresMountsFor=/srv/aletheiadb/data
+# Does nothing until the binary is installed.
+ConditionPathExists=/srv/aletheiadb/bin/aletheiadb
+
+[Service]
+Type=simple
+User=aletheiadb
+Group=aletheiadb
+EnvironmentFile=/srv/aletheiadb/config/aletheiadb.env
+ExecStart=/srv/aletheiadb/bin/aletheiadb serve
+WorkingDirectory=/srv/aletheiadb/data
+Restart=on-failure
+RestartSec=5
+
+# Shares a 1 GB box with the Kortana website: hard cap so it can never starve it.
+MemoryHigh=200M
+MemoryMax=250M
+CPUWeight=50
+
+# Hardening: read-only system, writable data folder only.
+NoNewPrivileges=yes
+ProtectSystem=strict
+ReadWritePaths=/srv/aletheiadb/data
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+
+[Install]
+WantedBy=multi-user.target
