@@ -12,8 +12,7 @@ import {
   totalCitizens,
   totalRaised,
 } from '@/lib/national-registry';
-import { formatGazetteDate } from '@/lib/gazette';
-import { ArrowRight, Building2, Coins, Info, Landmark, Users } from 'lucide-react';
+import { ArrowRight, Building2, Coins, Landmark, Users } from 'lucide-react';
 
 /** Horizontal bar list: one navy series, every row labelled (few rows, ranked). */
 function BarList({ rows, max, format }: { rows: { label: string; value: number; note?: string; href?: string }[]; max: number; format: (n: number) => string }) {
@@ -33,7 +32,7 @@ function BarList({ rows, max, format }: { rows: { label: string; value: number; 
             <div className="h-2.5 bg-navy/[0.06] rounded-[4px] overflow-hidden">
               <div
                 className="h-full bg-navy group-hover:bg-gold-shadow rounded-r-[4px] transition-colors duration-300"
-                style={{ width: `${Math.max(1.5, (r.value / max) * 100)}%` }}
+                style={{ width: `${max > 0 && r.value > 0 ? Math.max(1.5, (r.value / max) * 100) : 0}%` }}
               />
             </div>
             {tx(r.note && <p className="text-[11px] text-navy/50 mt-1">{tx(r.note)}</p>)}
@@ -49,7 +48,7 @@ export default function RegistryPage() {
   const s = getRegistrySnapshot();
   const citizens = totalCitizens(s);
   const raised = totalRaised(s);
-  const progress = raised / s.phaseOneTarget;
+  const progress = s.phaseOneTarget > 0 ? raised / s.phaseOneTarget : 0;
   const c = s.registrations.citizens;
 
   const citizenRows = [
@@ -73,16 +72,6 @@ export default function RegistryPage() {
         <Link href="/e-residency" className="btn-sovereign-ghost px-7 py-3.5 rounded-sm text-sm">{t("Become an e-resident")}</Link>
       </PageHero>
 
-      {/* ── DATA NOTICE ── */}
-      {tx(s.source === 'demonstration' && (
-        <div className="bg-gold/10 border-b border-gold/30">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-start gap-3 text-xs text-navy/80">
-            <Info className="w-4 h-4 text-gold-shadow shrink-0 mt-0.5" />
-            <p>
-              <strong className="text-navy">{t("Demonstration figures.")}</strong>{' '}{t("The live registry feed is under development; figures shown are illustrative as of")}{' '}{formatGazetteDate(s.asOf, intl)}{' '}{t("and will be replaced by ledger-attested data when the feed is connected.")}</p>
-          </div>
-        </div>
-      ))}
 
       {/* ── HEADLINE TILES ── */}
       <section className="bg-navy-deep border-b border-gold/20">

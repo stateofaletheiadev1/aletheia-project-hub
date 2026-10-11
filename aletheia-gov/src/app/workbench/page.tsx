@@ -7,7 +7,6 @@ import { requireUser } from "@/server/auth/current-user";
 import { can } from "@/server/authorization/policies";
 import { audit, recentAuditEvents } from "@/server/services/audit";
 import { listUsers } from "@/server/services/users";
-import { connectedToDemo } from "@/server/records/public-records";
 import { listRegistrations, registrationCounts } from "@/server/services/workbench";
 
 export const metadata = { title: "My office" };
@@ -67,9 +66,6 @@ export default async function MyOffice({ searchParams }: { searchParams: Promise
       title: "Two-factor sign-in",
       text: "Not enabled yet. It will be added before the workbench is used with real records.",
     },
-    ...(connectedToDemo()
-      ? [{ done: false, title: "This is the demonstration database", text: "Records here are test data. The live database is connected when the site goes live on aletheiagov.org." }]
-      : []),
   ];
 
   const tile = "border-t-2 border-navy-800 pt-4";

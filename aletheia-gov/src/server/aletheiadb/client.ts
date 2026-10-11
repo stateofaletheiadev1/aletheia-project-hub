@@ -15,7 +15,3 @@ export function database(): AletheiaDB | null {
   return client;
 }
 
-/** True when connected to a demonstration database (name ending in `_demo`). */
-export function isDemoDatabase(): boolean {
-  return Boolean(database()?.options.database?.endsWith("_demo"));
-}

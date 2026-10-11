@@ -3,7 +3,6 @@ import { EmptyRecord } from "@/components/editorial/EmptyRecord";
 import { Folio, MarginMeta, type MarginItem } from "@/components/editorial/Folio";
 import { FoundingNotice } from "@/components/editorial/FoundingNotice";
 import { PageHead } from "@/components/editorial/PageHead";
-import { DemoTag } from "@/components/records/DemoTag";
 import { formatDateShort } from "@/lib/dates";
 import { listPublished, type RecordKind } from "@/server/records/public-records";
 
@@ -67,7 +66,6 @@ export async function RegisterPage({
                     <Link href={`${basePath}/${r.slug}`} className="grid gap-2 py-6 md:grid-cols-[13rem_1fr_auto] md:gap-8">
                       <span className="t-ref text-gold-700">{r.reference}</span>
                       <span>
-                        {r.demo ? <DemoTag className="mb-2" /> : null}
                         <span className="block text-[1.125rem] font-medium">{r.title}</span>
                         {r.summary ? <span className="mt-1 block text-[0.9375rem] text-ink-600">{r.summary}</span> : null}
                       </span>

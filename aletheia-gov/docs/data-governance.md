@@ -20,8 +20,8 @@ What personal data the site keeps, for how long, and how it is erased. The priva
   `DATA_ENCRYPTION_MASTER_KEY`, which is held only in the application's server secrets, never in
   the database.
 - Applicants' keys (`person-email`) and officers' keys (`staff-person`) are separate families.
-- The production master key is different from the practice one. Losing it makes every
-  registration unreadable: keep an offline copy with the owner.
+- Losing the production master key makes every registration unreadable: keep an offline copy
+  with the owner.
 
 ## Retention
 
@@ -39,7 +39,8 @@ key is gone, every copy (database history, backups) is unreadable.
   then add `--confirm`.
 - Automatically: the retention job above.
 
-## Practice database
+## Live only
 
-`gov_demo` holds test data for development. It is labelled "Test data · practice database" in
-the workbench and "Demonstration" on public records. Nothing from it is copied to `gov`.
+The site uses the live database `gov` only. There is no demonstration data: a record flagged as
+test data is never displayed (`src/server/records/public-records.ts`). The former practice
+database's access key was revoked on 2026-10-10.

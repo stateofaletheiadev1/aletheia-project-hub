@@ -51,15 +51,14 @@ const REGISTRIES = [
 export default function TechnologyPage() {
   const { t, tx } = useI18n();
   const [queryInput, setQueryInput] = useState('');
-  const [queryResult, setQueryResult] = useState<'idle' | 'searching' | 'found'>('idle');
+  const [queryResult, setQueryResult] = useState<'idle' | 'searching' | 'none'>('idle');
 
+  // The State Registry has published nothing on the ledger yet, so every lookup truthfully
+  // finds nothing. Replace with a call to the registry when it publishes.
   const handleQuery = (e: React.FormEvent) => {
     e.preventDefault();
     if (!queryInput.trim()) return;
-    setQueryResult('searching');
-    setTimeout(() => {
-      setQueryResult('found');
-    }, 600);
+    setQueryResult('none');
   };
 
   return (
@@ -152,9 +151,9 @@ export default function TechnologyPage() {
         {/* ── PUBLIC REGISTRY VERIFICATION SANDBOX ── */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           <div className="lg:col-span-6 space-y-6">
-            <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">{t("Public Verification Sandbox")}</span>
+            <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">{t("Public Verification")}</span>
             <h2 className="text-2xl sm:text-3xl font-bold text-navy tracking-tight">{t("Query the Immutable State Registry")}</h2>
-            <p className="text-sm text-navy/70 leading-relaxed">{t("Authenticate any state decree, business incorporation license, land title hash, or notary signature in real time against the root validator network.")}</p>
+            <p className="text-sm text-navy/70 leading-relaxed">{t("Once the State Registry publishes, any state decree, business incorporation licence, land title hash or notary signature can be checked here against the ledger.")}</p>
 
             <form onSubmit={handleQuery} className="p-6 bg-white border border-navy/15 rounded-sm shadow-sm space-y-4">
               <label htmlFor="reg-query" className="text-xs font-bold text-navy uppercase tracking-wider block">{t("Enter Entity Number, Decree Hash, or Deed ID:")}</label>
@@ -177,14 +176,10 @@ export default function TechnologyPage() {
                 </button>
               </div>
 
-              {tx(queryResult === 'found' && (
-                <div className="p-4 bg-laurel/10 border border-laurel/30 rounded-sm space-y-2 text-xs text-laurel">
-                  <div className="flex items-center gap-2 font-bold">
-                    <CheckCircle2 className="w-4 h-4" />{' '}{t("Record Confirmed on State Ledger")}</div>
-                  <div className="font-mono text-[11px] text-navy/70 space-y-1">
-                    <div>{t("Block: #4,829,104 · Slot: 500ms · Status: Finalized")}</div>
-                    <div>{t("Signatory: Registrar General of Aletheia · Inscription: Immutable")}</div>
-                  </div>
+              {tx(queryResult === 'none' && (
+                <div className="p-4 bg-navy/5 border border-navy/20 rounded-sm space-y-2 text-xs text-navy">
+                  <div className="font-bold">{t("No record found")}</div>
+                  <div className="text-[11px] text-navy/70">{t("The State Registry has not published any records on the ledger yet. Records will be verifiable here once StableChain mainnet is running.")}</div>
                 </div>
               ))}
             </form>

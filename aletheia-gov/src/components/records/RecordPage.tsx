@@ -2,7 +2,6 @@ import { notFound } from "next/navigation";
 import { ArrowLink } from "@/components/editorial/ArrowLink";
 import { Folio, MarginMeta } from "@/components/editorial/Folio";
 import { PageHead } from "@/components/editorial/PageHead";
-import { DemoTag } from "@/components/records/DemoTag";
 import { formatDateLong } from "@/lib/dates";
 import { getPublished, type Block, type RecordKind } from "@/server/records/public-records";
 
@@ -55,7 +54,6 @@ export async function RecordPage({ kind, slug, back }: { kind: RecordKind; slug:
       <PageHead mark={{ n: "R", label: LABEL[kind] }} title={record.title} lede={record.summary ?? ""} contour="a">
         <div className="flex flex-wrap items-center gap-4">
           <span className="t-ref text-gold-300">{record.reference}</span>
-          {record.demo ? <DemoTag className="border-[#f3b4b4] text-[#f3b4b4]" /> : null}
         </div>
       </PageHead>
       <div className="ledger py-[clamp(4rem,8vw,8rem)]">
@@ -72,12 +70,6 @@ export async function RecordPage({ kind, slug, back }: { kind: RecordKind; slug:
             />
           }
         >
-          {record.demo ? (
-            <p className="mb-10 border-l-2 border-[#9b2c2c] bg-parchment-50 px-5 py-4 text-[0.9375rem] text-ink-700">
-              <strong className="font-semibold text-[#9b2c2c]">Demonstration data.</strong> This record exists only in the demonstration database, to show how the
-              public record works. It is not an official record of the founding government.
-            </p>
-          ) : null}
           <article className="prose-ledger">
             {record.body.length ? record.body.map((b, i) => <BlockView key={i} block={b} />) : <p className="text-ink-600">This record has no further text.</p>}
           </article>

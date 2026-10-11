@@ -8,7 +8,6 @@ import { Photo } from "@/components/media/Photo";
 import { StatusSeal } from "@/components/records/StatusSeal";
 import { topLevelInstitutions } from "@/content/institutions";
 import { featuredProgrammes } from "@/content/programmes";
-import { DemoTag } from "@/components/records/DemoTag";
 import { formatDateLong, formatDateShort } from "@/lib/dates";
 import { site } from "@/lib/site";
 import { lastPublishedAt, listPublished } from "@/server/records/public-records";
@@ -290,7 +289,6 @@ export default async function HomePage() {
                       <span className="t-ref text-gold-400">{o.reference}</span>
                       <span className="mt-1 block text-[1.125rem] text-parchment-50">{o.title}</span>
                       {o.issuer ? <span className="text-[0.875rem] text-parchment-300">{o.issuer}</span> : null}
-                      {o.demo ? <DemoTag className="ml-3 border-[#f3b4b4] text-[#f3b4b4]" /> : null}
                     </Link>
                   </li>
                 ))}
@@ -334,7 +332,6 @@ export default async function HomePage() {
                             <span className="t-ref text-[0.75rem] text-ink-500">{formatDateShort(r.publishedAt)}</span>
                           </span>
                           <span className="mt-1.5 block text-[1rem] font-medium leading-snug text-ink-900 group-hover:text-navy-600">{r.title}</span>
-                          {r.demo ? <DemoTag className="mt-2" /> : null}
                         </Link>
                       </li>
                     ))}

@@ -1,6 +1,9 @@
 # Going live
 
-How the site moves from the practice database on a laptop to the live database on Vercel.
+How the site goes live on Vercel against the live database.
+
+**Done on 2026-10-10:** steps 1 to 3 (key `c9e95a9a6553849c` for `gov`, new production secrets in
+the git-ignored `.env.production.local`, the three administrators created). **Next:** step 4.
 Secrets are created straight into files or Vercel and are never printed, committed or pasted
 into chat.
 
@@ -30,7 +33,7 @@ AUTH_SECRET=<new: openssl rand -base64 48>
 CRON_SECRET=<new: openssl rand -base64 48>
 ```
 
-Every secret is new: nothing is reused from the practice database. Keep an offline copy of
+Every secret is new. Keep an offline copy of
 `DATA_ENCRYPTION_MASTER_KEY`; without it, live registrations cannot be read.
 
 ## 3. Prepare the live database
@@ -50,7 +53,7 @@ npx vercel@60.1.1 env add <NAME> production < value
 npx vercel@60.1.1 deploy --prod
 ```
 
-Then check: the home page, `/register-interest` (form open, no practice badge), sign in at
+Then check: the home page, `/register-interest` (form open), sign in at
 `/sign-in`, and `/api/health`.
 
 ## 5. The domain

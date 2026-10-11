@@ -1,6 +1,6 @@
 import "server-only";
 import { z } from "zod";
-import { database, isDemoDatabase } from "@/server/aletheiadb/client";
+import { database } from "@/server/aletheiadb/client";
 
 // The single boundary between public pages and the public record (brief §8.2, §16).
 // Every query here hard-codes `publication.state = "published"` and `visibility = "public"`,
@@ -39,7 +39,7 @@ const PublicRecordSchema = z.object({
   body: z.array(Block).default([]),
   facts: z.array(z.object({ label: z.string(), value: z.string() })).default([]),
   publication: z.object({ state: z.literal("published"), publishedAt: z.string() }),
-  demo: z.boolean().optional(),
+  demo: z.boolean().optional(), // test records are never shown (toPublic)
 });
 
 export type PublicRecord = {
@@ -52,7 +52,6 @@ export type PublicRecord = {
   body: Block[];
   facts: { label: string; value: string }[];
   publishedAt: string;
-  demo: boolean;
 };
 
 export type Source = "aletheiadb" | "not_configured" | "unavailable";
@@ -70,6 +69,7 @@ function toPublic(doc: unknown): PublicRecord | null {
   const parsed = PublicRecordSchema.safeParse(doc);
   if (!parsed.success) return null; // malformed records are skipped, never half-rendered
   const r = parsed.data;
+  if (r.demo === true) return null; // the site shows real records only, never test data
   return {
     reference: r.reference,
     slug: r.slug,
@@ -80,7 +80,6 @@ function toPublic(doc: unknown): PublicRecord | null {
     body: r.body,
     facts: r.facts,
     publishedAt: r.publication.publishedAt,
-    demo: r.demo === true,
   };
 }
 
@@ -119,8 +118,4 @@ export async function lastPublishedAt(): Promise<string | null> {
   const listings = await Promise.all((Object.keys(COLLECTION) as RecordKind[]).map((k) => listPublished(k, { limit: 1 })));
   const dates = listings.flatMap((l) => l.items.map((i) => i.publishedAt)).sort();
   return dates.at(-1) ?? null;
-}
-
-export function connectedToDemo(): boolean {
-  return isDemoDatabase();
 }

@@ -55,19 +55,6 @@ export default function AdminLoginPage() {
     }, 1200);
   };
 
-  const handleDemoSignIn = () => {
-    setOfficerId('SEC-OFFICER-0091');
-    setPin('••••••');
-    setIsVerifying(true);
-    setOfficerSession({
-      id: 'SEC-OFFICER-0091',
-      name: 'Duty Officer Thorne',
-      role: 'ADSS Senior Registry Officer',
-      clearance: 'Level 4 Clearance',
-    });
-    setTimeout(() => { router.push('/admin'); }, 1200);
-  };
-
   return (
     <div className="flex flex-col min-h-screen login-cinematic text-parchment overflow-hidden">
 
@@ -271,53 +258,6 @@ export default function AdminLoginPage() {
                   </button>
                 </form>
               )}
-
-              {/* Divider */}
-              <div className="flex items-center gap-3">
-                <div className="flex-1 h-px" style={{ background: 'rgba(196,154,78,0.12)' }} />
-                <span className="text-[10px] font-mono" style={{ color: 'rgba(244,238,223,0.25)' }}>OR DEMO ACCESS</span>
-                <div className="flex-1 h-px" style={{ background: 'rgba(196,154,78,0.12)' }} />
-              </div>
-
-              {/* Demo button */}
-              <button
-                type="button"
-                onClick={handleDemoSignIn}
-                className="w-full py-3 rounded-sm border text-xs font-mono font-bold flex items-center justify-center gap-2 transition-all group"
-                style={{ background: 'rgba(196,154,78,0.06)', border: '1px solid rgba(196,154,78,0.25)', color: '#C49A4E' }}
-                onMouseEnter={e => { (e.target as HTMLElement).style.background = 'rgba(196,154,78,0.10)'; }}
-                onMouseLeave={e => { (e.target as HTMLElement).style.background = 'rgba(196,154,78,0.06)'; }}
-              >
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Quick Demo: Duty Officer Thorne (Level 4)</span>
-              </button>
-
-              {/* Security badges */}
-              <div className="flex items-center justify-center gap-4 pt-2">
-                {SECURITY_LEVELS.map(({ label, icon: Icon, color }) => (
-                  <div key={label} className="flex flex-col items-center gap-1 group" title={label}>
-                    <div className="w-7 h-7 rounded-sm flex items-center justify-center" style={{ background: `${color}18`, border: `1px solid ${color}30` }}>
-                      <Icon className="w-3.5 h-3.5" style={{ color }} />
-                    </div>
-                    <span className="text-[8px] font-mono text-center leading-tight" style={{ color: 'rgba(244,238,223,0.30)' }}>{label.split(' ')[0]}</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Return link */}
-              <div className="text-center">
-                <Link
-                  href="/"
-                  className="text-[11px] font-mono transition-colors inline-flex items-center gap-1"
-                  style={{ color: 'rgba(196,154,78,0.55)' }}
-                  onMouseEnter={e => { (e.target as HTMLElement).style.color = '#C49A4E'; }}
-                  onMouseLeave={e => { (e.target as HTMLElement).style.color = 'rgba(196,154,78,0.55)'; }}
-                >
-                  ← Return to Official State Platform
-                </Link>
-              </div>
-            </div>
-          </div>
 
           {/* Footnote */}
           <p className="text-center text-[10px] font-mono mt-4" style={{ color: 'rgba(244,238,223,0.20)' }}>

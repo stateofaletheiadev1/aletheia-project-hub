@@ -20,12 +20,12 @@ machine.
 
 | Email | Name | Roles | Database |
 |---|---|---|---|
-| emz@kortana.network | Emeka Iwuagwu | Administrator, Reviewer | practice (`gov_demo`) |
-| emeka@stateofaletheia.org | Emeka | Administrator, Reviewer | practice (`gov_demo`) |
-| su@stateofaletheia.org | Su | Administrator, Reviewer | practice (`gov_demo`) |
+| emz@kortana.network | Emeka Iwuagwu | Administrator, Reviewer | live (`gov`) |
+| emeka@stateofaletheia.org | Emeka | Administrator, Reviewer | live (`gov`) |
+| su@stateofaletheia.org | Su | Administrator, Reviewer | live (`gov`) |
 
-The live database (`gov`) gets the same three accounts when the site goes live, created with
-`scripts/admin-bootstrap.mjs`. Further accounts are added by an administrator under **Users**.
+Created on 2026-10-10 with `scripts/admin-bootstrap.mjs`, each with a temporary password that
+must be changed at first sign-in. Further accounts are added by an administrator under **Users**.
 
 ## The menu
 
@@ -37,7 +37,7 @@ The live database (`gov`) gets the same three accounts when the site goes live, 
 | Audit log | Auditors, administrators | Every sign-in, view, preview, download and change |
 | Account and security | Everyone | Change password, sign out everywhere |
 
-## Practice and live
+## Live only
 
-Locally the site uses the practice database and shows **Test data · practice database** at the
-top. The live site uses `gov` and shows no badge.
+There is no practice or demonstration mode. The site, locally and on Vercel, uses the live
+database `gov`, and shows only real records: anything marked as test data is never displayed.

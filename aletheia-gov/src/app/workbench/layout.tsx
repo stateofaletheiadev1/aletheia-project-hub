@@ -6,7 +6,6 @@ import { WorkbenchNav, type NavItem } from "@/components/workbench/WorkbenchNav"
 import { signOut } from "@/features/auth/actions";
 import { currentUser } from "@/server/auth/current-user";
 import { can, ROLE_LABEL } from "@/server/authorization/policies";
-import { connectedToDemo } from "@/server/records/public-records";
 
 // The Government Workbench (brief §13): authenticated, dynamic, never cached or indexed.
 export const dynamic = "force-dynamic";
@@ -58,11 +57,6 @@ export default async function WorkbenchLayout({ children }: { children: React.Re
             <span className="font-semibold text-[#8a5a00]">Two-factor sign-in is not enabled yet.</span> It is planned before the workbench is used with real records.
           </p>
           <div className="flex items-center gap-4">
-            {connectedToDemo() ? (
-              <span title="This local copy of the site is connected to gov_demo, a practice database with test records. The live site will use the real database, gov." className="border border-[#9b2c2c] px-2 py-0.5 font-semibold uppercase tracking-[0.08em] text-[#9b2c2c]">
-                Test data · practice database
-              </span>
-            ) : null}
             <Link href="/" className="link-ledger">
               Public site
             </Link>

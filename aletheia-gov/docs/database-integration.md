@@ -13,10 +13,10 @@ ALETHEIADB_URL=aletheiadb://<key id>:<secret>@db.stateofaletheia.org/<database>
 
 | Database | Used by | Contents |
 |---|---|---|
-| `gov` | The live site (Vercel) | Real records only |
-| `gov_demo` | Local development | Test data, labelled as such |
+| `gov` | The site, locally and on Vercel | Real records only |
 
-Each site uses a `readWrite` key for its own database only. Keys are created on the database
+There is no demonstration database: its key was revoked on 2026-10-10, and records flagged as
+test data are never displayed. The site uses a `readWrite` key for `gov` only. Keys are created on the database
 server with the root key (`aletheia-db/docs/OPERATIONS.md`, "API keys").
 
 ## Collections
@@ -51,5 +51,3 @@ All take `--env-file` with the target database's settings.
 | `migrate-staff-keys.mjs` | Move officer accounts onto their own keys (one-off, safe to re-run) |
 | `erase-person.mjs` | Erase a registrant on request |
 | `list-interest.mjs` | List registrations from the command line |
-| `qa-account.mjs` | Test account for automated checks, practice database only |
-| `seed-demo.mjs` | Fill the practice database with labelled test records |

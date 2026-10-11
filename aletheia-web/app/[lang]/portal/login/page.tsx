@@ -52,13 +52,6 @@ export default function CitizenPortalLoginPage() {
     setTimeout(() => { setIsAuthenticating(false); router.push('/portal'); }, 1200);
   };
 
-  const handleDemoSignIn = () => {
-    setCredentialId('ALE-ERES-2026-004928');
-    setIsAuthenticating(true);
-    setUserSession({ id: 'ALE-ERES-2026-004928', name: 'Dr. Elena Vasquez', role: 'E-Resident · Founder', status: 'E-Resident · Verified', avatarInitials: 'EV' });
-    setTimeout(() => { router.push('/portal'); }, 1200);
-  };
-
   return (
     <div className="flex min-h-screen overflow-hidden">
 
@@ -292,19 +285,6 @@ export default function CitizenPortalLoginPage() {
             <span className="text-[10px] font-bold" style={{ color: 'rgba(21,41,74,0.30)' }}>{t("OR")}</span>
             <div className="flex-1 h-px" style={{ background: 'rgba(21,41,74,0.10)' }} />
           </div>
-
-          {/* Demo button */}
-          <button
-            type="button"
-            onClick={handleDemoSignIn}
-            className="w-full py-3 rounded-sm text-sm font-bold flex items-center justify-center gap-2 transition-all"
-            style={{ background: 'rgba(21,41,74,0.06)', border: '1px solid rgba(21,41,74,0.12)', color: '#15294A' }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(21,41,74,0.10)'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(21,41,74,0.06)'; }}
-          >
-            <Sparkles className="w-4 h-4 text-gold" />
-            <span>{t("Demo: Dr. Elena Vasquez (E-Resident)")}</span>
-          </button>
 
           {/* New user / return link */}
           <div className="flex items-center justify-between mt-6 pt-5" style={{ borderTop: '1px solid rgba(21,41,74,0.08)' }}>

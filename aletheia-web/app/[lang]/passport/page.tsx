@@ -21,19 +21,14 @@ export default function PassportPortalPage() {
   const { t, tx } = useI18n();
   const { notify } = useToast();
   const [docId, setDocId] = useState('');
-  const [verifyStatus, setVerifyStatus] = useState<'idle' | 'searching' | 'valid' | 'invalid'>('idle');
+  const [verifyStatus, setVerifyStatus] = useState<'idle' | 'searching' | 'invalid'>('idle');
 
+  // No Aletheian passport has been issued yet, so every lookup truthfully finds nothing.
+  // Replace with a call to the document registry when issuance begins.
   const handleVerify = (e: React.FormEvent) => {
     e.preventDefault();
     if (!docId.trim()) return;
-    setVerifyStatus('searching');
-    setTimeout(() => {
-      if (docId.trim().toUpperCase().startsWith('AL') || docId.trim().toUpperCase().startsWith('AEY')) {
-        setVerifyStatus('valid');
-      } else {
-        setVerifyStatus('invalid');
-      }
-    }, 800);
+    setVerifyStatus('invalid');
   };
 
   return (
@@ -282,22 +277,13 @@ export default function PassportPortalPage() {
                 </button>
               </div>
 
-              {tx(verifyStatus === 'valid' && (
-                <div className="p-3.5 bg-laurel/10 border border-laurel/30 rounded-sm flex items-start gap-2.5 text-xs text-laurel">
-                  <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
-                  <div>
-                    <span className="font-bold block">{t("Document Cryptographically Valid")}</span>
-                    <span className="text-[11px] opacity-80">{t("Registered under National CSCA Root. Status: Active & Operational.")}</span>
-                  </div>
-                </div>
-              ))}
 
               {tx(verifyStatus === 'invalid' && (
                 <div className="p-3.5 bg-red-50 border border-red-200 rounded-sm flex items-start gap-2.5 text-xs text-red-700">
                   <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                   <div>
-                    <span className="font-bold block">{t("Specimen or Unregistered Record")}</span>
-                    <span className="text-[11px] opacity-80">{t("No active document issuance found for this identifier. Check syntax or contact Registry.")}</span>
+                    <span className="font-bold block">{t("No passport found")}</span>
+                    <span className="text-[11px] opacity-80">{t("Aletheian passports have not been issued yet, so no document can be verified.")}</span>
                   </div>
                 </div>
               ))}
@@ -309,15 +295,15 @@ export default function PassportPortalPage() {
               <div className="icon-sovereign"><KeyRound className="w-5 h-5 text-gold" /></div>
               <h3 className="text-lg font-bold text-parchment">{t("PKD & CSCA Certificate Download")}</h3>
             </div>
-            <p className="text-xs text-parchment/70 leading-relaxed">{t("Foreign border administration departments may download the latest Aletheian Country Signing CA (CSCA) root certificate and Master List for import into automated e-Gate border infrastructure.")}</p>
+            <p className="text-xs text-parchment/70 leading-relaxed">{t("The Aletheian Country Signing CA (CSCA) root certificate and Master List will be published here and to the ICAO PKD when passport issuance begins, for import into automated e-Gate border infrastructure.")}</p>
             <div className="space-y-3 font-mono text-[11px] bg-navy-deep p-4 rounded-sm border border-navy/40">
               <div className="flex justify-between border-b border-navy/40 pb-2">
                 <span className="text-gold">{t("CSCA SHA-256 Fingerprint:")}</span>
-                <span className="text-parchment/80">{t("9A:4F:2E:88:C1:92:30:FE...")}</span>
+                <span className="text-parchment/80">{t("Not yet published")}</span>
               </div>
               <div className="flex justify-between pt-1">
                 <span className="text-gold">{t("CRL Distribution Point:")}</span>
-                <span className="text-parchment/80">{t("https://pki.aletheia.gov/crl")}</span>
+                <span className="text-parchment/80">{t("Not yet published")}</span>
               </div>
             </div>
             <div className="flex gap-4 pt-2">

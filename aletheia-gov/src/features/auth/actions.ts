@@ -38,14 +38,25 @@ export async function signIn(_prev: FormState, form: FormData): Promise<FormStat
   const h = await headers();
   if (!perAddress(clientKey(h)).ok || !perAccount(email).ok) return { error: "Too many attempts. Please wait a minute and try again.", email };
 
-  const result = await checkCredentials(email, password);
-  if (!result.ok) {
-    await audit({ actorId: result.userId ?? null, action: "auth.sign_in", target: result.userId ? { type: "user", id: result.userId } : null, outcome: "failure", details: { reason: result.reason } });
-    return { error: GENERIC, email };
+  // The record database or a write to it can fail (misconfigured or unreachable):
+  // fail closed, but answer in the form, never with a 500 page. The detail goes
+  // to the server log, where an officer can diagnose it; the browser gets nothing
+  // that distinguishes a missing account from a down database.
+  let target: string | null = null;
+  try {
+    const result = await checkCredentials(email, password);
+    if (!result.ok) {
+      await audit({ actorId: result.userId ?? null, action: "auth.sign_in", target: result.userId ? { type: "user", id: result.userId } : null, outcome: "failure", details: { reason: result.reason } });
+      return { error: GENERIC, email };
+    }
+    await startSession(result.user);
+    await audit({ actorId: result.user._id, action: "auth.sign_in", target: { type: "user", id: result.user._id }, outcome: "success" });
+    target = result.user.mustChangePassword ? "/workbench/account?first=1" : safeNext(form.get("next"));
+  } catch (e) {
+    console.error("sign-in unavailable", e);
+    return { error: "Sign-in is temporarily unavailable. Please try again in a moment.", email };
   }
-  await startSession(result.user);
-  await audit({ actorId: result.user._id, action: "auth.sign_in", target: { type: "user", id: result.user._id }, outcome: "success" });
-  redirect(result.user.mustChangePassword ? "/workbench/account?first=1" : safeNext(form.get("next")));
+  redirect(target);
 }
 
 export async function signOut(): Promise<void> {
