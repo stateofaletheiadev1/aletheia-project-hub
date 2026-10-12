@@ -1,7 +1,7 @@
 'use client';
 
 import { useI18n } from '@/components/i18n/I18nProvider';
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useHydrated } from '@/lib/use-hydrated';
 import Link from '@/components/i18n/Link';
 import { usePathname, useRouter } from '@/lib/i18n/navigation';
@@ -41,7 +41,7 @@ const NAV_SECTIONS: NavSection[] = [
     title: 'My Dashboard',
     items: [
       { label: 'Overview', href: '/portal' },
-      { label: 'Notifications', href: '/portal/notifications', badge: '3', badgeColor: 'bg-gold/12 text-gold border border-gold/20' },
+      { label: 'Notifications', href: '/portal/notifications' },
     ],
   },
   {
@@ -49,14 +49,14 @@ const NAV_SECTIONS: NavSection[] = [
     items: [
       { label: 'My Digital Identity', href: '/portal/identity' },
       { label: 'Residency Status', href: '/portal/residency' },
-      { label: 'Biometric Credentials', href: '/portal/biometrics' },
+      { label: 'Keys & Security', href: '/portal/biometrics' },
     ],
   },
   {
     title: 'Documents',
     items: [
       { label: 'My Documents', href: '/portal/documents' },
-      { label: 'Applications', href: '/portal/apply', badge: '1 Pending', badgeColor: 'bg-gold/12 text-gold border border-gold/20' },
+      { label: 'Applications', href: '/portal/apply' },
     ],
   },
   {
@@ -87,7 +87,8 @@ const NAV_ICONS: Record<string, React.ComponentType<{ className?: string; style?
   '/portal/settings': Settings,
 };
 
-import { getUserSession, clearUserSession } from '@/lib/auth';
+import { ME, type PortalAccount, type PortalNotification } from '@/lib/auth';
+import { api, clearCache, useApi } from '@/lib/client/api';
 
 export function PortalShell({ children, userName, userStatus }: { children: React.ReactNode; userName?: string; userStatus?: string }) {
   const { t, tx } = useI18n();
@@ -95,17 +96,28 @@ export function PortalShell({ children, userName, userStatus }: { children: Reac
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const mounted = useHydrated();
-  const user = useMemo(() => {
-    const sess = mounted ? getUserSession() : null;
-    return {
-      name: userName || sess?.name || 'Dr. Elena Vasquez',
-      status: userStatus || sess?.status || 'E-Resident · Verified',
-      initials: sess?.avatarInitials || 'EV',
-    };
-  }, [mounted, userName, userStatus]);
+  const me = useApi<{ account: PortalAccount }>(ME);
+  const notes = useApi<{ notifications: PortalNotification[] }>(me.data ? '/api/portal/notifications' : null);
+  const unread = notes.data?.notifications.filter((n) => n.unread).length ?? 0;
+  const account = me.data?.account;
+  const verified = account?.status === 'e-resident' || account?.status === 'citizen';
+  const user = useMemo(
+    () => ({
+      name: userName || account?.name || '',
+      status: userStatus || account?.statusLabel || '',
+      initials: account?.avatarInitials || '',
+    }),
+    [account, userName, userStatus],
+  );
 
-  const handleLogout = () => {
-    clearUserSession();
+  // No valid session: back to sign-in.
+  useEffect(() => {
+    if (me.error?.status === 401) router.replace('/portal/login');
+  }, [me.error, router]);
+
+  const handleLogout = async () => {
+    await api('/api/portal/auth/logout', { body: {} }).catch(() => undefined);
+    clearCache();
     router.push('/portal/login');
   };
 
@@ -181,7 +193,7 @@ export function PortalShell({ children, userName, userStatus }: { children: Reac
           </div>
           <div className="mt-2.5 flex items-center gap-2">
             <div className="live-dot" />
-            <span className="text-[9px] font-mono font-bold tracking-wider" style={{ color: '#3D8664' }}>{t("IDENTITY VERIFIED")}</span>
+            <span className="text-[9px] font-mono font-bold tracking-wider" style={{ color: verified ? '#3D8664' : '#C49A4E' }}>{verified ? t("IDENTITY VERIFIED") : t("APPLICATION STAGE")}</span>
           </div>
         </div>
 
@@ -191,7 +203,8 @@ export function PortalShell({ children, userName, userStatus }: { children: Reac
             <div key={title} className={mounted ? 'animate-sidebar-reveal' : ''} style={{ animationDelay: `${sIdx * 35}ms` }}>
               <div className="sidebar-section-title">{tx(title)}</div>
               <div className="space-y-0.5">
-                {items.map(({ label, href, badge, badgeColor }) => {
+                {items.map(({ label, href, badge: staticBadge, badgeColor = 'bg-gold/12 text-gold border border-gold/20' }) => {
+                  const badge = href === '/portal/notifications' && unread > 0 ? String(unread) : staticBadge;
                   const Icon = NAV_ICONS[href] || LayoutDashboard;
                   const active = pathname === href;
                   return (
@@ -287,14 +300,18 @@ export function PortalShell({ children, userName, userStatus }: { children: Reac
             </Link>
 
             {/* Notifications */}
-            <button className="relative p-1.5 rounded-sm transition-colors hover:bg-navy/5" style={{ color: 'rgba(21,41,74,0.45)' }}>
+            <Link href="/portal/notifications" aria-label={t("Notifications")} className="relative p-1.5 rounded-sm transition-colors hover:bg-navy/5" style={{ color: 'rgba(21,41,74,0.45)' }}>
               <Bell className="w-4 h-4" />
-              <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full flex items-center justify-center text-[7px] font-extrabold text-white" style={{ background: 'linear-gradient(135deg, #C49A4E, #8F6A2A)' }}>3</span>
-            </button>
+              {tx(unread > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full flex items-center justify-center text-[7px] font-extrabold text-white" style={{ background: 'linear-gradient(135deg, #C49A4E, #8F6A2A)' }}>{unread}</span>
+              ))}
+            </Link>
 
             {/* Verified badge */}
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold status-pill-green">
-              <ShieldCheck className="w-3 h-3" />{t("Verified")}</div>
+            {tx(verified && (
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold status-pill-green">
+                <ShieldCheck className="w-3 h-3" />{t("Verified")}</div>
+            ))}
           </div>
         </header>
 
@@ -303,7 +320,11 @@ export function PortalShell({ children, userName, userStatus }: { children: Reac
           className="flex-1 overflow-y-auto"
           style={{ background: '#F2EFE6', scrollbarWidth: 'thin', scrollbarColor: 'rgba(21,41,74,0.10) transparent' }}
         >
-          {tx(children)}
+          {account ? tx(children) : (
+            <div className="p-8 text-sm font-mono" style={{ color: 'rgba(21,41,74,0.45)' }} role="status">
+              {me.error && me.error.status !== 401 ? me.error.message : t("Loading…")}
+            </div>
+          )}
         </main>
       </div>
     </div>

@@ -14,9 +14,14 @@
     "test:smoke": "node tests/smoke.mjs",
     "test:layout": "node tests/layout-audit.mjs",
     "test:i18n": "node tests/i18n-audit.mjs http://localhost:3123 de && node tests/i18n-audit.mjs http://localhost:3123 nl && node tests/i18n-audit.mjs http://localhost:3123 sr && node tests/i18n-audit.mjs http://localhost:3123 it && node tests/switcher.mjs",
-    "test": "npm run test:smoke && npm run test:layout && npm run test:i18n"
+    "test": "npm run test:smoke && npm run test:layout && npm run test:i18n",
+    "db:bootstrap": "node scripts/db/bootstrap.mjs",
+    "officer:bootstrap": "node scripts/db/officer-bootstrap.mjs",
+    "test:api": "node tests/api/run.mjs",
+    "test:ui": "node tests/api/ui.mjs"
   },
   "dependencies": {
+    "@aletheia/aletheiadb": "file:vendor/aletheia-aletheiadb-0.1.0.tgz",
     "clsx": "^2.1.1",
     "framer-motion": "^12.4.7",
     "lucide-react": "^0.475.0",

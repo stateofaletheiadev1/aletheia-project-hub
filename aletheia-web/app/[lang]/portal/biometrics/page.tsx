@@ -2,128 +2,118 @@
 
 import { useI18n } from '@/components/i18n/I18nProvider';
 import React, { useState } from 'react';
+import Link from '@/components/i18n/Link';
 import { PortalShell } from '@/components/layout/PortalShell';
-import {
-  Fingerprint,
-  CheckCircle2,
-  RefreshCw,
-  Lock,
-  Eye,
-} from 'lucide-react';
+import { CheckCircle2, KeyRound, Lock, RefreshCw, ShieldCheck } from 'lucide-react';
+import { api, setCached, useApi } from '@/lib/client/api';
+import { generateIdentityKey, saveTextFile } from '@/lib/client/keys';
+import { day, ME, type PortalAccount } from '@/lib/auth';
 
 export default function PortalBiometricsPage() {
-  const { t, tx } = useI18n();
+  const { t, tx, intl } = useI18n();
+  const me = useApi<{ account: PortalAccount }>(ME);
+  const account = me.data?.account;
   const [rotating, setRotating] = useState(false);
-  const [rotatedNotice, setRotatedNotice] = useState(false);
+  const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null);
 
-  const handleRotateKeys = () => {
+  // A new Ed25519 pair is made in the browser; the State receives only the public key.
+  const handleRotateKeys = async () => {
     setRotating(true);
-    setTimeout(() => {
-      setRotating(false);
-      setRotatedNotice(true);
-      setTimeout(() => setRotatedNotice(false), 4000);
-    }, 1200);
+    setNotice(null);
+    try {
+      const key = await generateIdentityKey();
+      const { account: updated } = await api<{ account: PortalAccount }>('/api/portal/identity/key', { body: { publicKey: key.publicKey } });
+      setCached(ME, { account: updated });
+      saveTextFile('aletheia-identity-key.pem', key.privatePem);
+      setNotice({ ok: true, text: t('New identity key registered. Your private key file has been downloaded: keep it safe.') });
+    } catch (e) {
+      setNotice({ ok: false, text: e instanceof Error ? e.message : t('The key could not be rotated.') });
+    }
+    setRotating(false);
   };
+
+  const cards = [
+    {
+      icon: KeyRound,
+      title: 'Identity key',
+      sub: 'Ed25519, made on your device',
+      rows: [
+        ['Status:', account?.publicKey ? 'Enrolled' : 'Not enrolled'],
+        ['Since:', account?.keyRotatedAt ? day(account.keyRotatedAt, intl) : '—'],
+      ],
+    },
+    {
+      icon: Lock,
+      title: 'Passphrase',
+      sub: 'Scrypt-hashed on the server',
+      rows: [
+        ['Lockout:', 'After 10 failed attempts'],
+        ['Last sign-in:', account?.lastSignInAt ? day(account.lastSignInAt, intl) : '—'],
+      ],
+    },
+    {
+      icon: ShieldCheck,
+      title: 'Sessions',
+      sub: 'HttpOnly cookie, server-side',
+      rows: [
+        ['Idle timeout:', '30 minutes'],
+        ['Maximum length:', '12 hours'],
+      ],
+    },
+  ];
 
   return (
     <PortalShell>
       <div className="p-6 lg:p-8 space-y-6">
-        {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold text-navy">{t("Biometric Credentials & Passkeys")}</h1>
-              <span className="px-2 py-0.5 rounded-sm text-[10px] font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">{t("ICAO DOC 9303 COMPLIANT")}</span>
-            </div>
-            <p className="text-[12px] text-navy/50 mt-0.5">{t("Hardware-anchored FIDO2 / WebAuthn passkeys and cryptographic biometric templates")}</p>
+            <h1 className="text-xl font-bold text-navy">{t("Keys & Account Security")}</h1>
+            <p className="text-[12px] text-navy/50 mt-0.5">{t("Your identity key, passphrase and sessions")}</p>
           </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleRotateKeys}
-              disabled={rotating}
-              className="px-3.5 py-1.5 bg-navy text-parchment text-xs font-semibold rounded-sm hover:bg-navy-deep transition-colors flex items-center gap-1.5 disabled:opacity-50"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 text-gold ${rotating ? 'animate-spin' : ''}`} />
-              <span>{tx(rotating ? 'Generating Ephemeral Key...' : 'Rotate Hardware Passkey')}</span>
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={handleRotateKeys}
+            disabled={rotating}
+            className="px-3.5 py-1.5 bg-navy text-parchment text-xs font-semibold rounded-sm hover:bg-navy-deep transition-colors flex items-center gap-1.5 disabled:opacity-60"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 text-gold ${rotating ? 'animate-spin' : ''}`} />
+            <span>{tx(rotating ? 'Generating key…' : 'Rotate identity key')}</span>
+          </button>
         </div>
 
-        {tx(rotatedNotice && (
-          <div className="p-3 bg-emerald-50 border border-emerald-300 rounded-sm text-xs font-mono text-emerald-800 flex items-center gap-2 animate-fadeIn">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-            <span>{t("Passkey pair successfully rotated and anchored to your biometric enclave.")}</span>
+        {tx(notice && (
+          <div role="status" className={`p-3 border rounded-sm text-xs font-mono flex items-center gap-2 ${notice.ok ? 'bg-emerald-50 border-emerald-300 text-emerald-800' : 'bg-red-50 border-red-300 text-red-800'}`}>
+            <CheckCircle2 className="w-4 h-4 shrink-0" />
+            <span>{tx(notice.text)}</span>
           </div>
         ))}
 
-        {/* Biometric Credentials Status */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 font-mono text-xs">
-          <div className="p-6 rounded-sm bg-white border border-navy/10 space-y-4">
-            <div className="w-10 h-10 rounded-sm bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-700">
-              <Fingerprint className="w-6 h-6" />
-            </div>
-            <div>
-              <h3 className="text-sm font-bold text-navy font-sans">{t("Touch ID / FIDO2 Passkey")}</h3>
-              <p className="text-[11px] text-navy/50 font-sans mt-0.5">{t("Hardware Secure Enclave")}</p>
-            </div>
-            <div className="pt-2 border-t border-navy/5 space-y-1 text-[11px]">
-              <div className="flex justify-between">
-                <span className="text-navy/50">{t("Status:")}</span>
-                <span className="text-emerald-700 font-bold">{t("Enrolled")}</span>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {cards.map(({ icon: Icon, title, sub, rows }) => (
+            <div key={title} className="p-6 rounded-sm bg-white border border-navy/10 space-y-4 shadow-sm">
+              <div className="w-10 h-10 rounded-sm bg-navy/5 border border-navy/10 flex items-center justify-center">
+                <Icon className="w-5 h-5 text-gold" />
               </div>
-              <div className="flex justify-between">
-                <span className="text-navy/50">{t("Algorithm:")}</span>
-                <span className="text-navy">{t("ES256 (P-256)")}</span>
+              <div>
+                <h3 className="text-sm font-bold text-navy font-sans">{tx(title)}</h3>
+                <p className="text-[11px] text-navy/50 font-sans mt-0.5">{tx(sub)}</p>
               </div>
-            </div>
-          </div>
-
-          <div className="p-6 rounded-sm bg-white border border-navy/10 space-y-4">
-            <div className="w-10 h-10 rounded-sm bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-700">
-              <Eye className="w-6 h-6" />
-            </div>
-            <div>
-              <h3 className="text-sm font-bold text-navy font-sans">{t("ICAO 9303 Face Template")}</h3>
-              <p className="text-[11px] text-navy/50 font-sans mt-0.5">{t("Biometric Border e-Gate Ready")}</p>
-            </div>
-            <div className="pt-2 border-t border-navy/5 space-y-1 text-[11px]">
-              <div className="flex justify-between">
-                <span className="text-navy/50">{t("Status:")}</span>
-                <span className="text-emerald-700 font-bold">{t("Verified & Stamped")}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-navy/50">{t("Privacy Proof:")}</span>
-                <span className="text-navy">{t("Zero-Knowledge Vector")}</span>
+              <div className="space-y-2 text-xs font-mono">
+                {rows.map(([k, v]) => (
+                  <div key={k} className="flex justify-between">
+                    <span className="text-navy/50">{tx(k)}</span>
+                    <span className="text-navy font-bold">{tx(v)}</span>
+                  </div>
+                ))}
               </div>
             </div>
-          </div>
-
-          <div className="p-6 rounded-sm bg-white border border-navy/10 space-y-4">
-            <div className="w-10 h-10 rounded-sm bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-700">
-              <Lock className="w-6 h-6" />
-            </div>
-            <div>
-              <h3 className="text-sm font-bold text-navy font-sans">{t("Post-Quantum Key Exchange")}</h3>
-              <p className="text-[11px] text-navy/50 font-sans mt-0.5">{t("NIST ML-KEM768 Enclave")}</p>
-            </div>
-            <div className="pt-2 border-t border-navy/5 space-y-1 text-[11px]">
-              <div className="flex justify-between">
-                <span className="text-navy/50">{t("Status:")}</span>
-                <span className="text-emerald-700 font-bold">{t("Active Shield")}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-navy/50">{t("Quantum Resilient:")}</span>
-                <span className="text-emerald-700 font-bold">{t("YES")}</span>
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
 
-        {/* Security Information */}
-        <div className="p-5 rounded-sm bg-white border border-navy/10 space-y-2">
-          <h4 className="text-xs font-bold text-navy uppercase tracking-wider">{t("Zero-Knowledge Biometric Privacy Policy")}</h4>
-          <p className="text-xs text-navy/70 leading-relaxed font-sans">{t("Under Covenant Constitution Article 14, biometric raw scans are never stored in centralized state repositories. Only irreversible mathematical hashes and zero-knowledge cryptographic proofs are anchored to your sovereign DID.")}</p>
+        <div className="p-5 rounded-sm bg-white border border-gold/30 space-y-2">
+          <h4 className="text-xs font-bold text-navy uppercase tracking-wider">{t("Your private key stays with you")}</h4>
+          <p className="text-xs text-navy/70 leading-relaxed font-sans">{t("The State stores only your public key. If you lose your private key file, rotate your key here: the old public key is replaced.")}</p>
+          <Link href="/portal/settings" className="text-xs font-bold text-gold">{t("Change passphrase →")}</Link>
         </div>
       </div>
     </PortalShell>

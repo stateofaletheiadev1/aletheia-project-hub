@@ -6,24 +6,28 @@ import { downloadPortalDocument } from '@/lib/pdf/portal';
 import Link from '@/components/i18n/Link';
 import { PortalShell } from '@/components/layout/PortalShell';
 import { StarOfTruth } from '@/components/brand/Logo';
-import { EXAMPLE, shortId } from '@/lib/stablechain';
+import { useApi } from '@/lib/client/api';
+import { day, ME, type PortalAccount, type PortalDocument } from '@/lib/auth';
 import {
   Fingerprint,
   Copy,
-  QrCode,
   Download,
 } from 'lucide-react';
 
 export default function PortalDigitalIdentityPage() {
-  const { t, tx } = useI18n();
+  const { t, tx, intl } = useI18n();
   const [copiedKey, setCopiedKey] = useState(false);
   const [copiedDid, setCopiedDid] = useState(false);
+  const me = useApi<{ account: PortalAccount }>(ME);
+  const docs = useApi<{ documents: PortalDocument[] }>('/api/portal/documents');
+  const account = me.data?.account;
+  const credential = docs.data?.documents.find((d) => d.kind === 'digital-credential') ?? docs.data?.documents.find((d) => d.kind === 'e-residence-certificate');
 
-  const publicKey = EXAMPLE.citizenPublicKey;
-  const didUri = `did:aletheia:${EXAMPLE.citizen}`;
+  const publicKey = account?.publicKey ?? t('No identity key enrolled yet. It is created when you apply.');
+  const didUri = account?.did ?? '';
 
   const handleCopyKey = () => {
-    navigator.clipboard.writeText(publicKey);
+    if (account?.publicKey) navigator.clipboard.writeText(account.publicKey);
     setCopiedKey(true);
     setTimeout(() => setCopiedKey(false), 2000);
   };
@@ -42,7 +46,7 @@ export default function PortalDigitalIdentityPage() {
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-bold text-navy">{t("My Sovereign Digital Identity")}</h1>
-              <span className="px-2 py-0.5 rounded-sm text-[10px] font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">{t("Tier I Verified")}</span>
+              <span className="px-2 py-0.5 rounded-sm text-[10px] font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">{tx(account?.statusLabel ?? '')}</span>
             </div>
             <p className="text-[12px] text-navy/50 mt-0.5">{t("Self-sovereign cryptographic credential issued under Sovereign Covenant State Digital Identity Charter § 3")}</p>
           </div>
@@ -88,18 +92,19 @@ export default function PortalDigitalIdentityPage() {
                   <div
                     className="w-16 h-16 rounded-full flex items-center justify-center text-xl font-bold text-navy shrink-0 shadow-lg"
                     style={{ background: 'linear-gradient(135deg, #E4C689, #C49A4E)' }}
-                  >{t("EV")}</div>
+                  >{tx(account?.avatarInitials ?? '')}</div>
                   <div>
-                    <h2 className="text-xl font-bold text-parchment font-sans">{t("Dr. Elena Vasquez")}</h2>
-                    <p className="text-gold text-xs font-mono mt-0.5">{t("E-Resident · Founder")}</p>
-                    <p className="text-[11px] text-parchment/60 font-mono mt-0.5">{t("National ID: ALE-ERES-2026-004928")}</p>
+                    <h2 className="text-xl font-bold text-parchment font-sans">{tx(account?.name ?? '')}</h2>
+                    <p className="text-gold text-xs font-mono mt-0.5">{tx(account?.role ?? '')}</p>
+                    <p className="text-[11px] text-parchment/60 font-mono mt-0.5">{t('Registry ID: {id}', { id: account?.id ?? '' })}</p>
+                    {tx(account?.nationalId && <p className="text-[11px] text-parchment/60 font-mono mt-0.5">{t('National ID: {id}', { id: account.nationalId })}</p>)}
+                    {tx(account?.passportNumber && <p className="text-[11px] text-parchment/60 font-mono mt-0.5">{t('Passport: {id}', { id: account.passportNumber })}</p>)}
                   </div>
                 </div>
 
                 <div className="text-right sm:text-right font-mono text-xs text-parchment/60 space-y-1">
-                  <div>{t("Issued:")}{' '}<strong className="text-parchment">2026-10-01</strong></div>
-                  <div>{t("Expires:")}{' '}<strong className="text-gold">2029-10-01</strong></div>
-                  <div>{t("Clearance:")}{' '}<strong className="text-emerald-400">{t("Civil & Enterprise")}</strong></div>
+                  <div>{t("Issued:")}{' '}<strong className="text-parchment">{day(account?.residency?.validFrom ?? account?.createdAt, intl)}</strong></div>
+                  <div>{t("Expires:")}{' '}<strong className="text-gold">{account?.residency ? day(account.residency.validUntil, intl) : '—'}</strong></div>
                 </div>
               </div>
 
@@ -137,8 +142,8 @@ export default function PortalDigitalIdentityPage() {
                 </div>
 
                 <div className="p-3 rounded-sm bg-parchment-light border border-navy/5 space-y-1">
-                  <span className="text-[10px] text-navy/45 uppercase block">{t("Covenant Oath Anchor")}</span>
-                  <span className="text-emerald-700 font-bold">{t("Signed on Block #8,421,902")}</span>
+                  <span className="text-[10px] text-navy/45 uppercase block">{t("Key enrolled")}</span>
+                  <span className="text-emerald-700 font-bold">{account?.keyRotatedAt ? day(account.keyRotatedAt, intl) : '—'}</span>
                 </div>
 
                 <div className="p-3 rounded-sm bg-parchment-light border border-navy/5 space-y-1">
@@ -148,7 +153,7 @@ export default function PortalDigitalIdentityPage() {
 
                 <div className="p-3 rounded-sm bg-parchment-light border border-navy/5 space-y-1">
                   <span className="text-[10px] text-navy/45 uppercase block">{t("Cryptographic Key Type")}</span>
-                  <span className="text-navy font-bold">{t("Ed25519 + ML-KEM Post-Quantum")}</span>
+                  <span className="text-navy font-bold">{t("Ed25519")}</span>
                 </div>
               </div>
             </div>
@@ -157,23 +162,25 @@ export default function PortalDigitalIdentityPage() {
           {/* Right Column: QR Verification & Quick Actions */}
           <div className="lg:col-span-4 space-y-6">
             <div className="p-6 rounded-sm bg-white border border-navy/10 space-y-4 text-center">
-              <h3 className="text-xs font-bold text-navy uppercase tracking-wider">{t("Instant Verification QR")}</h3>
-              <p className="text-[11px] text-navy/60">{t("Scan with any sovereign e-Gate terminal or civic verification reader")}</p>
+              <h3 className="text-xs font-bold text-navy uppercase tracking-wider">{t("Your Credential")}</h3>
+              <p className="text-[11px] text-navy/60">{t("Officers verify you by your registry ID and identifier")}</p>
 
-              <div className="w-40 h-40 mx-auto bg-parchment-light border border-navy/15 rounded-sm p-3 flex flex-col items-center justify-center">
-                <QrCode className="w-28 h-28 text-navy" />
-                <span className="text-[9px] font-mono text-navy/40 mt-1">{`did:aletheia:${shortId(EXAMPLE.citizen, 8, 4)}`}</span>
+              <div className="mx-auto bg-parchment-light border border-navy/15 rounded-sm p-4 flex flex-col items-center justify-center gap-2">
+                <Fingerprint className="w-10 h-10 text-navy" />
+                <span className="text-[10px] font-mono text-navy/60 break-all" translate="no">{didUri}</span>
               </div>
 
               <div className="pt-2">
                 <button
                 type="button"
-                onClick={() => void downloadPortalDocument('digital-credential', 'Aletheia_Digital_Credential.pdf')}
+                disabled={!credential || !account}
+                onClick={() => credential?.kind && account && void downloadPortalDocument(credential.kind, credential.name, account, credential)}
                 className="w-full py-2 bg-navy text-parchment text-xs font-semibold rounded-sm hover:bg-navy-deep transition-colors flex items-center justify-center gap-1.5"
               >
                   <Download className="w-3.5 h-3.5 text-gold" />
                   <span>{t("Download Digital Credential")}</span>
                 </button>
+                {tx(!credential && <p className="text-[10px] text-navy/50 mt-2">{t("Available once an application is approved.")}</p>)}
               </div>
             </div>
           </div>

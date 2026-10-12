@@ -3,7 +3,8 @@
 import { useI18n } from '@/components/i18n/I18nProvider';
 import React, { useState } from 'react';
 import { PortalShell } from '@/components/layout/PortalShell';
-import { EXAMPLE, shortId } from '@/lib/stablechain';
+import { api, reload, setCached, useApi } from '@/lib/client/api';
+import { day, ME, shortHash } from '@/lib/auth';
 import {
   CreditCard,
   Send,
@@ -13,81 +14,47 @@ import {
   X,
 } from 'lucide-react';
 
-interface Transaction {
-  id: string;
-  type: 'Credit' | 'Debit';
-  description: string;
-  amount: string;
-  date: string;
-  hash: string;
+interface Wallet {
+  balance: number;
+  address: string;
+  transactions: { id: string; type: 'Credit' | 'Debit'; description: string; amount: number; date: string; hash: string }[];
 }
 
-const TRANSACTIONS: Transaction[] = [
-  {
-    id: 'TX-901',
-    type: 'Credit',
-    description: 'Quarterly Sovereign Development Bond Coupon',
-    amount: '+240.00 AEY',
-    date: '2026-10-02',
-    hash: 'AL:Thm44l3…d29q',
-  },
-  {
-    id: 'TX-900',
-    type: 'Debit',
-    description: 'Antioch Municipal Platform Berth Retainer',
-    amount: '-150.00 AEY',
-    date: '2026-09-28',
-    hash: 'AL:T0e46wm…7r43',
-  },
-  {
-    id: 'TX-899',
-    type: 'Credit',
-    description: 'Inward Settlement from Kaelen Vance Marine Ltd',
-    amount: '+4,500.00 AEY',
-    date: '2026-09-15',
-    hash: 'AL:T9srtal…rdnh',
-  },
-  {
-    id: 'TX-898',
-    type: 'Debit',
-    description: 'E-Residency 3-Year Statutory Registration Fee',
-    amount: '-100.00 AEY',
-    date: '2026-09-01',
-    hash: 'AL:Txn9s5y…n2wj',
-  },
-];
+const PATH = '/api/portal/wallet';
 
 export default function PortalAeyWalletPage() {
   const { t, tx, intl } = useI18n();
-  const [balance, setBalance] = useState('12,400.00');
-  const [transactions, setTransactions] = useState(TRANSACTIONS);
+  const { data } = useApi<Wallet>(PATH);
+  const money = (n: number) => n.toLocaleString(intl, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const balance = money(data?.balance ?? 0);
+  const transactions = data?.transactions ?? [];
   const [sendModal, setSendModal] = useState(false);
   const [recipient, setRecipient] = useState('');
   const [amount, setAmount] = useState('');
+  const [memo, setMemo] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
 
-  const handleSend = (e: React.FormEvent) => {
+  const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!amount || isNaN(Number(amount))) return;
-    const num = Number(amount);
-    const newBal = (Number(balance.replace(',', '')) - num).toFixed(2);
-    setBalance(Number(newBal).toLocaleString('en-US', { minimumFractionDigits: 2 }));
-    setTransactions([
-      {
-        id: `TX-${Math.floor(Math.random() * 900) + 100}`,
-        type: 'Debit',
-        description: t('Direct transfer to {recipient}', { recipient: `${recipient.slice(0, 10)}...` }),
-        amount: `-${num.toFixed(2)} AEY`,
-        date: 'Just now',
-        hash: shortId(EXAMPLE.tx[8 + (transactions.length % 4)]),
-      },
-      ...transactions,
-    ]);
-    setSendModal(false);
-    setRecipient('');
-    setAmount('');
-    setNotice(t('Transfer of {amount} AEY confirmed on StableChain.', { amount: num.toLocaleString(intl, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }));
-    setTimeout(() => setNotice(null), 4000);
+    setBusy(true);
+    setError(null);
+    try {
+      const r = await api<{ transfer: { reference: string; amount: number }; wallet: Wallet }>('/api/portal/wallet/transfers', { body: { recipient, amount: Number(amount), memo } });
+      setCached(PATH, r.wallet);
+      await reload(ME);
+      setSendModal(false);
+      setRecipient('');
+      setAmount('');
+      setMemo('');
+      setNotice(t('Transfer of {amount} AEY completed ({reference}).', { amount: money(r.transfer.amount), reference: r.transfer.reference }));
+      setTimeout(() => setNotice(null), 5000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('The transfer failed.'));
+    }
+    setBusy(false);
   };
 
   return (
@@ -133,8 +100,7 @@ export default function PortalAeyWalletPage() {
                 <div className="text-3xl sm:text-4xl font-extrabold font-mono text-parchment mt-1">
                   {tx(balance)} <span className="text-gold text-xl">{t("AEY")}</span>
                 </div>
-                <div className="text-xs text-parchment/60 font-mono mt-1">
-                  ≈ €{tx(balance)}{' '}{t("EUR Guaranteed Parity")}</div>
+                <div className="text-xs text-parchment/60 font-mono mt-1">{t('Wallet ID: {id}', { id: data?.address ?? '' })}</div>
               </div>
 
               <div className="p-3 rounded-full bg-navy border border-gold/40 text-gold shadow-md">
@@ -143,20 +109,13 @@ export default function PortalAeyWalletPage() {
             </div>
 
             <div className="mt-6 pt-4 border-t border-gold/20 flex flex-wrap items-center justify-between text-xs font-mono text-parchment/60 gap-3">
-              <span>{t("Settlement Slot Time:")}{' '}<strong>{t("500 ms")}</strong></span>
-              <span>{t("Network Fee:")}{' '}<strong>{t("Fixed Schedule")}</strong></span>
-              <span className="text-emerald-400">{t("Reserve Backing:")}{' '}<strong>100%</strong></span>
+              <span>{t("Transfers between portal accounts settle immediately in the national registry.")}</span>
             </div>
           </div>
 
           <div className="p-6 rounded-sm bg-white border border-navy/10 space-y-4">
-            <h3 className="text-xs font-bold text-navy uppercase tracking-wider">{t("Bond Portfolio Holdings")}</h3>
-            <div>
-              <div className="text-xl font-bold font-mono text-navy">{t("25,000.00 AEY")}</div>
-              <div className="text-[11px] text-navy/50 font-mono">{t("SDB Tranche 2026-A (4.2% Yield)")}</div>
-            </div>
-            <div className="pt-2 border-t border-navy/5 text-xs text-navy/60 font-sans leading-relaxed">{t("Next quarterly coupon distribution scheduled for")}{' '}<strong>2027-01-02</strong>.
-            </div>
+            <h3 className="text-xs font-bold text-navy uppercase tracking-wider">{t("How AEY reaches your wallet")}</h3>
+            <p className="text-xs text-navy/60 font-sans leading-relaxed">{t("Other account holders can send you AEY using your Aletheia ID. Every transfer is recorded with a SHA-256 fingerprint in both wallets.")}</p>
           </div>
         </div>
 
@@ -164,7 +123,7 @@ export default function PortalAeyWalletPage() {
         <div className="p-6 rounded-sm bg-white border border-navy/10 space-y-4">
           <div className="flex items-center justify-between border-b border-navy/10 pb-3">
             <h3 className="text-xs font-bold text-navy uppercase tracking-wider">{t("Recent Settlement Ledger")}</h3>
-            <span className="text-[11px] font-mono text-navy/40">{t("Real-Time Consensus")}</span>
+            <span className="text-[11px] font-mono text-navy/40">{t('{count} entries', { count: transactions.length })}</span>
           </div>
 
           <div className="overflow-x-auto">
@@ -173,7 +132,7 @@ export default function PortalAeyWalletPage() {
                 <tr>
                   <th className="py-2">{t("Description")}</th>
                   <th className="py-2">{t("Date")}</th>
-                  <th className="py-2">{t("Transaction Hash")}</th>
+                  <th className="py-2">{t("Fingerprint")}</th>
                   <th className="py-2 text-right">{t("Amount")}</th>
                 </tr>
               </thead>
@@ -188,19 +147,20 @@ export default function PortalAeyWalletPage() {
                       ))}
                       <span>{tx(txn.description)}</span>
                     </td>
-                    <td className="py-3 text-navy/50">{tx(txn.date)}</td>
-                    <td className="py-3 text-gold" translate="no" data-i18n-skip="">{txn.hash}</td>
+                    <td className="py-3 text-navy/50">{day(txn.date, intl)}</td>
+                    <td className="py-3 text-gold" translate="no" data-i18n-skip="">{shortHash(txn.hash)}</td>
                     <td
                       className={`py-3 text-right font-bold ${
                         txn.type === 'Credit' ? 'text-emerald-700' : 'text-navy'
                       }`}
                     >
-                      {tx(txn.amount)}
+                      {txn.type === 'Credit' ? '+' : '-'}{money(txn.amount)} AEY
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            {tx(transactions.length === 0 && <p className="py-8 text-center text-xs text-navy/50">{t("No transactions yet.")}</p>)}
           </div>
         </div>
 
@@ -219,11 +179,11 @@ export default function PortalAeyWalletPage() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10px] uppercase tracking-wider text-navy/60 block">{t("Recipient DID or AEY Address")}</label>
+                <label className="text-[10px] uppercase tracking-wider text-navy/60 block">{t("Recipient Aletheia ID")}</label>
                 <input
                   type="text"
                   required
-                  placeholder={t("AL:… address or did:aletheia:AL:…")}
+                  placeholder={t("e.g. ALE-ID-2026-000002")}
                   value={recipient}
                   onChange={(e) => setRecipient(e.target.value)}
                   className="w-full px-3 py-2 bg-parchment-light border border-navy/20 rounded-sm text-navy focus:outline-none focus:border-gold"
@@ -235,6 +195,7 @@ export default function PortalAeyWalletPage() {
                 <input
                   type="number"
                   step="0.01"
+                  min="0.01"
                   required
                   placeholder="0.00"
                   value={amount}
@@ -245,14 +206,21 @@ export default function PortalAeyWalletPage() {
 
               <div className="p-3 rounded-sm bg-parchment-light text-[11px] text-navy/60 space-y-1">
                 <div className="flex justify-between">
-                  <span>{t("Network Fee:")}</span>
-                  <span className="text-emerald-700 font-bold">{t("0.00 AEY (Subsidized)")}</span>
+                  <span>{t("Fee:")}</span>
+                  <span className="text-emerald-700 font-bold">{t("0.00 AEY")}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>{t("Settlement Guarantee:")}</span>
-                  <span className="text-navy font-bold">{t("Final in About a Second")}</span>
+                  <span>{t("Available:")}</span>
+                  <span className="text-navy font-bold">{balance} AEY</span>
                 </div>
               </div>
+
+              <div className="space-y-1">
+                <label htmlFor="wallet-memo" className="text-[10px] uppercase tracking-wider text-navy/60 block">{t("Reference (optional)")}</label>
+                <input id="wallet-memo" type="text" maxLength={140} value={memo} onChange={(e) => setMemo(e.target.value)} className="w-full px-3 py-2 bg-parchment-light border border-navy/20 rounded-sm text-navy focus:outline-none focus:border-gold" />
+              </div>
+
+              {tx(error && <p role="alert" className="text-xs font-semibold text-red-700 font-sans">{tx(error)}</p>)}
 
               <div className="flex justify-end gap-2 pt-2 border-t border-navy/10">
                 <button
@@ -263,6 +231,7 @@ export default function PortalAeyWalletPage() {
                 <button
                   type="submit"
                   className="px-4 py-1.5 bg-navy text-parchment text-xs font-semibold rounded-sm hover:bg-navy-deep"
+                  disabled={busy}
                 >{t("Authorize Payment")}</button>
               </div>
             </form>

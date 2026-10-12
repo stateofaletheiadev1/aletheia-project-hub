@@ -2,73 +2,28 @@
 
 import React, { useState } from 'react';
 import { AdminShell } from '@/components/layout/AdminShell';
+import { useApi } from '@/lib/client/api';
+import { shortHash } from '@/lib/auth';
+import { ListState } from '@/components/admin/Notice';
 import { Activity } from 'lucide-react';
 
 interface ActivityLog {
   id: string;
   timestamp: string;
   actor: string;
-  category: 'Citizenship' | 'Border / E-Gate' | 'Incorporation' | 'Endowment' | 'Security';
+  category: string;
   action: string;
   hash: string;
-  status: 'Committed' | 'Validated';
+  outcome: 'success' | 'failure';
 }
 
-const INITIAL_LOGS: ActivityLog[] = [
-  {
-    id: 'ACT-9901',
-    timestamp: '2026-10-05 07:44:12 UTC',
-    actor: 'Cmdr. S. Okafor',
-    category: 'Citizenship',
-    action: 'Approved Naturalisation petition for Sophia Andreou (GRC)',
-    hash: 'AL:Thm44l3…d29q',
-    status: 'Committed',
-  },
-  {
-    id: 'ACT-9900',
-    timestamp: '2026-10-05 07:31:05 UTC',
-    actor: 'ST-BRENDAN-E-GATE-04',
-    category: 'Border / E-Gate',
-    action: 'Cleared ordinary entry for ALE-004928 (Dr. Elizabeth Thorne-Vance)',
-    hash: 'AL:T0e46wm…7r43',
-    status: 'Committed',
-  },
-  {
-    id: 'ACT-9899',
-    timestamp: '2026-10-05 07:15:44 UTC',
-    actor: 'Registrar System',
-    category: 'Incorporation',
-    action: 'Charter ratified: Antioch Modular Energy AG (ALE-AG-2026-0008)',
-    hash: 'AL:T9srtal…rdnh',
-    status: 'Committed',
-  },
-  {
-    id: 'ACT-9898',
-    timestamp: '2026-10-05 06:50:20 UTC',
-    actor: 'Treasury Validator Node 01',
-    category: 'Endowment',
-    action: 'AEY supply invariant verified: 100% reserve parity maintained',
-    hash: 'AL:Txn9s5y…n2wj',
-    status: 'Validated',
-  },
-  {
-    id: 'ACT-9897',
-    timestamp: '2026-10-05 06:12:11 UTC',
-    actor: 'ADSS Cybersecurity CERT',
-    category: 'Security',
-    action: 'Post-Quantum key rotation cycle completed across validator perimeter',
-    hash: 'AL:Tdhwcu5…jxa6',
-    status: 'Validated',
-  },
-];
-
 export default function AdminLiveActivityFeedPage() {
-  const [logs] = useState<ActivityLog[]>(INITIAL_LOGS);
   const [filter, setFilter] = useState('ALL');
-
-  const filtered = logs.filter(
-    (l) => filter === 'ALL' || l.category === filter
+  const { data, error, loading } = useApi<{ categories: string[]; events: ActivityLog[] }>(
+    filter === 'ALL' ? '/api/admin/activity' : `/api/admin/activity?category=${encodeURIComponent(filter)}`,
   );
+  const filtered = data?.events ?? [];
+  const categories = ['ALL', ...(data?.categories ?? [])];
 
   return (
     <AdminShell>
@@ -80,18 +35,18 @@ export default function AdminLiveActivityFeedPage() {
               <h1 className="text-xl font-bold text-parchment">Live Administrative Ledger Feed</h1>
               <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] font-mono bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                Live Stream
+                Audit Trail
               </span>
             </div>
             <p className="text-[12px] text-parchment/50 font-mono mt-0.5">
-              Append-only cryptographic state transitions recorded by ADSS &amp; Ministerial consoles
+              Every decision and sign-in, recorded in AletheiaDB with a SHA-256 fingerprint of the event
             </p>
           </div>
         </div>
 
         {/* Filters */}
         <div className="flex flex-wrap gap-2">
-          {['ALL', 'Citizenship', 'Border / E-Gate', 'Incorporation', 'Endowment', 'Security'].map((cat) => (
+          {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => setFilter(cat)}
@@ -108,6 +63,7 @@ export default function AdminLiveActivityFeedPage() {
 
         {/* Activity Stream */}
         <div className="space-y-3">
+          <ListState loading={loading} error={error} empty={filtered.length === 0} emptyText="Nothing recorded in this category yet." />
           {filtered.map((item) => (
             <div
               key={item.id}
@@ -131,18 +87,18 @@ export default function AdminLiveActivityFeedPage() {
                   <div className="flex items-center gap-3 text-[11px] font-mono text-parchment/45">
                     <span>Officer / Node: <strong className="text-parchment/70">{item.actor}</strong></span>
                     <span>·</span>
-                    <span>{item.timestamp}</span>
+                    <span>{new Date(item.timestamp).toLocaleString('en-GB', { timeZone: 'UTC' })} UTC</span>
                   </div>
                 </div>
               </div>
 
               <div className="flex items-center gap-3 shrink-0 text-right font-mono text-xs">
                 <div>
-                  <span className="text-[10px] text-parchment/40 block">BLOCK PROOF</span>
-                  <span className="text-gold text-[11px]" translate="no" data-i18n-skip="">{item.hash}</span>
+                  <span className="text-[10px] text-parchment/40 block">SHA-256</span>
+                  <span className="text-gold text-[11px]" translate="no" data-i18n-skip="">{item.hash ? shortHash(item.hash) : '—'}</span>
                 </div>
-                <span className="px-2 py-0.5 rounded-sm text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                  {item.status}
+                <span className={`px-2 py-0.5 rounded-sm text-[10px] font-bold border ${item.outcome === 'failure' ? 'bg-red-500/15 text-red-300 border-red-500/30' : 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'}`}>
+                  {item.outcome === 'failure' ? 'Refused' : 'Recorded'}
                 </span>
               </div>
             </div>

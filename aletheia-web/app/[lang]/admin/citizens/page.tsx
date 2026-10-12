@@ -2,7 +2,9 @@
 
 import React, { useState } from 'react';
 import Link from '@/components/i18n/Link';
-import { AdminShell } from '@/components/layout/AdminShell';
+import { AdminShell, ADMIN_DASHBOARD, type AdminDashboard } from '@/components/layout/AdminShell';
+import { useApi } from '@/lib/client/api';
+import { fmtDate, ListState } from '@/components/admin/Notice';
 import {
   Search,
   Eye,
@@ -15,85 +17,18 @@ interface Citizen {
   id: string;
   nationalId: string;
   name: string;
-  type: 'Founding Citizen' | 'Naturalised' | 'Covenant Descent' | 'Honorary';
+  type: 'Founding Citizen' | 'Naturalised' | 'Covenant Investor' | 'Covenant Descent' | 'Honorary';
   passportNumber: string;
   nationalityOfOrigin: string;
   registeredDate: string;
-  status: 'Active' | 'Under Review' | 'Oath Pending' | 'Suspended';
+  status: 'Active' | 'Under Review' | 'Suspended' | 'Rescinded';
   covenantHash: string;
 }
 
-const INITIAL_CITIZENS: Citizen[] = [
-  {
-    id: 'CIT-001',
-    nationalId: 'ALE-NAT-2026-000104',
-    name: 'Dr. Elizabeth Thorne-Vance',
-    type: 'Founding Citizen',
-    passportNumber: 'ALE-004928',
-    nationalityOfOrigin: 'Germany (DEU)',
-    registeredDate: '2026-01-15',
-    status: 'Active',
-    covenantHash: '0a504402…1266',
-  },
-  {
-    id: 'CIT-002',
-    nationalId: 'ALE-NAT-2026-000218',
-    name: 'Marcus Aurelius Sterling',
-    type: 'Covenant Descent',
-    passportNumber: 'ALE-005112',
-    nationalityOfOrigin: 'United Kingdom (GBR)',
-    registeredDate: '2026-02-10',
-    status: 'Active',
-    covenantHash: 'b634b998…9839',
-  },
-  {
-    id: 'CIT-003',
-    nationalId: 'ALE-NAT-2026-000349',
-    name: 'Sophia Andreou',
-    type: 'Naturalised',
-    passportNumber: 'ALE-005890',
-    nationalityOfOrigin: 'Greece (GRC)',
-    registeredDate: '2026-03-22',
-    status: 'Oath Pending',
-    covenantHash: '32b81ae5…fc3c',
-  },
-  {
-    id: 'CIT-004',
-    nationalId: 'ALE-NAT-2026-000412',
-    name: 'Kaelen Vance',
-    type: 'Founding Citizen',
-    passportNumber: 'ALE-001042',
-    nationalityOfOrigin: 'Malta (MLT)',
-    registeredDate: '2026-01-10',
-    status: 'Active',
-    covenantHash: 'eef55ab5…d65a',
-  },
-  {
-    id: 'CIT-005',
-    nationalId: 'ALE-NAT-2026-000508',
-    name: 'Helena Bergstrom',
-    type: 'Naturalised',
-    passportNumber: 'ALE-006201',
-    nationalityOfOrigin: 'Sweden (SWE)',
-    registeredDate: '2026-04-05',
-    status: 'Under Review',
-    covenantHash: 'e08db137…e557',
-  },
-  {
-    id: 'CIT-006',
-    nationalId: 'ALE-NAT-2026-000631',
-    name: 'Dmitri V. Sokolov',
-    type: 'Naturalised',
-    passportNumber: 'ALE-007119',
-    nationalityOfOrigin: 'Estonia (EST)',
-    registeredDate: '2026-05-18',
-    status: 'Active',
-    covenantHash: 'f87e3525…ac20',
-  },
-];
-
 export default function AdminCitizenRegistryPage() {
-  const citizens = INITIAL_CITIZENS;
+  const { data, error, loading } = useApi<{ citizens: Citizen[] }>('/api/admin/citizens');
+  const dash = useApi<AdminDashboard>(ADMIN_DASHBOARD);
+  const citizens = data?.citizens ?? [];
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState('ALL');
   const [selectedCitizen, setSelectedCitizen] = useState<Citizen | null>(null);
@@ -116,7 +51,7 @@ export default function AdminCitizenRegistryPage() {
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-bold text-parchment">National Citizen Registry</h1>
               <span className="px-2 py-0.5 rounded-sm text-[10px] font-mono bg-gold/20 text-gold border border-gold/30">
-                2,841 Enrolled
+                {citizens.filter((c) => c.status === 'Active').length.toLocaleString('en-GB')} Active
               </span>
             </div>
             <p className="text-[12px] text-parchment/50 font-mono mt-0.5">
@@ -130,7 +65,7 @@ export default function AdminCitizenRegistryPage() {
               className="px-3.5 py-2 bg-gold text-navy text-xs font-bold rounded-sm hover:bg-gold-tint transition-colors flex items-center gap-1.5"
             >
               <UserCheck className="w-3.5 h-3.5" />
-              <span>Review Approvals (12)</span>
+              <span>Review Approvals ({dash.data?.pending.citizenship ?? 0})</span>
             </Link>
           </div>
         </div>
@@ -152,7 +87,7 @@ export default function AdminCitizenRegistryPage() {
           </div>
 
           <div className="flex gap-2">
-            {(['ALL', 'Active', 'Oath Pending', 'Under Review'] as const).map((status) => (
+            {(['ALL', 'Active', 'Under Review', 'Rescinded'] as const).map((status) => (
               <button
                 key={status}
                 onClick={() => setFilterType(status)}
@@ -204,7 +139,7 @@ export default function AdminCitizenRegistryPage() {
                         className={`px-2 py-0.5 rounded-sm text-[10px] font-bold ${
                           c.status === 'Active'
                             ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
-                            : c.status === 'Oath Pending'
+                            : c.status === 'Under Review'
                             ? 'bg-gold/15 text-gold border border-gold/30'
                             : 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
                         }`}
@@ -224,6 +159,7 @@ export default function AdminCitizenRegistryPage() {
                 ))}
               </tbody>
             </table>
+            <ListState loading={loading} error={error} empty={filtered.length === 0} emptyText={citizens.length ? 'No citizen matches the search.' : 'The registry holds no citizens yet. Citizens are enrolled when a citizenship application is granted.'} />
           </div>
         </div>
 
@@ -255,7 +191,7 @@ export default function AdminCitizenRegistryPage() {
                   <div>
                     <h3 className="text-base font-bold text-parchment font-sans">{selectedCitizen.name}</h3>
                     <p className="text-gold/80 text-[11px]">{selectedCitizen.type}</p>
-                    <p className="text-parchment/40 text-[10px] mt-0.5">Enrolled on {selectedCitizen.registeredDate}</p>
+                    <p className="text-parchment/40 text-[10px] mt-0.5">Enrolled on {fmtDate(selectedCitizen.registeredDate)}</p>
                   </div>
                 </div>
 
@@ -274,21 +210,21 @@ export default function AdminCitizenRegistryPage() {
                   </div>
                   <div className="p-3 bg-navy-deep rounded-sm border border-white/5 space-y-1">
                     <span className="text-[10px] text-parchment/40 block">COVENANT HASH</span>
-                    <span className="text-gold font-mono">{selectedCitizen.covenantHash}</span>
+                    <span className="text-gold font-mono">{selectedCitizen.covenantHash.slice(0, 8)}…{selectedCitizen.covenantHash.slice(-4)}</span>
                   </div>
                 </div>
 
                 <div className="p-3 bg-navy-deep rounded-sm border border-gold/15 space-y-1">
-                  <span className="text-[10px] text-gold uppercase tracking-wider block font-bold">Covenant Oath Status</span>
+                  <span className="text-[10px] text-gold uppercase tracking-wider block font-bold">Registry Record</span>
                   <p className="text-[11px] text-parchment/70 leading-relaxed">
-                    Signed and anchored to StableChain block #8,301,940. Subject to full constitutional rights and duties under Articles 1–15 of the Covenant.
+                    Status: {selectedCitizen.status}. The covenant hash is the SHA-256 fingerprint of the enrolment record as written to the registry.
                   </p>
                 </div>
               </div>
 
               <div className="flex justify-end gap-2 pt-2 border-t border-gold/15">
                 <Link
-                  href="/admin/rescissions"
+                  href={`/admin/rescissions?nationalId=${encodeURIComponent(selectedCitizen.nationalId)}`}
                   className="px-3 py-1.5 bg-red-950/60 border border-red-700/50 text-red-200 text-xs font-mono rounded-sm hover:bg-red-900/60 transition-colors"
                 >
                   Initiate Review / Rescission

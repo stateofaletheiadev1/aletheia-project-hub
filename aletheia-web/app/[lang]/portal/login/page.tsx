@@ -8,7 +8,6 @@ import { StarOfTruth } from '@/components/brand/Logo';
 import {
   Fingerprint,
   KeyRound,
-  QrCode,
   ShieldCheck,
   ArrowRight,
   Lock,
@@ -19,38 +18,51 @@ import {
   Zap,
 } from 'lucide-react';
 
-import { setUserSession } from '@/lib/auth';
+import { ME, type PortalAccount } from '@/lib/auth';
+import { api, clearCache, setCached } from '@/lib/client/api';
 
 const TRUST_ITEMS = [
-  { label: 'ICAO eMRTD Compliant', icon: ShieldCheck, color: '#3D8664' },
-  { label: 'Zero-Knowledge Auth', icon: Lock, color: '#C49A4E' },
-  { label: 'Biometric Secured', icon: Fingerprint, color: '#8B5CF6' },
+  { label: 'Encrypted Connection', icon: ShieldCheck, color: '#3D8664' },
+  { label: 'HttpOnly Sessions', icon: Lock, color: '#C49A4E' },
+  { label: 'Account Lockout', icon: Fingerprint, color: '#8B5CF6' },
 ];
 
 export default function CitizenPortalLoginPage() {
   const { t, tx } = useI18n();
   const router = useRouter();
-  const [authMethod, setAuthMethod] = useState<'passkey' | 'credentials' | 'qr'>('passkey');
+  const [authMethod, setAuthMethod] = useState<'credentials' | 'register'>('credentials');
   const [credentialId, setCredentialId] = useState('');
   const [passphrase, setPassphrase] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => { const timer = setTimeout(() => setMounted(true), 60); return () => clearTimeout(timer); }, []);
 
-  const handleAuthenticate = (e?: React.FormEvent) => {
+  const handleAuthenticate = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setIsAuthenticating(true);
-    setUserSession({
-      id: credentialId || 'ALE-ERES-2026-004928',
-      name: 'Dr. Elena Vasquez',
-      role: 'E-Resident · Founder',
-      status: 'E-Resident · Verified',
-      avatarInitials: 'EV',
-    });
-    setTimeout(() => { setIsAuthenticating(false); router.push('/portal'); }, 1200);
+    setError(null);
+    try {
+      const { account } = authMethod === 'register'
+        ? await api<{ account: PortalAccount }>('/api/portal/auth/register', { body: { name: fullName, email, passphrase } })
+        : await api<{ account: PortalAccount }>('/api/portal/auth/login', { body: { identifier: credentialId, passphrase } });
+      clearCache();
+      setCached(ME, { account });
+      router.push(authMethod === 'register' ? '/portal/apply' : '/portal');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("Sign-in failed. Please try again."));
+      setIsAuthenticating(false);
+    }
   };
+
+  const inputStyle = { background: '#FFFFFF', border: '1px solid rgba(21,41,74,0.14)', color: '#15294A' };
+  const focus = (e: React.FocusEvent<HTMLInputElement>) => { e.target.style.borderColor = '#C49A4E'; e.target.style.boxShadow = '0 0 0 3px rgba(196,154,78,0.10)'; };
+  const blur = (e: React.FocusEvent<HTMLInputElement>) => { e.target.style.borderColor = 'rgba(21,41,74,0.14)'; e.target.style.boxShadow = 'none'; };
+  const labelStyle = { color: 'rgba(21,41,74,0.55)' };
 
   return (
     <div className="flex min-h-screen overflow-hidden">
@@ -104,10 +116,10 @@ export default function CitizenPortalLoginPage() {
         {/* Feature checklist */}
         <div className="relative z-10 space-y-4">
           {[
-            'Zero-knowledge cryptographic authentication',
-            'Real-time identity verification on-chain',
-            'Immutable civic record management',
-            'ICAO eMRTD biometric passport access',
+            'Apply for e-residency or citizenship online',
+            'Track every application and decision',
+            'Keep issued certificates in one vault',
+            'Form and manage your companies',
           ].map(feat => (
             <div key={feat} className="flex items-center gap-3">
               <CheckCircle2 className="w-4 h-4 shrink-0" style={{ color: '#3D8664' }} />
@@ -158,16 +170,15 @@ export default function CitizenPortalLoginPage() {
           </div>
 
           {/* Auth method tabs */}
-          <div className="grid grid-cols-3 gap-1 p-1 rounded-sm mb-6" style={{ background: 'rgba(21,41,74,0.06)', border: '1px solid rgba(21,41,74,0.10)' }}>
+          <div className="grid grid-cols-2 gap-1 p-1 rounded-sm mb-6" style={{ background: 'rgba(21,41,74,0.06)', border: '1px solid rgba(21,41,74,0.10)' }}>
             {([
-              { key: 'passkey', label: 'Passkey', icon: Fingerprint },
-              { key: 'credentials', label: 'ID + Pass', icon: KeyRound },
-              { key: 'qr', label: 'QR Code', icon: QrCode },
+              { key: 'credentials', label: 'Sign in', icon: KeyRound },
+              { key: 'register', label: 'Create account', icon: Sparkles },
             ] as const).map(({ key, label, icon: Icon }) => (
               <button
                 key={key}
                 type="button"
-                onClick={() => setAuthMethod(key)}
+                onClick={() => { setAuthMethod(key); setError(null); }}
                 className={`flex items-center justify-center gap-1.5 py-2 rounded-sm text-[11px] font-bold transition-all ${authMethod === key ? 'text-navy shadow-sm' : 'text-navy/45 hover:text-navy/65'}`}
                 style={authMethod === key ? { background: '#FFFFFF', boxShadow: '0 1px 3px rgba(21,41,74,0.10)' } : {}}
               >
@@ -177,114 +188,80 @@ export default function CitizenPortalLoginPage() {
             ))}
           </div>
 
-          {/* Passkey method */}
-          {tx(authMethod === 'passkey' && (
-            <div className="space-y-5">
-              <div className="flex flex-col items-center py-6 gap-4">
-                <button
-                  type="button"
-                  onClick={() => handleAuthenticate()}
-                  className="w-20 h-20 rounded-sm flex items-center justify-center transition-all hover:scale-105 active:scale-95 relative"
-                  style={{ background: 'linear-gradient(135deg, #15294A, #0D1B35)', border: '2px solid rgba(196,154,78,0.40)', boxShadow: '0 0 32px rgba(196,154,78,0.18)' }}
-                >
-                  <div className="absolute inset-0 rounded-sm" style={{ background: 'radial-gradient(circle, rgba(196,154,78,0.12) 0%, transparent 70%)' }} />
-                  <Fingerprint className="w-9 h-9 text-gold relative z-10" />
-                </button>
-                <div className="text-center">
-                  <p className="text-sm font-bold" style={{ color: '#15294A' }}>{t("Tap to authenticate")}</p>
-                  <p className="text-[11px] mt-1" style={{ color: 'rgba(21,41,74,0.50)' }}>{t("Use your device passkey or biometric")}</p>
+          <form onSubmit={handleAuthenticate} className="space-y-4">
+            {tx(authMethod === 'register' ? (
+              <>
+                <div className="space-y-1.5">
+                  <label htmlFor="portal-name" className="text-[11px] font-bold uppercase tracking-wider" style={labelStyle}>{t("Full legal name")}</label>
+                  <input id="portal-name" type="text" required autoComplete="name" value={fullName} onChange={e => setFullName(e.target.value)} className="w-full px-4 py-3 text-sm rounded-sm focus:outline-none" style={inputStyle} onFocus={focus} onBlur={blur} />
                 </div>
-              </div>
-
-              <button
-                type="button"
-                disabled={isAuthenticating}
-                onClick={() => handleAuthenticate()}
-                className="btn-sovereign-gold btn-shimmer w-full py-3.5 rounded-sm flex items-center justify-center gap-2.5 text-sm font-bold"
-              >
-                {tx(isAuthenticating
-                  ? <><Zap className="w-4 h-4 animate-pulse" />{' '}{t("Authenticating Identity…")}</>
-                  : <><Fingerprint className="w-4 h-4" />{' '}{t("Authenticate with Passkey")}{' '}<ArrowRight className="w-4 h-4" /></>)
-                }
-              </button>
-            </div>
-          ))}
-
-          {/* Credentials method */}
-          {tx(authMethod === 'credentials' && (
-            <form onSubmit={handleAuthenticate} className="space-y-4">
+                <div className="space-y-1.5">
+                  <label htmlFor="portal-email" className="text-[11px] font-bold uppercase tracking-wider" style={labelStyle}>{t("Email address")}</label>
+                  <input id="portal-email" type="email" required autoComplete="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full px-4 py-3 text-sm rounded-sm focus:outline-none" style={inputStyle} onFocus={focus} onBlur={blur} />
+                </div>
+              </>
+            ) : (
               <div className="space-y-1.5">
-                <label className="text-[11px] font-bold uppercase tracking-wider" style={{ color: 'rgba(21,41,74,0.55)' }}>{t("Aletheia ID / E-Residency Number")}</label>
+                <label htmlFor="portal-id" className="text-[11px] font-bold uppercase tracking-wider" style={labelStyle}>{t("Aletheia ID or email")}</label>
                 <input
+                  id="portal-id"
                   type="text"
-                  placeholder={t("e.g. ALE-ERES-2026-004928")}
+                  required
+                  autoComplete="username"
+                  placeholder={t("e.g. ALE-ID-2026-000001")}
                   value={credentialId}
                   onChange={e => setCredentialId(e.target.value)}
                   className="w-full px-4 py-3 text-sm rounded-sm focus:outline-none font-mono"
-                  style={{ background: '#FFFFFF', border: '1px solid rgba(21,41,74,0.14)', color: '#15294A' }}
-                  onFocus={e => { e.target.style.borderColor = '#C49A4E'; e.target.style.boxShadow = '0 0 0 3px rgba(196,154,78,0.10)'; }}
-                  onBlur={e => { e.target.style.borderColor = 'rgba(21,41,74,0.14)'; e.target.style.boxShadow = 'none'; }}
+                  style={inputStyle}
+                  onFocus={focus}
+                  onBlur={blur}
                 />
               </div>
+            ))}
 
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-bold uppercase tracking-wider" style={{ color: 'rgba(21,41,74,0.55)' }}>{t("Passphrase")}</label>
-                <div className="relative">
-                  <input
-                    type={showPass ? 'text' : 'password'}
-                    placeholder={t("Your sovereign passphrase")}
-                    value={passphrase}
-                    onChange={e => setPassphrase(e.target.value)}
-                    className="w-full px-4 py-3 text-sm rounded-sm focus:outline-none"
-                    style={{ background: '#FFFFFF', border: '1px solid rgba(21,41,74,0.14)', color: '#15294A' }}
-                    onFocus={e => { e.target.style.borderColor = '#C49A4E'; e.target.style.boxShadow = '0 0 0 3px rgba(196,154,78,0.10)'; }}
-                    onBlur={e => { e.target.style.borderColor = 'rgba(21,41,74,0.14)'; e.target.style.boxShadow = 'none'; }}
-                  />
-                  <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-3 top-1/2 -translate-y-1/2" style={{ color: 'rgba(21,41,74,0.35)' }}>
-                    {tx(showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />)}
-                  </button>
-                </div>
+            <div className="space-y-1.5">
+              <label htmlFor="portal-pass" className="text-[11px] font-bold uppercase tracking-wider" style={labelStyle}>{t("Passphrase")}</label>
+              <div className="relative">
+                <input
+                  id="portal-pass"
+                  type={showPass ? 'text' : 'password'}
+                  required
+                  minLength={authMethod === 'register' ? 12 : undefined}
+                  autoComplete={authMethod === 'register' ? 'new-password' : 'current-password'}
+                  placeholder={t("Your sovereign passphrase")}
+                  value={passphrase}
+                  onChange={e => setPassphrase(e.target.value)}
+                  className="w-full px-4 py-3 text-sm rounded-sm focus:outline-none"
+                  style={inputStyle}
+                  onFocus={focus}
+                  onBlur={blur}
+                />
+                <button type="button" aria-label={t("Show or hide passphrase")} onClick={() => setShowPass(!showPass)} className="absolute right-3 top-1/2 -translate-y-1/2" style={{ color: 'rgba(21,41,74,0.35)' }}>
+                  {tx(showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />)}
+                </button>
               </div>
-
-              <button
-                type="submit"
-                disabled={isAuthenticating}
-                className="btn-sovereign-gold btn-shimmer w-full py-3.5 rounded-sm flex items-center justify-center gap-2 text-sm font-bold"
-              >
-                {tx(isAuthenticating
-                  ? <><Zap className="w-4 h-4 animate-pulse" />{' '}{t("Verifying Identity…")}</>
-                  : <><Lock className="w-4 h-4" />{' '}{t("Sign In Securely")}{' '}<ArrowRight className="w-4 h-4" /></>)
-                }
-              </button>
-            </form>
-          ))}
-
-          {/* QR method */}
-          {tx(authMethod === 'qr' && (
-            <div className="flex flex-col items-center gap-5 py-4">
-              <div className="p-4 rounded-sm" style={{ background: '#FFFFFF', border: '2px solid rgba(21,41,74,0.12)', boxShadow: '0 4px 20px rgba(21,41,74,0.08)' }}>
-                <div className="w-40 h-40 bg-navy/5 rounded-sm flex items-center justify-center relative">
-                  <QrCode className="w-24 h-24" style={{ color: '#15294A' }} />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-8 h-8 rounded-sm bg-white flex items-center justify-center">
-                      <StarOfTruth size={14} />
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="text-center space-y-1">
-                <p className="text-sm font-bold" style={{ color: '#15294A' }}>{t("Scan with Aletheia App")}</p>
-                <p className="text-[11px]" style={{ color: 'rgba(21,41,74,0.50)' }}>{t("Open your Aletheia authenticator and scan this code")}</p>
-              </div>
+              {tx(authMethod === 'register' && (
+                <p className="text-[11px]" style={{ color: 'rgba(21,41,74,0.50)' }}>{t("At least 12 characters. A short sentence works well.")}</p>
+              ))}
             </div>
-          ))}
 
-          {/* Divider */}
-          <div className="flex items-center gap-3 my-5">
-            <div className="flex-1 h-px" style={{ background: 'rgba(21,41,74,0.10)' }} />
-            <span className="text-[10px] font-bold" style={{ color: 'rgba(21,41,74,0.30)' }}>{t("OR")}</span>
-            <div className="flex-1 h-px" style={{ background: 'rgba(21,41,74,0.10)' }} />
-          </div>
+            {tx(error && (
+              <p role="alert" className="text-[12px] font-semibold px-3 py-2 rounded-sm" style={{ background: 'rgba(192,57,43,0.08)', color: '#A93226', border: '1px solid rgba(192,57,43,0.20)' }}>{tx(error)}</p>
+            ))}
+
+            <button
+              type="submit"
+              disabled={isAuthenticating}
+              className="btn-sovereign-gold btn-shimmer w-full py-3.5 rounded-sm flex items-center justify-center gap-2 text-sm font-bold"
+            >
+              {tx(isAuthenticating
+                ? <><Zap className="w-4 h-4 animate-pulse" />{' '}{t("Verifying Identity…")}</>
+                : authMethod === 'register'
+                  ? <><Sparkles className="w-4 h-4" />{' '}{t("Create account")}{' '}<ArrowRight className="w-4 h-4" /></>
+                  : <><Lock className="w-4 h-4" />{' '}{t("Sign In Securely")}{' '}<ArrowRight className="w-4 h-4" /></>)
+              }
+            </button>
+          </form>
 
           {/* New user / return link */}
           <div className="flex items-center justify-between mt-6 pt-5" style={{ borderTop: '1px solid rgba(21,41,74,0.08)' }}>

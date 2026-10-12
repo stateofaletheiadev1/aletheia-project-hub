@@ -204,3 +204,29 @@ gov:secrets:
     - changes:
         - aletheia-gov/**/*
         - .gitlab-ci.yml
+
+# ---------------------------------------------------------------------------
+# aletheia-web (stateofaletheia.org). The portal/console API and browser tests
+# (npm run test:api, test:ui) need a built AletheiaDB; see aletheia-web/docs/BACKEND.md.
+# ---------------------------------------------------------------------------
+web:check:
+  image: node:22-bookworm
+  stage: check
+  variables:
+    npm_config_cache: $CI_PROJECT_DIR/.npm
+  before_script:
+    - cd aletheia-web
+    - npm ci --no-audit --no-fund
+  script:
+    - npm run lint
+    - npm run typecheck
+    - npm run i18n:check
+    - npm run build
+  cache:
+    key:
+      files: [aletheia-web/package-lock.json]
+    paths: [.npm]
+  rules:
+    - changes:
+        - aletheia-web/**/*
+        - .gitlab-ci.yml

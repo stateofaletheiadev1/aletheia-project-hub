@@ -2,18 +2,13 @@
 
 import { useEffect } from 'react';
 import { useRouter } from '@/lib/i18n/navigation';
-import { getOfficerSession } from '@/lib/auth';
 
+// The console checks the session itself and sends anyone not signed in to /admin/login.
 export default function OfficerPortalIndexPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const session = getOfficerSession();
-    if (session && session.id) {
-      router.replace('/admin');
-    } else {
-      router.replace('/admin/login');
-    }
+    router.replace('/admin');
   }, [router]);
 
   return (

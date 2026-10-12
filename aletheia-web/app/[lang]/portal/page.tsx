@@ -4,7 +4,8 @@ import { useI18n } from '@/components/i18n/I18nProvider';
 import React, { useState, useEffect } from 'react';
 import Link from '@/components/i18n/Link';
 import { PortalShell } from '@/components/layout/PortalShell';
-import { EXAMPLE, shortId } from '@/lib/stablechain';
+import { useApi } from '@/lib/client/api';
+import { day, type ApplicationSummary, type CompanyRecord, type PortalAccount } from '@/lib/auth';
 import {
   ShieldCheck,
   Building2,
@@ -19,30 +20,42 @@ import {
   ArrowUpRight,
 } from 'lucide-react';
 
-const TIMELINE = [
-  { date: '2026-10-01', event: 'E-Residency renewed for 3-year term', type: 'success' },
-  { date: '2026-08-15', event: 'Passphrase rotation — security audit passed', type: 'success' },
-  { date: '2026-06-12', event: 'Kaelen Ltd. incorporated — SARL certificate issued', type: 'success' },
-  { date: '2026-05-30', event: 'Digital passport issued — ICAO eMRTD compliant', type: 'success' },
-  { date: '2026-03-14', event: 'Passport renewal application submitted', type: 'pending' },
-];
-
-const STATUS_CARDS = [
-  { label: 'Residency Status', value: 'E-Resident', sub: 'Valid until 2029-10-01', icon: Globe2, accent: '#3D8664', bg: 'rgba(47,107,79,0.08)' },
-  { label: 'Companies', value: '1 Active', sub: 'Kaelen Vance Marine Ltd', icon: Building2, accent: '#C49A4E', bg: 'rgba(196,154,78,0.08)' },
-  { label: 'AEY Balance', value: '12,400', sub: 'Aletheian Guilder', icon: CreditCard, accent: '#15294A', bg: 'rgba(21,41,74,0.06)' },
-  { label: 'Pending', value: '1 Item', sub: 'Passport renewal', icon: Clock, accent: '#E4A628', bg: 'rgba(228,166,40,0.08)' },
-];
+type Dashboard = {
+  account: PortalAccount;
+  applications: ApplicationSummary[];
+  companies: CompanyRecord[];
+  timeline: { date: string; event: string; type: 'success' | 'pending' }[];
+  unreadNotifications: number;
+};
 
 export default function CivicPortalDashboard() {
   const { t, tx, intl } = useI18n();
+  const { data } = useApi<Dashboard>('/api/portal/dashboard');
   const [copied, setCopied] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => { const timer = setTimeout(() => setMounted(true), 60); return () => clearTimeout(timer); }, []);
 
+  const account = data?.account;
+  const verified = account?.status === 'e-resident' || account?.status === 'citizen';
+  const activeCompanies = (data?.companies ?? []).filter((c) => c.status === 'Active / Chartered');
+  const pending = (data?.applications ?? []).filter((a) => a.status === 'Pending');
+  const residencyLine = account?.status === 'citizen'
+    ? t('Citizen · National ID {id}', { id: account.nationalId ?? '' })
+    : account?.residency
+      ? t('E-Resident · Valid through {date}', { date: day(account.residency.validUntil, intl) })
+      : t('No residency yet');
+
+  const STATUS_CARDS = [
+    { label: 'Residency Status', value: account?.role ?? '—', sub: account?.residency ? t('Valid until {date}', { date: day(account.residency.validUntil, intl) }) : t('Apply for e-residency'), icon: Globe2, accent: '#3D8664', bg: 'rgba(47,107,79,0.08)' },
+    { label: 'Companies', value: t('{count} Active', { count: activeCompanies.length }), sub: activeCompanies[0]?.name ?? t('None registered yet'), icon: Building2, accent: '#C49A4E', bg: 'rgba(196,154,78,0.08)' },
+    { label: 'AEY Balance', value: (account?.balance ?? 0).toLocaleString(intl, { minimumFractionDigits: 2, maximumFractionDigits: 2 }), sub: 'Aletheian Guilder', icon: CreditCard, accent: '#15294A', bg: 'rgba(21,41,74,0.06)' },
+    { label: 'Pending', value: t('{count} Items', { count: pending.length }), sub: pending[0]?.reference ?? t('Nothing waiting'), icon: Clock, accent: '#E4A628', bg: 'rgba(228,166,40,0.08)' },
+  ];
+
   const copyKey = () => {
-    navigator.clipboard.writeText(EXAMPLE.citizen);
+    if (!account) return;
+    navigator.clipboard.writeText(account.did);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -54,7 +67,7 @@ export default function CivicPortalDashboard() {
         {/* ── Welcome Header ── */}
         <div className={`flex flex-col sm:flex-row sm:items-start justify-between gap-4 transition-all duration-500 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
           <div>
-            <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: '#15294A' }}>{t("Good morning, Dr. Vasquez")}</h1>
+            <h1 className="text-2xl font-extrabold tracking-tight" style={{ color: '#15294A' }}>{t('Welcome, {name}', { name: account?.name ?? '' })}</h1>
             <p className="text-[12px] mt-1" style={{ color: 'rgba(21,41,74,0.45)' }}>
               {new Date().toLocaleDateString(intl, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
             </p>
@@ -63,7 +76,7 @@ export default function CivicPortalDashboard() {
             className="flex items-center gap-2 px-4 py-2 rounded-full text-[11px] font-bold shrink-0"
             style={{ background: 'rgba(47,107,79,0.10)', border: '1px solid rgba(47,107,79,0.22)', color: '#2F6B4F' }}
           >
-            <ShieldCheck className="w-3.5 h-3.5" />{t("Identity Verified · Tier I")}</div>
+            <ShieldCheck className="w-3.5 h-3.5" />{verified ? t("Identity Verified") : t("Application stage")}</div>
         </div>
 
         {/* ── Status Cards ── */}
@@ -120,12 +133,12 @@ export default function CivicPortalDashboard() {
                   <div className="relative z-10 p-6 flex items-start justify-between gap-4">
                     <div className="flex-1">
                       <div className="text-[9px] font-bold tracking-[0.22em] uppercase mb-1" style={{ color: 'rgba(196,154,78,0.65)' }}>{t("Sovereign Covenant State of Aletheia")}</div>
-                      <div className="text-xl font-extrabold" style={{ color: '#F4EEDF' }}>{t("Dr. Elena Vasquez")}</div>
-                      <div className="text-[11px] mt-0.5" style={{ color: 'rgba(244,238,223,0.45)' }}>{t("E-Resident · Valid through 2029-10-01")}</div>
+                      <div className="text-xl font-extrabold" style={{ color: '#F4EEDF' }}>{tx(account?.name ?? '')}</div>
+                      <div className="text-[11px] mt-0.5" style={{ color: 'rgba(244,238,223,0.45)' }}>{tx(residencyLine)}</div>
 
                       <div className="mt-4 flex items-center gap-2">
                         <Fingerprint className="w-3.5 h-3.5" style={{ color: 'rgba(196,154,78,0.55)' }} />
-                        <span className="text-[10px] font-mono" style={{ color: 'rgba(244,238,223,0.45)' }} translate="no" data-i18n-skip="">{shortId(EXAMPLE.citizen, 9, 6)}</span>
+                        <span className="text-[10px] font-mono" style={{ color: 'rgba(244,238,223,0.45)' }} translate="no" data-i18n-skip="">{account?.id}</span>
                         <button
                           onClick={copyKey}
                           className="text-[9px] font-bold px-1.5 py-0.5 rounded-sm transition-all"
@@ -144,8 +157,8 @@ export default function CivicPortalDashboard() {
                   {/* Credential tags */}
                   <div className="relative z-10 px-6 pb-5 flex flex-wrap gap-2" style={{ borderTop: '1px solid rgba(196,154,78,0.10)', paddingTop: '14px' }}>
                     {[
-                      { label: 'ICAO eMRTD', status: 'Active' },
-                      { label: 'Biometric', status: 'Enrolled' },
+                      { label: 'Registry ID', status: account ? 'Active' : '—' },
+                      { label: 'Identity key', status: account?.publicKey ? 'Enrolled' : 'Not enrolled' },
                       { label: 'AEY Wallet', status: 'Linked' },
                     ].map(({ label, status }) => (
                       <div key={label} className="flex items-center gap-1.5 px-2.5 py-1 rounded-sm" style={{ background: 'rgba(61,134,100,0.18)', border: '1px solid rgba(61,134,100,0.28)' }}>
@@ -160,7 +173,7 @@ export default function CivicPortalDashboard() {
                 <div className="grid grid-cols-3 gap-3 mt-4">
                   {[
                     { label: 'Download ID', icon: Download, href: '/portal/documents', color: '#15294A' },
-                    { label: 'Renew Residency', icon: ArrowRight, href: '/portal/apply', color: '#C49A4E' },
+                    { label: account?.residency ? 'Applications' : 'Apply Now', icon: ArrowRight, href: '/portal/apply', color: '#C49A4E' },
                     { label: 'AEY Wallet', icon: CreditCard, href: '/portal/wallet', color: '#15294A' },
                   ].map(({ label, icon: Icon, href, color }) => (
                     <Link
@@ -190,10 +203,9 @@ export default function CivicPortalDashboard() {
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: 'rgba(21,41,74,0.40)' }}>{t("Available Balance")}</p>
                   <div className="flex items-end gap-2 mt-1">
-                    <span className="text-3xl font-extrabold tracking-tight text-gold-metallic">12,400.00</span>
+                    <span className="text-3xl font-extrabold tracking-tight text-gold-metallic">{(account?.balance ?? 0).toLocaleString(intl, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     <span className="text-sm font-bold pb-0.5" style={{ color: 'rgba(21,41,74,0.50)' }}>{t("AEY")}</span>
                   </div>
-                  <p className="text-[10px] mt-1" style={{ color: 'rgba(21,41,74,0.40)' }}>{t("≈ €12,400.00 EUR · 1:1 Peg")}</p>
                 </div>
                 <div className="ml-auto flex gap-3">
                   <Link href="/portal/wallet" className="px-4 py-2 rounded-sm text-xs font-bold transition-all btn-shimmer" style={{ background: 'linear-gradient(135deg, #E4C689, #C49A4E)', color: '#0E1B31', boxShadow: '0 4px 14px rgba(196,154,78,0.28)' }}>{t("Transfer")}</Link>
@@ -209,8 +221,11 @@ export default function CivicPortalDashboard() {
               <h2 className="text-[13px] font-extrabold" style={{ color: '#15294A' }}>{t("Recent Activity")}</h2>
             </div>
             <div className="p-4 space-y-4">
-              {TIMELINE.map(({ date, event, type }) => (
-                <div key={date} className="flex gap-3">
+              {(data?.timeline ?? []).length === 0 && (
+                <p className="text-[11px]" style={{ color: 'rgba(21,41,74,0.45)' }}>{t("No activity yet.")}</p>
+              )}
+              {(data?.timeline ?? []).map(({ date, event, type }) => (
+                <div key={date + event} className="flex gap-3">
                   <div className="flex flex-col items-center">
                     <div
                       className="w-2 h-2 rounded-full shrink-0 mt-1"
@@ -220,7 +235,7 @@ export default function CivicPortalDashboard() {
                   </div>
                   <div className="pb-4 min-w-0">
                     <p className="text-[11px] font-semibold leading-snug" style={{ color: '#15294A' }}>{tx(event)}</p>
-                    <p className="text-[9px] font-mono mt-0.5" style={{ color: 'rgba(21,41,74,0.38)' }}>{tx(date)}</p>
+                    <p className="text-[9px] font-mono mt-0.5" style={{ color: 'rgba(21,41,74,0.38)' }}>{day(date, intl)}</p>
                   </div>
                 </div>
               ))}

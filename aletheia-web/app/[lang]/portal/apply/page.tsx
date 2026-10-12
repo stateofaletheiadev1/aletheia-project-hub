@@ -7,7 +7,9 @@ import { useToast } from '@/components/ui/Toast';
 import Link from '@/components/i18n/Link';
 import { PortalShell } from '@/components/layout/PortalShell';
 import { StarOfTruth } from '@/components/brand/Logo';
-import { EXAMPLE } from '@/lib/stablechain';
+import { api, reload, useApi } from '@/lib/client/api';
+import { generateIdentityKey, saveTextFile } from '@/lib/client/keys';
+import { day, ME, type ApplicationSummary, type PortalAccount, type PortalDocument } from '@/lib/auth';
 import {
   CheckCircle2,
   ArrowRight,
@@ -24,8 +26,6 @@ export default function ApplicationWizardPage() {
   const { notify } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
     nationality: 'DE',
     dob: '',
     passportNumber: '',
@@ -35,7 +35,15 @@ export default function ApplicationWizardPage() {
   });
   const [keyGenerated, setKeyGenerated] = useState(false);
   const [generatedKeyHash, setGeneratedKeyHash] = useState('');
-  const [submitted, setSubmitted] = useState(false);
+  const [privatePem, setPrivatePem] = useState('');
+  const [submitted, setSubmitted] = useState<{ reference: string } | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [uploadType, setUploadType] = useState('Biometric Passport Scan');
+  const me = useApi<{ account: PortalAccount }>(ME);
+  const docs = useApi<{ documents: PortalDocument[] }>('/api/portal/documents');
+  const apps = useApi<{ applications: ApplicationSummary[] }>('/api/portal/applications');
+  const submittedDocs = (docs.data?.documents ?? []).filter((d) => d.direction === 'submitted' && d.status !== 'Flagged');
   // Which programme the applicant arrived for (?route=naturalisation|investor&option=...).
   const search = useSyncExternalStore(noopSubscribe, () => window.location.search, () => '');
   const params = new URLSearchParams(search);
@@ -53,24 +61,70 @@ export default function ApplicationWizardPage() {
     : route === 'naturalisation' ? 'Citizenship — Naturalisation by residence'
     : 'Statutory e-residency & digital identity application under Sovereign Covenant State Charter';
 
-  const handleNext = () => {
+  const stepProblem = (): string | null => {
+    if (currentStep === 1) {
+      if (!formData.dob) return t('Enter your date of birth.');
+      if (!formData.passportNumber.trim()) return t('Enter your passport number.');
+    }
+    if (currentStep === 2 && submittedDocs.length === 0) return t('Upload at least one identity document to continue.');
+    return null;
+  };
+
+  const handleNext = async () => {
+    const problem = stepProblem();
+    if (problem) { setError(problem); return; }
+    setError(null);
     if (currentStep === 3 && !keyGenerated) {
-      // Simulate cryptographic key generation
-      // An Ed25519 public key is 32 bytes, written as 64 lowercase hex characters (no 0x).
-      const mockKey = Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
-      setGeneratedKeyHash(mockKey);
-      setKeyGenerated(true);
+      try {
+        // A real Ed25519 key pair: the public half goes with the application, the private half stays with you.
+        const key = await generateIdentityKey();
+        setGeneratedKeyHash(key.publicKey);
+        setPrivatePem(key.privatePem);
+        setKeyGenerated(true);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : t('The key could not be created.'));
+        return;
+      }
     }
     setCurrentStep((prev) => Math.min(prev + 1, 4));
   };
 
   const handleBack = () => {
+    setError(null);
     setCurrentStep((prev) => Math.max(prev - 1, 1));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleUpload = async (file: File | undefined) => {
+    if (!file) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const form = new FormData();
+      form.set('file', file);
+      form.set('docType', uploadType);
+      await api('/api/portal/documents', { form });
+      await docs.reload();
+      notify(t('Document attached'), file.name);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : t('The upload failed.'));
+    }
+    setBusy(false);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    setBusy(true);
+    setError(null);
+    try {
+      const { application } = await api<{ application: { reference: string } }>('/api/portal/applications', {
+        body: { ...formData, purpose, route, investOption, publicKey: generatedKeyHash },
+      });
+      setSubmitted({ reference: application.reference });
+      await Promise.all([apps.reload(), reload(ME), reload('/api/portal/notifications'), reload('/api/portal/dashboard')]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('The application could not be submitted.'));
+    }
+    setBusy(false);
   };
 
   return (
@@ -127,6 +181,21 @@ export default function ApplicationWizardPage() {
           </div>
         </div>
 
+        {/* ── YOUR APPLICATIONS ── */}
+        {tx((apps.data?.applications ?? []).length > 0 && (
+          <div className="bg-white border border-navy/15 rounded-sm p-5 shadow-sm max-w-3xl mx-auto w-full space-y-2">
+            <h2 className="text-xs font-bold text-navy uppercase tracking-wider">{t("Your applications")}</h2>
+            {(apps.data?.applications ?? []).map((a) => (
+              <div key={a.id} className="flex flex-wrap items-center justify-between gap-2 text-xs border-t border-navy/10 pt-2">
+                <span className="font-mono text-navy font-bold">{a.reference}</span>
+                <span className="text-navy/70">{tx(a.type === 'e-residency' ? 'E-Residency' : 'Citizenship')} · {day(a.submittedAt, intl)}</span>
+                <span className={`font-bold ${a.status === 'Approved' ? 'text-laurel' : a.status === 'Rejected' ? 'text-red-700' : 'text-gold'}`}>{tx(a.status)}</span>
+                {a.decisionNote && <span className="w-full text-navy/60">{tx(a.decisionNote)}</span>}
+              </div>
+            ))}
+          </div>
+        ))}
+
         {/* ── WIZARD CONTAINER ── */}
         <div className="bg-white border border-navy/15 rounded-sm p-8 shadow-sm space-y-8 max-w-3xl mx-auto w-full">
           
@@ -140,28 +209,7 @@ export default function ApplicationWizardPage() {
                     <p className="text-xs text-navy/70 mt-1">{t("Enter details precisely as they appear on your government-issued ICAO travel document.")}</p>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <label className="text-[11px] font-bold text-navy uppercase tracking-wider block">{t("First / Given Names")}</label>
-                      <input
-                        type="text"
-                        value={formData.firstName}
-                        onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                        placeholder={t("e.g. Elizabeth")}
-                        className="w-full px-3 py-2 text-xs border border-navy/20 rounded-sm focus:outline-none focus:border-navy"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[11px] font-bold text-navy uppercase tracking-wider block">{t("Last / Family Name")}</label>
-                      <input
-                        type="text"
-                        value={formData.lastName}
-                        onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                        placeholder={t("e.g. Thorne-Vance")}
-                        className="w-full px-3 py-2 text-xs border border-navy/20 rounded-sm focus:outline-none focus:border-navy"
-                      />
-                    </div>
-                  </div>
+                  <p className="text-xs text-navy">{t('Applying as {name} ({id}). To change your name, use Profile Settings.', { name: me.data?.account.name ?? '', id: me.data?.account.id ?? '' })}</p>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1">
@@ -214,24 +262,37 @@ export default function ApplicationWizardPage() {
                     <p className="text-xs text-navy/70 mt-1">{t("Upload high-resolution scans of your passport data page and a recent clear facial selfie.")}</p>
                   </div>
 
-                  <div className="border-2 border-dashed border-navy/20 rounded-sm p-8 text-center space-y-3 hover:border-gold transition-colors cursor-pointer bg-parchment-light/50">
+                  <div className="border-2 border-dashed border-navy/20 rounded-sm p-8 text-center space-y-3 hover:border-gold transition-colors bg-parchment-light/50">
                     <Upload className="w-8 h-8 text-navy/40 mx-auto" />
                     <div>
-                      <span className="text-xs font-bold text-navy block">{t("Drag & Drop Passport Data Page Photo")}</span>
-                      <span className="text-[11px] text-navy/60">{t("JPEG, PNG or PDF (Max 10MB)")}</span>
+                      <span className="text-xs font-bold text-navy block">{t("Upload your passport data page")}</span>
+                      <span className="text-[11px] text-navy/60">{t("JPEG, PNG or PDF (max 4 MB)")}</span>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => notify('Document attached', 'passport_sample.jpg uploaded to your application (demonstration environment).')}
-                      className="px-4 py-1.5 bg-navy text-gold text-xs font-bold uppercase tracking-wider rounded-sm hover:bg-navy-deep transition-colors inline-block"
-                    >{t("Select File")}</button>
+                    <select aria-label={t("Document type")} value={uploadType} onChange={(e) => setUploadType(e.target.value)} className="px-3 py-1.5 text-xs border border-navy/20 rounded-sm bg-white text-navy">
+                      {['Biometric Passport Scan', 'Proof of Address', 'Police Clearance', 'Apostille Certificate', 'Other Supporting Document'].map((d) => <option key={d} value={d}>{tx(d)}</option>)}
+                    </select>
+                    <label className={`px-4 py-1.5 bg-navy text-gold text-xs font-bold uppercase tracking-wider rounded-sm hover:bg-navy-deep transition-colors inline-block cursor-pointer ${busy ? 'opacity-50' : ''}`}>
+                      {busy ? t("Uploading…") : t("Select File")}
+                      <input type="file" accept="application/pdf,image/png,image/jpeg" className="sr-only" disabled={busy} onChange={(e) => { void handleUpload(e.target.files?.[0]); e.target.value = ''; }} />
+                    </label>
                   </div>
+
+                  {tx(submittedDocs.length > 0 && (
+                    <ul className="text-xs text-navy space-y-1.5">
+                      {submittedDocs.map((d) => (
+                        <li key={d.id} className="flex items-center justify-between gap-3 p-2 border border-navy/10 rounded-sm">
+                          <span className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-laurel" />{tx(d.name)} · {tx(d.type)}</span>
+                          <span className="text-navy/50">{tx(d.status)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ))}
 
                   <div className="p-4 bg-laurel/10 border border-laurel/30 rounded-sm flex items-start gap-2.5 text-xs text-laurel">
                     <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
                     <div>
-                      <strong className="block font-bold">{t("Encrypted Document Enclave")}</strong>
-                      <span>{t("All uploaded documents are processed within memory-isolated hardware enclaves and deleted after identity inscription.")}</span>
+                      <strong className="block font-bold">{t("Checked by a registry officer")}</strong>
+                      <span>{t("Your documents are stored in the national registry database, fingerprinted with SHA-256, and seen only by you and the officers reviewing your application.")}</span>
                     </div>
                   </div>
                 </div>
@@ -283,18 +344,19 @@ export default function ApplicationWizardPage() {
                 <div className="space-y-6">
                   <div>
                     <h2 className="text-xl font-bold text-navy">{t("Step 4: Cryptographic Key Inscription & Oath")}</h2>
-                    <p className="text-xs text-navy/70 mt-1">{t("Your cryptographic public key has been generated locally in your browser.")}</p>
+                    <p className="text-xs text-navy/70 mt-1">{t("Your key pair has been generated locally in your browser.")}</p>
                   </div>
 
                   <div className="p-5 bg-navy text-parchment rounded-sm border border-gold/40 space-y-3">
                     <div className="flex items-center gap-2">
                       <KeyRound className="w-5 h-5 text-gold" />
-                      <span className="text-xs font-bold text-parchment uppercase tracking-wider">{t("Generated ECDSA P-256 State Key Hash:")}</span>
+                      <span className="text-xs font-bold text-parchment uppercase tracking-wider">{t("Your Ed25519 public key:")}</span>
                     </div>
                     <code className="text-xs font-mono text-gold block break-all bg-navy-deep p-3 rounded-sm border border-navy/40">
-                      {generatedKeyHash || EXAMPLE.citizenPublicKey}
+                      {generatedKeyHash}
                     </code>
-                    <p className="text-[11px] text-parchment/65">{t("This key pair will sign your e-residency credential and corporate filings on the StableChain ledger.")}</p>
+                    <p className="text-[11px] text-parchment/65">{t("Only this public key is sent. Save your private key now and keep it safe: the State never sees it and cannot recover it.")}</p>
+                    <button type="button" onClick={() => saveTextFile('aletheia-identity-key.pem', privatePem)} className="px-3 py-1.5 bg-gold text-navy text-[11px] font-bold rounded-sm hover:bg-gold-tint">{t("Download private key")}</button>
                   </div>
 
                   <div className="p-4 bg-navy/5 border border-navy/15 rounded-sm space-y-3">
@@ -309,6 +371,10 @@ export default function ApplicationWizardPage() {
                     </label>
                   </div>
                 </div>
+              ))}
+
+              {tx(error && (
+                <p role="alert" className="mt-6 text-xs font-semibold px-3 py-2 rounded-sm" style={{ background: 'rgba(192,57,43,0.08)', color: '#A93226', border: '1px solid rgba(192,57,43,0.20)' }}>{tx(error)}</p>
               ))}
 
               {/* Controls */}
@@ -334,7 +400,7 @@ export default function ApplicationWizardPage() {
                 ) : (
                   <button
                     type="button"
-                    disabled={!formData.acceptedCovenant}
+                    disabled={!formData.acceptedCovenant || busy}
                     onClick={handleSubmit}
                     className="px-6 py-2.5 bg-gold text-navy text-xs font-bold uppercase tracking-wider rounded-sm hover:bg-gold-tint transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 shadow-md shadow-gold/20"
                   >{t("Submit Application")}{' '}<Sparkles className="w-3.5 h-3.5" />
@@ -351,13 +417,12 @@ export default function ApplicationWizardPage() {
 
               <div className="space-y-2">
                 <h2 className="text-2xl font-bold text-navy">{t("Application Submitted to the State Registry")}</h2>
-                <p className="text-xs sm:text-sm text-navy/70 max-w-md mx-auto leading-relaxed">{t("Your e-residency application has been encrypted and assigned to the Ministry of Digital State queue.")}</p>
+                <p className="text-xs sm:text-sm text-navy/70 max-w-md mx-auto leading-relaxed">{t("Your application is in the registry queue. You will get a notification in the portal when an officer decides.")}</p>
               </div>
 
               <div className="p-4 bg-navy-deep text-parchment rounded-sm max-w-md mx-auto font-mono text-xs space-y-1">
                 <div className="text-gold font-bold">{t("Application Reference:")}</div>
-                <div className="text-sm">{t("ALE-APP-2026-90412")}</div>
-                <div className="text-[10px] text-parchment/50 pt-1">{t("Estimated Verification Time: 24 to 48 Hours")}</div>
+                <div className="text-sm">{tx(submitted?.reference ?? '')}</div>
               </div>
 
               <div className="pt-4 flex justify-center gap-4">

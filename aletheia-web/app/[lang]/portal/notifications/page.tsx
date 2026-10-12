@@ -1,67 +1,30 @@
 'use client';
 
 import { useI18n } from '@/components/i18n/I18nProvider';
-import React, { useState } from 'react';
+import React from 'react';
+import { api, reload, setCached, useApi } from '@/lib/client/api';
+import type { PortalNotification } from '@/lib/auth';
 import Link from '@/components/i18n/Link';
 import { PortalShell } from '@/components/layout/PortalShell';
 import { Bell, ArrowRight } from 'lucide-react';
 
-interface NotificationItem {
-  id: string;
-  title: string;
-  message: string;
-  category: 'Identity' | 'Corporate' | 'Financial';
-  timestamp: string;
-  unread: boolean;
-  linkText?: string;
-  linkHref?: string;
-}
-
-const INITIAL_NOTIFICATIONS: NotificationItem[] = [
-  {
-    id: 'NOTIF-001',
-    title: 'Passport Renewal Processing',
-    message: 'Your biometric passport application ALE-APP-2026-0041 has passed automated ICAO 9303 MRZ verification. Physical card dispatch scheduled.',
-    category: 'Identity',
-    timestamp: '2 hours ago',
-    unread: true,
-    linkText: 'Track Application Status',
-    linkHref: '/portal/apply',
-  },
-  {
-    id: 'NOTIF-002',
-    title: 'SARL Corporate Certificate Issued',
-    message: 'Kaelen Vance Marine Ltd has been formally chartered and entered into the commercial register (ALE-SARL-2026-0012).',
-    category: 'Corporate',
-    timestamp: 'Yesterday at 16:30',
-    unread: true,
-    linkText: 'View Corporate Filing',
-    linkHref: '/portal/companies',
-  },
-  {
-    id: 'NOTIF-003',
-    title: 'AEY Sovereign Bond Coupon Credit',
-    message: 'Quarterly yield distribution of 240.00 AEY credited from Sovereign Development Bond Tranche 2026-A.',
-    category: 'Financial',
-    timestamp: '3 days ago',
-    unread: true,
-    linkText: 'Open AEY Wallet',
-    linkHref: '/portal/wallet',
-  },
-];
+const PATH = '/api/portal/notifications';
 
 export default function PortalNotificationsPage() {
-  const { t, tx } = useI18n();
-  const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
+  const { t, tx, intl } = useI18n();
+  const { data, loading } = useApi<{ notifications: PortalNotification[] }>(PATH);
+  const notifications = data?.notifications ?? [];
 
-  const markAllAsRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
+  const markAllAsRead = async () => {
+    setCached(PATH, { notifications: notifications.map((n) => ({ ...n, unread: false })) });
+    await api(PATH, { method: 'PATCH', body: {} }).catch(() => undefined);
+    await reload(PATH);
   };
 
-  const markAsRead = (id: string) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, unread: false } : n))
-    );
+  const markAsRead = async (id: string) => {
+    setCached(PATH, { notifications: notifications.map((n) => (n.id === id ? { ...n, unread: false } : n)) });
+    await api(`${PATH}/${id}`, { method: 'PATCH', body: {} }).catch(() => undefined);
+    await reload(PATH);
   };
 
   return (
@@ -84,6 +47,9 @@ export default function PortalNotificationsPage() {
 
         {/* Notifications list */}
         <div className="space-y-3">
+          {tx(!loading && notifications.length === 0 && (
+            <p className="p-6 rounded-sm bg-white border border-navy/10 text-sm text-navy/60">{t("No notifications yet.")}</p>
+          ))}
           {notifications.map((n) => (
             <div
               key={n.id}
@@ -123,7 +89,7 @@ export default function PortalNotificationsPage() {
                     </p>
 
                     <div className="flex items-center gap-4 pt-1 text-[11px]">
-                      <span className="text-navy/40 font-mono">{tx(n.timestamp)}</span>
+                      <span className="text-navy/40 font-mono">{new Date(n.timestamp).toLocaleString(intl, { dateStyle: 'medium', timeStyle: 'short' })}</span>
                       {tx(n.linkHref && n.linkText && (
                         <Link
                           href={n.linkHref}

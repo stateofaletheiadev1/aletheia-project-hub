@@ -1,8 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useSyncExternalStore } from 'react';
 import Link from '@/components/i18n/Link';
 import { AdminShell } from '@/components/layout/AdminShell';
+import { api, reload, useApi } from '@/lib/client/api';
+import { ListState, Notice } from '@/components/admin/Notice';
 import {
   AlertTriangle,
   Scale,
@@ -12,6 +14,7 @@ import {
 
 interface RescissionCase {
   id: string;
+  reference: string;
   citizenName: string;
   nationalId: string;
   basis: 'Voluntary Renunciation' | 'Fraudulent Acquisition' | 'Covenant Treason / Sanction' | 'Dual Allegiance Conflict';
@@ -21,60 +24,49 @@ interface RescissionCase {
   status: 'Active Proceeding' | 'Rescinded' | 'Dismissed';
 }
 
-const INITIAL_CASES: RescissionCase[] = [
-  {
-    id: 'RESC-2026-004',
-    citizenName: 'Julian Thorne-Miller',
-    nationalId: 'ALE-NAT-2026-000492',
-    basis: 'Voluntary Renunciation',
-    stage: 'Judicial Finality',
-    dossierRef: 'DOS-2026-8819',
-    initiatedDate: '2026-09-14',
-    status: 'Active Proceeding',
-  },
-  {
-    id: 'RESC-2026-005',
-    citizenName: 'Viktor K. Petrov',
-    nationalId: 'ALE-NAT-2026-001209',
-    basis: 'Fraudulent Acquisition',
-    stage: 'Evidence Review',
-    dossierRef: 'DOS-2026-9041',
-    initiatedDate: '2026-09-22',
-    status: 'Active Proceeding',
-  },
-  {
-    id: 'RESC-2026-003',
-    citizenName: 'Claire Dubois',
-    nationalId: 'ALE-NAT-2026-000301',
-    basis: 'Voluntary Renunciation',
-    stage: 'Judicial Finality',
-    dossierRef: 'DOS-2026-7201',
-    initiatedDate: '2026-08-01',
-    status: 'Rescinded',
-  },
-];
+const PATH = '/api/admin/rescissions';
+const BASES: RescissionCase['basis'][] = ['Voluntary Renunciation', 'Fraudulent Acquisition', 'Covenant Treason / Sanction', 'Dual Allegiance Conflict'];
+const STAGES: RescissionCase['stage'][] = ['Hearing Scheduled', 'Evidence Review', 'Judicial Finality'];
+const noopSubscribe = () => () => {};
 
 export default function CitizenshipRescissionsPage() {
-  const [cases, setCases] = useState<RescissionCase[]>(INITIAL_CASES);
+  const { data, error, loading } = useApi<{ cases: RescissionCase[] }>(PATH);
+  const cases = data?.cases ?? [];
   const [selectedCase, setSelectedCase] = useState<RescissionCase | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null);
+  // A citizen's dossier links here with ?nationalId=… to start a proceeding.
+  const search = useSyncExternalStore(noopSubscribe, () => window.location.search, () => '');
+  const [form, setForm] = useState<{ nationalId: string | null; basis: RescissionCase['basis']; stage: RescissionCase['stage']; dossierRef: string }>({ nationalId: null, basis: BASES[0], stage: STAGES[0], dossierRef: '' });
+  const nationalId = form.nationalId ?? new URLSearchParams(search).get('nationalId') ?? '';
 
-  const executeRescission = (id: string, name: string) => {
-    setCases((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, status: 'Rescinded' } : c))
-    );
-    setNotice(`Citizenship officially rescinded for ${name}. High Court judgment entered into gazette.`);
-    setTimeout(() => setNotice(null), 4000);
-    if (selectedCase?.id === id) setSelectedCase(null);
+  const refresh = () => Promise.all([reload(PATH), reload('/api/admin/citizens')]);
+
+  const open = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      const { case: c } = await api<{ case: { reference: string } }>(PATH, { body: { ...form, nationalId } });
+      setNotice({ ok: true, text: `Proceeding ${c.reference} opened for ${nationalId}. The citizen is now under review.` });
+      setForm({ nationalId: '', basis: BASES[0], stage: STAGES[0], dossierRef: '' });
+      await refresh();
+    } catch (err) {
+      setNotice({ ok: false, text: err instanceof Error ? err.message : 'The proceeding could not be opened.' });
+    }
+    setBusy(false);
   };
 
-  const dismissCase = (id: string, name: string) => {
-    setCases((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, status: 'Dismissed' } : c))
-    );
-    setNotice(`Rescission proceeding dismissed for ${name}. Citizenship status reaffirmed.`);
-    setTimeout(() => setNotice(null), 4000);
-    if (selectedCase?.id === id) setSelectedCase(null);
+  const decide = async (c: RescissionCase, decision: 'rescind' | 'dismiss') => {
+    setBusy(true);
+    try {
+      await api(`${PATH}/${c.id}/decision`, { body: { decision } });
+      setNotice({ ok: true, text: decision === 'rescind' ? `Citizenship rescinded for ${c.citizenName}.` : `Proceeding dismissed for ${c.citizenName}. Citizenship status reaffirmed.` });
+      setSelectedCase(null);
+      await refresh();
+    } catch (err) {
+      setNotice({ ok: false, text: err instanceof Error ? err.message : 'The decision could not be saved.' });
+    }
+    setBusy(false);
   };
 
   return (
@@ -115,12 +107,34 @@ export default function CitizenshipRescissionsPage() {
           </div>
         </div>
 
-        {notice && (
-          <div className="p-3 bg-navy-deep border border-gold/40 rounded-sm text-xs font-mono text-gold flex items-center gap-2 animate-fadeIn">
-            <Gavel className="w-4 h-4 text-gold shrink-0" />
-            <span>{notice}</span>
-          </div>
-        )}
+        <Notice notice={notice} />
+
+        {/* Open a proceeding */}
+        <form onSubmit={open} className="p-4 rounded-sm grid grid-cols-1 md:grid-cols-5 gap-3 items-end text-xs font-mono" style={{ background: '#111827', border: '1px solid rgba(196,154,78,0.15)' }}>
+          <label className="space-y-1 block">
+            <span className="text-parchment/50">National ID</span>
+            <input required value={nationalId} onChange={(e) => setForm({ ...form, nationalId: e.target.value })} placeholder="ALE-NAT-2026-000001" className="w-full bg-navy-deep border border-gold/20 rounded-sm px-2 py-1.5 text-parchment" />
+          </label>
+          <label className="space-y-1 block">
+            <span className="text-parchment/50">Basis</span>
+            <select value={form.basis} onChange={(e) => setForm({ ...form, basis: e.target.value as RescissionCase['basis'] })} className="w-full bg-navy-deep border border-gold/20 rounded-sm px-2 py-1.5 text-parchment">
+              {BASES.map((b) => <option key={b}>{b}</option>)}
+            </select>
+          </label>
+          <label className="space-y-1 block">
+            <span className="text-parchment/50">Stage</span>
+            <select value={form.stage} onChange={(e) => setForm({ ...form, stage: e.target.value as RescissionCase['stage'] })} className="w-full bg-navy-deep border border-gold/20 rounded-sm px-2 py-1.5 text-parchment">
+              {STAGES.map((b) => <option key={b}>{b}</option>)}
+            </select>
+          </label>
+          <label className="space-y-1 block">
+            <span className="text-parchment/50">Dossier reference</span>
+            <input required value={form.dossierRef} onChange={(e) => setForm({ ...form, dossierRef: e.target.value })} placeholder="DOS-2026-0001" className="w-full bg-navy-deep border border-gold/20 rounded-sm px-2 py-1.5 text-parchment" />
+          </label>
+          <button disabled={busy} className="px-3 py-2 rounded-sm bg-red-900/70 border border-red-700/50 text-red-100 font-bold hover:bg-red-800 disabled:opacity-50 flex items-center justify-center gap-1.5">
+            <Gavel className="w-3.5 h-3.5" /> Open Proceeding
+          </button>
+        </form>
 
         {/* Rescission Docket Table */}
         <div
@@ -143,7 +157,7 @@ export default function CitizenshipRescissionsPage() {
               <tbody className="divide-y divide-white/5">
                 {cases.map((c) => (
                   <tr key={c.id} className="hover:bg-white/[0.02] transition-colors">
-                    <td className="py-3.5 px-4 font-bold text-gold">{c.id}</td>
+                    <td className="py-3.5 px-4 font-bold text-gold">{c.reference}</td>
                     <td className="py-3.5 px-4">
                       <div className="font-bold text-parchment font-sans">{c.citizenName}</div>
                       <div className="text-[10px] text-parchment/40">{c.nationalId}</div>
@@ -179,6 +193,7 @@ export default function CitizenshipRescissionsPage() {
                 ))}
               </tbody>
             </table>
+            <ListState loading={loading} error={error} empty={cases.length === 0} emptyText="No rescission proceedings are on the docket." />
           </div>
         </div>
 
@@ -192,9 +207,9 @@ export default function CitizenshipRescissionsPage() {
               <div className="flex items-center justify-between border-b border-gold/20 pb-3">
                 <div className="flex items-center gap-2">
                   <Gavel className="w-5 h-5 text-gold" />
-                  <span className="font-bold text-parchment text-sm">Deprivation Case Docket {selectedCase.id}</span>
+                  <span className="font-bold text-parchment text-sm">Deprivation Case Docket {selectedCase.reference}</span>
                 </div>
-                <button onClick={() => setSelectedCase(null)} className="text-parchment/40 hover:text-parchment">
+                <button aria-label="Close" onClick={() => setSelectedCase(null)} className="text-parchment/40 hover:text-parchment">
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -220,9 +235,10 @@ export default function CitizenshipRescissionsPage() {
                     <span className="text-parchment font-mono">{selectedCase.dossierRef}</span>
                   </div>
                   <div className="flex justify-between py-1 border-b border-white/5">
-                    <span className="text-parchment/40">Statelessness Risk Audit:</span>
-                    <span className="text-emerald-400 font-bold">Negative (Retains secondary nationality)</span>
+                    <span className="text-parchment/40">Opened:</span>
+                    <span className="text-parchment">{selectedCase.initiatedDate}</span>
                   </div>
+                  <p className="pt-2 text-parchment/50 leading-relaxed">Only administrators can execute or dismiss. Confirm that the statelessness check (Article 9, § 2) has been made before executing.</p>
                 </div>
               </div>
 
@@ -230,13 +246,15 @@ export default function CitizenshipRescissionsPage() {
                 {selectedCase.status === 'Active Proceeding' && (
                   <>
                     <button
-                      onClick={() => dismissCase(selectedCase.id, selectedCase.citizenName)}
+                      disabled={busy}
+                      onClick={() => decide(selectedCase, 'dismiss')}
                       className="px-3 py-1.5 bg-navy-deep border border-emerald-500/40 text-emerald-300 text-xs font-mono rounded-sm hover:bg-emerald-950/40"
                     >
                       Dismiss Case &amp; Affirm
                     </button>
                     <button
-                      onClick={() => executeRescission(selectedCase.id, selectedCase.citizenName)}
+                      disabled={busy}
+                      onClick={() => decide(selectedCase, 'rescind')}
                       className="px-4 py-1.5 bg-red-900 text-white font-bold text-xs font-mono rounded-sm hover:bg-red-800"
                     >
                       Execute Rescission Order

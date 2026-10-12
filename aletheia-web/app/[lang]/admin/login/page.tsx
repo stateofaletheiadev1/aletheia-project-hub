@@ -1,38 +1,28 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Link from '@/components/i18n/Link';
 import { useRouter } from '@/lib/i18n/navigation';
 import { StarOfTruth } from '@/components/brand/Logo';
 import {
-  Lock,
   KeyRound,
   AlertTriangle,
   ArrowRight,
-  Sparkles,
-  Cpu,
-  Fingerprint,
   Eye,
   EyeOff,
   Zap,
 } from 'lucide-react';
 
-import { setOfficerSession } from '@/lib/auth';
-
-const SECURITY_LEVELS = [
-  { label: 'TLS 1.3 Encryption', icon: Lock, color: '#3D8664' },
-  { label: 'Post-Quantum ML-KEM', icon: Cpu, color: '#C49A4E' },
-  { label: 'FIDO2 Biometric Gate', icon: Fingerprint, color: '#9B59B6' },
-];
+import { OFFICER_ME, type OfficerProfile } from '@/lib/auth';
+import { api, clearCache, setCached } from '@/lib/client/api';
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const [authMode, setAuthMode] = useState<'smartcard' | 'totp'>('smartcard');
   const [officerId, setOfficerId] = useState('');
   const [pin, setPin] = useState('');
   const [totpCode, setTotpCode] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
   const [showPin, setShowPin] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -40,20 +30,24 @@ export default function AdminLoginPage() {
     return () => clearTimeout(t);
   }, []);
 
-  const handleLogin = (e?: React.FormEvent) => {
+  const handleLogin = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setIsVerifying(true);
-    setOfficerSession({
-      id: officerId || 'SEC-OFFICER-0091',
-      name: officerId.toLowerCase().includes('thorne') ? 'Duty Officer Thorne' : 'Cmdr. S. Okafor',
-      role: 'ADSS Senior Registry Officer',
-      clearance: 'Level 4 Clearance (National Registry)',
-    });
-    setTimeout(() => {
-      setIsVerifying(false);
+    setError(null);
+    try {
+      const { officer } = await api<{ officer: OfficerProfile }>('/api/admin/auth/login', { body: { officerId, passphrase: pin, code: totpCode } });
+      clearCache();
+      setCached(OFFICER_ME, { officer });
       router.push('/admin');
-    }, 1200);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Sign-in failed. Please try again.');
+      setIsVerifying(false);
+    }
   };
+
+  const fieldStyle = { background: 'rgba(14,27,49,0.80)', border: '1px solid rgba(196,154,78,0.20)', color: '#F4EEDF' };
+  const focus = (e: React.FocusEvent<HTMLInputElement>) => { e.target.style.borderColor = 'rgba(196,154,78,0.55)'; e.target.style.boxShadow = '0 0 0 3px rgba(196,154,78,0.08)'; };
+  const blur = (e: React.FocusEvent<HTMLInputElement>) => { e.target.style.borderColor = 'rgba(196,154,78,0.20)'; e.target.style.boxShadow = 'none'; };
 
   return (
     <div className="flex flex-col min-h-screen login-cinematic text-parchment overflow-hidden">
@@ -112,152 +106,58 @@ export default function AdminLoginPage() {
                 </div>
               </div>
 
-              {/* Auth mode tabs */}
-              <div className="grid grid-cols-2 gap-1 p-1 rounded-sm text-xs font-mono" style={{ background: 'rgba(14,27,49,0.70)', border: '1px solid rgba(196,154,78,0.16)' }}>
-                {([
-                  { key: 'smartcard', label: 'Smartcard / HSM', icon: Cpu },
-                  { key: 'totp', label: '2FA TOTP', icon: KeyRound },
-                ] as const).map(({ key, label, icon: Icon }) => (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => setAuthMode(key)}
-                    className={`flex items-center justify-center gap-2 py-2.5 rounded-sm font-bold transition-all ${authMode === key ? 'text-gold' : 'text-parchment/50 hover:text-parchment/70'}`}
-                    style={authMode === key ? { background: 'rgba(196,154,78,0.12)', border: '1px solid rgba(196,154,78,0.30)' } : {}}
-                  >
-                    <Icon className="w-3.5 h-3.5" />
-                    {label}
-                  </button>
-                ))}
-              </div>
-
-              {/* Smartcard mode */}
-              {authMode === 'smartcard' && (
-                <div className="space-y-5">
-                  <div className="flex flex-col items-center gap-3 py-3">
-                    <div
-                      className="w-16 h-16 rounded-sm flex items-center justify-center relative overflow-hidden"
-                      style={{ background: 'rgba(14,27,49,0.80)', border: '1px solid rgba(196,154,78,0.35)' }}
-                    >
-                      <div className="absolute inset-0" style={{ background: 'radial-gradient(circle, rgba(196,154,78,0.12) 0%, transparent 70%)' }} />
-                      <Cpu className="w-8 h-8 text-gold animate-breathe relative z-10" />
-                    </div>
-                    <div className="text-center">
-                      <p className="text-sm font-bold" style={{ color: '#F4EEDF' }}>Insert PIV / CAC Token</p>
-                      <p className="text-[11px] mt-1" style={{ color: 'rgba(244,238,223,0.55)' }}>
-                        Touch your security token and enter your officer authorization PIN
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-mono font-bold tracking-[0.20em] uppercase text-gold block">
-                      Security PIN / Token Passphrase
-                    </label>
-                    <div className="relative">
-                      <input
-                        type={showPin ? 'text' : 'password'}
-                        placeholder="Enter authorization PIN"
-                        value={pin}
-                        onChange={(e) => setPin(e.target.value)}
-                        className="w-full px-4 py-3 text-sm rounded-sm focus:outline-none font-mono"
-                        style={{ background: 'rgba(14,27,49,0.70)', border: '1px solid rgba(196,154,78,0.22)', color: '#F4EEDF' }}
-                        onFocus={e => { e.target.style.borderColor = 'rgba(196,154,78,0.55)'; e.target.style.boxShadow = '0 0 0 3px rgba(196,154,78,0.08)'; }}
-                        onBlur={e => { e.target.style.borderColor = 'rgba(196,154,78,0.22)'; e.target.style.boxShadow = 'none'; }}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPin(!showPin)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors"
-                        style={{ color: 'rgba(244,238,223,0.35)' }}
-                      >
-                        {showPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    disabled={isVerifying}
-                    onClick={() => handleLogin()}
-                    className="btn-sovereign-gold btn-shimmer w-full py-3.5 rounded-sm flex items-center justify-center gap-2.5 text-sm font-bold"
-                  >
-                    {isVerifying ? (
-                      <>
-                        <Zap className="w-4 h-4 animate-pulse" />
-                        <span>Authenticating Sovereign Session…</span>
-                      </>
-                    ) : (
-                      <>
-                        <Fingerprint className="w-4 h-4" />
-                        <span>Authenticate Officer Token</span>
-                        <ArrowRight className="w-4 h-4" />
-                      </>
-                    )}
-                  </button>
+              <form onSubmit={handleLogin} className="space-y-4">
+                <div className="space-y-1.5">
+                  <label htmlFor="officer-id" className="text-[10px] font-mono font-bold tracking-[0.20em] uppercase text-gold block">Officer ID</label>
+                  <input id="officer-id" type="text" required autoComplete="username" placeholder="e.g. SEC-OFFICER-0001" value={officerId} onChange={(e) => setOfficerId(e.target.value)} className="w-full px-4 py-3 text-sm rounded-sm focus:outline-none font-mono" style={fieldStyle} onFocus={focus} onBlur={blur} />
                 </div>
-              )}
 
-              {/* TOTP mode */}
-              {authMode === 'totp' && (
-                <form onSubmit={handleLogin} className="space-y-4">
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-mono font-bold tracking-[0.20em] uppercase text-gold block">Ministry / Portfolio</label>
-                    <select
-                      className="w-full px-4 py-3 text-sm rounded-sm focus:outline-none"
-                      style={{ background: 'rgba(14,27,49,0.80)', border: '1px solid rgba(196,154,78,0.20)', color: '#F4EEDF' }}
-                      onFocus={e => { e.target.style.borderColor = 'rgba(196,154,78,0.55)'; }}
-                      onBlur={e => { e.target.style.borderColor = 'rgba(196,154,78,0.20)'; }}
-                    >
-                      <option style={{ background: '#0E1B31' }}>General Secretariat of State</option>
-                      <option style={{ background: '#0E1B31' }}>ADSS Immigration & Border Command</option>
-                      <option style={{ background: '#0E1B31' }}>Ministry of Treasury & Finance</option>
-                      <option style={{ background: '#0E1B31' }}>Ministry of Digital State & Registries</option>
-                    </select>
+                <div className="space-y-1.5">
+                  <label htmlFor="officer-pass" className="text-[10px] font-mono font-bold tracking-[0.20em] uppercase text-gold block">Passphrase</label>
+                  <div className="relative">
+                    <input id="officer-pass" type={showPin ? 'text' : 'password'} required autoComplete="current-password" placeholder="Officer passphrase" value={pin} onChange={(e) => setPin(e.target.value)} className="w-full px-4 py-3 text-sm rounded-sm focus:outline-none font-mono" style={fieldStyle} onFocus={focus} onBlur={blur} />
+                    <button type="button" aria-label="Show or hide passphrase" onClick={() => setShowPin(!showPin)} className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors" style={{ color: 'rgba(244,238,223,0.35)' }}>
+                      {showPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
                   </div>
+                </div>
 
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-mono font-bold tracking-[0.20em] uppercase text-gold block">Officer ID</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. SEC-OFFICER-0091"
-                      value={officerId}
-                      onChange={(e) => setOfficerId(e.target.value)}
-                      className="w-full px-4 py-3 text-sm rounded-sm focus:outline-none font-mono"
-                      style={{ background: 'rgba(14,27,49,0.80)', border: '1px solid rgba(196,154,78,0.20)', color: '#F4EEDF' }}
-                      onFocus={e => { e.target.style.borderColor = 'rgba(196,154,78,0.55)'; e.target.style.boxShadow = '0 0 0 3px rgba(196,154,78,0.08)'; }}
-                      onBlur={e => { e.target.style.borderColor = 'rgba(196,154,78,0.20)'; e.target.style.boxShadow = 'none'; }}
-                    />
-                  </div>
+                <div className="space-y-1.5">
+                  <label htmlFor="officer-code" className="text-[10px] font-mono font-bold tracking-[0.20em] uppercase text-gold block">6-digit authenticator code</label>
+                  <input
+                    id="officer-code"
+                    type="text"
+                    required
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    pattern="[0-9 ]{6,7}"
+                    placeholder="000 000"
+                    value={totpCode}
+                    onChange={(e) => setTotpCode(e.target.value)}
+                    maxLength={7}
+                    className="w-full px-4 py-3 text-center text-lg font-extrabold tracking-[0.4em] rounded-sm focus:outline-none font-mono"
+                    style={{ ...fieldStyle, color: '#C49A4E', letterSpacing: '0.4em' }}
+                    onFocus={focus}
+                    onBlur={blur}
+                  />
+                </div>
 
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-mono font-bold tracking-[0.20em] uppercase text-gold block">6-Digit Hardware TOTP Code</label>
-                    <input
-                      type="text"
-                      placeholder="000 000"
-                      value={totpCode}
-                      onChange={(e) => setTotpCode(e.target.value)}
-                      maxLength={7}
-                      className="w-full px-4 py-3 text-center text-lg font-extrabold tracking-[0.4em] rounded-sm focus:outline-none font-mono"
-                      style={{ background: 'rgba(14,27,49,0.80)', border: '1px solid rgba(196,154,78,0.20)', color: '#C49A4E', letterSpacing: '0.4em' }}
-                      onFocus={e => { e.target.style.borderColor = 'rgba(196,154,78,0.55)'; e.target.style.boxShadow = '0 0 0 3px rgba(196,154,78,0.08)'; }}
-                      onBlur={e => { e.target.style.borderColor = 'rgba(196,154,78,0.20)'; e.target.style.boxShadow = 'none'; }}
-                    />
-                  </div>
+                {error && (
+                  <p role="alert" className="text-[12px] font-semibold px-3 py-2 rounded-sm" style={{ background: 'rgba(192,57,43,0.12)', color: '#fca5a5', border: '1px solid rgba(192,57,43,0.35)' }}>{error}</p>
+                )}
 
-                  <button
-                    type="submit"
-                    disabled={isVerifying}
-                    className="btn-sovereign-gold btn-shimmer w-full py-3.5 rounded-sm flex items-center justify-center gap-2.5 text-sm font-bold"
-                  >
-                    {isVerifying ? (
-                      <><Zap className="w-4 h-4 animate-pulse" /> Validating Token…</>
-                    ) : (
-                      <><KeyRound className="w-4 h-4" /> Authorize Console Session <ArrowRight className="w-4 h-4" /></>
-                    )}
-                  </button>
-                </form>
-              )}
+                <button
+                  type="submit"
+                  disabled={isVerifying}
+                  className="btn-sovereign-gold btn-shimmer w-full py-3.5 rounded-sm flex items-center justify-center gap-2.5 text-sm font-bold"
+                >
+                  {isVerifying ? (
+                    <><Zap className="w-4 h-4 animate-pulse" /> Validating…</>
+                  ) : (
+                    <><KeyRound className="w-4 h-4" /> Authorize Console Session <ArrowRight className="w-4 h-4" /></>
+                  )}
+                </button>
+              </form>
 
           {/* Footnote */}
           <p className="text-center text-[10px] font-mono mt-4" style={{ color: 'rgba(244,238,223,0.20)' }}>

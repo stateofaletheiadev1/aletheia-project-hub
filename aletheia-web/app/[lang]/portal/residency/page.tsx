@@ -3,12 +3,21 @@
 import { useI18n } from '@/components/i18n/I18nProvider';
 import React from 'react';
 import { downloadPortalDocument } from '@/lib/pdf/portal';
+import { useApi } from '@/lib/client/api';
+import { day, ME, type CompanyRecord, type PortalAccount, type PortalDocument } from '@/lib/auth';
 import Link from '@/components/i18n/Link';
 import { PortalShell } from '@/components/layout/PortalShell';
 import { CheckCircle2, Download, ArrowRight } from 'lucide-react';
 
 export default function PortalResidencyStatusPage() {
-  const { t, tx } = useI18n();
+  const { t, tx, intl } = useI18n();
+  const me = useApi<{ account: PortalAccount }>(ME);
+  const docs = useApi<{ documents: PortalDocument[] }>('/api/portal/documents');
+  const firms = useApi<{ companies: CompanyRecord[] }>('/api/portal/companies');
+  const account = me.data?.account;
+  const residency = account?.residency;
+  const certificate = docs.data?.documents.find((d) => d.kind === 'e-residence-certificate');
+  const company = firms.data?.companies.find((c) => c.status === 'Active / Chartered');
   return (
     <PortalShell>
       <div className="p-6 lg:p-8 space-y-6">
@@ -17,15 +26,19 @@ export default function PortalResidencyStatusPage() {
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-bold text-navy">{t("E-Residency Status & Privileges")}</h1>
-              <span className="px-2 py-0.5 rounded-sm text-[10px] font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">{t("ACTIVE · 3-YEAR TERM")}</span>
+              <span className="px-2 py-0.5 rounded-sm text-[10px] font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">{residency ? t("ACTIVE · 3-YEAR TERM") : t("NOT YET GRANTED")}</span>
             </div>
             <p className="text-[12px] text-navy/50 mt-0.5">{t("Statutory e-residency granted under Sovereign Covenant State Digital Economy Act § 7")}</p>
           </div>
 
           <div className="flex items-center gap-2">
+            {tx(!residency && (
+              <Link href="/portal/apply" className="px-3.5 py-1.5 bg-gold text-navy text-xs font-bold rounded-sm">{t("Apply for e-residency")}</Link>
+            ))}
             <button
                 type="button"
-                onClick={() => void downloadPortalDocument('e-residence-certificate', 'Aletheia_E_Residence_Certificate.pdf')}
+                disabled={!certificate || !account}
+                onClick={() => certificate && account && void downloadPortalDocument('e-residence-certificate', certificate.name, account, certificate)}
                 className="px-3.5 py-1.5 bg-navy text-parchment text-xs font-semibold rounded-sm hover:bg-navy-deep transition-colors flex items-center gap-1.5"
               >
               <Download className="w-3.5 h-3.5 text-gold" />
@@ -37,10 +50,10 @@ export default function PortalResidencyStatusPage() {
         {/* Term & Validity Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 font-mono text-xs">
           {[
-            { label: 'E-Residency ID', value: 'ALE-ERES-2026-004928', sub: 'National Roll Entry', good: true },
-            { label: 'Valid From', value: '2026-10-01', sub: 'Inaugural Charter Date', good: true },
-            { label: 'Valid Through', value: '2029-10-01', sub: '3-Year Renewable Term', good: true },
-            { label: 'Renewal Window', value: 'Opens July 2029', sub: '60 Days Prior to Expiry', good: false },
+            { label: 'E-Residency ID', value: account?.id ?? '—', sub: 'National Roll Entry', good: Boolean(residency) },
+            { label: 'Valid From', value: residency ? day(residency.validFrom, intl) : '—', sub: 'Date of grant', good: Boolean(residency) },
+            { label: 'Valid Through', value: residency ? day(residency.validUntil, intl) : '—', sub: '3-Year Renewable Term', good: Boolean(residency) },
+            { label: 'Renewal Window', value: residency ? day(new Date(Date.parse(residency.validUntil) - 60 * 86_400_000).toISOString(), intl) : '—', sub: '60 Days Prior to Expiry', good: false },
           ].map((c) => (
             <div key={c.label} className="p-5 rounded-sm bg-white border border-navy/10 space-y-2">
               <span className="text-[10px] uppercase tracking-wider text-navy/40">{tx(c.label)}</span>
@@ -97,7 +110,8 @@ export default function PortalResidencyStatusPage() {
         <div className="p-5 rounded-sm bg-white border border-gold/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1">
             <h4 className="text-sm font-bold text-navy">{t("Associated Enterprise Registration")}</h4>
-            <p className="text-xs text-navy/60 font-sans">{t("You are currently registered as Sole Director of")}{' '}<strong>{t("Kaelen Vance Marine Ltd (ALE-SARL-2026-0012)")}</strong>.
+            <p className="text-xs text-navy/60 font-sans">
+              {company ? <>{t("You are the founder of")}{' '}<strong>{tx(`${company.name} (${company.regNumber})`)}</strong>.</> : t("You have no chartered company yet.")}
             </p>
           </div>
           <Link

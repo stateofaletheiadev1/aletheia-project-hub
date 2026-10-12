@@ -2,12 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from '@/components/i18n/Link';
-import { AdminShell } from '@/components/layout/AdminShell';
+import { AdminShell, ADMIN_DASHBOARD, type AdminDashboard } from '@/components/layout/AdminShell';
+import { api, useApi } from '@/lib/client/api';
 import {
   Users,
   UserCheck,
   Building2,
-  Stamp,
   Globe2,
   CheckCircle2,
   XCircle,
@@ -19,50 +19,46 @@ import {
   ArrowUpRight,
 } from 'lucide-react';
 
-const PENDING_QUEUE = [
-  { id: 'APP-90412', name: 'Dr. Elizabeth Thorne-Vance', type: 'E-Residency', nationality: 'DE', date: '2026-10-01', risk: 'Low', riskScore: '0.02' },
-  { id: 'APP-90411', name: 'Kaelen Vance Marine Ltd', type: 'SARL Incorporation', nationality: 'MT', date: '2026-10-01', risk: 'Low', riskScore: '0.01' },
-  { id: 'APP-90410', name: 'Aegis Oceanographic Corp', type: 'Vessel Flagging', nationality: 'DE', date: '2026-09-30', risk: 'Low', riskScore: '0.04' },
-  { id: 'APP-90409', name: 'Maximilian Sterling', type: 'SDB Bond Subscription', nationality: 'GB', date: '2026-09-30', risk: 'Verified', riskScore: '0.00' },
-  { id: 'APP-90408', name: 'Sophia Andreou', type: 'Citizenship Application', nationality: 'GR', date: '2026-09-29', risk: 'Medium', riskScore: '0.18' },
-];
+const STAT_DEFS = [
+  { key: 'citizens', label: 'Total Citizens', sub: 'Active in the citizen registry', icon: Users, accent: '#C49A4E' },
+  { key: 'pending', label: 'Pending Approvals', sub: 'Applications, filings and documents', icon: Clock, accent: '#E4A628' },
+  { key: 'companies', label: 'Companies Registered', sub: 'Chartered in the commercial register', icon: Building2, accent: '#3D8664' },
+  { key: 'eResidents', label: 'E-Residents', sub: 'Holding a valid e-residency', icon: Globe2, accent: '#8B5CF6' },
+] as const;
 
-const STAT_CARDS = [
-  { label: 'Total Citizens', value: '2,841', delta: '+12 this month', trend: '+0.4%', icon: Users, accent: '#C49A4E', barWidth: '72' },
-  { label: 'Pending Approvals', value: '48', delta: '12 urgent', trend: '+8', icon: Clock, accent: '#E4A628', barWidth: '55' },
-  { label: 'Companies Registered', value: '394', delta: '+5 this week', trend: '+1.3%', icon: Building2, accent: '#3D8664', barWidth: '88' },
-  { label: 'Active Visas', value: '1,204', delta: '7 expiring soon', trend: '+2.1%', icon: Stamp, accent: '#8B5CF6', barWidth: '65' },
-];
+const ACTION_DEFS = [
+  { key: 'citizenship', label: 'Citizenship Approvals', href: '/admin/citizenship', icon: UserCheck, desc: 'Applications pending review' },
+  { key: 'documents', label: 'Document Review', href: '/admin/documents', icon: FileSearch, desc: 'Submitted documents to verify' },
+  { key: 'eResidency', label: 'E-Residency Queue', href: '/admin/e-residency', icon: Globe2, desc: 'Digital identity applications' },
+  { key: 'companies', label: 'Company Formations', href: '/admin/companies', icon: Building2, desc: 'Corporate registry submissions' },
+] as const;
 
-const RISK_COLOR: Record<string, { bg: string; text: string; border: string }> = {
-  Low:      { bg: 'rgba(61,134,100,0.12)', text: '#3D8664', border: 'rgba(61,134,100,0.28)' },
-  Medium:   { bg: 'rgba(228,166,40,0.12)', text: '#E4A628', border: 'rgba(228,166,40,0.28)' },
-  High:     { bg: 'rgba(192,57,43,0.12)',  text: '#E05A6A', border: 'rgba(192,57,43,0.28)' },
-  Verified: { bg: 'rgba(61,134,100,0.12)', text: '#3D8664', border: 'rgba(61,134,100,0.28)' },
-};
-
-const QUICK_ACTIONS = [
-  { label: 'Citizenship Approvals', href: '/admin/citizenship', count: 12, icon: UserCheck, urgent: true, desc: 'Applications pending review' },
-  { label: 'Visa Applications', href: '/admin/immigration', count: 7, icon: Stamp, urgent: false, desc: 'Border crossings pending' },
-  { label: 'E-Residency Queue', href: '/admin/e-residency', count: 24, icon: Globe2, urgent: false, desc: 'Digital identity applications' },
-  { label: 'Company Formations', href: '/admin/companies', count: 5, icon: Building2, urgent: false, desc: 'Corporate registry submissions' },
-];
-
-const RECENT_ACTIVITY = [
-  { time: '08:42', action: 'APP-90412 submitted — E-Residency (Thorne-Vance)', type: 'info' },
-  { time: '08:31', action: 'Citizenship APP-90407 approved — Ref. no. CT-2891', type: 'success' },
-  { time: '08:14', action: 'Security alert cleared — Threat vector neutralised', type: 'success' },
-  { time: '07:55', action: 'Visa APP-90400 flagged for secondary review', type: 'warning' },
-];
+const time = (iso: string) => new Date(iso).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'UTC' });
 
 export default function AdminCommandConsolePage() {
-  const [queue, setQueue] = useState(PENDING_QUEUE);
+  const { data, error, reload } = useApi<AdminDashboard>(ADMIN_DASHBOARD);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => { const t = setTimeout(() => setMounted(true), 50); return () => clearTimeout(t); }, []);
 
-  const approve = (id: string) => setQueue(q => q.filter(a => a.id !== id));
-  const reject  = (id: string) => setQueue(q => q.filter(a => a.id !== id));
+  const queue = data?.queue ?? [];
+  const maxStat = Math.max(1, ...STAT_DEFS.map(({ key }) => data?.stats[key] ?? 0));
+
+  const decide = async (row: AdminDashboard['queue'][number], approve: boolean) => {
+    setBusy(row.id);
+    setNotice(null);
+    try {
+      if (row.kind === 'application') await api(`/api/admin/applications/${row.id}/decision`, { body: { decision: approve ? 'approve' : 'reject' } });
+      else if (approve) await api(`/api/admin/companies/${row.id}/decision`, { body: { decision: 'approve' } });
+      setNotice(`${row.reference} ${approve ? 'approved' : 'rejected'}.`);
+      await reload();
+    } catch (e) {
+      setNotice(e instanceof Error ? e.message : 'The decision could not be saved.');
+    }
+    setBusy(null);
+  };
 
   return (
     <AdminShell>
@@ -82,13 +78,17 @@ export default function AdminCommandConsolePage() {
           <div className="flex items-center gap-2 px-4 py-2 rounded-sm text-[11px] font-mono shrink-0"
             style={{ background: 'rgba(61,134,100,0.10)', border: '1px solid rgba(61,134,100,0.22)', color: '#3D8664' }}>
             <div className="live-dot" />
-            <span className="font-bold tracking-wide">All systems operational</span>
+            <span className="font-bold tracking-wide">{error ? error.message : data ? 'Registry database connected' : 'Connecting…'}</span>
           </div>
         </div>
 
         {/* ── KPI Stat Cards ── */}
         <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 transition-all duration-500 delay-100 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-          {STAT_CARDS.map(({ label, value, delta, trend, icon: Icon, accent, barWidth }) => (
+          {STAT_DEFS.map(({ key, label, sub: delta, icon: Icon, accent }) => {
+            const n = data?.stats[key];
+            const value = n === undefined ? '—' : n.toLocaleString('en-GB');
+            const barWidth = n === undefined ? 0 : Math.round((n / maxStat) * 100);
+            return (
             <div key={label} className="kpi-card rounded-sm p-5 space-y-4 group">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-bold tracking-[0.18em] uppercase" style={{ color: 'rgba(244,238,223,0.40)' }}>{label}</span>
@@ -104,13 +104,10 @@ export default function AdminCommandConsolePage() {
                 <div className="progress-bar-sovereign">
                   <div className="progress-bar-sovereign-fill" style={{ width: `${barWidth}%`, background: `linear-gradient(90deg, ${accent}80, ${accent})` }} />
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-[9px] font-mono" style={{ color: 'rgba(244,238,223,0.25)' }}>Capacity</span>
-                  <span className="text-[9px] font-bold font-mono" style={{ color: accent }}>{trend}</span>
-                </div>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* ── Quick Action Tiles + Activity Feed ── */}
@@ -120,7 +117,10 @@ export default function AdminCommandConsolePage() {
           <div className="lg:col-span-2 space-y-3">
             <h2 className="text-[11px] font-bold tracking-[0.18em] uppercase" style={{ color: 'rgba(244,238,223,0.30)' }}>Action Queue</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {QUICK_ACTIONS.map(({ label, href, count, icon: Icon, urgent, desc }) => (
+              {ACTION_DEFS.map(({ key, label, href, icon: Icon, desc }) => {
+                const count = data?.pending[key] ?? 0;
+                const urgent = count > 0;
+                return (
                 <Link
                   key={href}
                   href={href}
@@ -132,7 +132,7 @@ export default function AdminCommandConsolePage() {
                     </div>
                     {urgent && (
                       <span className="text-[8px] font-extrabold px-2 py-1 rounded-sm tracking-wider" style={{ background: 'rgba(196,154,78,0.15)', border: '1px solid rgba(196,154,78,0.35)', color: '#C49A4E' }}>
-                        URGENT
+                        WAITING
                       </span>
                     )}
                   </div>
@@ -145,7 +145,8 @@ export default function AdminCommandConsolePage() {
                     Review <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
                   </div>
                 </Link>
-              ))}
+                );
+              })}
             </div>
           </div>
 
@@ -158,8 +159,11 @@ export default function AdminCommandConsolePage() {
               </Link>
             </div>
             <div className="p-4 space-y-4">
-              {RECENT_ACTIVITY.map(({ time, action, type }) => (
-                <div key={time} className="flex gap-3">
+              {(data?.activity ?? []).length === 0 && (
+                <p className="text-[11px]" style={{ color: 'rgba(244,238,223,0.35)' }}>No activity recorded yet.</p>
+              )}
+              {(data?.activity ?? []).map(({ time: at, action, type }) => (
+                <div key={at + action} className="flex gap-3">
                   <div className="flex flex-col items-center shrink-0 mt-0.5">
                     <div
                       className="w-2 h-2 rounded-full shrink-0"
@@ -169,7 +173,7 @@ export default function AdminCommandConsolePage() {
                   </div>
                   <div className="pb-3 min-w-0">
                     <p className="text-[11px] leading-snug" style={{ color: 'rgba(244,238,223,0.65)' }}>{action}</p>
-                    <p className="text-[9px] font-mono mt-0.5" style={{ color: 'rgba(244,238,223,0.28)' }}>{time} UTC</p>
+                    <p className="text-[9px] font-mono mt-0.5" style={{ color: 'rgba(244,238,223,0.28)' }}>{time(at)} UTC</p>
                   </div>
                 </div>
               ))}
@@ -182,7 +186,7 @@ export default function AdminCommandConsolePage() {
           <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid rgba(196,154,78,0.10)' }}>
             <div>
               <h2 className="text-[13px] font-extrabold" style={{ color: '#F4EEDF' }}>Pending Registry Queue</h2>
-              <p className="text-[10px] font-mono mt-0.5" style={{ color: 'rgba(196,154,78,0.55)' }}>{queue.length} awaiting action</p>
+              <p className="text-[10px] font-mono mt-0.5" style={{ color: 'rgba(196,154,78,0.55)' }}>{queue.length} awaiting action{notice ? ` · ${notice}` : ''}</p>
             </div>
             <Link
               href="/admin/citizens"
@@ -197,40 +201,35 @@ export default function AdminCommandConsolePage() {
             <table className="w-full text-[11px]">
               <thead>
                 <tr style={{ borderBottom: '1px solid rgba(196,154,78,0.08)' }}>
-                  {['App ID', 'Applicant / Entity', 'Type', 'Nationality', 'Date', 'Risk', 'Actions'].map(h => (
+                  {['Reference', 'Applicant / Entity', 'Type', 'Nationality', 'Submitted', 'Actions'].map(h => (
                     <th key={h} className="px-5 py-3.5 text-left font-extrabold tracking-[0.16em] uppercase" style={{ color: 'rgba(196,154,78,0.40)', fontSize: '9px' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {queue.map(app => {
-                  const rc = RISK_COLOR[app.risk] ?? RISK_COLOR.Low;
+                  const reviewHref = app.kind === 'company' ? '/admin/companies' : app.type === 'E-Residency' ? '/admin/e-residency' : '/admin/citizenship';
                   return (
                     <tr key={app.id} className="premium-tr group">
-                      <td className="px-5 py-4 font-mono font-bold" style={{ color: '#C49A4E' }}>{app.id}</td>
+                      <td className="px-5 py-4 font-mono font-bold" style={{ color: '#C49A4E' }}>{app.reference}</td>
                       <td className="px-5 py-4 font-semibold" style={{ color: '#F0E9D8' }}>{app.name}</td>
                       <td className="px-5 py-4" style={{ color: 'rgba(244,238,223,0.55)' }}>{app.type}</td>
                       <td className="px-5 py-4 font-mono font-bold" style={{ color: 'rgba(244,238,223,0.45)' }}>{app.nationality}</td>
-                      <td className="px-5 py-4 font-mono" style={{ color: 'rgba(244,238,223,0.38)' }}>{app.date}</td>
-                      <td className="px-5 py-4">
-                        <span className="px-2 py-0.5 rounded-sm text-[9px] font-bold font-mono" style={{ background: rc.bg, color: rc.text, border: `1px solid ${rc.border}` }}>
-                          {app.risk} · {app.riskScore}
-                        </span>
-                      </td>
+                      <td className="px-5 py-4 font-mono" style={{ color: 'rgba(244,238,223,0.38)' }}>{time(app.date)}</td>
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-2">
-                          <button onClick={() => approve(app.id)} className="flex items-center gap-1 px-2.5 py-1 rounded-sm text-[10px] font-bold transition-all hover:scale-105"
+                          <button disabled={busy === app.id} onClick={() => decide(app, true)} className="flex items-center gap-1 px-2.5 py-1 rounded-sm text-[10px] font-bold transition-all hover:scale-105"
                             style={{ background: 'rgba(61,134,100,0.12)', color: '#3D8664', border: '1px solid rgba(61,134,100,0.25)' }}>
                             <CheckCircle2 className="w-3 h-3" /> Approve
                           </button>
-                          <button onClick={() => reject(app.id)} className="flex items-center gap-1 px-2.5 py-1 rounded-sm text-[10px] font-bold transition-all hover:scale-105"
+                          {app.kind === 'application' && <button disabled={busy === app.id} onClick={() => decide(app, false)} className="flex items-center gap-1 px-2.5 py-1 rounded-sm text-[10px] font-bold transition-all hover:scale-105"
                             style={{ background: 'rgba(112,24,36,0.12)', color: '#fca5a5', border: '1px solid rgba(112,24,36,0.25)' }}>
                             <XCircle className="w-3 h-3" /> Reject
-                          </button>
-                          <button className="p-1.5 rounded-sm transition-colors hover:bg-white/5"
+                          </button>}
+                          <Link href={reviewHref} aria-label={`Review ${app.reference}`} className="p-1.5 rounded-sm transition-colors hover:bg-white/5"
                             style={{ color: 'rgba(244,238,223,0.30)' }}>
                             <Eye className="w-3.5 h-3.5" />
-                          </button>
+                          </Link>
                         </div>
                       </td>
                     </tr>

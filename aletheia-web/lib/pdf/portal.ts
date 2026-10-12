@@ -1,12 +1,12 @@
 'use client';
 
 import { renderOfficialPdf, type OfficialPdfSpec } from '@/lib/pdf/builder';
-import { getUserSession, type UserSession } from '@/lib/auth';
+import type { CompanyRecord, PortalAccount, PortalDocument } from '@/lib/auth';
 
 /**
- * Personal documents in the citizen portal, rendered in the browser from the
- * signed-in session. Because the portal is a demonstration environment, every
- * document is marked SPECIMEN.
+ * Personal documents in the citizen portal, rendered in the browser from the registry
+ * records: the holder's account and the issued document (its reference and SHA-256
+ * fingerprint, which officers can check against the registry).
  */
 
 export type PortalDocumentKind =
@@ -16,13 +16,15 @@ export type PortalDocumentKind =
   | 'apostille'
   | 'digital-credential';
 
-const SPECIMEN: [string, string] = ['Document status', 'SPECIMEN — issued in the demonstration environment, not valid for legal use'];
-
-function today() {
-  return new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+function fmt(iso: string) {
+  return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
-function spec(kind: PortalDocumentKind, u: UserSession): Omit<OfficialPdfSpec, 'arms'> {
+type Holder = { name: string; id: string; did: string; status: string };
+
+function spec(kind: PortalDocumentKind, u: Holder, doc: PortalDocument, company?: CompanyRecord): Omit<OfficialPdfSpec, 'arms'> {
+  const today = () => fmt(doc.createdAt);
+  const SPECIMEN: [string, string] = ['Registry reference', `${doc.reference} · SHA-256 ${doc.hash.slice(0, 16)}…`];
   const holder: [string, string][] = [['Holder', u.name], ['Registry number', u.id], ['Decentralised identifier', u.did]];
   switch (kind) {
     case 'e-residence-certificate':
@@ -43,8 +45,10 @@ function spec(kind: PortalDocumentKind, u: UserSession): Omit<OfficialPdfSpec, '
         code: `CRC-${u.id.slice(-6)}`,
         kind: 'Commercial Register Charter',
         title: 'Charter of Incorporation',
-        meta: [['Founder', u.name], ['Founder registry number', u.id], ['Registered', today()], SPECIMEN],
-        lead: 'The Registrar of Companies records the incorporation of the company named in the founder’s portal filing, with registered office in the Federal District of Antioch.',
+        meta: [...(company ? ([['Company', company.name], ['Registration number', company.regNumber], ['Legal form', company.structure]] as [string, string][]) : []), ['Founder', u.name], ['Founder registry number', u.id], ['Registered', today()], SPECIMEN],
+        lead: company
+          ? `The Registrar of Companies records the incorporation of ${company.name} (${company.regNumber}), with registered office in the Federal District of Antioch.`
+          : 'The Registrar of Companies records the incorporation of the company named in the founder’s portal filing, with registered office in the Federal District of Antioch.',
         sections: [
           { number: 'Article 1', heading: 'Form', paragraphs: ['The company is a private company limited by shares, governed by the Companies Act and English commercial law as applied in Aletheia.'] },
           { number: 'Article 2', heading: 'Registry', paragraphs: ['The charter and every subsequent filing are hashed and inscribed on the public ledger. Beneficial ownership is held in the closed register.'] },
@@ -97,11 +101,11 @@ function spec(kind: PortalDocumentKind, u: UserSession): Omit<OfficialPdfSpec, '
   }
 }
 
-/** Renders a personal portal document and triggers a browser download. */
-export async function downloadPortalDocument(kind: PortalDocumentKind, filename: string): Promise<void> {
-  const session = getUserSession();
+/** Renders an issued portal document and triggers a browser download. */
+export async function downloadPortalDocument(kind: PortalDocumentKind, filename: string, account: PortalAccount, doc: PortalDocument, company?: CompanyRecord): Promise<void> {
   const arms = new Uint8Array(await (await fetch('/brand/arms-pdf.png')).arrayBuffer());
-  const bytes = await renderOfficialPdf({ ...spec(kind, session), arms });
+  const holder = { name: account.name, id: account.id, did: account.did, status: account.statusLabel };
+  const bytes = await renderOfficialPdf({ ...spec(kind, holder, doc, company), arms });
   const url = URL.createObjectURL(new Blob([bytes as BlobPart], { type: 'application/pdf' }));
   const a = document.createElement('a');
   a.href = url;

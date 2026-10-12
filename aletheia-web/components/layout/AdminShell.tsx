@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useHydrated } from '@/lib/use-hydrated';
 import Link from '@/components/i18n/Link';
 import { usePathname, useRouter } from '@/lib/i18n/navigation';
@@ -37,22 +37,22 @@ const NAV_SECTIONS = [
   {
     title: 'Citizens & Identity',
     items: [
-      { label: 'Citizen Registry', href: '/admin/citizens', badge: '2,841', badgeColor: 'bg-parchment/8 text-parchment/50 border border-parchment/10' },
-      { label: 'Citizenship Approvals', href: '/admin/citizenship', badge: '12', badgeColor: 'bg-gold/15 text-gold border border-gold/20' },
+      { label: 'Citizen Registry', href: '/admin/citizens', badge: null, badgeColor: 'bg-parchment/8 text-parchment/50 border border-parchment/10' },
+      { label: 'Citizenship Approvals', href: '/admin/citizenship', badge: null, badgeColor: 'bg-gold/15 text-gold border border-gold/20' },
       { label: 'Citizenship Rescissions', href: '/admin/rescissions', badge: null, badgeColor: '' },
     ],
   },
   {
     title: 'Immigration & Visas',
     items: [
-      { label: 'Visa Applications', href: '/admin/immigration', badge: '7', badgeColor: 'bg-gold/15 text-gold border border-gold/20' },
-      { label: 'E-Residency Queue', href: '/admin/e-residency', badge: '24', badgeColor: 'bg-gold/15 text-gold border border-gold/20' },
+      { label: 'Border Control', href: '/admin/immigration', badge: null, badgeColor: 'bg-gold/15 text-gold border border-gold/20' },
+      { label: 'E-Residency Queue', href: '/admin/e-residency', badge: null, badgeColor: 'bg-gold/15 text-gold border border-gold/20' },
     ],
   },
   {
     title: 'Corporate Registry',
     items: [
-      { label: 'Company Formations', href: '/admin/companies', badge: '5', badgeColor: 'bg-gold/15 text-gold border border-gold/20' },
+      { label: 'Company Formations', href: '/admin/companies', badge: null, badgeColor: 'bg-gold/15 text-gold border border-gold/20' },
       { label: 'Document Review', href: '/admin/documents', badge: null, badgeColor: '' },
     ],
   },
@@ -84,25 +84,49 @@ const NAV_ICONS: Record<string, React.ComponentType<{ className?: string; style?
   '/admin/settings': Settings,
 };
 
-import { getOfficerSession, clearOfficerSession } from '@/lib/auth';
+import { OFFICER_ME, type OfficerProfile } from '@/lib/auth';
+import { api, clearCache, useApi } from '@/lib/client/api';
+
+export type AdminDashboard = {
+  stats: { citizens: number; eResidents: number; companies: number; pending: number };
+  pending: { eResidency: number; citizenship: number; companies: number; documents: number };
+  queue: { id: string; kind: 'application' | 'company'; reference: string; name: string; type: string; nationality: string; date: string }[];
+  activity: { time: string; action: string; type: 'success' | 'warning' | 'info' }[];
+};
+export const ADMIN_DASHBOARD = '/api/admin/dashboard';
 
 export function AdminShell({ children, officialName, officialRole }: { children: React.ReactNode; officialName?: string; officialRole?: string }) {
   const pathname = usePathname();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const mounted = useHydrated();
+  const me = useApi<{ officer: OfficerProfile }>(OFFICER_ME);
+  const dash = useApi<AdminDashboard>(me.data ? ADMIN_DASHBOARD : null);
+  const profile = me.data?.officer;
   const officer = useMemo(() => {
-    const sess = mounted ? getOfficerSession() : null;
-    const name = officialName || sess?.name || 'Cmdr. S. Okafor';
+    const name = officialName || profile?.name || '';
     return {
       name,
-      role: officialRole || sess?.role || 'ADSS Senior Registry Officer',
-      initials: name.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase(),
+      role: officialRole || profile?.role || '',
+      initials: name.replace(/^(cmdr|dr|capt)\.?\s+/i, '').split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase(),
     };
-  }, [mounted, officialName, officialRole]);
+  }, [profile, officialName, officialRole]);
+  const counts: Record<string, number | undefined> = {
+    '/admin/citizens': dash.data?.stats.citizens,
+    '/admin/citizenship': dash.data?.pending.citizenship,
+    '/admin/e-residency': dash.data?.pending.eResidency,
+    '/admin/companies': dash.data?.pending.companies,
+    '/admin/documents': dash.data?.pending.documents,
+  };
 
-  const handleLogout = () => {
-    clearOfficerSession();
+  // No valid session: back to sign-in.
+  useEffect(() => {
+    if (me.error?.status === 401) router.replace('/admin/login');
+  }, [me.error, router]);
+
+  const handleLogout = async () => {
+    await api('/api/admin/auth/logout', { body: {} }).catch(() => undefined);
+    clearCache();
     router.push('/admin/login');
   };
 
@@ -187,7 +211,10 @@ export function AdminShell({ children, officialName, officialRole }: { children:
             <div key={title} className={mounted ? 'animate-sidebar-reveal' : ''} style={{ animationDelay: `${sIdx * 40}ms` }}>
               <div className="sidebar-section-title">{title}</div>
               <div className="space-y-0.5">
-                {items.map(({ label, href, badge, badgeColor }) => {
+                {items.map(({ label, href, badge: staticBadge, badgeColor: staticColor }) => {
+                  const count = counts[href];
+                  const badge = count ? count.toLocaleString('en-GB') : staticBadge;
+                  const badgeColor = count ? (href === '/admin/citizens' ? 'bg-parchment/8 text-parchment/50 border border-parchment/10' : 'bg-gold/15 text-gold border border-gold/20') : staticColor;
                   const Icon = NAV_ICONS[href] || LayoutDashboard;
                   const active = pathname === href;
                   return (
@@ -278,19 +305,22 @@ export function AdminShell({ children, officialName, officialRole }: { children:
             </Link>
 
             {/* Search bar */}
-            <div
+            <Link
+              href="/admin/citizens"
               className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-sm text-[11px] w-40 cursor-pointer transition-all hover:border-gold/30"
               style={{ background: 'rgba(14,27,49,0.60)', border: '1px solid rgba(196,154,78,0.12)', color: 'rgba(244,238,223,0.30)' }}
             >
               <Search className="w-3.5 h-3.5 shrink-0" />
               <span>Search records…</span>
-            </div>
+            </Link>
 
-            {/* Notifications */}
-            <button className="relative p-1.5 rounded-sm transition-colors hover:bg-white/5" style={{ color: 'rgba(244,238,223,0.45)' }}>
+            {/* Pending work */}
+            <Link href="/admin" aria-label="Pending work" className="relative p-1.5 rounded-sm transition-colors hover:bg-white/5" style={{ color: 'rgba(244,238,223,0.45)' }}>
               <Bell className="w-4 h-4" />
-              <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full flex items-center justify-center text-[7px] font-extrabold text-white" style={{ background: 'linear-gradient(135deg, #9B1C2C, #701824)' }}>3</span>
-            </button>
+              {(dash.data?.stats.pending ?? 0) > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-0.5 rounded-full flex items-center justify-center text-[7px] font-extrabold text-white" style={{ background: 'linear-gradient(135deg, #9B1C2C, #701824)' }}>{dash.data!.stats.pending}</span>
+              )}
+            </Link>
 
             {/* Restricted badge */}
             <span className="hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-sm text-[9px] font-mono font-extrabold tracking-wider" style={{ background: 'rgba(112,24,36,0.20)', border: '1px solid rgba(112,24,36,0.40)', color: '#fca5a5' }}>
@@ -301,7 +331,11 @@ export function AdminShell({ children, officialName, officialRole }: { children:
 
         {/* Page content */}
         <main className="flex-1 overflow-y-auto" style={{ background: '#080C18', scrollbarWidth: 'thin', scrollbarColor: 'rgba(196,154,78,0.12) transparent' }}>
-          {children}
+          {profile ? children : (
+            <div className="p-8 text-sm font-mono" style={{ color: 'rgba(244,238,223,0.45)' }} role="status">
+              {me.error && me.error.status !== 401 ? me.error.message : 'Loading…'}
+            </div>
+          )}
         </main>
       </div>
     </div>

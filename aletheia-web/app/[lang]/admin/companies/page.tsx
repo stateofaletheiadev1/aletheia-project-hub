@@ -2,80 +2,34 @@
 
 import React, { useState } from 'react';
 import Link from '@/components/i18n/Link';
-import { AdminShell } from '@/components/layout/AdminShell';
-import { Building2, CheckCircle2, X } from 'lucide-react';
+import { AdminShell, ADMIN_DASHBOARD } from '@/components/layout/AdminShell';
+import { api, reload, useApi } from '@/lib/client/api';
+import type { CompanyRecord } from '@/lib/auth';
+import { fmtDate, ListState, Notice } from '@/components/admin/Notice';
+import { Building2, X } from 'lucide-react';
 
-interface Company {
-  id: string;
-  regNumber: string;
-  name: string;
-  structure: 'SARL (Limited)' | 'AG (Corporation)' | 'Maritime Trust';
-  founder: string;
-  shareCapital: string;
-  beneficialOwners: string;
-  date: string;
-  status: 'Pending Review' | 'Active / Chartered' | 'Changes Requested';
-}
-
-const INITIAL_COMPANIES: Company[] = [
-  {
-    id: 'CORP-001',
-    regNumber: 'ALE-SARL-2026-0012',
-    name: 'Kaelen Vance Marine Ltd',
-    structure: 'SARL (Limited)',
-    founder: 'Dr. Elena Vasquez',
-    shareCapital: '50,000 AEY',
-    beneficialOwners: 'Dr. Elena Vasquez (100%)',
-    date: '2026-06-12',
-    status: 'Active / Chartered',
-  },
-  {
-    id: 'CORP-002',
-    regNumber: 'ALE-SARL-2026-0044',
-    name: 'Aegis Oceanographic Corp',
-    structure: 'SARL (Limited)',
-    founder: 'Capt. Henrik Von Klausen',
-    shareCapital: '100,000 AEY',
-    beneficialOwners: 'H. Von Klausen (60%), M. Sterling (40%)',
-    date: '2026-09-30',
-    status: 'Pending Review',
-  },
-  {
-    id: 'CORP-003',
-    regNumber: 'ALE-AG-2026-0008',
-    name: 'Antioch Modular Energy AG',
-    structure: 'AG (Corporation)',
-    founder: 'Dr. Elizabeth Thorne-Vance',
-    shareCapital: '500,000 AEY',
-    beneficialOwners: 'Sovereign Endowment (25%), Thorne-Vance (75%)',
-    date: '2026-10-01',
-    status: 'Pending Review',
-  },
-  {
-    id: 'CORP-004',
-    regNumber: 'ALE-TRUST-2026-0002',
-    name: 'Borealis Hydrographic Trust',
-    structure: 'Maritime Trust',
-    founder: 'Marcus Sterling',
-    shareCapital: '250,000 AEY',
-    beneficialOwners: 'Sterling Family Covenant Beneficiaries',
-    date: '2026-09-22',
-    status: 'Active / Chartered',
-  },
-];
+const PATH = '/api/admin/companies';
 
 export default function AdminCompanyFormationsPage() {
-  const [companies, setCompanies] = useState<Company[]>(INITIAL_COMPANIES);
-  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
+  const { data, error, loading } = useApi<{ companies: CompanyRecord[] }>(PATH);
+  const companies = data?.companies ?? [];
+  const [selectedCompany, setSelectedCompany] = useState<CompanyRecord | null>(null);
+  const [note, setNote] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null);
 
-  const approveCompany = (id: string, name: string) => {
-    setCompanies((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, status: 'Active / Chartered' } : c))
-    );
-    setNotice(`Corporate Charter ratified for ${name}. Commercial Register certificate issued.`);
-    setTimeout(() => setNotice(null), 4000);
-    if (selectedCompany?.id === id) setSelectedCompany(null);
+  const decide = async (c: CompanyRecord, decision: 'approve' | 'request-changes') => {
+    setBusy(true);
+    try {
+      await api(`/api/admin/companies/${c.id}/decision`, { body: { decision, note } });
+      setNotice({ ok: true, text: decision === 'approve' ? `Charter ratified for ${c.name}. Commercial Register certificate issued to the founder.` : `Changes requested from the founder of ${c.name}.` });
+      setSelectedCompany(null);
+      setNote('');
+      await Promise.all([reload(PATH), reload(ADMIN_DASHBOARD)]);
+    } catch (e) {
+      setNotice({ ok: false, text: e instanceof Error ? e.message : 'The decision could not be saved.' });
+    }
+    setBusy(false);
   };
 
   return (
@@ -87,7 +41,7 @@ export default function AdminCompanyFormationsPage() {
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-bold text-parchment">Commercial Registry &amp; Incorporations</h1>
               <span className="px-2 py-0.5 rounded-sm text-[10px] font-mono bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                394 Registered Entities
+                {companies.filter((c) => c.status === 'Active / Chartered').length} Registered Entities
               </span>
             </div>
             <p className="text-[12px] text-parchment/50 font-mono mt-0.5">
@@ -105,12 +59,7 @@ export default function AdminCompanyFormationsPage() {
           </div>
         </div>
 
-        {notice && (
-          <div className="p-3 bg-emerald-950/60 border border-emerald-500/40 rounded-sm text-xs font-mono text-emerald-200 flex items-center gap-2 animate-fadeIn">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-            <span>{notice}</span>
-          </div>
-        )}
+        <Notice notice={notice} />
 
         {/* Company Table */}
         <div
@@ -137,12 +86,14 @@ export default function AdminCompanyFormationsPage() {
                     <td className="py-3.5 px-4 font-bold text-parchment font-sans">{c.name}</td>
                     <td className="py-3.5 px-4 text-parchment/70">{c.structure}</td>
                     <td className="py-3.5 px-4 text-parchment/80">{c.founder}</td>
-                    <td className="py-3.5 px-4 text-gold font-bold">{c.shareCapital}</td>
+                    <td className="py-3.5 px-4 text-gold font-bold">{c.shareCapital.toLocaleString('en-GB')}</td>
                     <td className="py-3.5 px-4">
                       <span
                         className={`px-2 py-0.5 rounded-sm text-[10px] font-bold ${
                           c.status === 'Active / Chartered'
                             ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                            : c.status === 'Changes Requested'
+                            ? 'bg-red-500/15 text-red-300 border border-red-500/30'
                             : 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
                         }`}
                       >
@@ -151,7 +102,7 @@ export default function AdminCompanyFormationsPage() {
                     </td>
                     <td className="py-3.5 px-4 text-right">
                       <button
-                        onClick={() => setSelectedCompany(c)}
+                        onClick={() => { setSelectedCompany(c); setNote(''); }}
                         className="px-2.5 py-1 rounded-sm bg-navy-deep border border-gold/25 text-gold hover:bg-gold/10 text-[11px]"
                       >
                         Inspect Charter
@@ -161,6 +112,7 @@ export default function AdminCompanyFormationsPage() {
                 ))}
               </tbody>
             </table>
+            <ListState loading={loading} error={error} empty={companies.length === 0} emptyText="No company formations have been filed yet." />
           </div>
         </div>
 
@@ -176,7 +128,7 @@ export default function AdminCompanyFormationsPage() {
                   <Building2 className="w-5 h-5 text-gold" />
                   <span className="font-bold text-parchment text-sm">Commercial Entity Dossier</span>
                 </div>
-                <button onClick={() => setSelectedCompany(null)} className="text-parchment/40 hover:text-parchment">
+                <button aria-label="Close" onClick={() => setSelectedCompany(null)} className="text-parchment/40 hover:text-parchment">
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -185,37 +137,55 @@ export default function AdminCompanyFormationsPage() {
                 <div className="p-3 bg-navy-deep rounded-sm border border-gold/15 space-y-1">
                   <div className="text-base font-bold text-parchment font-sans">{selectedCompany.name}</div>
                   <div className="text-gold text-[11px]">{selectedCompany.regNumber} · {selectedCompany.structure}</div>
-                  <div className="text-[10px] text-parchment/40">Filed on {selectedCompany.date}</div>
+                  <div className="text-[10px] text-parchment/40">Filed on {fmtDate(selectedCompany.submittedAt)} by {selectedCompany.founder}</div>
                 </div>
 
                 <div className="space-y-2 py-1">
                   <div className="flex justify-between py-1 border-b border-white/5">
                     <span className="text-parchment/40">Registered Capital Deposit:</span>
-                    <span className="text-gold font-bold">{selectedCompany.shareCapital}</span>
+                    <span className="text-gold font-bold">{selectedCompany.shareCapital.toLocaleString('en-GB')} AEY</span>
                   </div>
                   <div className="flex justify-between py-1 border-b border-white/5">
                     <span className="text-parchment/40">Ultimate Beneficial Owners:</span>
                     <span className="text-parchment font-bold">{selectedCompany.beneficialOwners}</span>
                   </div>
-                  <div className="flex justify-between py-1 border-b border-white/5">
-                    <span className="text-parchment/40">Registered Legal Seat:</span>
-                    <span className="text-parchment">Antioch Hexagonal District, Sovereign Covenant State</span>
+                  <div className="flex justify-between gap-4 py-1 border-b border-white/5">
+                    <span className="text-parchment/40">Purpose:</span>
+                    <span className="text-parchment text-right">{selectedCompany.purpose}</span>
                   </div>
-                  <div className="flex justify-between py-1 border-b border-white/5">
-                    <span className="text-parchment/40">Corporate Tax Treatment:</span>
-                    <span className="text-emerald-400 font-bold">0% Sovereign Corporate Tax / Zero Ledger Fees</span>
-                  </div>
+                  {selectedCompany.note && (
+                    <div className="flex justify-between gap-4 py-1 border-b border-white/5">
+                      <span className="text-parchment/40">Registrar note:</span>
+                      <span className="text-amber-300 text-right">{selectedCompany.note}</span>
+                    </div>
+                  )}
                 </div>
+                {selectedCompany.status === 'Pending Review' && (
+                  <div className="space-y-1">
+                    <label htmlFor="company-note" className="text-parchment/50">Note to the founder (required when requesting changes)</label>
+                    <textarea id="company-note" value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} rows={3} className="w-full bg-navy-deep border border-gold/20 rounded-sm p-2 text-parchment text-xs" />
+                  </div>
+                )}
               </div>
 
               <div className="flex justify-end gap-2 pt-2 border-t border-gold/15">
-                {selectedCompany.status !== 'Active / Chartered' ? (
-                  <button
-                    onClick={() => approveCompany(selectedCompany.id, selectedCompany.name)}
-                    className="px-4 py-1.5 bg-emerald-600 text-white font-bold text-xs font-mono rounded-sm hover:bg-emerald-500"
-                  >
-                    Ratify Charter &amp; Issue Certificate
-                  </button>
+                {selectedCompany.status === 'Pending Review' ? (
+                  <>
+                    <button
+                      disabled={busy}
+                      onClick={() => decide(selectedCompany, 'request-changes')}
+                      className="px-3 py-1.5 bg-red-950/60 border border-red-700/50 text-red-200 text-xs font-mono rounded-sm hover:bg-red-900/60 disabled:opacity-50"
+                    >
+                      Request Changes
+                    </button>
+                    <button
+                      disabled={busy}
+                      onClick={() => decide(selectedCompany, 'approve')}
+                      className="px-4 py-1.5 bg-emerald-600 text-white font-bold text-xs font-mono rounded-sm hover:bg-emerald-500 disabled:opacity-50"
+                    >
+                      Ratify Charter &amp; Issue Certificate
+                    </button>
+                  </>
                 ) : (
                   <button
                     onClick={() => setSelectedCompany(null)}

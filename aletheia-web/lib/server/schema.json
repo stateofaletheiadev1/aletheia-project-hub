@@ -1,0 +1,18 @@
+{
+  "accounts": [["aletheiaId", true], ["email", true], ["status", false]],
+  "officers": [["officerId", true], ["role", false]],
+  "sessions": [["tokenHash", true], ["subjectId", false]],
+  "applications": [["reference", true], ["accountId", false], ["type", false], ["status", false]],
+  "citizens": [["nationalId", true], ["passportNumber", true], ["accountId", false], ["status", false]],
+  "companies": [["regNumber", true], ["accountId", false], ["status", false]],
+  "documents": [["reference", true], ["accountId", false], ["status", false]],
+  "file_chunks": [["fileId", false]],
+  "notifications": [["accountId", false]],
+  "wallet_entries": [["accountId", false], ["transferId", false]],
+  "wallet_transfers": [["reference", true], ["fromAccountId", false], ["state", false]],
+  "border_crossings": [["passportNumber", false]],
+  "rescissions": [["reference", true], ["nationalId", false], ["status", false]],
+  "audit_events": [["category", false], ["actorId", false], ["subjectAccountId", false]],
+  "settings": [["name", true]],
+  "counters": [["name", true]]
+}
