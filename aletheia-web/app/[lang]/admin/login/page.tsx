@@ -263,6 +263,8 @@ export default function AdminLoginPage() {
           <p className="text-center text-[10px] font-mono mt-4" style={{ color: 'rgba(244,238,223,0.20)' }}>
             All access attempts are logged and auditable under Covenant Law § 19
           </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
