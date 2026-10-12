@@ -35,16 +35,24 @@ const securityHeaders = [
   ...(isDev ? [] : [{ key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" }]),
 ];
 
+// Vercel manages its own serverless runtime, so `standalone` output must not be set
+// there — it causes a build failure. For self-hosted (Oracle Cloud / Docker) we keep
+// standalone so the image bundles everything needed. VERCEL=1 is injected automatically
+// by the Vercel build environment.
+const isVercel = Boolean(process.env.VERCEL);
+
 const nextConfig: NextConfig = {
   turbopack: { root: path.dirname(fileURLToPath(import.meta.url)) },
-  output: "standalone",
-  // The tracer copies sharp's native binding but not the libvips libraries it loads, so
-  // the standalone image optimiser fell back to the WebAssembly build (which needs a
-  // package that is not installed) and served full-size originals. Ship the native
-  // libraries for whichever platform is installed.
-  outputFileTracingIncludes: {
-    "/*": ["./node_modules/@img/sharp-*/lib/**/*", "./node_modules/@img/sharp-libvips-*/**/*"],
-  },
+  ...(!isVercel && {
+    output: "standalone",
+    // The tracer copies sharp's native binding but not the libvips libraries it loads, so
+    // the standalone image optimiser fell back to the WebAssembly build (which needs a
+    // package that is not installed) and served full-size originals. Ship the native
+    // libraries for whichever platform is installed.
+    outputFileTracingIncludes: {
+      "/*": ["./node_modules/@img/sharp-*/lib/**/*", "./node_modules/@img/sharp-libvips-*/**/*"],
+    },
+  }),
   poweredByHeader: false,
   // Tailwind output is small; inlining removes the render-blocking stylesheet request
   // that delayed first paint on slow connections (Lighthouse, brief §16).
