@@ -1,6 +1,5 @@
 'use client';
 
-import { adminHref } from '@/lib/hosts';
 import { useI18n } from '@/components/i18n/I18nProvider';
 import React, { useState, useEffect } from 'react';
 import Link from '@/components/i18n/Link';
@@ -41,7 +40,7 @@ const SEARCH_DATABASE: SearchItem[] = [
   // Security & ADSS
   { title: 'Aletheian Cybersecurity Department', category: 'Security', href: '/adss/cybersecurity', desc: 'Critical infrastructure protection, threat intel, vulnerability disclosure.', status: 'Operational' },
   { title: 'Civilian Police Directorate', category: 'Security', href: '/adss#police', desc: 'Community safety and lawful criminal investigation.', status: 'Planned' },
-  { title: 'Immigration Officer Workbench', category: 'Security', href: adminHref('/admin/immigration'), desc: 'Secure administrative case management for immigration officers.' },
+  { title: 'Immigration Officer Workbench', category: 'Security', href: '/admin/immigration', desc: 'Secure administrative case management for immigration officers.' },
   // Society, public services & information
   { title: 'Apply for Citizenship', category: 'Service', href: '/citizenship/apply', desc: 'Check eligibility for naturalisation or the Covenant Investor route.', status: 'Under Development' },
   { title: 'National Registry & Revenue', category: 'Economy', href: '/registry', desc: 'Registrations by programme and funds raised to build the Sovereign Covenant State.' },
@@ -122,6 +121,8 @@ export function CommandPalette({ isOpen, onClose }: { isOpen: boolean; onClose: 
               <Link
                 key={item.title + item.href}
                 href={item.href}
+                // Console pages load in full, so the browser can move to the console's own address.
+                onNavigate={item.href.startsWith('/admin') ? (e) => { e.preventDefault(); window.location.assign(item.href); } : undefined}
                 onClick={onClose}
                 className="group block p-3 rounded-sm hover:bg-parchment-light transition-colors"
               >

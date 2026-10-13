@@ -14,7 +14,7 @@ Without `ALETHEIADB_URL` and `DATA_ENCRYPTION_MASTER_KEY` both areas show "not o
 | `ALETHEIADB_URL` | yes | `aletheiadb://<id>:<secret>@db.stateofaletheia.org/web`, a readWrite key |
 | `DATA_ENCRYPTION_MASTER_KEY` | yes | 32 random bytes, base64 (`openssl rand -base64 32`). Encrypts every person's data key. **Back it up separately: without it no personal data can be read.** |
 | `PUBLIC_SITE_URL` | in production | e.g. `https://stateofaletheia.org`: links in emails, and the passkey origin |
-| `ADMIN_HOST` | no | the officer console's own address, e.g. `adss.oiss.stateofaletheia.org` (see go-live.md step 6b). Unset: console at `/admin` on the main site |
+| `ADMIN_HOST` | no | normally unset: on stateofaletheia.org the console moves to `adss.oiss.stateofaletheia.org` by itself (go-live.md step 6b). Set to override that address, or `off` to keep the console on the main site |
 | `WEBAUTHN_RP_ID` | no | passkey relying-party ID; defaults to the host of `PUBLIC_SITE_URL` |
 | `SMTP_URL` | for email | e.g. `smtps://user:pass@smtp.example.org:465`. Without it emails wait in the outbox |
 | `MAIL_FROM` | no | sender, default `Sovereign Covenant State of Aletheia <no-reply@stateofaletheia.org>` |

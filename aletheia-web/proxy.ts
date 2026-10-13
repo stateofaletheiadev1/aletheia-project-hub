@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { DEFAULT_LOCALE, LOCALE_COOKIE, isLocale, type Locale } from '@/lib/i18n/config';
+import { CONSOLE_DOMAIN, CONSOLE_PREFIX, SITE_DOMAIN } from '@/lib/hosts';
 
 /** Picks the best supported language from Accept-Language ("de-AT,de;q=0.9,en;q=0.8" → de). */
 function negotiate(header: string | null): Locale {
@@ -16,9 +17,11 @@ function negotiate(header: string | null): Locale {
   return DEFAULT_LOCALE;
 }
 
-// The officer console on its own address. ADMIN_HOST (e.g. adss.oiss.stateofaletheia.org) serves
-// only /admin, /officer and /api/admin; the main site sends those there and keeps the rest.
-// Unset: one address for everything, as before.
+// The officer console on its own address (lib/hosts.ts): on stateofaletheia.org, /admin,
+// /officer and /api/admin live only on adss.oiss.stateofaletheia.org; the main site sends those
+// there and the console's address sends everything else back. Automatic on those domains;
+// elsewhere one address serves everything. ADMIN_HOST overrides the console's address
+// (ADMIN_HOST=off: no split).
 const CONSOLE_PAGE = /^\/(?:(?:de|nl|sr|it|en)\/)?(?:admin|officer)(?:\/|$)/;
 
 /** A permanent redirect to another address, written out in full (NextResponse.redirect may shorten it). */
@@ -27,22 +30,25 @@ function crossSite(location: string): NextResponse {
 }
 
 function hostSplit(request: NextRequest): NextResponse | null {
-  const adminHost = (process.env.ADMIN_HOST ?? '').trim().toLowerCase();
-  if (!adminHost) return null;
-  const { pathname, search } = request.nextUrl;
   const host = (request.headers.get('x-forwarded-host') ?? request.headers.get('host') ?? '').split(',')[0].trim().toLowerCase().split(':')[0];
-  const onConsole = host === adminHost;
+  const override = (process.env.ADMIN_HOST ?? '').trim().toLowerCase();
+  if (override === 'off') return null;
+  const base = host.replace(/^www\./, '').replace(CONSOLE_PREFIX, '');
+  const adminHost = override || (base === SITE_DOMAIN ? CONSOLE_DOMAIN : '');
+  if (!adminHost) return null;
+  const site = process.env.PUBLIC_SITE_URL || `https://${SITE_DOMAIN}`;
+
+  const { pathname, search } = request.nextUrl;
   const isApi = pathname.startsWith('/api/');
   const consoleApi = pathname.startsWith('/api/admin/');
   const consolePage = CONSOLE_PAGE.test(pathname);
 
-  if (onConsole) {
+  if (host === adminHost) {
     if (isApi) return consoleApi ? NextResponse.next() : new NextResponse(null, { status: 404 });
-    if (pathname === '/') return NextResponse.redirect(new URL('/admin', request.url), 307);
+    if (pathname === '/') return NextResponse.redirect(new URL('/admin/login', request.url), 307);
     if (consolePage) return null; // carry on with locale handling below
     // Anything public opened on the console's address belongs to the main site.
-    const site = process.env.PUBLIC_SITE_URL;
-    return site ? crossSite(new URL(pathname + search, site).toString()) : new NextResponse(null, { status: 404 });
+    return crossSite(new URL(pathname + search, site).toString());
   }
   if (consoleApi) return new NextResponse(null, { status: 404 });
   if (consolePage) return crossSite(`https://${adminHost}${pathname}${search}`);

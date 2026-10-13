@@ -1,6 +1,6 @@
 'use client';
 
-import { adminHref } from '@/lib/hosts';
+import { ConsoleLink } from '@/components/layout/ConsoleLink';
 import { useI18n } from '@/components/i18n/I18nProvider';
 import { LanguageLinks, LanguageMenu } from '@/components/i18n/LanguageSwitcher';
 import React, { useState, useEffect, useRef } from 'react';
@@ -150,11 +150,11 @@ export function Navbar() {
             <LanguageMenu />
 
             <span className="text-white/15">|</span>
-            <Link
-              href={adminHref('/admin/login')}
+            <ConsoleLink
+              href="/admin/login"
               className="flex items-center gap-1 text-[#C49A4E]/70 hover:text-[#C49A4E] transition-colors font-semibold"
             >
-              <Shield className="w-2.5 h-2.5" />{' '}{t("Officer Portal")}</Link>
+              <Shield className="w-2.5 h-2.5" />{' '}{t("Officer Portal")}</ConsoleLink>
           </div>
         </div>
       </div>

@@ -1,13 +1,19 @@
-// The officer console can live on its own address (ADMIN_HOST, e.g. adss.oiss.stateofaletheia.org)
-// while the public site and the Citizen Portal stay on the main one. next.config.mjs copies the
-// two origins into the browser bundle at build time; when ADMIN_HOST is not set, both are empty
-// and every link stays a plain path on the same site.
+// The officer console has its own address: adss.oiss.stateofaletheia.org. The public site and
+// the Citizen Portal stay on stateofaletheia.org (and www.). proxy.ts sends each request to the
+// right address; this happens by itself on those domains, so no setting is needed. Anywhere
+// else (local development, tests, Vercel preview links) everything stays on one address.
+// ADMIN_HOST overrides the console's address; ADMIN_HOST=off turns the split off.
 
-export const ADMIN_ORIGIN = process.env.NEXT_PUBLIC_ADMIN_ORIGIN ?? '';
-export const SITE_ORIGIN = process.env.NEXT_PUBLIC_SITE_ORIGIN ?? '';
+export const SITE_DOMAIN = 'stateofaletheia.org';
+export const CONSOLE_PREFIX = 'adss.oiss.';
+export const CONSOLE_DOMAIN = `${CONSOLE_PREFIX}${SITE_DOMAIN}`;
 
-/** A link into the officer console, e.g. adminHref('/admin/login'). */
-export const adminHref = (path: string) => `${ADMIN_ORIGIN}${path}`;
-
-/** A link back to the public site from the console. */
-export const siteHref = (path: string) => (ADMIN_ORIGIN ? `${SITE_ORIGIN}${path}` : path);
+/**
+ * For the console: the public site's home page. On the console's own address this is the main
+ * domain; elsewhere it is "/". Call after hydration (it reads the browser's address).
+ */
+export function siteHome(): string {
+  if (typeof window === 'undefined') return '/';
+  const host = window.location.hostname;
+  return host.startsWith(CONSOLE_PREFIX) ? `${window.location.protocol}//${host.slice(CONSOLE_PREFIX.length)}/` : '/';
+}

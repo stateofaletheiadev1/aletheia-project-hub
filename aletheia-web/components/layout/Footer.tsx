@@ -1,6 +1,6 @@
 'use client';
 
-import { adminHref } from '@/lib/hosts';
+import { ConsoleLink } from '@/components/layout/ConsoleLink';
 import { useI18n } from '@/components/i18n/I18nProvider';
 import { LanguageLinks } from '@/components/i18n/LanguageSwitcher';
 import React from 'react';
@@ -172,9 +172,9 @@ export function Footer() {
                 <Link href="/adss#police" className="hover:text-gold transition-colors">{t("Civilian Police Directorate")}</Link>
               </li>
               <li>
-                <Link href={adminHref('/admin/login')} className="hover:text-gold transition-colors flex items-center gap-1 text-gold font-medium">
+                <ConsoleLink href="/admin/login" className="hover:text-gold transition-colors flex items-center gap-1 text-gold font-medium">
                   <span>{t("Officer Admin Clearance Access")}</span>
-                </Link>
+                </ConsoleLink>
               </li>
             </ul>
           </div>
