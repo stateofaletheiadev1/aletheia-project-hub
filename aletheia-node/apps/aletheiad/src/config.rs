@@ -23,6 +23,12 @@
 //! executor_path = "/usr/lib/aletheia/aletheia-arno-exec"   # default: beside aletheiad
 //! call_timeout_ms = 10000              # watchdog per contract call
 //!
+//! [storage]                            # optional: RocksDB memory and file budget
+//! block_cache_mb = 256                 # default: an eighth of RAM, 64 to 512
+//! write_buffer_mb = 128                # memtables, all column families; default as cache
+//! max_open_files = 4096
+//! background_jobs = 4
+//!
 //! [rpc]                                # optional: REST /api/v1 and JSON-RPC /rpc/v1
 //! listen = "127.0.0.1:7781"
 //! requests_per_second = 50             # per client IP; default 50
@@ -46,7 +52,77 @@ struct FileConfig {
     peers: Vec<PeerSection>,
     devnet: Option<DevnetSection>,
     execution: Option<ExecutionSection>,
+    storage: Option<StorageSection>,
     rpc: Option<RpcSection>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct StorageSection {
+    block_cache_mb: Option<u64>,
+    write_buffer_mb: Option<u64>,
+    max_open_files: Option<i32>,
+    background_jobs: Option<i32>,
+}
+
+/// RocksDB's budget (Section 46.4). The block cache is the node's largest single use of
+/// memory; on a small VPS it must leave room for the rest, with or without swap.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) struct StorageSettings {
+    pub(crate) block_cache_bytes: usize,
+    pub(crate) write_buffer_bytes: usize,
+    pub(crate) max_open_files: i32,
+    pub(crate) background_jobs: i32,
+}
+
+const MIB: u64 = 1024 * 1024;
+
+/// An eighth of the memory the node may use (physical, or its control group's limit if
+/// lower), kept between 64 MiB and 512 MiB: a 1 GiB VPS gets 128 MiB,
+/// 4 GiB and more get 512 MiB. Swap is not counted: a cache that lives in swap is slower than
+/// no cache at all.
+fn default_block_cache_bytes(total: Option<u64>) -> u64 {
+    total.map_or(512 * MIB, |bytes| (bytes / 8).clamp(64 * MIB, 512 * MIB))
+}
+
+fn storage_settings(section: Option<&StorageSection>) -> Result<StorageSettings, String> {
+    let cache = match section.and_then(|s| s.block_cache_mb) {
+        Some(mb) if !(16..=65_536).contains(&mb) => {
+            return Err(format!(
+                "[storage] block_cache_mb = {mb} is outside 16 to 65536"
+            ));
+        }
+        Some(mb) => mb.saturating_mul(MIB),
+        None => default_block_cache_bytes(aletheia_node::host::memory_limit_bytes()),
+    };
+    // Memtables default to the cache's size, at most 256 MiB: on a 1 GiB VPS 128 + 128 MiB.
+    let write_buffer = match section.and_then(|s| s.write_buffer_mb) {
+        Some(mb) if !(16..=16_384).contains(&mb) => {
+            return Err(format!(
+                "[storage] write_buffer_mb = {mb} is outside 16 to 16384"
+            ));
+        }
+        Some(mb) => mb.saturating_mul(MIB),
+        None => cache.min(256 * MIB),
+    };
+    let max_open_files = section.and_then(|s| s.max_open_files).unwrap_or(4096);
+    if !(64..=1_000_000).contains(&max_open_files) {
+        return Err(format!(
+            "[storage] max_open_files = {max_open_files} is outside 64 to 1000000"
+        ));
+    }
+    let background_jobs = section.and_then(|s| s.background_jobs).unwrap_or(4);
+    if !(1..=64).contains(&background_jobs) {
+        return Err(format!(
+            "[storage] background_jobs = {background_jobs} is outside 1 to 64"
+        ));
+    }
+    Ok(StorageSettings {
+        block_cache_bytes: usize::try_from(cache).unwrap_or(usize::MAX),
+        write_buffer_bytes: usize::try_from(write_buffer).unwrap_or(usize::MAX),
+        max_open_files,
+        background_jobs,
+    })
 }
 
 #[derive(Debug, Deserialize)]
@@ -111,6 +187,7 @@ pub(crate) struct Settings {
     pub(crate) produce_every: Option<Duration>,
     pub(crate) consensus_key: Option<BlsSecretKey>,
     pub(crate) executor: Executor,
+    pub(crate) storage: StorageSettings,
     pub(crate) rpc: Option<RpcSettings>,
 }
 
@@ -233,6 +310,7 @@ pub(crate) fn load(path: &std::path::Path) -> Result<Settings, String> {
         });
     }
 
+    let storage = storage_settings(file.storage.as_ref())?;
     let rpc = file.rpc.map(|section| RpcSettings {
         listen: section.listen,
         requests_per_second: section
@@ -251,5 +329,37 @@ pub(crate) fn load(path: &std::path::Path) -> Result<Settings, String> {
             .map(|devnet| Duration::from_millis(devnet.produce_every_ms)),
         consensus_key,
         executor,
+        storage,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_default_cache_scales_with_memory_within_bounds() {
+        assert_eq!(default_block_cache_bytes(Some(512 * MIB)), 64 * MIB);
+        assert_eq!(default_block_cache_bytes(Some(1024 * MIB)), 128 * MIB);
+        assert_eq!(default_block_cache_bytes(Some(2048 * MIB)), 256 * MIB);
+        assert_eq!(default_block_cache_bytes(Some(64 * 1024 * MIB)), 512 * MIB);
+        assert_eq!(default_block_cache_bytes(None), 512 * MIB);
+    }
+
+    #[test]
+    fn storage_settings_refuse_nonsense() {
+        let section = |mb, files, jobs| StorageSection {
+            block_cache_mb: mb,
+            write_buffer_mb: None,
+            max_open_files: files,
+            background_jobs: jobs,
+        };
+        assert!(storage_settings(Some(&section(Some(8), None, None))).is_err());
+        assert!(storage_settings(Some(&section(None, Some(10), None))).is_err());
+        assert!(storage_settings(Some(&section(None, None, Some(0)))).is_err());
+        let ok = storage_settings(Some(&section(Some(128), Some(1024), Some(2)))).unwrap();
+        assert_eq!(ok.block_cache_bytes, 128 * 1024 * 1024);
+        assert_eq!(ok.write_buffer_bytes, 128 * 1024 * 1024);
+        assert_eq!((ok.max_open_files, ok.background_jobs), (1024, 2));
+    }
 }

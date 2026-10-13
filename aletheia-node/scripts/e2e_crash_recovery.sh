@@ -158,6 +158,8 @@ done
 dropped=$(( $(echo "$submitted" | grep -c . || true) - finalized ))
 
 say "PASS: $cycles crash cycles and one clean restart; height $(height); $finalized transfers finalized, one nonce each; $dropped pending at a crash and dropped; total AEY unchanged"
+peak_rss_kib=$(sed -n 's/^VmHWM:[[:space:]]*\([0-9]*\) kB$/\1/p' "/proc/$node_pid/status" 2>/dev/null || echo "?")
+say "peak resident memory of the last node process: ${peak_rss_kib} KiB"
 kill -TERM "$node_pid" 2>/dev/null || true
 wait "$node_pid" 2>/dev/null || true
 node_pid=""

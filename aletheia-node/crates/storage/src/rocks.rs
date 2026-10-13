@@ -13,12 +13,15 @@ use rocksdb::{
 
 use crate::kv::{ColumnFamily, KvPairs, KvSnapshot, KvStore, WriteBatch, WriteOp};
 
-/// Resource limits for one RocksDB instance (Section 46.4).
+/// Resource limits for one RocksDB instance (Section 46.4). Both memory figures are totals for
+/// the whole instance, across every column family: one block cache is shared by all of them,
+/// and their memtables together are held to `write_buffer_bytes`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct StorageBudget {
     pub max_open_files: i32,
     pub background_jobs: i32,
     pub block_cache_bytes: usize,
+    pub write_buffer_bytes: usize,
 }
 
 impl Default for StorageBudget {
@@ -27,9 +30,14 @@ impl Default for StorageBudget {
             max_open_files: 4096,
             background_jobs: 4,
             block_cache_bytes: 512 * 1024 * 1024,
+            write_buffer_bytes: 256 * 1024 * 1024,
         }
     }
 }
+
+/// One column family's memtable. Small, so the shared write-buffer total (not this) is what
+/// triggers flushes, and a burst on one family cannot take the whole budget.
+const COLUMN_FAMILY_WRITE_BUFFER_BYTES: usize = 16 * 1024 * 1024;
 
 /// Whether opening may create a new database. Recovery never does: a missing database is an
 /// operator error, not a fresh start (42.2). Only genesis initialization creates one.
@@ -49,8 +57,13 @@ fn rocks_error(action: &str, error: &rocksdb::Error) -> AletheiaError {
     AletheiaError::new(code, format!("RocksDB {action}: {text}"))
 }
 
-pub(crate) fn state_db_options(budget: &StorageBudget, mode: OpenMode) -> Options {
+/// Options for the database and each column family. `cache` is created once per instance and
+/// shared: a cache per column family would multiply the budget by the number of families.
+pub(crate) fn state_db_options(budget: &StorageBudget, mode: OpenMode, cache: &Cache) -> Options {
     let mut options = Options::default();
+    options.set_db_write_buffer_size(budget.write_buffer_bytes);
+    options.set_write_buffer_size(COLUMN_FAMILY_WRITE_BUFFER_BYTES.min(budget.write_buffer_bytes));
+    options.set_max_write_buffer_number(2);
     options.create_if_missing(mode == OpenMode::CreateNew);
     options.create_missing_column_families(mode == OpenMode::CreateNew);
     options.set_paranoid_checks(true); // surface corruption at open, not at first read
@@ -74,7 +87,7 @@ pub(crate) fn state_db_options(budget: &StorageBudget, mode: OpenMode) -> Option
     options.set_zstd_max_train_bytes(100 << 20);
 
     let mut table = BlockBasedOptions::default();
-    table.set_block_cache(&Cache::new_lru_cache(budget.block_cache_bytes));
+    table.set_block_cache(cache);
     table.set_bloom_filter(10.0, false); // JMT node lookups are point reads
     table.set_format_version(5);
     table.set_checksum_type(ChecksumType::XXH3);
@@ -100,9 +113,11 @@ impl RocksKvStore {
         budget: &StorageBudget,
         mode: OpenMode,
     ) -> Result<RocksKvStore, AletheiaError> {
-        let options = state_db_options(budget, mode);
-        let families = ColumnFamily::ALL
-            .map(|cf| ColumnFamilyDescriptor::new(cf.name(), state_db_options(budget, mode)));
+        let cache = Cache::new_lru_cache(budget.block_cache_bytes);
+        let options = state_db_options(budget, mode, &cache);
+        let families = ColumnFamily::ALL.map(|cf| {
+            ColumnFamilyDescriptor::new(cf.name(), state_db_options(budget, mode, &cache))
+        });
         let db = DB::open_cf_descriptors(&options, path, families)
             .map_err(|e| rocks_error(&format!("open {}", path.display()), &e))?;
         Ok(RocksKvStore { db })

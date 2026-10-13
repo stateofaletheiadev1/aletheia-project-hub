@@ -38,6 +38,7 @@ fn config_path() -> Result<std::path::PathBuf, String> {
 #[cfg(feature = "rocksdb")]
 fn open_store(
     data_dir: &std::path::Path,
+    storage: &config::StorageSettings,
 ) -> Result<aletheia_storage::rocks::RocksKvStore, AletheiaError> {
     use aletheia_storage::rocks::{OpenMode, RocksKvStore, StorageBudget};
     let mode = if data_dir.join("DATADIR").exists() {
@@ -45,11 +46,20 @@ fn open_store(
     } else {
         OpenMode::CreateNew
     };
-    RocksKvStore::open(&data_dir.join("state"), &StorageBudget::default(), mode)
+    let budget = StorageBudget {
+        max_open_files: storage.max_open_files,
+        background_jobs: storage.background_jobs,
+        block_cache_bytes: storage.block_cache_bytes,
+        write_buffer_bytes: storage.write_buffer_bytes,
+    };
+    RocksKvStore::open(&data_dir.join("state"), &budget, mode)
 }
 
 #[cfg(not(feature = "rocksdb"))]
-fn open_store(_: &std::path::Path) -> Result<aletheia_storage::MemoryKvStore, AletheiaError> {
+fn open_store(
+    _: &std::path::Path,
+    _: &config::StorageSettings,
+) -> Result<aletheia_storage::MemoryKvStore, AletheiaError> {
     oplog::warn(
         "storage=memory: this build keeps state in RAM only (NON-PRODUCTION); build with --features rocksdb",
     );
@@ -118,7 +128,14 @@ async fn main() -> ExitCode {
         }
     }
 
-    let store = match open_store(&settings.data_dir) {
+    oplog::line(&format!(
+        "storage block_cache_mb={} write_buffer_mb={} max_open_files={} background_jobs={}",
+        settings.storage.block_cache_bytes / (1024 * 1024),
+        settings.storage.write_buffer_bytes / (1024 * 1024),
+        settings.storage.max_open_files,
+        settings.storage.background_jobs
+    ));
+    let store = match open_store(&settings.data_dir, &settings.storage) {
         Ok(store) => store,
         Err(error) => return exit_for(&error),
     };
