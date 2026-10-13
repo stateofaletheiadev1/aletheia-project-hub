@@ -122,6 +122,9 @@ fn too_large(channel: Channel, payload: usize) -> AletheiaError {
 #[derive(Debug, Default)]
 pub struct FrameDecoder {
     buffer: Vec<u8>,
+    /// A tighter payload limit than the channel's, for frames from a peer that has not yet
+    /// authenticated (the handshake): such a peer may not make the node buffer megabytes.
+    limit: Option<usize>,
 }
 
 fn read_u16(bytes: &[u8], at: usize) -> Option<u16> {
@@ -140,7 +143,24 @@ fn read_u32(bytes: &[u8], at: usize) -> Option<u32> {
 
 impl FrameDecoder {
     pub fn new() -> FrameDecoder {
-        FrameDecoder { buffer: Vec::new() }
+        FrameDecoder {
+            buffer: Vec::new(),
+            limit: None,
+        }
+    }
+
+    /// A decoder that refuses any frame whose payload exceeds `max_payload`, whatever its
+    /// channel allows. Lift the limit with [`FrameDecoder::lift_limit`] once the peer has
+    /// authenticated.
+    pub fn with_limit(max_payload: usize) -> FrameDecoder {
+        FrameDecoder {
+            buffer: Vec::new(),
+            limit: Some(max_payload),
+        }
+    }
+
+    pub fn lift_limit(&mut self) {
+        self.limit = None;
     }
 
     /// Bytes received but not yet returned as frames.
@@ -178,6 +198,14 @@ impl FrameDecoder {
         })?;
         if payload_len > channel.max_payload() {
             return Err(too_large(channel, payload_len));
+        }
+        if let Some(limit) = self.limit
+            && payload_len > limit
+        {
+            return Err(AletheiaError::new(
+                ErrorCode::P2pFrameTooLarge,
+                format!("{payload_len}-byte payload exceeds the {limit}-byte handshake limit"),
+            ));
         }
         let total = payload_len.saturating_add(FRAME_OVERHEAD);
         let Some(payload) = self.buffer.get(FRAME_OVERHEAD..total) else {
@@ -271,6 +299,21 @@ mod tests {
             decoder.next_frame().unwrap_err().code(),
             ErrorCode::P2pMalformedMessage
         );
+    }
+
+    #[test]
+    fn a_limited_decoder_refuses_large_frames_from_the_header_and_lifts_on_request() {
+        let big = frame(Channel::StateSync, vec![0; 2_000]).encode().unwrap();
+        let mut limited = FrameDecoder::with_limit(1_024);
+        limited.push(&big[..FRAME_OVERHEAD]);
+        assert_eq!(
+            limited.next_frame().unwrap_err().code(),
+            ErrorCode::P2pFrameTooLarge
+        );
+        let mut lifted = FrameDecoder::with_limit(1_024);
+        lifted.lift_limit();
+        lifted.push(&big);
+        assert!(lifted.next_frame().unwrap().is_some());
     }
 
     #[test]

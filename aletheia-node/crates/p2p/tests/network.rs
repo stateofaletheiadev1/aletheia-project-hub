@@ -252,3 +252,134 @@ async fn connections_beyond_the_pending_handshake_cap_are_closed_at_once() {
     );
     drop(idle);
 }
+
+/// The supervisor must never wait on the node. With the event queue full (a node that is
+/// behind), a peer that connects must not stop the supervisor from taking commands: the node
+/// may itself be waiting to hand it one, and the two would wait on each other forever.
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn a_full_event_queue_never_stops_the_supervisor_taking_commands() {
+    use aletheia_p2p::limits::{NETWORK_COMMAND_QUEUE, NETWORK_EVENT_QUEUE};
+    let mut a = node(1, vec![]).await;
+
+    // Two peers fill the event queue with valid consensus-channel frames the node never reads,
+    // each staying inside its rate budget.
+    let mut flooders = Vec::new();
+    for seed in [20u8, 21] {
+        let mut connection =
+            PeerConnection::connect(a.local_addr, &local(seed), TIP, PeerExpectation::default())
+                .await
+                .unwrap();
+        flooders.push(tokio::spawn(async move {
+            let mut sent = 0usize;
+            while sent < NETWORK_EVENT_QUEUE {
+                for _ in 0..400 {
+                    let frame = Frame {
+                        channel: Channel::Consensus,
+                        msg_type: 2,
+                        request_id: 0,
+                        payload: vec![0; 8],
+                    };
+                    if connection.send(&frame).await.is_err() {
+                        return connection;
+                    }
+                    sent += 1;
+                }
+                tokio::time::sleep(Duration::from_millis(500)).await;
+            }
+            connection
+        }));
+    }
+    // Wait until the queue is full: the node has not read a single event.
+    for _ in 0..200 {
+        if a.events.len() >= NETWORK_EVENT_QUEUE {
+            break;
+        }
+        tokio::time::sleep(Duration::from_millis(50)).await;
+    }
+    assert_eq!(
+        a.events.len(),
+        NETWORK_EVENT_QUEUE,
+        "the event queue filled up"
+    );
+
+    // A third peer connects while the queue is full.
+    let late = local(22);
+    let _late = PeerConnection::connect(a.local_addr, &late, TIP, PeerExpectation::default())
+        .await
+        .unwrap();
+    tokio::time::sleep(Duration::from_millis(300)).await;
+
+    // More commands than the command queue holds must still all be taken.
+    let commands = a.commands.clone();
+    let sent = tokio::time::timeout(Duration::from_secs(10), async move {
+        for height in 0..u64::try_from(NETWORK_COMMAND_QUEUE * 3).unwrap() {
+            commands
+                .send(NetworkCommand::SetTip {
+                    height: Height::new(height),
+                    hash: Hash32::ZERO,
+                })
+                .await
+                .unwrap();
+        }
+    })
+    .await;
+    assert!(sent.is_ok(), "the supervisor stopped taking commands");
+
+    // Once the node catches up, the late peer's arrival is still reported.
+    let reported = tokio::time::timeout(Duration::from_secs(20), async {
+        loop {
+            if let Some(NetworkEvent::Connected { peer, .. }) = a.events.recv().await
+                && peer == id(22)
+            {
+                return;
+            }
+        }
+    })
+    .await;
+    assert!(reported.is_ok(), "the late peer's Connected event was lost");
+    for flooder in flooders {
+        flooder.abort();
+    }
+}
+
+/// A ban also covers the inbound peer's address for a while, so a fresh node key from the
+/// same place is not let straight back in.
+#[tokio::test]
+async fn a_banned_peer_cannot_return_at_once_under_a_new_key() {
+    let mut a = node(1, vec![]).await;
+    let mut connection =
+        PeerConnection::connect(a.local_addr, &local(30), TIP, PeerExpectation::default())
+            .await
+            .unwrap();
+    wait_connected(&mut a, 1).await;
+    connection
+        .send(&Frame {
+            channel: Channel::BlockProp,
+            msg_type: 99,
+            request_id: 0,
+            payload: vec![],
+        })
+        .await
+        .unwrap();
+    assert!(matches!(
+        next_event(&mut a).await,
+        NetworkEvent::Disconnected { .. }
+    ));
+
+    let mut fresh =
+        PeerConnection::connect(a.local_addr, &local(31), TIP, PeerExpectation::default())
+            .await
+            .unwrap();
+    assert!(
+        tokio::time::timeout(Duration::from_secs(5), fresh.recv())
+            .await
+            .unwrap()
+            .is_err(),
+        "the new key from a banned address is closed"
+    );
+    tokio::time::sleep(Duration::from_millis(200)).await;
+    assert!(
+        a.events.try_recv().is_err(),
+        "no Connected event for the new key"
+    );
+}
