@@ -308,7 +308,7 @@ partly written; see the end of this file.
 | --- | --- |
 | KATs pass | Ed25519 (RFC 8032) and BLS (consensus-spec `sign` vector) pass. BLAKE3 is exercised through `H_domain` against the normative formula; upstream BLAKE3 KATs are not yet in the suite. |
 | Round-trip property tests | ACE integers, lists and byte strings; base16; Bech32m regrouping; addresses; IDs. |
-| Fuzzers 24 h clean | **Not met yet.** Five targets in `fuzz/` (transaction and header decoding, text identifiers, base16, stateless validation). A stable smoke run (2,000 random and mutated inputs per target) passes on every CI run. The 24-hour coverage-guided campaign runs in the `node:fuzz` GitLab job (nightly, scheduled or manual) and has not been run yet. |
+| Fuzzers 24 h clean | **Not met yet.** Fourteen targets in `fuzz/` (decoders, stateless validation, P2P frames and hello, consensus messages, finality proofs, Arno compiler, package verifier, VM, ISO 20022 reader and camt). A stable smoke run passes on every CI run. A first coverage-guided pass of 20 minutes per target (about 1.06 billion executions) found nothing (docs/audit/2026-10-13-node-security-audit.md); the 24-hour campaign runs in the `node:fuzz` GitLab job and has not been run yet. |
 | Vectors published | Done: `tests/vectors/` APS-0001, 0002, 0003, 0004, 0006, 0009, 0041, 0048, checked against the implementation by `tests/conformance`. |
 | Transaction and block structures (Sections 13, 14) | Done (wire format, IDs, digests, stateless validation). |
 
@@ -321,9 +321,18 @@ Written: `CLAUDE.md`, `docs/spec/MASTER.md`, `docs/spec/ERRATA.md`, `docs/STATUS
 `scripts/check_prose.sh`, `scripts/lint.sh`, `.gitlab-ci.yml` (repository root).
 
 Not yet written: ADR-001 to ADR-036, the APS documents, `docs/architecture/*`,
-`docs/security/*`, `docs/operations/*`, `docs/dsp/dsp-v0.1.md`, `docs/arno/*`, `docs/apn/*`,
+`docs/security/*`, most of `docs/operations/*` (written: `exit-codes.md`, `building.md`,
+`vps.md`, `recovery.md`), `docs/dsp/dsp-v0.1.md`, `docs/arno/*`, `docs/apn/*`,
 `docs/rpc/openrpc.json`, `scripts/coverage.sh`, `coverage-gates.toml`, `tools/*`,
 `scripts/check_ui_tells.sh`, `scripts/check_frozen_rules.sh`, rail profiles,
 `crates/execution/src/rules/frozen.toml`.
 
 Open decisions: none. ERRATA E-1 and E-4 were adopted on the project lead's instruction; the seats may still object.
+
+## Security audit 2026-10-13
+
+`docs/audit/2026-10-13-node-security-audit.md`: 16 findings (5 high), all fixed with tests;
+rule corrections to the unfrozen version 1 in ADR-061. End-to-end crash recovery under load,
+with and without swap, in `scripts/e2e_crash_recovery.sh`; VPS deployment in
+`docs/operations/vps.md` and `deploy/`.
+

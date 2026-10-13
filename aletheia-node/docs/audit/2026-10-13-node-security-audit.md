@@ -32,7 +32,7 @@ resources, or degrades a defence; **Low** is hardening.
 | D-1 | Medium | Dependencies | `quick-xml` 0.38.4: quadratic duplicate-attribute check on rails input (RUSTSEC-2026-0194) | fixed |
 | L-1 | Low | RPC | Per-IP limiter map is never pruned; batches count as one request | fixed |
 | L-2 | Low | Mempool | Block candidates are taken in sender-address order; a full pool never evicts by fee | fixed |
-| L-3 | Low | Executor | Contract workers run without a memory rlimit (seccomp and landlock remain open) | rlimit added |
+| L-3 | Low | Executor | Contract workers run without seccomp, Landlock or a memory rlimit | fixed |
 | L-4 | Low | Monetary | `check_signatures` relies on the decoder for signer uniqueness | fixed |
 | L-5 | Low | Executor | Worker sandbox directories collide across runners in one process | fixed |
 
@@ -201,7 +201,7 @@ Also record a short ban on the source address (per /64 for IPv6).
 | D-1 | `quick-xml` 0.41.0 (both advisories fixed); at most 64 attributes per element; attribute values normalized per XML 1.0. | `an_element_with_thousands_of_attributes_is_refused_quickly`; rails, gateway, railsim suites |
 | L-1 | Limiter prunes ended windows above 4,096 addresses; a batch spends one unit per call. | three unit tests |
 | L-2 | Candidates round-robin across senders, highest fee first; a full pool evicts the cheapest last-pending transaction of another sender, never leaving a nonce gap. | `crates/node/tests/mempool.rs` (3 tests) |
-| L-3 | The worker caps its own address space at 1 GiB (`setrlimit`). seccomp and landlock remain for the hardening phase. | sandbox suite runs under the cap |
+| L-3 | Before its first request the worker caps its address space at 1 GiB (`setrlimit`), drops all filesystem access (Landlock) and refuses process, socket, tracing, namespace, module and identity system calls with `EPERM` (seccomp denylist; an allowlist that missed a runtime call would crash the worker into a fail-stop). It refuses to run if seccomp cannot be applied (`apps/arno-exec/src/sandbox.rs`). | `the_worker_cannot_reach_files_sockets_or_processes` (a debug probe tries a file, a socket and a process; all refused, Landlock fully enforced on kernel 6.18); every sandbox test now runs confined |
 | L-4 | `check_signatures` refuses repeated or unordered signer indices itself. | `one_key_listed_twice_never_meets_a_threshold_of_two` |
 | L-5 | Worker sandbox directories numbered process-wide. | sandbox suite, 15 consecutive passes |
 
@@ -223,42 +223,67 @@ Also record a short ban on the source address (per /64 for IPv6).
 
 ## Fuzzing
 
-Three targets were added for decoders that had none: `consensus_message` (consensus bytes
-from any peer), `finality_proof` (sync responses) and `p2p_hello` (pre-authentication
-handshake). The campaign ran with cargo-fuzz (libFuzzer, AddressSanitizer), seeded from
-`tests/vectors` and the Arno sources, with a 10 s per-input timeout and a 3 GiB RSS limit.
-
-First pass, stopped after about 15 minutes when the session was interrupted (three
-targets had run on a shared 4-core machine; the full campaign over all fourteen targets was
-restarted afterwards):
+Five targets were added for decoders that had none: `consensus_message` (consensus bytes from
+any peer), `finality_proof` (sync responses), `p2p_hello` (pre-authentication handshake), and
+`rails_xml` / `rails_camt` (ISO 20022 from external rails). Every target ran 20 minutes with
+cargo-fuzz (libFuzzer, AddressSanitizer, 10 s per-input timeout, 3 GiB RSS limit), seeded
+from `tests/vectors`, the Arno sources and the rails test documents, three at a time on a
+shared 4-core machine. The VM-facing targets (`vm_run`, `arnobc_verify`, `arno_compile`) were
+built after the VM fixes.
 
 | Target | Executions | Coverage (edges / features) | Crashes, hangs, OOMs |
 | --- | --- | --- | --- |
-| `ace_block_header` | 65,340,630 | 489 / 949 | none |
-| `ace_signed_transaction` | 44,709,655 | 1,931 / 3,369 | none |
-| `arno_compile` | 1,545,216 | 7,122 / 24,202 | none |
+| `ace_block_header` | 110,859,772 | 491 / 978 | none |
+| `ace_signed_transaction` | 70,921,958 | 2,324 / 3,977 | none |
+| `stateless_validation` | 40,521,390 | 2,786 / 4,581 | none |
+| `p2p_frames` | 18,108,886 | 2,216 / 7,196 | none |
+| `p2p_hello` (new) | 166,244,745 | 196 / 219 | none |
+| `consensus_message` (new) | 45,651,868 | 2,026 / 3,492 | none |
+| `finality_proof` (new) | 70,279,553 | 516 / 1,057 | none |
+| `arno_compile` | 2,810,043 | 7,304 / 27,126 | none |
+| `arnobc_verify` | 50,486,742 | 1,028 / 2,850 | none |
+| `vm_run` | 1,715,637 | 7,397 / 24,586 | none |
+| `rails_xml` (new) | 18,663,561 | 1,506 / 5,343 | none |
+| `rails_camt` (new) | 24,554,296 | 1,485 / 6,506 | none |
+| `base16_text` | 381,027,861 | 96 / 280 | none |
+| `text_identifiers` | 62,792,971 | 280 / 505 | none |
 
-Dependency audit (`cargo audit`, RustSec database of 2026-10-13): two advisories, both in
-`quick-xml` 0.38.4, used by the rails ISO 20022 reader (`crates/rails/src/iso/xml.rs`):
-
-- RUSTSEC-2026-0194 (7.5): quadratic time checking a start tag for duplicate attribute names.
-  This applies: `element` iterates `start.attributes()`, which runs the duplicate check, on
-  externally supplied messages of up to 1 MiB. Rated **Medium** here (rails gateway, not
-  consensus).
-- RUSTSEC-2026-0195 (7.5): unbounded namespace allocation in `NsReader`. The reader uses
-  `Reader`, not `NsReader`, so this does not apply as written.
-
-Fix: upgrade `quick-xml` to 0.41 or later; until then, cap the attribute count per element
-before iterating.
-
-The phase exit criteria (24 h per target, 7 days for the VM targets) still stand; this
-campaign is a first pass on a 4-core machine, not a substitute. Run the full campaign on the
-VPS:
+About 1.06 billion executions in all; no artifacts were written. The phase exit criteria (24
+hours per target, 7 days for the VM targets) still stand; run them on the VPS:
 
 ```sh
 cd aletheia-node/fuzz
 cargo +nightly fuzz run <target> corpus/<target> -- -max_total_time=86400 -timeout=10 -rss_limit_mb=3072
 ```
+
+Dependency audit (`cargo audit`, RustSec database of 2026-10-13): the two `quick-xml`
+advisories (RUSTSEC-2026-0194, -0195) were the only findings; both are fixed by D-1.
+
+## Consensus simulation
+
+The DSP Byzantine suite (`tests/sim`, release build) passed all ten scenarios at 20 seeds each
+with the M-2 window in place: honest finality, up to F silent validators, more than F silent
+(progress stops, safety holds), equivocating proposers, double voters, invalid proposers, a
+lossy network, minority and quorumless partitions, and random faults. No fork, evidence
+recorded where provable. The nightly CI job runs 10,000 seeds.
+
+## End-to-end results
+
+`scripts/e2e_crash_recovery.sh` runs a RocksDB devnet node under continuous transfers, kills
+it with SIGKILL at random moments and restarts it, then checks that it resumes at or above
+its height with every earlier block id and state root unchanged, that every finalized
+transfer used exactly one nonce, and that total AEY is unchanged:
+
+| Run | Crash cycles | Transfers finalized | Result |
+| --- | --- | --- | --- |
+| Unconstrained | 8 | 384 | pass |
+| cgroup, 256 MiB hard limit, no swap | 4 | 203 | pass; node sized itself to 64 + 64 MiB; no limit hit, no OOM kill |
+| cgroup, 8 MiB RAM with 1 GiB swap (forced into swap) | 4 | 154 | pass; 3,415 limit hits, 838 major faults, no OOM kill |
+
+`crates/node/tests/rpc_http.rs` sends hostile transfers to a running node over HTTP: a replay
+of a finalized transfer (`TX_NONCE_TOO_LOW`), another chain's transfer (`TX_WRONG_CHAIN`), a
+forged amount (`SIG_INVALID`), an overdraft (fails on chain, pays its fee, moves no AEY) and a
+nonce gap (waits, then both apply); supply is conserved.
 
 ## Tests
 

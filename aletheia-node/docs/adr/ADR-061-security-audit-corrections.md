@@ -35,8 +35,12 @@ Decision:
      taken from any round, including those carried by proposals beyond the window, so a node
      that fell behind still catches up. After the first equivocating twin of a leader's
      proposal (kept, and evidenced), further twins are dropped unless certified.
-  5. The contract worker caps its own address space at 1 GiB (`setrlimit`), so a fault that
-     escapes metering ends in a failed allocation rather than in the host's memory or swap.
+  5. The contract worker confines itself before its first request: a 1 GiB address space
+     (`setrlimit`), so a fault that escapes metering ends in a failed allocation rather than
+     in the host's memory or swap; no filesystem access (Landlock); and process, socket,
+     tracing, namespace, module and identity system calls refused with `EPERM` (seccomp). The
+     seccomp filter is a denylist on purpose: an allowlist that missed a call the runtime
+     makes would crash the worker, and two crashes on one call fail-stop the node.
   6. Execution budgets follow measured speed. The interpreter ran about 58 million EU a
      second (release build, a shared 4-core machine, a tight loop). Version 1 let a single
      transaction set `eu_limit` up to the 2,000,000,000 EU block limit, about 35 seconds of
