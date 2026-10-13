@@ -20,38 +20,13 @@ Without `ALETHEIADB_URL` and `DATA_ENCRYPTION_MASTER_KEY` both areas show "not o
 
 ## Set up
 
-1. **Database and keys.** On the AletheiaDB server (see `aletheia-db/docs/OPERATIONS.md`), with the root key:
+Step by step, with exact commands: **[go-live.md](go-live.md)**. In short:
 
-   ```sh
-   curl -X PUT  https://db.stateofaletheia.org/v1/databases/web -H "Authorization: Bearer root.$ROOT"
-   curl -X POST https://db.stateofaletheia.org/v1/keys -H "Authorization: Bearer root.$ROOT" \
-        -d '{"name":"web-admin","database":"web","role":"admin"}'      # for the bootstrap only
-   curl -X POST https://db.stateofaletheia.org/v1/keys -H "Authorization: Bearer root.$ROOT" \
-        -d '{"name":"web-site","database":"web","role":"readWrite"}'   # for the running site
-   ```
-
-   A key `<id>.<secret>` becomes `aletheiadb://<id>:<secret>@db.stateofaletheia.org/web`.
-
-2. **Collections and indexes** (idempotent, safe to re-run when the schema grows):
-
-   ```sh
-   ALETHEIADB_ADMIN_URL=aletheiadb://<admin id>:<secret>@db.stateofaletheia.org/web npm run db:bootstrap
-   ```
-
-3. **First administrator** (refuses once one exists; later officers are created in the console under Settings):
-
-   ```sh
-   BOOTSTRAP_PASSPHRASE='a long temporary passphrase' \
-   ALETHEIADB_URL=aletheiadb://<site id>:<secret>@db.stateofaletheia.org/web \
-   DATA_ENCRYPTION_MASTER_KEY=<the site's master key> \
-     npm run officer:bootstrap -- registrar@example.org "Full Name"
-   ```
-
-   It prints the officer ID (`SEC-OFFICER-0001`) and an authenticator secret. Add the secret to
-   an authenticator app (Google Authenticator, 1Password, …): every officer sign-in needs the
-   passphrase **and** the six-digit code. Change the passphrase in Settings after the first sign-in.
-
-4. **Run the site** with the variables above in its server environment. They are read on the
+1. On the database server, create the `web` database, an admin key (for setup) and a readWrite key (for the site).
+2. Write the secrets into git-ignored files; generate and back up `DATA_ENCRYPTION_MASTER_KEY`.
+3. `node --env-file=.env.bootstrap.local scripts/db/bootstrap.mjs` creates the collections; then revoke the admin key.
+4. `node --env-file=.env.production.local scripts/db/officer-bootstrap.mjs <email> "<name>"` (with `BOOTSTRAP_PASSPHRASE`) creates the first administrator and prints the authenticator secret.
+5. **Run the site** with the variables above in its server environment. They are read on the
    server only and never sent to the browser.
 
 ## What is stored
