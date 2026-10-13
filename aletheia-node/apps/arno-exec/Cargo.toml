@@ -10,11 +10,29 @@ publish.workspace = true
 [dependencies]
 aletheia-vm.workspace = true
 
+[target.'cfg(unix)'.dependencies]
+# Caps the worker's address space at start-up (a safe wrapper over setrlimit; unsafe code is
+# forbidden in this workspace).
+rlimit = "0.10"
+
+[target.'cfg(target_os = "linux")'.dependencies]
+# The worker's kernel sandbox (src/sandbox.rs): no filesystem (Landlock), no processes,
+# sockets or debugging (seccomp). Both crates wrap the system calls safely.
+landlock = "0.4"
+libc = "0.2"
+seccompiler = "0.4"
+
 [dev-dependencies]
 aletheia-arno.workspace = true
 aletheia-core.workspace = true
 aletheia-execution.workspace = true
 aletheia-executor.workspace = true
+
+[features]
+# Accepts `--fault <…>` in release builds too, for the supervisor and sandbox tests that
+# `cargo test --release --all-features` runs. Debug builds always accept it. Never enable it in
+# a production build (the node never passes the worker any argument either way).
+fault-injection = []
 
 [lints]
 workspace = true

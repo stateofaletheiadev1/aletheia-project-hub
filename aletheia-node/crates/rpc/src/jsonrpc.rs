@@ -24,6 +24,22 @@ fn response(id: Value, outcome: Result<Value, RpcError>) -> Value {
     }
 }
 
+/// How many calls a body asks for, for the per-IP budget: a batch costs one unit per call, not
+/// one per HTTP request. Anything that is not a well-formed array counts as one (it will be
+/// answered with a single error).
+pub fn calls_in(body: &[u8]) -> u32 {
+    let starts_array = body
+        .iter()
+        .find(|b| !b.is_ascii_whitespace())
+        .is_some_and(|b| *b == b'[');
+    if !starts_array || body.len() > MAX_BODY_BYTES {
+        return 1;
+    }
+    serde_json::from_slice::<Vec<Value>>(body).map_or(1, |calls| {
+        u32::try_from(calls.len()).unwrap_or(u32::MAX).max(1)
+    })
+}
+
 /// Handles one HTTP body. `None`: nothing to send (only notifications).
 pub async fn handle<B: Backend>(service: &Service<B>, body: &[u8]) -> Option<String> {
     if body.len() > MAX_BODY_BYTES {

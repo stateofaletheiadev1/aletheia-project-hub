@@ -218,3 +218,29 @@ fn a_worker_speaking_nonsense_is_never_believed() {
         .unwrap_err();
     assert!(matches!(failure.trap, Trap::Internal(_)), "{failure:?}");
 }
+
+/// On Linux the worker confines itself before its first request: it cannot read files, open
+/// sockets or start processes. The debug-only probe tries all three and reports what got
+/// through (bit 1 file, 2 socket, 4 process, 8 filesystem rule not enforced by this kernel).
+#[cfg(target_os = "linux")]
+#[test]
+fn the_worker_cannot_reach_files_sockets_or_processes() {
+    let status = std::process::Command::new(env!("CARGO_BIN_EXE_aletheia-arno-exec"))
+        .args(["--fault", "probe-sandbox"])
+        .env_clear()
+        .status()
+        .unwrap();
+    let escaped = status.code().unwrap();
+    assert_eq!(
+        escaped & 0b0110,
+        0,
+        "socket or process escaped: {escaped:#06b}"
+    );
+    if escaped & 0b1000 == 0 {
+        assert_eq!(
+            escaped & 0b0001,
+            0,
+            "a file was read under Landlock: {escaped:#06b}"
+        );
+    }
+}

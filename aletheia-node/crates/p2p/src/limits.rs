@@ -29,6 +29,10 @@ pub const BAN_THRESHOLD: i32 = -100;
 /// Score never climbs above this, so a long-lived peer cannot bank goodwill to spend on abuse.
 pub const MAX_SCORE: i32 = 100;
 pub const BAN_DURATION: Duration = Duration::from_secs(600);
+/// An inbound peer's source address (its /64 for IPv6) is banned with it, briefly: node keys
+/// cost nothing to make, so a key ban alone is evaded by reconnecting with a new key, while a
+/// long address ban would shut out honest peers behind the same NAT.
+pub const ADDRESS_BAN_DURATION: Duration = Duration::from_secs(60);
 
 pub const DIAL_BACKOFF_INITIAL: Duration = Duration::from_millis(500);
 pub const DIAL_BACKOFF_MAX: Duration = Duration::from_secs(30);
@@ -41,5 +45,19 @@ pub const fn rate_budget(channel: Channel) -> (u32, u32) {
         Channel::TxGossip => (500, 1_000),
         Channel::StateSync | Channel::SnapshotSync => (20, 40),
         Channel::Mgmt => (10, 20),
+    }
+}
+
+/// Inbound byte budget per peer and channel: sustained bytes per second and burst, counted
+/// over frame payloads. Frame counts alone let a peer send 1,000 eight-megabyte consensus
+/// frames a second; this bounds what one peer can make the node read and hold. Each burst is
+/// at least the channel's largest frame, so every legal frame can be admitted.
+pub const fn byte_budget(channel: Channel) -> (u32, u32) {
+    const MIB: u32 = 1024 * 1024;
+    match channel {
+        Channel::Consensus | Channel::BlockProp => (16 * MIB, 32 * MIB),
+        Channel::TxGossip => (2 * MIB, 4 * MIB),
+        Channel::StateSync | Channel::SnapshotSync => (32 * MIB, 64 * MIB),
+        Channel::Mgmt => (64 * 1024, 128 * 1024),
     }
 }

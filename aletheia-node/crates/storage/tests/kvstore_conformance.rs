@@ -222,6 +222,7 @@ mod rocks_backend {
                 &dir,
                 &StorageBudget {
                     block_cache_bytes: 8 << 20,
+                    write_buffer_bytes: 16 << 20,
                     ..StorageBudget::default()
                 },
                 OpenMode::CreateNew,
@@ -233,6 +234,7 @@ mod rocks_backend {
                 dir,
                 &StorageBudget {
                     block_cache_bytes: 8 << 20,
+                    write_buffer_bytes: 16 << 20,
                     ..StorageBudget::default()
                 },
                 OpenMode::Existing,

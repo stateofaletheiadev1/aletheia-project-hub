@@ -100,6 +100,35 @@ fn type_of(package: &Package, index: u16) -> Result<&TypeDef, Trap> {
         .ok_or(Trap::Internal("type index out of range"))
 }
 
+/// The [`Value::size`] of every type's zero value, by type index, without building any of
+/// them. Types refer only to earlier types (the verifier checks this), so one pass in index
+/// order suffices and the work is linear in the table however deeply types nest. A forward
+/// reference, or a map or vault (which have no register value), counts as 0 here; the
+/// verifier refuses the former. Saturates rather than overflowing.
+pub fn zero_sizes(package: &Package) -> Vec<u64> {
+    let mut sizes: Vec<u64> = Vec::with_capacity(package.types.len());
+    for ty in &package.types {
+        let earlier = |index: &u16| sizes.get(usize::from(*index)).copied().unwrap_or(0);
+        let size = match ty {
+            TypeDef::U128 => 16,
+            TypeDef::Address => 33,
+            TypeDef::Hash => 32,
+            TypeDef::BytesFixed { len } => u64::from(*len).saturating_add(8),
+            TypeDef::Record { fields, .. } => fields
+                .iter()
+                .map(|(_, ty)| earlier(ty))
+                .fold(8u64, u64::saturating_add),
+            TypeDef::Array { len, elem } => u64::from(*len)
+                .saturating_mul(earlier(elem))
+                .saturating_add(8),
+            TypeDef::Map { .. } | TypeDef::Vault { .. } => 0,
+            _ => 8,
+        };
+        sizes.push(size);
+    }
+    sizes
+}
+
 /// The zero value of a type (Section 28: registers start zeroed).
 pub fn zero(package: &Package, index: u16) -> Result<Value, Trap> {
     Ok(match type_of(package, index)? {
@@ -272,4 +301,50 @@ pub fn from_bytes(package: &Package, index: u16, bytes: &[u8]) -> Result<Value, 
     let value = decode(package, index, &mut input)?;
     input.finish().map_err(corrupt)?;
     Ok(value)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use aletheia_core::Hash32;
+
+    #[test]
+    fn zero_sizes_match_the_size_of_the_zero_values_they_describe() {
+        let package = Package {
+            arno_version: 1,
+            compiler: String::new(),
+            source_hash: Hash32::ZERO,
+            name: 0,
+            constants: Vec::new(),
+            types: vec![
+                TypeDef::Bool,
+                TypeDef::U128,
+                TypeDef::Address,
+                TypeDef::Hash,
+                TypeDef::Text { max: 10 },
+                TypeDef::BytesFixed { len: 7 },
+                TypeDef::BytesMax { max: 9 },
+                TypeDef::Record {
+                    name: 0,
+                    fields: vec![(0, 0), (0, 1), (0, 2), (0, 5)],
+                },
+                TypeDef::Array { len: 3, elem: 7 },
+                TypeDef::List { max: 4, elem: 1 },
+                TypeDef::Optional { elem: 8 },
+                TypeDef::Coins { asset: 1 },
+                TypeDef::Signer,
+                TypeDef::Array { len: 2, elem: 8 },
+            ],
+            functions: Vec::new(),
+            storage: Vec::new(),
+            errors: Vec::new(),
+            events: Vec::new(),
+            code: Vec::new(),
+        };
+        let sizes = zero_sizes(&package);
+        for (index, size) in sizes.iter().enumerate() {
+            let ty = u16::try_from(index).unwrap();
+            assert_eq!(*size, zero(&package, ty).unwrap().size(), "type {index}");
+        }
+    }
 }

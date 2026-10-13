@@ -1,0 +1,61 @@
+# systemd unit for aletheiad (docs/operations/vps.md). Install to
+# /etc/systemd/system/aletheiad.service, then: systemctl daemon-reload && systemctl enable --now aletheiad
+[Unit]
+Description=Aletheia StableChain node
+Documentation=file:///usr/share/doc/aletheia/vps.md
+After=network-online.target
+Wants=network-online.target
+# Three fail-stops within ten minutes keep the node down for an operator (exit-codes.md).
+StartLimitIntervalSec=600
+StartLimitBurst=3
+
+[Service]
+Type=simple
+User=aletheia
+Group=aletheia
+WorkingDirectory=/var/lib/aletheia
+ExecStart=/usr/local/bin/aletheiad --config /etc/aletheia/node.toml
+# A crash, a kill or a fail-stop (70) restarts the node; recovery runs at start-up and it
+# continues from its last finalized block. 64 (usage), 75 (needs a newer release) and 78
+# (configuration) cannot be fixed by restarting.
+Restart=on-failure
+RestartSec=5
+RestartPreventExitStatus=64 75 78
+# SIGTERM drains the chain thread and checkpoints the WAL; give it time.
+KillSignal=SIGTERM
+TimeoutStopSec=120
+# RocksDB keeps many files open.
+LimitNOFILE=65536
+# Under memory pressure the kernel kills other processes before the node.
+OOMScoreAdjust=-800
+# Optional soft memory ceiling: above it the kernel reclaims the node's caches (and, with swap,
+# swaps) before anything is killed. About 85 % of RAM; uncomment and adjust.
+#MemoryHigh=850M
+
+# Hardening. The node needs its data directory, /tmp for contract-worker sandboxes, and the
+# network; nothing else.
+NoNewPrivileges=yes
+ProtectSystem=strict
+ReadWritePaths=/var/lib/aletheia
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+SystemCallArchitectures=native
+CapabilityBoundingSet=
+AmbientCapabilities=
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

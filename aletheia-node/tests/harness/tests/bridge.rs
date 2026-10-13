@@ -62,14 +62,15 @@ fn devnet() -> Devnet {
         council.join(", "),
         10 * ONE_AEY
     );
-    Devnet::with_genesis_extra(6, 1_000 * ONE_AEY, 1_000 * ONE_ALNT, &extra)
+    Devnet::with_genesis_extra(6, 1_000 * ONE_AEY, 100_000 * ONE_ALNT, &extra)
 }
 
 fn submit(net: &mut Devnet, from: usize, payload: Payload) -> Receipt {
     let nonce = net.next_nonce(from);
     let mut body = net.body(from, nonce, payload);
-    body.fee.eu_limit = 100_000;
-    body.fee.max_fee = 100_000;
+    // Guardian attestations cost per named signer (BRIDGE_SIGNER_EU): room for a full set.
+    body.fee.eu_limit = 3_000_000;
+    body.fee.max_fee = 3_000_000;
     body.valid_from_slot = net.next_slot();
     body.expiry_slot = Slot::new(net.next_slot().get() + 7_000);
     let tx = net.sign(from, body);
@@ -409,10 +410,16 @@ fn forged_attestations_are_refused() {
             aggregate: aggregate_signatures(&refs).unwrap().to_bytes(),
         },
     };
-    refused(
-        &submit(&mut bed.net, RELAYER, Payload::Bridge(Box::new(op))),
-        ErrorCode::BridgeAttestationInvalid,
-    );
+    let receipt = submit(&mut bed.net, RELAYER, Payload::Bridge(Box::new(op)));
+    refused(&receipt, ErrorCode::BridgeAttestationInvalid);
+    // Refused or not, every guardian the bitmap names was paid for before any pairing ran.
+    {
+        use aletheia_execution::rules::v1::limits::{BRIDGE_SIGNER_EU, BRIDGE_VERIFY_EU};
+        assert!(
+            receipt.eu_used >= BRIDGE_VERIFY_EU + 3 * BRIDGE_SIGNER_EU,
+            "{receipt:?}"
+        );
+    }
 
     // A bitmap naming a guardian the set does not have.
     let mut attestation = bed.attest(&digest, &[0, 1, 2]);

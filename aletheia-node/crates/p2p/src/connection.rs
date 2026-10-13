@@ -18,6 +18,10 @@ use crate::handshake::{EXPORTER_LABEL, Hello, Role, signed_hello_frame, verify_p
 use crate::tls::{PEER_SERVER_NAME, TransportCertificate, certificate_hash, client_config};
 
 pub const HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(5);
+/// Largest frame accepted before the peer has authenticated. A signed hello is under 200
+/// bytes; without this cap an unauthenticated peer could make the node buffer a 16 MiB sync
+/// frame on each of the pending handshakes.
+pub const MAX_HANDSHAKE_PAYLOAD: usize = 1_024;
 const READ_CHUNK_BYTES: usize = 64 * 1024;
 
 /// What this node says about itself in every handshake.
@@ -250,7 +254,7 @@ impl PeerConnection {
             &signed_hello_frame(&local.network, &exporter, role, &hello, &local.node_key),
         )
         .await?;
-        let mut decoder = FrameDecoder::new();
+        let mut decoder = FrameDecoder::with_limit(MAX_HANDSHAKE_PAYLOAD);
         let frame = read_frame(&mut stream, &mut decoder).await?;
         let (peer_hello, node_key) = verify_peer_hello(
             &local.network,
@@ -260,6 +264,7 @@ impl PeerConnection {
             local.versions,
             expected_key,
         )?;
+        decoder.lift_limit();
         if node_key == local.node_key.public_key() {
             return Err(AletheiaError::new(
                 ErrorCode::P2pHandshakeFailed,

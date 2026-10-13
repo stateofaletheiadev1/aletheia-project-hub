@@ -21,9 +21,9 @@ use tokio_rustls::{TlsAcceptor, TlsStream};
 use crate::connection::{LocalNode, PeerConnection, PeerExpectation, PeerReader};
 use crate::frame::{Channel, Frame};
 use crate::limits::{
-    BAN_DURATION, DIAL_BACKOFF_INITIAL, DIAL_BACKOFF_MAX, MAX_INBOUND_PEERS, MAX_OUTBOUND_PEERS,
-    MAX_PEERS_PER_IP, MAX_PENDING_HANDSHAKES, NETWORK_COMMAND_QUEUE, NETWORK_EVENT_QUEUE,
-    PEER_OUTBOX_FRAMES, SCORE_INVALID, SCORE_RATE_EXCEEDED, SCORE_USEFUL,
+    ADDRESS_BAN_DURATION, BAN_DURATION, DIAL_BACKOFF_INITIAL, DIAL_BACKOFF_MAX, MAX_INBOUND_PEERS,
+    MAX_OUTBOUND_PEERS, MAX_PEERS_PER_IP, MAX_PENDING_HANDSHAKES, NETWORK_COMMAND_QUEUE,
+    NETWORK_EVENT_QUEUE, PEER_OUTBOX_FRAMES, SCORE_INVALID, SCORE_RATE_EXCEEDED, SCORE_USEFUL,
 };
 use crate::message::Message;
 use crate::peer_score::PeerBudget;
@@ -148,11 +148,94 @@ impl Drop for PeerEntry {
     }
 }
 
+/// Peer arrivals and departures not yet handed to the node, per peer. The supervisor never
+/// waits on the node's event queue: the node may itself be waiting to hand the supervisor a
+/// command, and the two would wait on each other forever. Changes are kept here and delivered
+/// as the queue has room. Per peer, a departure always comes before a later arrival, and an
+/// arrival the node never saw is cancelled by the departure that follows it, so this holds at
+/// most one entry per peer the node knows of or is about to learn of.
+#[derive(Default)]
+struct Lifecycle {
+    pending: BTreeMap<PeerId, PendingChange>,
+    /// Peers whose arrival the node has been told of and whose departure it has not.
+    announced: std::collections::BTreeSet<PeerId>,
+}
+
+#[derive(Default)]
+struct PendingChange {
+    disconnected: Option<String>,
+    connected: Option<(SocketAddr, Height, Hash32)>,
+}
+
+impl Lifecycle {
+    fn connected(&mut self, peer: PeerId, address: SocketAddr, tip: (Height, Hash32)) {
+        self.pending.entry(peer).or_default().connected = Some((address, tip.0, tip.1));
+    }
+
+    fn disconnected(&mut self, peer: PeerId, reason: String) {
+        let entry = self.pending.entry(peer).or_default();
+        // An arrival the node never saw needs no departure either.
+        entry.connected = None;
+        if self.announced.contains(&peer) && entry.disconnected.is_none() {
+            entry.disconnected = Some(reason);
+        }
+        if entry.disconnected.is_none() {
+            self.pending.remove(&peer);
+        }
+    }
+
+    fn is_empty(&self) -> bool {
+        self.pending.is_empty()
+    }
+
+    /// The next change to deliver, in per-peer order.
+    fn next(&mut self) -> Option<NetworkEvent> {
+        let (&peer, entry) = self.pending.iter_mut().next()?;
+        let event = if let Some(reason) = entry.disconnected.take() {
+            self.announced.remove(&peer);
+            NetworkEvent::Disconnected { peer, reason }
+        } else if let Some((address, tip_height, tip_hash)) = entry.connected.take() {
+            self.announced.insert(peer);
+            NetworkEvent::Connected {
+                peer,
+                address,
+                tip_height,
+                tip_hash,
+            }
+        } else {
+            self.pending.remove(&peer);
+            return self.next();
+        };
+        if entry.disconnected.is_none() && entry.connected.is_none() {
+            self.pending.remove(&peer);
+        }
+        Some(event)
+    }
+}
+
+/// The unit an address ban covers: the address itself for IPv4, its /64 for IPv6 (one host
+/// commonly holds a whole /64).
+fn address_scope(ip: IpAddr) -> IpAddr {
+    match ip {
+        IpAddr::V4(_) => ip,
+        IpAddr::V6(v6) => {
+            let mut octets = v6.octets();
+            for byte in octets.iter_mut().skip(8) {
+                *byte = 0;
+            }
+            IpAddr::V6(std::net::Ipv6Addr::from(octets))
+        }
+    }
+}
+
 struct Supervisor {
     local_id: PeerId,
     next_generation: u64,
     peers: BTreeMap<PeerId, PeerEntry>,
     banned: BTreeMap<PeerId, Instant>,
+    /// Source addresses of banned inbound peers (IPv6 by /64), see [`ADDRESS_BAN_DURATION`].
+    banned_addresses: BTreeMap<IpAddr, Instant>,
+    lifecycle: Lifecycle,
     events: mpsc::Sender<NetworkEvent>,
     internal: mpsc::Sender<Internal>,
     tip: watch::Sender<(Height, Hash32)>,
@@ -209,6 +292,8 @@ pub async fn start(
         next_generation: 0,
         peers: BTreeMap::new(),
         banned: BTreeMap::new(),
+        banned_addresses: BTreeMap::new(),
+        lifecycle: Lifecycle::default(),
         events: event_tx,
         internal: internal_tx,
         tip: tip_tx,
@@ -331,7 +416,7 @@ async fn reader_loop(
                 break error.detail().to_owned();
             }
         };
-        if !budget.admit(frame.channel, Instant::now()) {
+        if !budget.admit(frame.channel, frame.payload.len(), Instant::now()) {
             if budget.adjust(SCORE_RATE_EXCEEDED) {
                 let _ = internal
                     .send(Internal::Ban {
@@ -430,9 +515,20 @@ impl Supervisor {
         mut internal: mpsc::Receiver<Internal>,
     ) {
         loop {
+            let deliver = !self.lifecycle.is_empty();
+            let events = self.events.clone();
             tokio::select! {
                 Some(command) = commands.recv() => self.handle_command(command).await,
                 Some(message) = internal.recv() => self.handle_internal(message).await,
+                permit = events.reserve(), if deliver => match permit {
+                    Ok(permit) => {
+                        if let Some(event) = self.lifecycle.next() {
+                            permit.send(event);
+                        }
+                    }
+                    // The node is gone; nothing will read what the network has to say.
+                    Err(_) => return,
+                },
                 else => return,
             }
         }
@@ -505,6 +601,14 @@ impl Supervisor {
                     let now = Instant::now();
                     self.banned
                         .insert(peer, now.checked_add(BAN_DURATION).unwrap_or(now));
+                    if let Some(entry) = self.peers.get(&peer)
+                        && !entry.outbound
+                    {
+                        self.banned_addresses.insert(
+                            address_scope(entry.address.ip()),
+                            now.checked_add(ADDRESS_BAN_DURATION).unwrap_or(now),
+                        );
+                    }
                     self.remove(
                         peer,
                         format!("banned for {} s: {reason}", BAN_DURATION.as_secs()),
@@ -519,6 +623,12 @@ impl Supervisor {
         let now = Instant::now();
         self.banned.retain(|_, until| *until > now);
         self.banned.contains_key(peer)
+    }
+
+    fn is_address_banned(&mut self, ip: IpAddr) -> bool {
+        let now = Instant::now();
+        self.banned_addresses.retain(|_, until| *until > now);
+        self.banned_addresses.contains_key(&address_scope(ip))
     }
 
     fn count_ip(&self, ip: IpAddr) -> usize {
@@ -536,7 +646,7 @@ impl Supervisor {
     ) {
         let identity = connection.peer().clone();
         let peer = identity.node_key.to_bytes();
-        if self.is_banned(&peer) {
+        if self.is_banned(&peer) || (!outbound && self.is_address_banned(identity.address.ip())) {
             return;
         }
         let dialer = if outbound { self.local_id } else { peer };
@@ -611,24 +721,82 @@ impl Supervisor {
         );
         // A replacement is the same peer on a better connection; the node already knows it.
         if !replacing {
-            let _ = self
-                .events
-                .send(NetworkEvent::Connected {
-                    peer,
-                    address: identity.address,
-                    tip_height: identity.hello.tip_height,
-                    tip_hash: identity.hello.tip_hash,
-                })
-                .await;
+            self.lifecycle.connected(
+                peer,
+                identity.address,
+                (identity.hello.tip_height, identity.hello.tip_hash),
+            );
         }
     }
 
     async fn remove(&mut self, peer: PeerId, reason: String) {
         if self.peers.remove(&peer).is_some() {
-            let _ = self
-                .events
-                .send(NetworkEvent::Disconnected { peer, reason })
-                .await;
+            self.lifecycle.disconnected(peer, reason);
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn address() -> SocketAddr {
+        "127.0.0.1:1".parse().unwrap()
+    }
+
+    fn drain(lifecycle: &mut Lifecycle) -> Vec<NetworkEvent> {
+        std::iter::from_fn(|| lifecycle.next()).collect()
+    }
+
+    #[test]
+    fn an_arrival_the_node_never_saw_is_cancelled_by_its_departure() {
+        let mut lifecycle = Lifecycle::default();
+        lifecycle.connected([1; 32], address(), (Height::GENESIS, Hash32::ZERO));
+        lifecycle.disconnected([1; 32], "gone".to_owned());
+        assert!(lifecycle.is_empty());
+        assert!(drain(&mut lifecycle).is_empty());
+    }
+
+    #[test]
+    fn a_known_peer_that_reconnects_departs_before_it_arrives_again() {
+        let mut lifecycle = Lifecycle::default();
+        lifecycle.connected([1; 32], address(), (Height::GENESIS, Hash32::ZERO));
+        assert!(matches!(
+            drain(&mut lifecycle).as_slice(),
+            [NetworkEvent::Connected { .. }]
+        ));
+        lifecycle.disconnected([1; 32], "first".to_owned());
+        lifecycle.connected([1; 32], address(), (Height::GENESIS, Hash32::ZERO));
+        lifecycle.disconnected([1; 32], "second".to_owned());
+        lifecycle.connected([1; 32], address(), (Height::GENESIS, Hash32::ZERO));
+        let events = drain(&mut lifecycle);
+        assert!(
+            matches!(
+                events.as_slice(),
+                [
+                    NetworkEvent::Disconnected { reason, .. },
+                    NetworkEvent::Connected { .. }
+                ] if reason == "first"
+            ),
+            "{events:?}"
+        );
+    }
+
+    #[test]
+    fn address_bans_cover_an_ipv6_slash_64_and_one_ipv4_address() {
+        let a: IpAddr = "2001:db8:1:2:aaaa::1".parse().unwrap();
+        let b: IpAddr = "2001:db8:1:2:bbbb::9".parse().unwrap();
+        let other: IpAddr = "2001:db8:1:3::1".parse().unwrap();
+        assert_eq!(address_scope(a), address_scope(b));
+        assert_ne!(address_scope(a), address_scope(other));
+        let v4: IpAddr = "192.0.2.7".parse().unwrap();
+        assert_eq!(address_scope(v4), v4);
+    }
+
+    #[test]
+    fn a_departure_of_an_unknown_peer_is_not_reported() {
+        let mut lifecycle = Lifecycle::default();
+        lifecycle.disconnected([2; 32], "never announced".to_owned());
+        assert!(lifecycle.is_empty());
     }
 }

@@ -33,6 +33,12 @@ use crate::validator_set::ValidatorSet;
 
 /// Proposals whose parent has not arrived yet, held at most this many (bounded memory).
 pub const MAX_ORPHANS: usize = 64;
+/// Votes, timeouts and proposals are held only for rounds at most this far ahead of the
+/// engine's own. Without a bound, one Byzantine validator could sign messages for endless
+/// future rounds, each kept until finality passes it, which for a far round is never. A node
+/// that has fallen further behind still catches up: certificates are taken from any round,
+/// including those carried by proposals beyond the window.
+pub const MAX_ROUNDS_AHEAD: u64 = 64;
 
 /// Signs consensus messages. A real seam: the node's software key on devnet, the remote
 /// signer with HSM and high-water marks in production (Section 19.2).
@@ -203,6 +209,17 @@ impl<S: ConsensusSigner> Engine<S> {
         self.pacemaker.round()
     }
 
+    /// Whether `round` is too far ahead of ours to hold messages for (see
+    /// [`MAX_ROUNDS_AHEAD`]).
+    fn beyond_window(&self, round: Slot) -> bool {
+        round.get()
+            > self
+                .pacemaker
+                .round()
+                .get()
+                .saturating_add(MAX_ROUNDS_AHEAD)
+    }
+
     pub fn finalized(&self) -> FinalizedTip {
         self.finalized
     }
@@ -336,6 +353,19 @@ impl<S: ConsensusSigner> Engine<S> {
         // majority may have certified it, and refusing it would cut this node off from every
         // descendant. Holding both twins is safe because V2 never lets us vote twice in a round.
         // (An orphan replayed when its parent arrives is the same proposal, not a twin.)
+        // A proposal for a round beyond the window is not held, but its certificates are
+        // verified progress and still move this node forward.
+        if self.beyond_window(header.slot) {
+            let parent_qc = header.parent_qc.clone();
+            let timeout_cert = header.timeout_cert.clone();
+            if !parent_qc.signers.is_empty() {
+                self.on_qc(parent_qc, out)?;
+            }
+            if let Some(tc) = timeout_cert {
+                self.on_tc(tc, out);
+            }
+            return Ok(());
+        }
         match self.seen_proposals.get(&(header.slot, header.proposer)) {
             Some(first) if first.block.header.block_hash(&self.network) != hash => {
                 if self.evidenced.insert((header.slot, header.proposer)) {
@@ -343,6 +373,12 @@ impl<S: ConsensusSigner> Engine<S> {
                         first: Box::new(first.clone()),
                         second: Box::new(proposal.clone()),
                     })));
+                } else if !self.certified.contains_key(&hash) {
+                    // Third and later twins: the evidence is already out, and holding (and
+                    // executing) every variant a Byzantine leader signs would be unbounded.
+                    // A twin the majority certified is still taken, since it is fetched by
+                    // its hash once the QC is seen.
+                    return Ok(());
                 }
             }
             Some(_) => {}
@@ -473,6 +509,7 @@ impl<S: ConsensusSigner> Engine<S> {
 
     fn on_vote(&mut self, vote: Vote, out: &mut Vec<Output>) -> Result<(), AletheiaError> {
         if vote.round <= self.finalized.round
+            || self.beyond_window(vote.round)
             || verify_vote(&self.network, &self.set, &vote).is_err()
         {
             return Ok(());
@@ -506,6 +543,7 @@ impl<S: ConsensusSigner> Engine<S> {
 
     fn on_timeout(&mut self, timeout: Timeout, out: &mut Vec<Output>) -> Result<(), AletheiaError> {
         if timeout.round <= self.finalized.round
+            || self.beyond_window(timeout.round)
             || verify_timeout(&self.network, &self.set, &timeout).is_err()
             || self.check_qc(&timeout.high_qc).is_err()
         {

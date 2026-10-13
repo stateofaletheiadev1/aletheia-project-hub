@@ -171,3 +171,152 @@ async fn each_client_ip_has_a_request_budget() {
     assert!(statuses[3..].contains(&429), "{statuses:?}");
     stop(server, node).await;
 }
+
+/// Polls until `tx_id` is finalized, or gives up after ~10 s.
+async fn finalized(address: SocketAddr, tx_id: &str) -> Value {
+    for _ in 0..100 {
+        let shown = call(address, "getTransaction", json!({ "txId": tx_id })).await;
+        if shown.get("result").is_some() {
+            return shown["result"].clone();
+        }
+        tokio::time::sleep(Duration::from_millis(100)).await;
+    }
+    Value::Null
+}
+
+async fn submit(address: SocketAddr, tx: &aletheia_core::SignedTransaction) -> Value {
+    call(
+        address,
+        "submitTransaction",
+        json!({ "tx": base16::encode(&tx.to_ace_bytes()) }),
+    )
+    .await
+}
+
+async fn available(address: SocketAddr, devnet: &Devnet, index: usize, asset: &str) -> u128 {
+    let text = devnet
+        .address(index)
+        .to_text(devnet.genesis.network().network_kind());
+    call(
+        address,
+        "getBalance",
+        json!({ "address": text, "asset": asset }),
+    )
+    .await["result"]["available"]
+        .as_str()
+        .unwrap()
+        .parse()
+        .unwrap()
+}
+
+/// Hostile and awkward transfers against a running node: none may move value it should not,
+/// and the total supply of the transferred asset never changes.
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn hostile_transfers_never_move_value_they_should_not() {
+    let devnet = Devnet::new(3, 100 * ONE_AEY, 1_000 * ONE_ALNT);
+    let node = start_node(&devnet, "hostile").await;
+    let (address, server) = serve(&node, 10_000).await;
+    let total = |a: [u128; 3]| a.iter().sum::<u128>();
+    let mut start = [0u128; 3];
+    for (i, slot) in start.iter_mut().enumerate() {
+        *slot = available(address, &devnet, i, "AEY").await;
+    }
+
+    // 1. A good transfer, then the very same bytes again: the replay must not move value twice.
+    let good = devnet.transfer(0, 0, devnet.address(1), AssetId::AEY, 5 * ONE_AEY);
+    let first = submit(address, &good).await;
+    let tx_id = first["result"]["txId"].as_str().unwrap().to_owned();
+    let again = submit(address, &good).await;
+    let shown = finalized(address, &tx_id).await;
+    assert_eq!(shown["receipt"]["status"], "SUCCESS", "{shown}");
+    let replay = submit(address, &good).await;
+    tokio::time::sleep(Duration::from_millis(600)).await;
+    assert_eq!(
+        available(address, &devnet, 1, "AEY").await,
+        105 * ONE_AEY,
+        "pending duplicate {again} or finalized replay {replay} moved value twice"
+    );
+    assert_eq!(
+        replay["error"]["data"]["name"], "TX_NONCE_TOO_LOW",
+        "a finalized transfer was accepted again: {replay}"
+    );
+
+    // 2. Signed for another chain: refused at the door.
+    let mut body = devnet.body(
+        0,
+        1,
+        aletheia_core::Payload::Transfer(aletheia_core::TransferLeg {
+            recipient: devnet.address(2),
+            asset: AssetId::AEY,
+            amount: ONE_AEY,
+        }),
+    );
+    body.chain_id = aletheia_core::ChainId::new(body.chain_id.get().wrapping_add(1));
+    let foreign = submit(address, &devnet.sign(0, body)).await;
+    assert_eq!(
+        foreign["error"]["data"]["name"], "TX_WRONG_CHAIN",
+        "{foreign}"
+    );
+
+    // 3. A tampered amount under the original signature: refused.
+    let mut forged = devnet.transfer(0, 1, devnet.address(2), AssetId::AEY, ONE_AEY);
+    if let aletheia_core::Payload::Transfer(leg) = &mut forged.body.payload {
+        leg.amount = 50 * ONE_AEY;
+    }
+    let forged = submit(address, &forged).await;
+    assert_eq!(forged["error"]["data"]["name"], "SIG_INVALID", "{forged}");
+
+    // 4. More than the sender holds: admitted (balances can change before inclusion), then
+    // fails on chain. It pays its fee in ALnT and uses its nonce; no AEY moves.
+    let alnt_before = available(address, &devnet, 2, "ALnT").await;
+    let overdraft = devnet.transfer(2, 0, devnet.address(0), AssetId::AEY, 1_000 * ONE_AEY);
+    let over = submit(address, &overdraft).await;
+    let over_id = over["result"]["txId"].as_str().unwrap().to_owned();
+    let shown = finalized(address, &over_id).await;
+    assert_eq!(shown["status"], "FINALIZED", "{shown}");
+    assert_ne!(shown["receipt"]["status"], "SUCCESS", "{shown}");
+    assert!(
+        available(address, &devnet, 2, "ALnT").await < alnt_before,
+        "the failed transfer paid no fee"
+    );
+
+    // 5. A nonce gap: nonce 2 waits for nonce 1, then both apply in order.
+    let later = devnet.transfer(0, 2, devnet.address(2), AssetId::AEY, 2 * ONE_AEY);
+    let earlier = devnet.transfer(0, 1, devnet.address(2), AssetId::AEY, ONE_AEY);
+    let later_id = submit(address, &later).await["result"]["txId"]
+        .as_str()
+        .map(str::to_owned);
+    let earlier_id = submit(address, &earlier).await["result"]["txId"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+    assert_eq!(
+        finalized(address, &earlier_id).await["receipt"]["status"],
+        "SUCCESS"
+    );
+    let later_id = later_id.expect("a transfer waiting on an earlier nonce is admitted");
+    assert_eq!(
+        finalized(address, &later_id).await["receipt"]["status"],
+        "SUCCESS"
+    );
+
+    // The books: AEY only moved between the three accounts.
+    tokio::time::sleep(Duration::from_millis(600)).await;
+    let mut end = [0u128; 3];
+    for (i, slot) in end.iter_mut().enumerate() {
+        *slot = available(address, &devnet, i, "AEY").await;
+    }
+    assert_eq!(
+        total(end),
+        total(start),
+        "AEY was created or destroyed: {start:?} -> {end:?}"
+    );
+    assert_eq!(end[1], 105 * ONE_AEY);
+    assert_eq!(
+        end[2],
+        103 * ONE_AEY,
+        "account 2 received 1 + 2 AEY and its overdraft moved none"
+    );
+    assert_eq!(end[0], 92 * ONE_AEY, "account 0 sent 5 + 1 + 2 AEY");
+    stop(server, node).await;
+}

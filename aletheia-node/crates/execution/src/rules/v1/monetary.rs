@@ -71,8 +71,9 @@ fn ledger(
 }
 
 /// At least `threshold` signatures, each from a registered key, each valid over `digest`.
-/// Indices are unique and ascending by decoding, so no key counts twice. Charges EU per
-/// signature checked.
+/// Indices must be strictly ascending, so no key counts twice. The decoder already refuses
+/// anything else; this check keeps the rule true for any caller that builds the list itself.
+/// Charges EU per signature checked.
 pub(crate) fn check_signatures(
     keys: &[[u8; 32]],
     threshold: u8,
@@ -88,6 +89,15 @@ pub(crate) fn check_signatures(
                 "{what} has {} signatures; {threshold} are required",
                 signatures.len()
             ),
+        ));
+    }
+    if signatures
+        .windows(2)
+        .any(|pair| matches!(pair, [a, b] if a.index >= b.index))
+    {
+        return Err(fail(
+            ErrorCode::MonetaryAuthorizationInvalid,
+            format!("{what} lists a signer twice or out of order"),
         ));
     }
     for signed in signatures {
@@ -602,4 +612,26 @@ pub(crate) fn attest(
         data,
     ));
     Ok(Ok(()))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use aletheia_crypto::{Ed25519SigningKey, Secret};
+
+    #[test]
+    fn one_key_listed_twice_never_meets_a_threshold_of_two() {
+        let key = Ed25519SigningKey::from_seed(&Secret::new([5; 32]));
+        let other = Ed25519SigningKey::from_seed(&Secret::new([6; 32]));
+        let keys = [key.public_key().to_bytes(), other.public_key().to_bytes()];
+        let digest = Hash32::from_bytes([1; 32]);
+        let signed = IndexedSignature {
+            index: 0,
+            signature: key.sign(&digest).to_bytes(),
+        };
+        let mut meter = Meter::new(1_000_000);
+        let error =
+            check_signatures(&keys, 2, &[signed, signed], &digest, &mut meter, "test").unwrap_err();
+        assert_eq!(error.code(), ErrorCode::MonetaryAuthorizationInvalid);
+    }
 }

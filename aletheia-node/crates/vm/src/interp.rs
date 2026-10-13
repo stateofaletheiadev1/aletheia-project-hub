@@ -66,6 +66,8 @@ pub struct Failure {
 
 struct Machine<'a, H: Host + ?Sized> {
     package: &'a Package,
+    /// [`value::zero_sizes`] of the package, so a frame is sized before it is built.
+    zero_sizes: Vec<u64>,
     code: Vec<Vec<Instr>>,
     host: &'a mut H,
     eu_used: u64,
@@ -180,11 +182,18 @@ impl<H: Host + ?Sized> Machine<'_, H> {
             .ok_or(internal("register out of range"))
     }
 
-    fn set(&mut self, frame: &mut Frame, r: u8, value: Value) -> Result<(), Trap> {
+    /// Charges and counts a copy of `value` the way [`Machine::set`] does, for writes that
+    /// land inside a record, array or list rather than in a register.
+    fn account_copy(&mut self, frame: &mut Frame, value: &Value) -> Result<(), Trap> {
         let size = value.size();
         if size > 16 {
             self.allocate(frame, size)?;
         }
+        Ok(())
+    }
+
+    fn set(&mut self, frame: &mut Frame, r: u8, value: Value) -> Result<(), Trap> {
+        self.account_copy(frame, &value)?;
         let slot = frame
             .regs
             .get_mut(usize::from(r))
@@ -265,6 +274,26 @@ impl<H: Host + ?Sized> Machine<'_, H> {
             .functions
             .get(usize::from(index))
             .ok_or(internal("function out of range"))?;
+        // Size the frame before building it: arguments as passed, other registers as zero
+        // values. Charge and check that first, so no frame is ever built that the call could
+        // not pay for or that exceeds its memory.
+        let params = usize::from(f.params);
+        let arg_bytes = args.iter().map(Value::size).fold(0u64, u64::saturating_add);
+        let zero_bytes = f
+            .registers
+            .iter()
+            .skip(params)
+            .map(|ty| self.zero_sizes.get(usize::from(*ty)).copied().unwrap_or(0))
+            .fold(0u64, u64::saturating_add);
+        let frame_bytes = arg_bytes.saturating_add(zero_bytes);
+        if frame_bytes > cost::MAX_CALL_MEMORY {
+            return Err(Trap::MemoryLimit);
+        }
+        self.charge(cost::per_unit(
+            frame_bytes.saturating_sub(cost::FREE_FRAME_BYTES),
+            32,
+            cost::MEMORY_PER_32_BYTES,
+        ))?;
         let mut frame = Frame {
             regs: Vec::with_capacity(f.registers.len()),
             types: f.registers.clone(),
@@ -272,7 +301,7 @@ impl<H: Host + ?Sized> Machine<'_, H> {
         };
         let mut args = args.into_iter();
         for (r, ty) in f.registers.iter().enumerate() {
-            let value = if r < usize::from(f.params) {
+            let value = if r < params {
                 args.next().ok_or(internal("missing argument"))?
             } else {
                 zero(package, *ty)?
@@ -416,6 +445,10 @@ impl<H: Host + ?Sized> Machine<'_, H> {
                 self.set(frame, a, Value::Bool(v))?;
             }
             Op::Eq | Op::Ne => {
+                let larger = self.get(frame, b)?.size().max(self.get(frame, c)?.size());
+                if larger > cost::FREE_COMPARE_BYTES {
+                    self.charge(cost::per_unit(larger, 32, cost::COMPARE_PER_32_BYTES))?;
+                }
                 let equal = self.get(frame, b)? == self.get(frame, c)?;
                 self.set(frame, a, Value::Bool(equal == (i.op == Op::Eq)))?;
             }
@@ -557,6 +590,7 @@ impl<H: Host + ?Sized> Machine<'_, H> {
             }
             Op::SetF => {
                 let v = self.get(frame, c)?.clone();
+                self.account_copy(frame, &v)?;
                 let Some(Value::Record(fields)) = frame.regs.get_mut(usize::from(a)) else {
                     return Err(internal("SETF needs a record"));
                 };
@@ -584,6 +618,7 @@ impl<H: Host + ?Sized> Machine<'_, H> {
                 let position = usize::try_from(index.checked_sub(1).ok_or(Trap::IndexOutOfRange)?)
                     .map_err(|_| Trap::IndexOutOfRange)?;
                 let v = self.get(frame, c)?.clone();
+                self.account_copy(frame, &v)?;
                 let Some(Value::Array(items) | Value::List(items)) =
                     frame.regs.get_mut(usize::from(a))
                 else {
@@ -817,6 +852,7 @@ pub fn run<H: Host + ?Sized>(
     }
     let mut machine = Machine {
         package,
+        zero_sizes: value::zero_sizes(package),
         code,
         host,
         eu_used: 0,

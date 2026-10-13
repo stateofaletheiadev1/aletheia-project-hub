@@ -367,3 +367,75 @@ proptest::proptest! {
         let _ = verify(&p);
     }
 }
+
+#[test]
+fn types_whose_zero_value_exceeds_a_calls_memory_are_refused() {
+    // 300,000 UInt128 elements: about 4.8 MB of zero value, over the 4 MiB a call may use.
+    let mut p = package(vec![arithmetic()]);
+    p.types.push(TypeDef::Array {
+        len: 300_000,
+        elem: T_U128,
+    });
+    assert!(
+        rejected(&p).contains("zero value exceeds"),
+        "{}",
+        rejected(&p)
+    );
+
+    // Nesting multiplies: each level alone is small, together they are not.
+    let mut p = package(vec![arithmetic()]);
+    let inner = u16::try_from(p.types.len()).unwrap();
+    p.types.push(TypeDef::Array {
+        len: 1_000,
+        elem: T_U64,
+    });
+    p.types.push(TypeDef::Array {
+        len: 1_000,
+        elem: inner,
+    });
+    assert!(rejected(&p).contains("zero value exceeds"));
+
+    // A modest array is fine.
+    let mut p = package(vec![arithmetic()]);
+    p.types.push(TypeDef::Array {
+        len: 1_000,
+        elem: T_U64,
+    });
+    verify(&p).unwrap();
+}
+
+#[test]
+fn a_function_whose_registers_start_too_large_is_refused() {
+    let mut p = package(vec![arithmetic()]);
+    let big = u16::try_from(p.types.len()).unwrap();
+    // About 1.6 MB each: allowed alone, not three to a frame.
+    p.types.push(TypeDef::Array {
+        len: 100_000,
+        elem: T_U128,
+    });
+    verify(&p).unwrap();
+    p.functions[0].registers.extend([big, big, big]);
+    assert!(
+        rejected(&p).contains("registers start larger"),
+        "{}",
+        rejected(&p)
+    );
+}
+
+#[test]
+fn sizing_deeply_nested_types_takes_linear_time() {
+    // Each record holds two of the previous one: 2^4000 zero-value bytes if expanded, which
+    // must be sized (and refused) without being expanded.
+    let mut p = package(vec![arithmetic()]);
+    for _ in 0..4_000 {
+        let previous = u16::try_from(p.types.len() - 1).unwrap();
+        p.types.push(TypeDef::Record {
+            name: 0,
+            fields: vec![(1, previous), (1, previous)],
+        });
+    }
+    let started = std::time::Instant::now();
+    let detail = rejected(&p);
+    assert!(detail.contains("zero value exceeds"), "{detail}");
+    assert!(started.elapsed() < std::time::Duration::from_secs(2));
+}

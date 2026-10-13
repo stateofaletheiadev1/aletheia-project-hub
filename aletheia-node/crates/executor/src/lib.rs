@@ -19,12 +19,16 @@ use std::io::{BufReader, BufWriter};
 use std::path::PathBuf;
 use std::process::{Child, ChildStdin, Command, Stdio};
 use std::sync::Mutex;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::mpsc::{Receiver, RecvTimeoutError, channel};
 use std::time::{Duration, Instant};
 
 use aletheia_execution::runner::ContractRunner;
 use aletheia_vm::wire::{Execute, HostReply, WorkerMessage, read_frame, write_frame};
 use aletheia_vm::{Failure, Host, Outcome, Package, Trap, Value};
+
+/// Numbers worker sandbox directories across all runners in the process.
+static NEXT_SANDBOX: AtomicU64 = AtomicU64::new(0);
 
 /// How the node starts workers.
 #[derive(Debug, Clone)]
@@ -99,17 +103,20 @@ impl ProcessRunner {
     }
 
     fn spawn(&self) -> Result<Worker, WorkerFailed> {
-        let number = {
+        {
             let mut spawned = self
                 .spawned
                 .lock()
                 .map_err(|_| WorkerFailed("lock poisoned"))?;
             *spawned = spawned.saturating_add(1);
-            *spawned
-        };
+        }
+        // The directory name must be unique across every runner in this process, not just this
+        // one: two runners counting from 1 would share a directory, and the first worker to be
+        // dropped would delete it under the other, failing its spawn.
         let dir = std::env::temp_dir().join(format!(
-            "aletheia-arno-exec-{}-{number}",
-            std::process::id()
+            "aletheia-arno-exec-{}-{}",
+            std::process::id(),
+            NEXT_SANDBOX.fetch_add(1, Ordering::Relaxed)
         ));
         std::fs::create_dir_all(&dir)
             .map_err(|_| WorkerFailed("cannot create the worker directory"))?;

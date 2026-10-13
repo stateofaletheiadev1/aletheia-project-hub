@@ -9,10 +9,12 @@ publish.workspace = true
 
 [dependencies]
 aletheia-arno.workspace = true
+aletheia-consensus.workspace = true
 aletheia-core.workspace = true
 aletheia-crypto.workspace = true
 aletheia-execution.workspace = true
 aletheia-p2p.workspace = true
+aletheia-rails.workspace = true
 aletheia-vm.workspace = true
 serde_json.workspace = true
 

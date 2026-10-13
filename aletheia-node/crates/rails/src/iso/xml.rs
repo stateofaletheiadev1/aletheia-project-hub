@@ -12,6 +12,9 @@ use crate::layers::RailRejection;
 pub const MAX_MESSAGE_BYTES: usize = 1 << 20;
 const MAX_DEPTH: usize = 32;
 const MAX_ELEMENTS: usize = 20_000;
+/// ISO 20022 elements carry one or two attributes (`Ccy`, `xmlns`); a few dozen is generous.
+/// Bounding them keeps attribute handling linear whatever the document holds.
+const MAX_ATTRIBUTES: usize = 64;
 
 fn reject(detail: impl Into<String>) -> RailRejection {
     RailRejection {
@@ -74,13 +77,19 @@ fn local(name: &[u8]) -> Result<String, RailRejection> {
 fn element(start: &quick_xml::events::BytesStart<'_>) -> Result<Element, RailRejection> {
     let mut out = Element::new(&local(start.name().as_ref())?);
     for attr in start.attributes() {
+        if out.attrs.len() >= MAX_ATTRIBUTES {
+            return Err(reject(format!(
+                "an element has more than {MAX_ATTRIBUTES} attributes"
+            )));
+        }
         let attr = attr.map_err(|e| reject(format!("a malformed attribute: {e}")))?;
         let key = core::str::from_utf8(attr.key.as_ref())
             .map_err(|_| reject("an attribute name is not UTF-8"))?
             .to_owned();
-        // Resolves only the five predefined entities and character references.
+        // Resolves only the five predefined entities and character references, and normalizes
+        // white space as XML 1.0 requires (ISO 20022 messages are XML 1.0).
         let value = attr
-            .unescape_value()
+            .normalized_value(quick_xml::XmlVersion::Implicit1_0)
             .map_err(|e| reject(format!("attribute {key}: {e}")))?
             .into_owned();
         out.attrs.push((key, value));
@@ -320,6 +329,19 @@ mod tests {
         refuse(&"<a>".repeat(40), "deeply");
         let huge = format!("<d>{}</d>", "x".repeat(MAX_MESSAGE_BYTES));
         refuse(&huge, "bytes");
+    }
+
+    #[test]
+    fn an_element_with_thousands_of_attributes_is_refused_quickly() {
+        let mut doc = String::from("<Document");
+        for i in 0..20_000 {
+            doc.push_str(&format!(" a{i}=\"x\""));
+        }
+        doc.push_str("/>");
+        let started = std::time::Instant::now();
+        let error = parse(doc.as_bytes()).unwrap_err();
+        assert!(error.detail.contains("attributes"), "{}", error.detail);
+        assert!(started.elapsed() < std::time::Duration::from_secs(1));
     }
 
     #[test]

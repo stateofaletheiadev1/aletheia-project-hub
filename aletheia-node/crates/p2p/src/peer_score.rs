@@ -4,7 +4,7 @@
 use std::time::Instant;
 
 use crate::frame::Channel;
-use crate::limits::{BAN_THRESHOLD, MAX_SCORE, rate_budget};
+use crate::limits::{BAN_THRESHOLD, MAX_SCORE, byte_budget, rate_budget};
 
 /// Token bucket over frames.
 #[derive(Debug, Clone, Copy)]
@@ -28,14 +28,20 @@ impl TokenBucket {
 
     /// Takes one token if available.
     pub fn try_take(&mut self, now: Instant) -> bool {
+        self.try_take_n(1, now)
+    }
+
+    /// Takes `count` tokens if that many are available; takes none otherwise.
+    pub fn try_take_n(&mut self, count: u64, now: Instant) -> bool {
         let elapsed_ms =
             u64::try_from(now.saturating_duration_since(self.last).as_millis()).unwrap_or(u64::MAX);
         let refill = elapsed_ms.saturating_mul(u64::from(self.per_second));
         let cap = u64::from(self.burst).saturating_mul(1_000);
         self.milli_tokens = self.milli_tokens.saturating_add(refill).min(cap);
         self.last = now;
-        if self.milli_tokens >= 1_000 {
-            self.milli_tokens = self.milli_tokens.saturating_sub(1_000);
+        let needed = count.saturating_mul(1_000);
+        if self.milli_tokens >= needed {
+            self.milli_tokens = self.milli_tokens.saturating_sub(needed);
             true
         } else {
             false
@@ -47,6 +53,7 @@ impl TokenBucket {
 #[derive(Debug, Clone)]
 pub struct PeerBudget {
     buckets: [TokenBucket; 6],
+    bytes: [TokenBucket; 6],
     score: i32,
 }
 
@@ -61,14 +68,26 @@ impl PeerBudget {
                 let (per_second, burst) = rate_budget(channel);
                 TokenBucket::new(per_second, burst, now)
             }),
+            bytes: Channel::ALL.map(|channel| {
+                let (per_second, burst) = byte_budget(channel);
+                TokenBucket::new(per_second, burst, now)
+            }),
             score: 0,
         }
     }
 
-    pub fn admit(&mut self, channel: Channel, now: Instant) -> bool {
+    /// Admits one frame of `payload_bytes` on `channel` if both its frame and byte budgets
+    /// allow it.
+    pub fn admit(&mut self, channel: Channel, payload_bytes: usize, now: Instant) -> bool {
+        let index = bucket_index(channel);
+        let bytes = u64::try_from(payload_bytes).unwrap_or(u64::MAX);
         self.buckets
-            .get_mut(bucket_index(channel))
+            .get_mut(index)
             .is_some_and(|bucket| bucket.try_take(now))
+            && self
+                .bytes
+                .get_mut(index)
+                .is_some_and(|bucket| bucket.try_take_n(bytes, now))
     }
 
     /// Applies a score change; true when the peer must now be banned.
@@ -135,12 +154,44 @@ mod tests {
         let mut budget = PeerBudget::new(now);
         let mgmt_burst = rate_budget(Channel::Mgmt).1;
         for _ in 0..mgmt_burst {
-            assert!(budget.admit(Channel::Mgmt, now));
+            assert!(budget.admit(Channel::Mgmt, 8, now));
         }
-        assert!(!budget.admit(Channel::Mgmt, now));
+        assert!(!budget.admit(Channel::Mgmt, 8, now));
         assert!(
-            budget.admit(Channel::BlockProp, now),
+            budget.admit(Channel::BlockProp, 40, now),
             "management flooding does not starve blocks"
         );
+    }
+
+    #[test]
+    fn large_frames_spend_the_byte_budget_within_the_frame_budget() {
+        let now = Instant::now();
+        let mut budget = PeerBudget::new(now);
+        let (_, burst) = crate::limits::byte_budget(Channel::Consensus);
+        let frame = crate::frame::MAX_FRAME_CONSENSUS_BYTES;
+        let fits = usize::try_from(burst).unwrap() / frame;
+        for _ in 0..fits {
+            assert!(budget.admit(Channel::Consensus, frame, now));
+        }
+        assert!(
+            !budget.admit(Channel::Consensus, frame, now),
+            "{fits} maximum frames exhaust the byte burst long before the 2,000-frame burst"
+        );
+        assert!(
+            budget.admit(Channel::Consensus, 100, now + Duration::from_millis(10)),
+            "small frames continue as bytes refill"
+        );
+    }
+
+    #[test]
+    fn every_channel_admits_its_largest_frame() {
+        let now = Instant::now();
+        for channel in Channel::ALL {
+            let mut budget = PeerBudget::new(now);
+            assert!(
+                budget.admit(channel, channel.max_payload(), now),
+                "{channel:?}"
+            );
+        }
     }
 }

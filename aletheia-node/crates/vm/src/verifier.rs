@@ -173,6 +173,19 @@ impl Verifier<'_> {
                 _ => {}
             }
         }
+        // Registers and empty storage slots start as zero values, built before any execution
+        // unit is charged: a type whose zero value alone exceeds a call's memory (a huge or
+        // nested array) would have every node try to allocate it. Refuse it here.
+        let zero_sizes = crate::value::zero_sizes(p);
+        if let Some(index) = zero_sizes
+            .iter()
+            .position(|size| *size > crate::cost::MAX_CALL_MEMORY)
+        {
+            return Err(reject(format!(
+                "type {index}: its zero value exceeds the {} bytes a call may use",
+                crate::cost::MAX_CALL_MEMORY
+            )));
+        }
         for (index, slot) in p.storage.iter().enumerate() {
             self.text(slot.name, "storage")?;
             if self.ty(slot.ty).is_none() || self.holds_coins_or_signer(slot.ty) {
@@ -229,6 +242,14 @@ impl Verifier<'_> {
                 )
             }) {
                 return bad("vaults and maps live only in storage, never in registers");
+            }
+            let frame = f
+                .registers
+                .iter()
+                .map(|ty| zero_sizes.get(usize::from(*ty)).copied().unwrap_or(0))
+                .fold(0u64, u64::saturating_add);
+            if frame > crate::cost::MAX_CALL_MEMORY {
+                return bad("its registers start larger than the memory a call may use");
             }
             let known = FLAG_ENTRY | FLAG_VIEW | FLAG_REENTRANT | FLAG_CONSTRUCTOR;
             if f.flags & !known != 0 {
