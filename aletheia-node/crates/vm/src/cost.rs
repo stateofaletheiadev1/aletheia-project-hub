@@ -31,6 +31,15 @@ pub const ED25519_VERIFY: u64 = 3_000;
 /// A coins transfer out of a contract, priced like a native transfer.
 pub const TRANSFER: u64 = 2_000;
 
+/// A call frame's registers up to this many bytes are covered by the call's base cost; beyond
+/// it, building the frame (zero values and argument copies) costs memory like any other value.
+pub const FREE_FRAME_BYTES: u64 = 1024;
+/// Comparing values larger than [`FREE_COMPARE_BYTES`] (lists, records, byte strings) costs
+/// this per 32 bytes of the larger operand; scalars, addresses and hashes stay at the base
+/// cost.
+pub const COMPARE_PER_32_BYTES: u64 = 1;
+pub const FREE_COMPARE_BYTES: u64 = 64;
+
 /// Memory limits (Section 28).
 pub const MAX_CALL_MEMORY: u64 = 4 * 1024 * 1024;
 pub const MAX_TX_MEMORY: u64 = 32 * 1024 * 1024;

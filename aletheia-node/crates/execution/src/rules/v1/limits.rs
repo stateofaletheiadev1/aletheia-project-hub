@@ -65,6 +65,10 @@ pub const TX_TYPES: &[TxType] = &[
 
 pub const TX_LIMITS: TxLimits = TxLimits {
     max_tx_bytes: 64 * 1024,
+    // About half a second of interpretation at the throughput measured for ADR-061: twenty
+    // times under the default 10 s contract watchdog, so a slow or swapping node finishes
+    // every call that a fast one does. A transfer uses 2,000.
+    max_eu_limit: 30_000_000,
     max_validity_slots: 7_200,
     fee_assets: &[AssetId::AEY, AssetId::ALNT],
     body_versions: &[TX_BODY_VERSION_1],
@@ -73,7 +77,10 @@ pub const TX_LIMITS: TxLimits = TxLimits {
 pub const BLOCK_LIMITS: BlockLimits = BlockLimits {
     max_block_bytes: 4 * 1024 * 1024,
     max_block_txs: 20_000,
-    max_block_eu: 2_000_000_000,
+    // Room for a full block of 20,000 transfers (40 million EU) or two transactions at
+    // `max_eu_limit`; about a second of execution at the ADR-061 measurement, inside the
+    // 1.5 s base round timeout. Calibrated on reference hardware before version 1 is frozen.
+    max_block_eu: 60_000_000,
 };
 
 /// Section 29: a native transfer costs 2,000 EU flat. A batch costs that per leg, so a batch
@@ -99,3 +106,7 @@ pub const BRIDGE_EU: u64 = 5_000;
 /// A bridge operation that verifies a guardian quorum: proofs of possession and one
 /// aggregate pairing check.
 pub const BRIDGE_VERIFY_EU: u64 = 40_000;
+/// Each guardian named in an attestation's signer bitmap: its proof of possession is
+/// re-verified (a pairing check like the aggregate's). Charged before any of that work, from
+/// the bitmap alone, so a bitmap naming every guardian costs what it makes the node do.
+pub const BRIDGE_SIGNER_EU: u64 = 40_000;

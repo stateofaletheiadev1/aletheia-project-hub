@@ -279,3 +279,16 @@ fn earlier_failures_win_over_later_ones() {
     tx.authorization.signatures[0].signature[0] ^= 1;
     assert_eq!(rejection(&tx), ErrorCode::TxWrongChain);
 }
+
+#[test]
+fn an_eu_limit_above_the_transaction_ceiling_is_refused() {
+    let ceiling = aletheia_execution::rules::v1::TX_LIMITS.max_eu_limit;
+    let mut at = body();
+    at.fee.eu_limit = ceiling;
+    at.fee.max_fee = u128::from(ceiling);
+    assert!(validator().validate(&single(at).to_ace_bytes()).is_ok());
+    let mut over = body();
+    over.fee.eu_limit = ceiling + 1;
+    over.fee.max_fee = u128::from(ceiling + 1);
+    assert_eq!(rejection(&single(over)), ErrorCode::TxFieldOutOfRange);
+}

@@ -122,6 +122,15 @@ impl StatelessValidator {
             ));
         }
         check_field_ranges(body, limits.fee_assets)?;
+        if body.fee.eu_limit > limits.max_eu_limit {
+            return Err(reject(
+                ErrorCode::TxFieldOutOfRange,
+                format!(
+                    "eu_limit {} is above the {} a transaction may set",
+                    body.fee.eu_limit, limits.max_eu_limit
+                ),
+            ));
+        }
         check_validity_window(body, limits.max_validity_slots)?;
         check_authorization_shape(&transaction.authorization)?;
         verify_signatures(

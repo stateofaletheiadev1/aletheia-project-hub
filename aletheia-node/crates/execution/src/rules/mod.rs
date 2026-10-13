@@ -24,6 +24,9 @@ pub mod v1;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct TxLimits {
     pub max_tx_bytes: usize,
+    /// The largest `eu_limit` a transaction may set. Bounds how long any one transaction can
+    /// run, far below the contract worker's watchdog, whatever the hardware (ADR-061).
+    pub max_eu_limit: u64,
     pub max_validity_slots: u64,
     pub fee_assets: &'static [AssetId],
     pub body_versions: &'static [u16],

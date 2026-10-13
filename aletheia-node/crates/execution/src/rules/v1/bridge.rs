@@ -35,7 +35,7 @@ use crate::model::{FEE_POOL, Records, module_address};
 use crate::receipt::{Event, event_type};
 use crate::rules::v1::Touched;
 use crate::rules::v1::balances::{credit, debit};
-use crate::rules::v1::limits::{BRIDGE_EU, BRIDGE_VERIFY_EU};
+use crate::rules::v1::limits::{BRIDGE_EU, BRIDGE_SIGNER_EU, BRIDGE_VERIFY_EU};
 use crate::stateless::VerifiedTransaction;
 
 type Step = Result<Result<(), OutOfEu>, AletheiaError>;
@@ -509,7 +509,12 @@ pub(crate) fn apply(
     };
     let cost = match op {
         BridgeOp::BridgeOut { .. } | BridgeOp::SettleDelayed { .. } => BRIDGE_EU,
-        _ => BRIDGE_VERIFY_EU,
+        BridgeOp::BridgeIn { attestation, .. }
+        | BridgeOp::FlagMessage { attestation, .. }
+        | BridgeOp::PauseRoute { attestation, .. }
+        | BridgeOp::ResumeRoute { attestation, .. } => BRIDGE_VERIFY_EU.saturating_add(
+            u64::from(attestation.signers.count_ones()).saturating_mul(BRIDGE_SIGNER_EU),
+        ),
     };
     if meter.charge(cost).is_err() {
         return Ok(Err(OutOfEu));
