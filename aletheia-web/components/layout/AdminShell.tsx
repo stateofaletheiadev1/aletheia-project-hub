@@ -1,5 +1,6 @@
 'use client';
 
+import { siteHref } from '@/lib/hosts';
 import React, { useState, useMemo, useEffect } from 'react';
 import { useHydrated } from '@/lib/use-hydrated';
 import Link from '@/components/i18n/Link';
@@ -161,7 +162,7 @@ export function AdminShell({ children, officialName, officialRole }: { children:
 
         {/* Logo & Return */}
         <Link
-          href="/"
+          href={siteHref('/')}
           className="relative flex items-center gap-3 px-5 py-[18px] shrink-0 group transition-all hover:bg-white/[0.03]"
           title="Return to Main Sovereign Platform"
           style={{ borderBottom: '1px solid rgba(196,154,78,0.10)' }}
@@ -253,7 +254,7 @@ export function AdminShell({ children, officialName, officialRole }: { children:
         {/* Footer */}
         <div className="px-3 py-3 shrink-0 space-y-1" style={{ borderTop: '1px solid rgba(196,154,78,0.10)' }}>
           <Link
-            href="/"
+            href={siteHref('/')}
             className="w-full flex items-center gap-2.5 px-3 py-2 rounded-sm text-[12px] font-semibold transition-all hover:bg-white/[0.04] group/home"
             style={{ color: 'rgba(196,154,78,0.75)' }}
           >
@@ -298,7 +299,7 @@ export function AdminShell({ children, officialName, officialRole }: { children:
           <div className="flex items-center gap-3">
             {/* Back to website */}
             <Link
-              href="/"
+              href={siteHref('/')}
               className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-xs font-semibold transition-all btn-shimmer"
               style={{ background: 'rgba(14,27,49,0.80)', border: '1px solid rgba(196,154,78,0.25)', color: '#C49A4E' }}
               title="Return to Sovereign National Website"

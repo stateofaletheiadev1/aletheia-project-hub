@@ -20,7 +20,8 @@
     "test:api": "node tests/api/run.mjs",
     "test:ui": "node tests/api/ui.mjs",
     "erase-person": "node scripts/db/erase-person.mjs",
-    "officer:code-off": "node scripts/db/officer-code-off.mjs"
+    "officer:code-off": "node scripts/db/officer-code-off.mjs",
+    "test:hosts": "node tests/api/hosts.mjs"
   },
   "dependencies": {
     "@aletheia/aletheiadb": "file:vendor/aletheia-aletheiadb-0.1.0.tgz",

@@ -1,5 +1,6 @@
 'use client';
 
+import { adminHref } from '@/lib/hosts';
 import { useI18n } from '@/components/i18n/I18nProvider';
 import React from 'react';
 import Link from '@/components/i18n/Link';
@@ -681,7 +682,7 @@ export default function HomePage() {
                   <StatusBadge status="Planned" size="sm" />
                 </div>
                 <p className="text-xs text-navy/62 leading-relaxed flex-1">{t("Biometric entry/exit, residence card issuance, compliance verification, and integration with the secure Immigration Officer Workbench.")}</p>
-                <Link href="/admin/immigration" className="text-xs font-bold text-gold-shadow hover:text-navy flex items-center gap-1 transition-colors group">
+                <Link href={adminHref('/admin/immigration')} className="text-xs font-bold text-gold-shadow hover:text-navy flex items-center gap-1 transition-colors group">
                   <span>{t("Immigration Officer Workbench")}</span>
                   <ChevronRight className="w-3.5 h-3.5 text-gold group-hover:translate-x-0.5 transition-transform" />
                 </Link>

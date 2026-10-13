@@ -28,7 +28,7 @@ async function waitFor(url, ms = 60_000) {
   throw new Error(`timed out waiting for ${url}`);
 }
 
-export async function start({ dbPort = 7799, webPort = 3199, smtpPort = 2599 } = {}) {
+export async function start({ dbPort = 7799, webPort = 3199, smtpPort = 2599, env: extraEnv = {} } = {}) {
   const bin = process.env.ALETHEIADB_BIN ?? path.resolve(webDir, '../aletheia-db/target/release/aletheiadb');
   if (!fs.existsSync(bin)) throw new Error(`AletheiaDB binary not found at ${bin}: build it with \`cargo build --release\` in aletheia-db, or set ALETHEIADB_BIN`);
   const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'aletheiadb-test-'));
@@ -84,7 +84,7 @@ export async function start({ dbPort = 7799, webPort = 3199, smtpPort = 2599 } =
   delete env.MAIL_FROM;
 
   const web = spawn(process.execPath, [path.join(webDir, 'node_modules/next/dist/bin/next'), 'start', '-p', String(webPort)], {
-    env: { ...env, ALETHEIADB_URL: dbUrl, DATA_ENCRYPTION_MASTER_KEY: masterKey, SMTP_URL: `smtp://127.0.0.1:${smtpPort}`, NODE_ENV: 'production', PORT: String(webPort) },
+    env: { ...env, ALETHEIADB_URL: dbUrl, DATA_ENCRYPTION_MASTER_KEY: masterKey, SMTP_URL: `smtp://127.0.0.1:${smtpPort}`, NODE_ENV: 'production', PORT: String(webPort), ...extraEnv },
     stdio: ['ignore', 'ignore', 'inherit'],
     cwd: webDir,
   });

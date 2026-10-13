@@ -14,6 +14,7 @@ Without `ALETHEIADB_URL` and `DATA_ENCRYPTION_MASTER_KEY` both areas show "not o
 | `ALETHEIADB_URL` | yes | `aletheiadb://<id>:<secret>@db.stateofaletheia.org/web`, a readWrite key |
 | `DATA_ENCRYPTION_MASTER_KEY` | yes | 32 random bytes, base64 (`openssl rand -base64 32`). Encrypts every person's data key. **Back it up separately: without it no personal data can be read.** |
 | `PUBLIC_SITE_URL` | in production | e.g. `https://stateofaletheia.org`: links in emails, and the passkey origin |
+| `ADMIN_HOST` | no | the officer console's own address, e.g. `adss.oiss.stateofaletheia.org` (see go-live.md step 6b). Unset: console at `/admin` on the main site |
 | `WEBAUTHN_RP_ID` | no | passkey relying-party ID; defaults to the host of `PUBLIC_SITE_URL` |
 | `SMTP_URL` | for email | e.g. `smtps://user:pass@smtp.example.org:465`. Without it emails wait in the outbox |
 | `MAIL_FROM` | no | sender, default `Sovereign Covenant State of Aletheia <no-reply@stateofaletheia.org>` |
@@ -106,6 +107,7 @@ Both start a throwaway AletheiaDB (`cargo build --release` in `aletheia-db` firs
 
 ```sh
 npm run build
+npm run test:hosts                                 # the console on its own address
 npm run test:api                                   # 130 API checks: every endpoint, access rule, encryption at rest, email, erasure
 CHROMIUM_PATH=/path/to/chrome npm run test:ui      # the whole flow in a real browser, including passkeys and the oath
 ```

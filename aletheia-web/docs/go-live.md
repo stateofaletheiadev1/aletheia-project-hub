@@ -97,6 +97,26 @@ npx vercel@60.1.1 deploy --prod
 Email is optional and can be added later the same way (`SMTP_URL`, `MAIL_FROM`); until then
 emails wait in the outbox and are sent once `SMTP_URL` is set.
 
+## 6b. Give the officer console its own address (optional)
+
+The console can live at `https://adss.oiss.stateofaletheia.org` while the public site and the
+Citizen Portal stay on `stateofaletheia.org`. Same deployment, two addresses:
+
+1. **DNS** (where `stateofaletheia.org` is managed): add a record
+   `adss.oiss` → type `CNAME` → value `cname.vercel-dns.com`.
+2. **Vercel**, project for `aletheia-web` → Settings → Domains → add `adss.oiss.stateofaletheia.org`.
+3. Add the setting and redeploy (links are built in at build time):
+
+   ```sh
+   npx vercel@60.1.1 env add ADMIN_HOST production       # value: adss.oiss.stateofaletheia.org
+   npx vercel@60.1.1 deploy --prod
+   ```
+
+Then `stateofaletheia.org/admin/...` moves to the console address, the console address serves only
+the console (its root opens the console; public pages go back to the main site), and officers'
+sign-in cookies exist only on the console address. `PUBLIC_SITE_URL` must be set (step 2).
+To undo: remove `ADMIN_HOST` and redeploy.
+
 ## 7. Check
 
 1. `https://stateofaletheia.org/admin/login`: sign in with your officer ID (or email) and the
