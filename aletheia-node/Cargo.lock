@@ -65,10 +65,12 @@ name = "aletheia-conformance"
 version = "0.1.0"
 dependencies = [
  "aletheia-arno",
+ "aletheia-consensus",
  "aletheia-core",
  "aletheia-crypto",
  "aletheia-execution",
  "aletheia-p2p",
+ "aletheia-rails",
  "aletheia-vm",
  "proptest",
  "serde_json",

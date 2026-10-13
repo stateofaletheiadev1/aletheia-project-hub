@@ -47,6 +47,11 @@ proptest! {
         fuzz::stateless_validation(&data);
         fuzz::p2p_frames(&data);
         fuzz::arnobc_verify(&data);
+        fuzz::consensus_message(&data);
+        fuzz::finality_proof(&data);
+        fuzz::p2p_hello(&data);
+        fuzz::rails_xml(&data);
+        fuzz::rails_camt(&data);
     }
 
     /// The reference Escrow contract with a few bytes changed: mostly near-valid programs,

@@ -107,6 +107,70 @@ pub fn p2p_frames(data: &[u8]) {
     assert!(decoder.buffered() <= data.len());
 }
 
+/// Consensus messages from an untrusted peer (spec Section 61: Node -> P2P peers). The p2p
+/// layer passes these bytes through undecoded; anything the consensus decoder accepts is
+/// canonical and keeps its message type.
+pub fn consensus_message(data: &[u8]) {
+    let Some((&selector, payload)) = data.split_first() else {
+        return;
+    };
+    let msg_type = u16::from(selector & 0x07);
+    if let Ok(message) = aletheia_consensus::ConsensusMessage::decode(msg_type, payload) {
+        assert_eq!(message.msg_type(), msg_type, "decoded message changed type");
+        assert_eq!(
+            message.encode_payload(),
+            payload,
+            "accepted consensus message is not canonical"
+        );
+    }
+}
+
+/// Finality proofs, carried in sync responses from untrusted peers.
+pub fn finality_proof(data: &[u8]) {
+    if let Ok(proof) = aletheia_consensus::FinalityProof::from_ace_bytes(data) {
+        assert_eq!(
+            proof.to_ace_bytes(),
+            data,
+            "accepted finality proof is not canonical"
+        );
+    }
+}
+
+/// The handshake hello, decoded before the peer is authenticated.
+pub fn p2p_hello(data: &[u8]) {
+    if let Ok(hello) = aletheia_p2p::handshake::Hello::from_ace_bytes(data) {
+        assert_eq!(
+            hello.to_ace_bytes(),
+            data,
+            "accepted hello is not canonical"
+        );
+    }
+}
+
+/// ISO 20022 messages from external rails (spec Section 40C.4, layer 1). The reader must
+/// reject or accept within its byte, depth and element bounds, and give the same tree twice.
+pub fn rails_xml(data: &[u8]) {
+    let first = aletheia_rails::iso::xml::parse(data);
+    let second = aletheia_rails::iso::xml::parse(data);
+    assert_eq!(
+        first.is_ok(),
+        second.is_ok(),
+        "parsing the same bytes twice disagreed"
+    );
+    if let (Ok(a), Ok(b)) = (first, second) {
+        assert_eq!(a, b, "parsing the same bytes twice gave different trees");
+    }
+}
+
+/// camt statements: the low bits of the first byte pick the currency exponent (0 to 15), the
+/// rest is the document.
+pub fn rails_camt(data: &[u8]) {
+    let Some((&exponent, document)) = data.split_first() else {
+        return;
+    };
+    let _ = aletheia_rails::iso::camt::parse_statement(document, u32::from(exponent & 0x0f));
+}
+
 /// The Arno compiler: whatever it accepts, the VM's verifier accepts too, and compiling the
 /// same text twice gives the same bytes (Section 26 reproducibility).
 pub fn arno_compile(data: &[u8]) {

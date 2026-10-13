@@ -77,3 +77,38 @@ path = "fuzz_targets/vm_run.rs"
 test = false
 doc = false
 bench = false
+
+[[bin]]
+name = "consensus_message"
+path = "fuzz_targets/consensus_message.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "finality_proof"
+path = "fuzz_targets/finality_proof.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "p2p_hello"
+path = "fuzz_targets/p2p_hello.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "rails_xml"
+path = "fuzz_targets/rails_xml.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "rails_camt"
+path = "fuzz_targets/rails_camt.rs"
+test = false
+doc = false
+bench = false
