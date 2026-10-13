@@ -4,7 +4,8 @@ import { useI18n } from '@/components/i18n/I18nProvider';
 import React, { useState } from 'react';
 import Link from '@/components/i18n/Link';
 import { PortalShell } from '@/components/layout/PortalShell';
-import { CheckCircle2, KeyRound, Lock, RefreshCw, ShieldCheck } from 'lucide-react';
+import { CheckCircle2, Fingerprint, KeyRound, Lock, RefreshCw, ShieldCheck, Trash2 } from 'lucide-react';
+import { startRegistration } from '@simplewebauthn/browser';
 import { api, setCached, useApi } from '@/lib/client/api';
 import { generateIdentityKey, saveTextFile } from '@/lib/client/keys';
 import { day, ME, type PortalAccount } from '@/lib/auth';
@@ -15,6 +16,34 @@ export default function PortalBiometricsPage() {
   const account = me.data?.account;
   const [rotating, setRotating] = useState(false);
   const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null);
+  const keys = useApi<{ passkeys: { id: string; label: string; createdAt: string; lastUsedAt: string | null; backedUp: boolean }[] }>('/api/portal/passkeys');
+  const [label, setLabel] = useState('');
+  const [adding, setAdding] = useState(false);
+
+  const addPasskey = async () => {
+    setAdding(true);
+    setNotice(null);
+    try {
+      const { options } = await api<{ options: Parameters<typeof startRegistration>[0]['optionsJSON'] }>('/api/portal/passkeys/register');
+      const response = await startRegistration({ optionsJSON: options });
+      const r = await api<{ passkeys: NonNullable<typeof keys.data>['passkeys'] }>('/api/portal/passkeys/register', { body: { response, label: label || t('My passkey') } });
+      setCached('/api/portal/passkeys', r);
+      setLabel('');
+      setNotice({ ok: true, text: t('Passkey added. You can now sign in with it from the sign-in page.') });
+    } catch (e) {
+      const aborted = e instanceof Error && (e.name === 'NotAllowedError' || e.name === 'AbortError');
+      setNotice({ ok: false, text: aborted ? t('Adding the passkey was cancelled.') : e instanceof Error ? e.message : t('The passkey could not be added.') });
+    }
+    setAdding(false);
+  };
+
+  const removeKey = async (id: string) => {
+    try {
+      setCached('/api/portal/passkeys', await api(`/api/portal/passkeys/${id}`, { method: 'DELETE' }));
+    } catch (e) {
+      setNotice({ ok: false, text: e instanceof Error ? e.message : t('The passkey could not be removed.') });
+    }
+  };
 
   // A new Ed25519 pair is made in the browser; the State receives only the public key.
   const handleRotateKeys = async () => {
@@ -108,6 +137,28 @@ export default function PortalBiometricsPage() {
               </div>
             </div>
           ))}
+        </div>
+
+        <div className="p-6 rounded-sm bg-white border border-navy/10 space-y-4 shadow-sm">
+          <div className="flex items-center gap-2">
+            <Fingerprint className="w-5 h-5 text-gold" />
+            <h3 className="text-sm font-bold text-navy font-sans">{t("Passkeys")}</h3>
+          </div>
+          <p className="text-xs text-navy/60 font-sans">{t("Sign in with your fingerprint, face or device PIN instead of your passphrase. The passkey stays on your device or in your password manager.")}</p>
+          <ul className="divide-y divide-navy/5 text-xs font-mono">
+            {(keys.data?.passkeys ?? []).map((k) => (
+              <li key={k.id} className="py-2 flex items-center justify-between gap-3">
+                <span className="text-navy font-bold">{tx(k.label)}</span>
+                <span className="text-navy/50">{t('Added {date}', { date: day(k.createdAt, intl) })}{k.lastUsedAt ? ` · ${t('Last used {date}', { date: day(k.lastUsedAt, intl) })}` : ''}</span>
+                <button type="button" aria-label={t("Remove passkey")} onClick={() => removeKey(k.id)} className="text-red-700 hover:text-red-900"><Trash2 className="w-4 h-4" /></button>
+              </li>
+            ))}
+            {tx((keys.data?.passkeys ?? []).length === 0 && <li className="py-2 text-navy/50">{t("No passkeys yet.")}</li>)}
+          </ul>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <input aria-label={t("Passkey name")} placeholder={t("Name, e.g. My phone")} maxLength={60} value={label} onChange={(e) => setLabel(e.target.value)} className="flex-1 px-3 py-2 text-xs border border-navy/20 rounded-sm text-navy" />
+            <button type="button" onClick={addPasskey} disabled={adding} className="px-4 py-2 bg-navy text-parchment text-xs font-semibold rounded-sm hover:bg-navy-deep disabled:opacity-60">{adding ? t("Waiting for your device…") : t("Add a passkey")}</button>
+          </div>
         </div>
 
         <div className="p-5 rounded-sm bg-white border border-gold/30 space-y-2">

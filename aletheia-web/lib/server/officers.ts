@@ -3,8 +3,9 @@ import { ConflictError, type Doc } from '@aletheia/aletheiadb';
 import type { NextRequest } from 'next/server';
 import { collection } from './db';
 import { base32Encode, hashPassword, matchTotp, verifyPassword } from './crypto';
-import { randomBytes } from 'node:crypto';
-import { fail } from './http';
+import { randomBytes, randomUUID } from 'node:crypto';
+import { blindIndex, ERASED, openFields, sealFields, type Sealed } from './envelope';
+import { fail, retryOnConflict } from './http';
 import { readSession } from './sessions';
 import { audit, nextNumber } from './records';
 
@@ -14,10 +15,12 @@ import { audit, nextNumber } from './records';
 
 export type OfficerRole = 'administrator' | 'officer';
 
+// Officers' name and email are personal data, encrypted like everyone else's.
 export type Officer = {
   officerId: string;
-  name: string;
-  email: string;
+  subject: string;
+  emailIndex: string;
+  pii: Sealed;
   passwordHash: string;
   totpSecret: string;
   lastTotpCounter: number;
@@ -40,12 +43,17 @@ const LOCK_MINUTES = 15;
 
 export const officers = () => collection<Officer>('officers');
 
-export function officerView(o: StoredOfficer) {
+export async function officerPii(o: Pick<Officer, 'subject' | 'pii'>): Promise<{ name: string; email: string }> {
+  return openFields(o.subject, o.pii, 'officers', { name: ERASED, email: '' });
+}
+
+export async function officerView(o: StoredOfficer) {
+  const { name, email } = await officerPii(o);
   return {
     id: o.officerId,
     officerId: o._id,
-    name: o.name,
-    email: o.email,
+    name,
+    email,
     role: o.role === 'administrator' ? 'Administrator' : 'Registry Officer',
     isAdministrator: o.role === 'administrator',
     clearance: o.clearance,
@@ -57,7 +65,7 @@ export function officerView(o: StoredOfficer) {
     createdAt: o.createdAt,
   };
 }
-export type OfficerView = ReturnType<typeof officerView>;
+export type OfficerView = Awaited<ReturnType<typeof officerView>>;
 
 export async function createOfficer(input: {
   name: string;
@@ -69,13 +77,17 @@ export async function createOfficer(input: {
   temporaryPassword: string;
   createdBy: string;
 }): Promise<{ officer: StoredOfficer; totpSecret: string }> {
+  const emailIndex = blindIndex('officer-email', input.email);
+  if (await officers().findOne({ emailIndex })) fail(409, 'An officer with this email already exists.');
   const n = await nextNumber('officer');
   const totpSecret = base32Encode(randomBytes(20));
+  const subject = randomUUID();
   try {
     const officer = await officers().insertOne({
       officerId: `SEC-OFFICER-${String(n).padStart(4, '0')}`,
-      name: input.name,
-      email: input.email.toLowerCase(),
+      subject,
+      emailIndex,
+      pii: await sealFields(subject, { name: input.name, email: input.email.toLowerCase() }, 'officers'),
       passwordHash: await hashPassword(input.temporaryPassword),
       totpSecret,
       lastTotpCounter: 0,
@@ -92,7 +104,7 @@ export async function createOfficer(input: {
     });
     return { officer, totpSecret };
   } catch (e) {
-    if (e instanceof ConflictError) fail(409, 'That officer ID is taken; please try again.');
+    if (e instanceof ConflictError) fail(409, 'That officer ID or email is taken; please try again.');
     throw e;
   }
 }
@@ -113,7 +125,7 @@ export async function checkOfficerCredentials(officerId: string, password: strin
         $set: { failedSignIns: failed >= LOCK_AFTER ? 0 : failed, lockedUntil: failed >= LOCK_AFTER ? new Date(Date.now() + LOCK_MINUTES * 60_000).toISOString() : null },
       })
       .catch(() => undefined);
-    await audit({ category: 'Security', actor: o.name, actorId: o._id, outcome: 'failure', action: `Failed officer sign-in for ${o.officerId}${failed >= LOCK_AFTER ? ' (account locked)' : ''}` });
+    await audit({ category: 'Security', actor: o.officerId, actorId: o._id, outcome: 'failure', action: `Failed officer sign-in for ${o.officerId}${failed >= LOCK_AFTER ? ' (account locked)' : ''}` });
     return fail(401, 'The officer ID, passphrase or code is not correct.');
   }
   return officers().updateOne(o._id, o._rev, {
@@ -144,4 +156,20 @@ export async function saveSettings(input: { sessionTimeoutMinutes: number }, by:
   const s = await settings.findOne({ name: 'console' });
   if (s) await settings.updateOne(s._id, s._rev, { $set: { sessionTimeoutMinutes: input.sessionTimeoutMinutes, updatedBy: by } });
   else await settings.insertOne({ name: 'console', sessionTimeoutMinutes: input.sessionTimeoutMinutes, updatedBy: by });
+}
+
+/** Disables or re-enables an officer. An administrator cannot disable themselves or the last administrator. */
+export async function setOfficerDisabled(officerId: string, disabled: boolean, by: StoredOfficer): Promise<StoredOfficer> {
+  const target = await officers().findOne({ officerId: officerId.toUpperCase() });
+  if (!target) return fail(404, 'No such officer.');
+  if (disabled && target._id === by._id) return fail(400, 'You cannot disable your own account.');
+  if (disabled && target.role === 'administrator' && (await officers().count({ role: 'administrator', disabled: false })) <= 1) {
+    return fail(400, 'The last active administrator cannot be disabled.');
+  }
+  const updated = await retryOnConflict(async () => {
+    const cur = (await officers().findById(target._id))!;
+    return officers().updateOne(cur._id, cur._rev, { $set: { disabled } });
+  });
+  await audit({ category: 'Security', actor: by.officerId, actorId: by._id, action: `${disabled ? 'Disabled' : 'Re-enabled'} officer ${target.officerId}` });
+  return updated;
 }

@@ -5,11 +5,11 @@ import { companies, companyInput, companyView, fileCompany } from '@/lib/server/
 export const GET = route(async (req) => {
   const { account } = await requireAccount(req);
   const { documents } = await companies().find({ accountId: account._id }, { sort: { submittedAt: -1 }, limit: 100 });
-  return json({ companies: documents.map(companyView) });
+  return json({ companies: await Promise.all(documents.map(companyView)) });
 });
 
 export const POST = route(async (req) => {
   const { account } = await requireAccount(req);
   const company = await fileCompany(account, companyInput(await body(req)));
-  return json({ company: companyView(company) }, 201);
+  return json({ company: await companyView(company) }, 201);
 });

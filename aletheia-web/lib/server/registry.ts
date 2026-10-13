@@ -2,18 +2,22 @@ import 'server-only';
 import type { Doc } from '@aletheia/aletheiadb';
 import { collection } from './db';
 import { sha256 } from './crypto';
+import { ERASED, openFields, sealFields, type Sealed } from './envelope';
 import { fail, retryOnConflict } from './http';
-import { accounts, type StoredAccount } from './accounts';
+import { accountPii, accounts, updateAccountPii, type StoredAccount } from './accounts';
 import type { StoredOfficer } from './officers';
 import { audit, nextNumber, nextReference, notify } from './records';
 import { issueDocument } from './documents';
 
-// Applications (e-residency and citizenship), the citizen registry, rescission proceedings
-// and border checks.
+// Applications (e-residency and citizenship), the citizen registry with the oath of
+// allegiance, rescission proceedings and border checks. Personal fields are sealed under the
+// applicant's key; identifiers the State issues (references, national ID, passport number)
+// stay in clear so they can be looked up.
 
 export type ApplicationType = 'e-residency' | 'citizenship';
 export type ApplicationRoute = 'e-residency' | 'naturalisation' | 'investor';
 export type DecisionStatus = 'Pending' | 'Approved' | 'Rejected';
+type ApplicantPii = { applicant: string; email: string; nationality: string; dob: string; passportNumber: string };
 
 export type Application = {
   reference: string;
@@ -21,11 +25,8 @@ export type Application = {
   route: ApplicationRoute;
   investOption: string | null;
   accountId: string;
-  applicant: string;
-  email: string;
-  nationality: string;
-  dob: string;
-  passportNumber: string;
+  subject: string;
+  pii: Sealed;
   purpose: string;
   intendedEntity: string;
   publicKey: string;
@@ -38,17 +39,18 @@ export type Application = {
 };
 
 export type CitizenType = 'Founding Citizen' | 'Naturalised' | 'Covenant Investor' | 'Covenant Descent' | 'Honorary';
-export type CitizenStatus = 'Active' | 'Under Review' | 'Suspended' | 'Rescinded';
+export type CitizenStatus = 'Oath Pending' | 'Active' | 'Under Review' | 'Suspended' | 'Rescinded';
+type CitizenPii = { name: string; dob: string; nationalityOfOrigin: string };
 
 export type Citizen = {
   nationalId: string;
-  passportNumber: string;
+  passportNumber: string | null;
   accountId: string;
-  name: string;
-  dob: string;
+  subject: string;
+  pii: Sealed;
   type: CitizenType;
-  nationalityOfOrigin: string;
   registeredDate: string;
+  oathTakenAt: string | null;
   status: CitizenStatus;
   covenantHash: string;
   applicationReference: string;
@@ -59,7 +61,6 @@ export type RescissionStage = 'Hearing Scheduled' | 'Evidence Review' | 'Judicia
 export type Rescission = {
   reference: string;
   nationalId: string;
-  citizenName: string;
   basis: RescissionBasis;
   stage: RescissionStage;
   dossierRef: string;
@@ -70,14 +71,7 @@ export type Rescission = {
   decidedBy: string | null;
 };
 
-export type BorderCrossing = {
-  passportNumber: string;
-  name: string;
-  decision: 'CLEARED' | 'FLAGGED';
-  officer: string;
-  officerId: string;
-  at: string;
-};
+export type BorderCrossing = { passportNumber: string; decision: 'CLEARED' | 'FLAGGED'; officerId: string; officer: string; at: string };
 
 export const applications = () => collection<Application>('applications');
 export const citizens = () => collection<Citizen>('citizens');
@@ -85,34 +79,44 @@ export const rescissions = () => collection<Rescission>('rescissions');
 const crossings = () => collection<BorderCrossing>('border_crossings');
 
 const PREFIX: Record<ApplicationType, string> = { 'e-residency': 'ERES', citizenship: 'CIT-APP' };
+const ERASED_APPLICANT: ApplicantPii = { applicant: ERASED, email: '', nationality: '', dob: '', passportNumber: '' };
+const ERASED_CITIZEN: CitizenPii = { name: ERASED, dob: '', nationalityOfOrigin: '' };
+
+export const applicantPii = (a: Pick<Application, 'subject' | 'pii'>) => openFields(a.subject, a.pii, 'applications', ERASED_APPLICANT);
+export const citizenPii = (c: Pick<Citizen, 'subject' | 'pii'>) => openFields(c.subject, c.pii, 'citizens', ERASED_CITIZEN);
+
+export const OATH_TEXT =
+  'I swear allegiance to the Sovereign Covenant State of Aletheia, to uphold its Covenant and its laws, to respect the rights and freedoms of others, and to fulfil faithfully my duties as a citizen.';
 
 export async function submitApplication(
   account: StoredAccount,
-  input: Omit<Application, 'reference' | 'type' | 'accountId' | 'applicant' | 'email' | 'status' | 'submittedAt' | 'decidedAt' | 'decidedBy' | 'decisionNote'>,
+  input: { route: ApplicationRoute; investOption: string | null; nationality: string; dob: string; passportNumber: string; purpose: string; intendedEntity: string; publicKey: string },
 ): Promise<Doc<Application>> {
   const type: ApplicationType = input.route === 'e-residency' ? 'e-residency' : 'citizenship';
   if (type === 'e-residency' && (account.status === 'e-resident' || account.status === 'citizen')) fail(409, 'You already hold e-residency.');
-  if (type === 'citizenship' && account.status === 'citizen') fail(409, 'You are already a citizen.');
+  if (type === 'citizenship' && (account.status === 'citizen' || account.oathPending)) fail(409, 'You have already been granted citizenship.');
   if (await applications().findOne({ accountId: account._id, type, status: 'Pending' })) fail(409, 'You already have an application of this kind under review.');
+  const pii = await accountPii(account);
   const app = await applications().insertOne({
-    ...input,
     reference: await nextReference(PREFIX[type]),
     type,
+    route: input.route,
+    investOption: input.investOption,
     accountId: account._id,
-    applicant: account.name,
-    email: account.email,
+    subject: account.subject,
+    pii: await sealFields(account.subject, { applicant: pii.name, email: pii.email, nationality: input.nationality, dob: input.dob, passportNumber: input.passportNumber } satisfies ApplicantPii, 'applications'),
+    purpose: input.purpose,
+    intendedEntity: input.intendedEntity,
+    publicKey: input.publicKey,
+    acceptedCovenant: true,
     status: 'Pending',
     submittedAt: new Date().toISOString(),
     decidedAt: null,
     decidedBy: null,
     decisionNote: null,
   });
-  await retryOnConflict(async () => {
-    const a = (await accounts().findById(account._id))!;
-    await accounts().updateOne(a._id, a._rev, {
-      $set: { nationality: input.nationality, dob: input.dob, foreignPassport: input.passportNumber, publicKey: a.publicKey ?? input.publicKey, keyRotatedAt: a.keyRotatedAt ?? new Date().toISOString() },
-    });
-  });
+  const cur = (await accounts().findById(account._id))!;
+  await updateAccountPii(account._id, { nationality: input.nationality, dob: input.dob, foreignPassport: input.passportNumber }, cur.publicKey ? {} : { publicKey: input.publicKey, keyRotatedAt: new Date().toISOString() });
   await notify({
     accountId: account._id,
     title: type === 'e-residency' ? 'E-Residency application received' : 'Citizenship application received',
@@ -121,13 +125,7 @@ export async function submitApplication(
     linkText: 'View your dashboard',
     linkHref: '/portal',
   });
-  await audit({
-    category: type === 'e-residency' ? 'E-Residency' : 'Citizenship',
-    actor: account.name,
-    actorId: account._id,
-    subjectAccountId: account._id,
-    action: `Application ${app.reference} submitted (${input.route})`,
-  });
+  await audit({ category: type === 'e-residency' ? 'E-Residency' : 'Citizenship', actor: account.aletheiaId, actorId: account._id, subjectAccountId: account._id, action: `Application ${app.reference} submitted (${input.route})` });
   return app;
 }
 
@@ -142,27 +140,22 @@ export async function decideApplication(id: string, decision: 'approve' | 'rejec
     $set: { status: decision === 'approve' ? 'Approved' : 'Rejected', decidedAt: now.toISOString(), decidedBy: officer.officerId, decisionNote: note || null },
   });
   const label = app.type === 'e-residency' ? 'E-Residency' : 'Citizenship';
+  const auditBase = { category: label, actor: officer.officerId, actorId: officer._id, subjectAccountId: app.accountId } as const;
 
   if (decision === 'reject') {
-    await notify({
-      accountId: app.accountId,
-      title: `${label} application not approved`,
-      message: `Your application ${app.reference} was not approved.${note ? ` Reason: ${note}` : ''}`,
-      category: 'Identity',
-    });
-    await audit({ category: label, actor: officer.name, actorId: officer._id, subjectAccountId: app.accountId, action: `Rejected ${label.toLowerCase()} application ${app.reference} (${app.applicant})` });
+    await notify({ accountId: app.accountId, title: `${label} application not approved`, message: `Your application ${app.reference} was not approved.${note ? ` Reason: ${note}` : ''}`, category: 'Identity' });
+    await audit({ ...auditBase, action: `Rejected ${label.toLowerCase()} application ${app.reference}` });
     return decided;
   }
 
+  const p = await applicantPii(app);
   if (app.type === 'e-residency') {
     await retryOnConflict(async () => {
       const a = (await accounts().findById(app.accountId))!;
-      await accounts().updateOne(a._id, a._rev, {
-        $set: { status: a.status === 'citizen' ? 'citizen' : 'e-resident', residency: { validFrom: now.toISOString(), validUntil: addYears(now, 3) } },
-      });
+      await accounts().updateOne(a._id, a._rev, { $set: { status: a.status === 'citizen' ? 'citizen' : 'e-resident', residency: { validFrom: now.toISOString(), validUntil: addYears(now, 3) } } });
     });
-    await issueDocument({ accountId: app.accountId, holder: app.applicant, kind: 'e-residence-certificate', name: 'Aletheia_E_Residence_Certificate.pdf', docType: 'Official Residency Certificate', authority: 'General Secretariat of State', relatedId: app._id });
-    await issueDocument({ accountId: app.accountId, holder: app.applicant, kind: 'tax-residency', name: 'Fiscal_Status_Declaration.pdf', docType: 'Fiscal Status Attestation', authority: 'Ministry of Treasury & Finance', relatedId: app._id });
+    await issueDocument({ accountId: app.accountId, kind: 'e-residence-certificate', name: 'Aletheia_E_Residence_Certificate.pdf', docType: 'Official Residency Certificate', authority: 'General Secretariat of State', relatedId: app._id });
+    await issueDocument({ accountId: app.accountId, kind: 'tax-residency', name: 'Fiscal_Status_Declaration.pdf', docType: 'Fiscal Status Attestation', authority: 'Ministry of Treasury & Finance', relatedId: app._id });
     await notify({
       accountId: app.accountId,
       title: 'E-Residency granted',
@@ -172,38 +165,73 @@ export async function decideApplication(id: string, decision: 'approve' | 'rejec
       linkHref: '/portal/documents',
     });
   } else {
+    // Citizenship is granted now; it takes effect, and the passport is issued, when the oath is sworn.
     const year = now.getUTCFullYear();
     const nationalId = `ALE-NAT-${year}-${String(await nextNumber(`national-id-${year}`)).padStart(6, '0')}`;
-    const passportNumber = `ALE-${String(await nextNumber('passport')).padStart(6, '0')}`;
-    const record = {
-      nationalId,
-      passportNumber,
-      accountId: app.accountId,
-      name: app.applicant,
-      dob: app.dob,
-      type: (app.route === 'investor' ? 'Covenant Investor' : 'Naturalised') as CitizenType,
-      nationalityOfOrigin: app.nationality,
-      registeredDate: now.toISOString().slice(0, 10),
-      status: 'Active' as CitizenStatus,
-      applicationReference: app.reference,
-    };
-    await citizens().insertOne({ ...record, covenantHash: sha256(JSON.stringify(record)) });
+    const record = { nationalId, accountId: app.accountId, type: (app.route === 'investor' ? 'Covenant Investor' : 'Naturalised') as CitizenType, registeredDate: now.toISOString().slice(0, 10), applicationReference: app.reference };
+    await citizens().insertOne({
+      ...record,
+      passportNumber: null,
+      subject: app.subject,
+      pii: await sealFields(app.subject, { name: p.applicant, dob: p.dob, nationalityOfOrigin: p.nationality } satisfies CitizenPii, 'citizens'),
+      oathTakenAt: null,
+      status: 'Oath Pending',
+      covenantHash: sha256(JSON.stringify({ ...record, name: p.applicant, dob: p.dob })),
+    });
     await retryOnConflict(async () => {
       const a = (await accounts().findById(app.accountId))!;
-      await accounts().updateOne(a._id, a._rev, { $set: { status: 'citizen', nationalId, passportNumber } });
+      await accounts().updateOne(a._id, a._rev, { $set: { oathPending: { nationalId, grantedAt: now.toISOString() } } });
     });
-    await issueDocument({ accountId: app.accountId, holder: app.applicant, kind: 'digital-credential', name: 'Aletheia_Citizenship_Credential.pdf', docType: 'Certificate of Citizenship', authority: 'General Secretariat of State', relatedId: app._id });
     await notify({
       accountId: app.accountId,
-      title: 'Citizenship granted',
-      message: `Your application ${app.reference} has been approved. National ID ${nationalId}, passport number ${passportNumber}.`,
+      title: 'Citizenship granted: take the oath',
+      message: `Your application ${app.reference} has been approved. Swear the oath of allegiance in the portal to become a citizen and receive your passport number.`,
       category: 'Identity',
-      linkText: 'View your identity',
+      linkText: 'Take the oath',
       linkHref: '/portal/identity',
     });
   }
-  await audit({ category: label, actor: officer.name, actorId: officer._id, subjectAccountId: app.accountId, action: `Approved ${label.toLowerCase()} application ${app.reference} (${app.applicant})` });
+  await audit({ ...auditBase, action: `Approved ${label.toLowerCase()} application ${app.reference}` });
   return decided;
+}
+
+/** The oath of allegiance: the citizen types their full name and swears; citizenship takes effect. */
+export async function takeOath(account: StoredAccount, typedName: string): Promise<StoredAccount> {
+  if (!account.oathPending) return fail(409, 'There is no citizenship waiting for your oath.');
+  const { name } = await accountPii(account);
+  const norm = (s: string) => s.normalize('NFKC').trim().replace(/\s+/g, ' ').toLowerCase();
+  if (norm(typedName) !== norm(name)) return fail(400, 'Type your full name exactly as it appears on your account.');
+  const c = await citizens().findOne({ nationalId: account.oathPending.nationalId });
+  if (!c || c.status !== 'Oath Pending') return fail(409, 'This grant of citizenship is no longer open.');
+  const passportNumber = `ALE-${String(await nextNumber('passport')).padStart(6, '0')}`;
+  const now = new Date().toISOString();
+  await retryOnConflict(async () => {
+    const cur = (await citizens().findById(c._id))!;
+    await citizens().updateOne(cur._id, cur._rev, { $set: { status: 'Active', passportNumber, oathTakenAt: now } });
+  });
+  const updated = await retryOnConflict(async () => {
+    const a = (await accounts().findById(account._id))!;
+    return accounts().updateOne(a._id, a._rev, { $set: { status: 'citizen', nationalId: c.nationalId, passportNumber, oathPending: null } });
+  });
+  await issueDocument({ accountId: account._id, kind: 'digital-credential', name: 'Aletheia_Citizenship_Credential.pdf', docType: 'Certificate of Citizenship', authority: 'General Secretariat of State', relatedId: c._id });
+  await notify({ accountId: account._id, title: 'Welcome, citizen of Aletheia', message: `You have sworn the oath. National ID ${c.nationalId}, passport number ${passportNumber}.`, category: 'Identity', linkText: 'View your identity', linkHref: '/portal/identity' });
+  await audit({ category: 'Citizenship', actor: account.aletheiaId, actorId: account._id, subjectAccountId: account._id, action: `Oath of allegiance sworn; ${c.nationalId} active, passport ${passportNumber} issued` });
+  return updated;
+}
+
+export async function citizenView(c: Doc<Citizen>) {
+  const p = await citizenPii(c);
+  return {
+    id: c._id,
+    nationalId: c.nationalId,
+    name: p.name,
+    type: c.type,
+    passportNumber: c.passportNumber ?? '—',
+    nationalityOfOrigin: p.nationalityOfOrigin,
+    registeredDate: c.registeredDate,
+    status: c.status,
+    covenantHash: c.covenantHash,
+  };
 }
 
 // ---------------------------------------------------------------- rescissions
@@ -212,11 +240,11 @@ export async function openRescission(input: { nationalId: string; basis: Resciss
   const c = await citizens().findOne({ nationalId: input.nationalId.toUpperCase() });
   if (!c) return fail(404, 'No citizen with that national ID.');
   if (c.status === 'Rescinded') return fail(409, 'This citizenship has already been rescinded.');
+  if (c.status === 'Oath Pending') return fail(409, 'This citizenship has not taken effect yet (oath pending).');
   if (await rescissions().findOne({ nationalId: c.nationalId, status: 'Active Proceeding' })) return fail(409, 'A proceeding is already open for this citizen.');
   const r = await rescissions().insertOne({
     reference: await nextReference('RESC', 4),
     nationalId: c.nationalId,
-    citizenName: c.name,
     basis: input.basis,
     stage: input.stage,
     dossierRef: input.dossierRef,
@@ -230,7 +258,7 @@ export async function openRescission(input: { nationalId: string; basis: Resciss
     const cur = (await citizens().findById(c._id))!;
     await citizens().updateOne(cur._id, cur._rev, { $set: { status: 'Under Review' } });
   });
-  await audit({ category: 'Citizenship', actor: officer.name, actorId: officer._id, subjectAccountId: c.accountId, action: `Opened rescission proceeding ${r.reference} for ${c.name} (${input.basis})` });
+  await audit({ category: 'Citizenship', actor: officer.officerId, actorId: officer._id, subjectAccountId: c.accountId, action: `Opened rescission proceeding ${r.reference} for ${c.nationalId} (${input.basis})` });
   return r;
 }
 
@@ -260,21 +288,37 @@ export async function decideRescission(id: string, decision: 'rescind' | 'dismis
       category: 'Identity',
     });
   }
-  await audit({ category: 'Citizenship', actor: officer.name, actorId: officer._id, subjectAccountId: c?.accountId ?? null, action: `${decision === 'rescind' ? 'Rescinded citizenship' : 'Dismissed proceeding'} ${r.reference} (${r.citizenName})` });
+  await audit({ category: 'Citizenship', actor: officer.officerId, actorId: officer._id, subjectAccountId: c?.accountId ?? null, action: `${decision === 'rescind' ? 'Rescinded citizenship' : 'Dismissed proceeding'} ${r.reference} (${r.nationalId})` });
   return decided;
+}
+
+export async function rescissionView(r: Doc<Rescission>) {
+  const c = await citizens().findOne({ nationalId: r.nationalId });
+  return {
+    id: r._id,
+    reference: r.reference,
+    citizenName: c ? (await citizenPii(c)).name : ERASED,
+    nationalId: r.nationalId,
+    basis: r.basis,
+    stage: r.stage,
+    dossierRef: r.dossierRef,
+    initiatedDate: r.initiatedDate,
+    status: r.status,
+  };
 }
 
 // ---------------------------------------------------------------- border
 
 export async function lookupTraveller(passportNumber: string) {
   const c = await citizens().findOne({ passportNumber: passportNumber.toUpperCase() });
-  if (!c) return null;
+  if (!c || !c.passportNumber) return null;
+  const p = await citizenPii(c);
   const { documents: history } = await crossings().find({ passportNumber: c.passportNumber }, { sort: { at: -1 }, limit: 5 });
   return {
     passportNumber: c.passportNumber,
-    name: c.name,
+    name: p.name,
     nationalId: c.nationalId,
-    dob: c.dob,
+    dob: p.dob,
     nationality: 'Sovereign Covenant State of Aletheia (ALE)',
     documentType: 'Aletheia passport (registry record)',
     status: c.status === 'Active' ? ('CLEARED' as const) : ('FLAGGED' as const),
@@ -284,8 +328,30 @@ export async function lookupTraveller(passportNumber: string) {
 }
 
 export async function recordCrossing(passportNumber: string, decision: 'CLEARED' | 'FLAGGED', officer: StoredOfficer): Promise<void> {
-  const traveller = await lookupTraveller(passportNumber);
-  const name = traveller?.name ?? 'Unregistered document';
-  await crossings().insertOne({ passportNumber: passportNumber.toUpperCase(), name, decision, officer: officer.name, officerId: officer._id, at: new Date().toISOString() });
-  await audit({ category: 'Border / E-Gate', actor: officer.name, actorId: officer._id, action: `${decision === 'CLEARED' ? 'Cleared' : 'Flagged'} ${passportNumber.toUpperCase()} (${name})` });
+  const pn = passportNumber.toUpperCase();
+  await crossings().insertOne({ passportNumber: pn, decision, officer: officer.officerId, officerId: officer._id, at: new Date().toISOString() });
+  await audit({ category: 'Border / E-Gate', actor: officer.officerId, actorId: officer._id, action: `${decision === 'CLEARED' ? 'Cleared' : 'Flagged'} passport ${pn}` });
+}
+
+export async function applicationView(a: Doc<Application>) {
+  const p = await applicantPii(a);
+  return {
+    id: a._id,
+    reference: a.reference,
+    type: a.type,
+    route: a.route,
+    investOption: a.investOption,
+    applicant: p.applicant,
+    email: p.email,
+    nationality: p.nationality,
+    dob: p.dob,
+    passportNumber: p.passportNumber,
+    purpose: a.purpose,
+    intendedEntity: a.intendedEntity,
+    publicKey: a.publicKey,
+    status: a.status,
+    submittedAt: a.submittedAt,
+    decidedAt: a.decidedAt,
+    decisionNote: a.decisionNote,
+  };
 }

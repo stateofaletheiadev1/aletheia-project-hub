@@ -6,7 +6,7 @@ import { downloadPortalDocument } from '@/lib/pdf/portal';
 import Link from '@/components/i18n/Link';
 import { PortalShell } from '@/components/layout/PortalShell';
 import { StarOfTruth } from '@/components/brand/Logo';
-import { useApi } from '@/lib/client/api';
+import { api, reload, setCached, useApi } from '@/lib/client/api';
 import { day, ME, type PortalAccount, type PortalDocument } from '@/lib/auth';
 import {
   Fingerprint,
@@ -22,6 +22,26 @@ export default function PortalDigitalIdentityPage() {
   const docs = useApi<{ documents: PortalDocument[] }>('/api/portal/documents');
   const account = me.data?.account;
   const credential = docs.data?.documents.find((d) => d.kind === 'digital-credential') ?? docs.data?.documents.find((d) => d.kind === 'e-residence-certificate');
+
+  const [oathName, setOathName] = useState('');
+  const [sworn, setSworn] = useState(false);
+  const [oathError, setOathError] = useState<string | null>(null);
+  const [swearing, setSwearing] = useState(false);
+  const oath = useApi<{ oath: string }>(account?.oathPending ? '/api/portal/oath' : null);
+
+  const swear = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSwearing(true);
+    setOathError(null);
+    try {
+      const r = await api<{ account: PortalAccount }>('/api/portal/oath', { body: { name: oathName, sworn } });
+      setCached(ME, r);
+      await Promise.all([reload('/api/portal/documents'), reload('/api/portal/notifications'), reload('/api/portal/dashboard')]);
+    } catch (err) {
+      setOathError(err instanceof Error ? err.message : t('The oath could not be recorded.'));
+    }
+    setSwearing(false);
+  };
 
   const publicKey = account?.publicKey ?? t('No identity key enrolled yet. It is created when you apply.');
   const didUri = account?.did ?? '';
@@ -41,6 +61,23 @@ export default function PortalDigitalIdentityPage() {
   return (
     <PortalShell>
       <div className="p-6 lg:p-8 space-y-6">
+        {tx(account?.oathPending && (
+          <form onSubmit={swear} className="p-6 rounded-sm bg-white border-2 border-gold/60 space-y-4 shadow-sm">
+            <h2 className="text-lg font-bold text-navy">{t("Your citizenship has been granted: swear the oath")}</h2>
+            <p className="text-xs text-navy/70">{t('Your national ID {id} is reserved. Citizenship takes effect, and your passport number is issued, when you swear the oath of allegiance.', { id: account.oathPending.nationalId })}</p>
+            <blockquote className="p-4 bg-parchment-light border-l-4 border-gold text-sm text-navy italic">{tx(oath.data?.oath ?? '')}</blockquote>
+            <label className="block space-y-1 text-[11px] font-bold text-navy uppercase tracking-wider">{t("Type your full name")}
+              <input required value={oathName} onChange={(e) => setOathName(e.target.value)} className="w-full px-3 py-2 text-sm border border-navy/20 rounded-sm text-navy normal-case font-normal tracking-normal" />
+            </label>
+            <label className="flex items-start gap-2 text-xs text-navy">
+              <input type="checkbox" checked={sworn} onChange={(e) => setSworn(e.target.checked)} className="mt-0.5" />
+              <span>{t("I swear this oath freely and in good faith.")}</span>
+            </label>
+            {tx(oathError && <p role="alert" className="text-xs font-semibold text-red-700">{tx(oathError)}</p>)}
+            <button type="submit" disabled={!sworn || swearing} className="px-5 py-2 bg-gold text-navy text-xs font-bold uppercase tracking-wider rounded-sm hover:bg-gold-tint disabled:opacity-50">{t("Swear the oath")}</button>
+          </form>
+        ))}
+
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>

@@ -6,5 +6,5 @@ export const PUT = route<{ params: Promise<{ id: string }> }>(async (req, { para
   const { account } = await requireAccount(req);
   const { id } = await params;
   const company = await refileCompany(account, id, companyInput(await body(req)));
-  return json({ company: companyView(company) });
+  return json({ company: await companyView(company) });
 });

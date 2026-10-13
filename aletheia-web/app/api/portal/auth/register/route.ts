@@ -14,8 +14,8 @@ export const POST = route(async (req) => {
   const problem = passwordProblem(passphrase, email);
   if (problem) fail(400, problem);
   const account = await registerAccount({ name, email, password: passphrase });
-  await audit({ category: 'Accounts', actor: name, actorId: account._id, subjectAccountId: account._id, action: `Portal account ${account.aletheiaId} registered` });
-  const res = json({ account: accountView(account) }, 201);
+  await audit({ category: 'Accounts', actor: account.aletheiaId, actorId: account._id, subjectAccountId: account._id, action: `Portal account ${account.aletheiaId} registered` });
+  const res = json({ account: await accountView(account) }, 201);
   setSessionCookie(res, 'citizen', await createSession('citizen', account._id, req, 30));
   return res;
 });

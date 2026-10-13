@@ -7,5 +7,5 @@ export const POST = route<{ params: Promise<{ id: string }> }>(async (req, { par
   const { id } = await params;
   const b = await body(req);
   const company = await decideCompany(id, oneOf(b, 'decision', ['approve', 'request-changes'] as const), str(b, 'note', { max: 500, optional: true }), officer);
-  return json({ company: companyView(company) });
+  return json({ company: await companyView(company) });
 });

@@ -11,8 +11,8 @@ export const POST = route(async (req) => {
   const code = typeof b.code === 'string' ? b.code.replace(/\s/g, '') : '';
   const officer = await checkOfficerCredentials(officerId, passphrase, code);
   const { sessionTimeoutMinutes } = await getSettings();
-  await audit({ category: 'Security', actor: officer.name, actorId: officer._id, action: `Officer ${officer.officerId} signed in` });
-  const res = json({ officer: officerView(officer) });
+  await audit({ category: 'Security', actor: officer.officerId, actorId: officer._id, action: `Officer ${officer.officerId} signed in` });
+  const res = json({ officer: await officerView(officer) });
   setSessionCookie(res, 'officer', await createSession('officer', officer._id, req, sessionTimeoutMinutes));
   return res;
 });

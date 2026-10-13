@@ -21,7 +21,7 @@ interface Citizen {
   passportNumber: string;
   nationalityOfOrigin: string;
   registeredDate: string;
-  status: 'Active' | 'Under Review' | 'Suspended' | 'Rescinded';
+  status: 'Oath Pending' | 'Active' | 'Under Review' | 'Suspended' | 'Rescinded';
   covenantHash: string;
 }
 
@@ -87,7 +87,7 @@ export default function AdminCitizenRegistryPage() {
           </div>
 
           <div className="flex gap-2">
-            {(['ALL', 'Active', 'Under Review', 'Rescinded'] as const).map((status) => (
+            {(['ALL', 'Active', 'Oath Pending', 'Under Review', 'Rescinded'] as const).map((status) => (
               <button
                 key={status}
                 onClick={() => setFilterType(status)}

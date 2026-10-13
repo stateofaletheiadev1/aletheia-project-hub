@@ -5,7 +5,7 @@ import { documents, documentView, MAX_UPLOAD_BYTES, SUBMITTED_TYPES, uploadDocum
 export const GET = route(async (req) => {
   const { account } = await requireAccount(req);
   const { documents: list } = await documents().find({ accountId: account._id }, { sort: { createdAt: -1 }, limit: 200 });
-  return json({ documents: list.map(documentView) });
+  return json({ documents: await Promise.all(list.map(documentView)) });
 });
 
 /** Multipart upload: fields `file` and `docType`. */
@@ -23,5 +23,5 @@ export const POST = route(async (req) => {
   if (!(file instanceof File)) return fail(400, 'Choose a file to upload.');
   if (typeof docType !== 'string' || !SUBMITTED_TYPES.includes(docType as SubmittedType)) return fail(400, 'Choose what kind of document this is.');
   const doc = await uploadDocument(account, { name: file.name, type: file.type, bytes: Buffer.from(await file.arrayBuffer()) }, docType as SubmittedType);
-  return json({ document: documentView(doc) }, 201);
+  return json({ document: await documentView(doc) }, 201);
 });

@@ -8,11 +8,11 @@ export const GET = route<{ params: Promise<{ id: string }> }>(async (req, { para
   const { id } = await params;
   const doc = await documents().findById(id);
   if (!doc) return fail(404, 'No such document.');
-  const bytes = await readFile(doc);
+  const { bytes, name } = await readFile(doc);
   return new NextResponse(new Uint8Array(bytes), {
     headers: {
       'content-type': doc.contentType,
-      'content-disposition': `attachment; filename="${doc.name.replace(/"/g, '')}"`,
+      'content-disposition': `attachment; filename="${name.replace(/[^\w.\- ]/g, '_')}"`,
       'cache-control': 'no-store',
       'x-content-type-options': 'nosniff',
     },

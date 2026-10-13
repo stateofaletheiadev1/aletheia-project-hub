@@ -1,9 +1,12 @@
 {
-  "accounts": [["aletheiaId", true], ["email", true], ["status", false]],
-  "officers": [["officerId", true], ["role", false]],
+  "accounts": [["aletheiaId", true], ["emailIndex", true], ["subject", true], ["status", false]],
+  "officers": [["officerId", true], ["emailIndex", true], ["role", false]],
+  "subject_keys": [["subject", true]],
   "sessions": [["tokenHash", true], ["subjectId", false]],
+  "passkeys": [["credentialId", true], ["accountId", false]],
+  "webauthn_challenges": [["challenge", true]],
   "applications": [["reference", true], ["accountId", false], ["type", false], ["status", false]],
-  "citizens": [["nationalId", true], ["passportNumber", true], ["accountId", false], ["status", false]],
+  "citizens": [["nationalId", true], ["passportNumber", false], ["accountId", false], ["status", false]],
   "companies": [["regNumber", true], ["accountId", false], ["status", false]],
   "documents": [["reference", true], ["accountId", false], ["status", false]],
   "file_chunks": [["fileId", false]],
@@ -12,7 +15,8 @@
   "wallet_transfers": [["reference", true], ["fromAccountId", false], ["state", false]],
   "border_crossings": [["passportNumber", false]],
   "rescissions": [["reference", true], ["nationalId", false], ["status", false]],
-  "audit_events": [["category", false], ["actorId", false], ["subjectAccountId", false]],
+  "audit_events": [["day", false], ["category", false], ["actorId", false], ["subjectAccountId", false]],
+  "outbox": [["state", false]],
   "settings": [["name", true]],
   "counters": [["name", true]]
 }

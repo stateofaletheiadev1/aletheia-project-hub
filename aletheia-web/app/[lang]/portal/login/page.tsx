@@ -20,6 +20,7 @@ import {
 
 import { ME, type PortalAccount } from '@/lib/auth';
 import { api, clearCache, setCached } from '@/lib/client/api';
+import { startAuthentication } from '@simplewebauthn/browser';
 
 const TRUST_ITEMS = [
   { label: 'Encrypted Connection', icon: ShieldCheck, color: '#3D8664' },
@@ -55,6 +56,24 @@ export default function CitizenPortalLoginPage() {
       router.push(authMethod === 'register' ? '/portal/apply' : '/portal');
     } catch (err) {
       setError(err instanceof Error ? err.message : t("Sign-in failed. Please try again."));
+      setIsAuthenticating(false);
+    }
+  };
+
+  // Sign in with a passkey registered earlier in Keys & Security: no ID or passphrase needed.
+  const handlePasskey = async () => {
+    setIsAuthenticating(true);
+    setError(null);
+    try {
+      const { options } = await api<{ options: Parameters<typeof startAuthentication>[0]['optionsJSON'] }>('/api/portal/auth/passkey');
+      const response = await startAuthentication({ optionsJSON: options });
+      const { account } = await api<{ account: PortalAccount }>('/api/portal/auth/passkey', { body: { response } });
+      clearCache();
+      setCached(ME, { account });
+      router.push('/portal');
+    } catch (err) {
+      const aborted = err instanceof Error && (err.name === 'NotAllowedError' || err.name === 'AbortError');
+      setError(aborted ? t("Passkey sign-in was cancelled.") : err instanceof Error ? err.message : t("Sign-in failed. Please try again."));
       setIsAuthenticating(false);
     }
   };
@@ -262,6 +281,18 @@ export default function CitizenPortalLoginPage() {
               }
             </button>
           </form>
+
+          {tx(authMethod === 'credentials' && (
+            <button
+              type="button"
+              onClick={handlePasskey}
+              disabled={isAuthenticating}
+              className="mt-3 w-full py-3 rounded-sm flex items-center justify-center gap-2 text-sm font-bold transition-colors"
+              style={{ background: '#FFFFFF', border: '1px solid rgba(21,41,74,0.18)', color: '#15294A' }}
+            >
+              <Fingerprint className="w-4 h-4 text-gold" />{' '}{t("Sign in with a passkey")}
+            </button>
+          ))}
 
           {/* New user / return link */}
           <div className="flex items-center justify-between mt-6 pt-5" style={{ borderTop: '1px solid rgba(21,41,74,0.08)' }}>

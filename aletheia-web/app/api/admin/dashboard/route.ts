@@ -1,11 +1,10 @@
 import { json, route } from '@/lib/server/http';
 import { requireOfficer } from '@/lib/server/officers';
-import { applications, citizens } from '@/lib/server/registry';
+import { applicantPii, applications, citizens } from '@/lib/server/registry';
 import { companies } from '@/lib/server/companies';
 import { documents } from '@/lib/server/documents';
 import { accounts } from '@/lib/server/accounts';
-import { collection } from '@/lib/server/db';
-import type { AuditEvent } from '@/lib/server/records';
+import { recentAudit } from '@/lib/server/records';
 
 export const GET = route(async (req) => {
   await requireOfficer(req);
@@ -19,10 +18,13 @@ export const GET = route(async (req) => {
     documents().count({ status: 'Pending Review' }),
     applications().find({ status: 'Pending' }, { sort: { submittedAt: -1 }, limit: 5 }),
     companies().find({ status: 'Pending Review' }, { sort: { submittedAt: -1 }, limit: 5 }),
-    collection<AuditEvent>('audit_events').find({}, { sort: { at: -1 }, limit: 6 }),
+    recentAudit({}, { limit: 6, maxDays: 30 }),
   ]);
   const queue = [
-    ...pendingApps.documents.map((a) => ({ id: a._id, kind: 'application' as const, reference: a.reference, name: a.applicant, type: a.type === 'e-residency' ? 'E-Residency' : 'Citizenship Application', nationality: a.nationality, date: a.submittedAt })),
+    ...(await Promise.all(pendingApps.documents.map(async (a) => {
+      const p = await applicantPii(a);
+      return { id: a._id, kind: 'application' as const, reference: a.reference, name: p.applicant, type: a.type === 'e-residency' ? 'E-Residency' : 'Citizenship Application', nationality: p.nationality, date: a.submittedAt };
+    }))),
     ...pendingFirms.documents.map((c) => ({ id: c._id, kind: 'company' as const, reference: c.regNumber, name: c.name, type: `${c.structure} Incorporation`, nationality: '—', date: c.submittedAt })),
   ]
     .sort((x, y) => y.date.localeCompare(x.date))
@@ -31,6 +33,6 @@ export const GET = route(async (req) => {
     stats: { citizens: citizenCount, eResidents, companies: activeCompanies, pending: pendingEres + pendingCit + pendingCompanies + pendingDocs },
     pending: { eResidency: pendingEres, citizenship: pendingCit, companies: pendingCompanies, documents: pendingDocs },
     queue,
-    activity: recent.documents.map((e) => ({ time: e.at, action: e.action, type: e.outcome === 'failure' ? 'warning' : 'success' })),
+    activity: recent.events.map((e) => ({ time: e.at, action: e.action, type: e.outcome === 'failure' ? 'warning' : 'success' })),
   });
 });

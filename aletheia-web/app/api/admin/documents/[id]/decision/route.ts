@@ -7,5 +7,5 @@ export const POST = route<{ params: Promise<{ id: string }> }>(async (req, { par
   const { id } = await params;
   const b = await body(req);
   const doc = await reviewDocument(id, oneOf(b, 'decision', ['verify', 'flag'] as const), str(b, 'note', { max: 500, optional: true }), officer);
-  return json({ document: documentView(doc) });
+  return json({ document: await documentView(doc) });
 });

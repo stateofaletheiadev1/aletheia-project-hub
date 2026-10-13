@@ -11,6 +11,6 @@ export const POST = route(async (req) => {
     const a = (await accounts().findById(account._id))!;
     return accounts().updateOne(a._id, a._rev, { $set: { publicKey, keyRotatedAt: new Date().toISOString() } });
   });
-  await audit({ category: 'Security', actor: account.name, actorId: account._id, subjectAccountId: account._id, action: 'Identity key rotated' });
-  return json({ account: accountView(updated) });
+  await audit({ category: 'Security', actor: account.aletheiaId, actorId: account._id, subjectAccountId: account._id, action: 'Identity key rotated' });
+  return json({ account: await accountView(updated) });
 });

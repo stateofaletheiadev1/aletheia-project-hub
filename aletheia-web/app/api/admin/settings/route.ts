@@ -12,6 +12,6 @@ export const PATCH = route(async (req) => {
   const minutes = Number((await body(req)).sessionTimeoutMinutes);
   if (!Number.isInteger(minutes) || minutes < 5 || minutes > 240) fail(400, 'The session timeout must be between 5 and 240 minutes.');
   await saveSettings({ sessionTimeoutMinutes: minutes }, officer.officerId);
-  await audit({ category: 'Security', actor: officer.name, actorId: officer._id, action: `Officer session timeout set to ${minutes} minutes` });
+  await audit({ category: 'Security', actor: officer.officerId, actorId: officer._id, action: `Officer session timeout set to ${minutes} minutes` });
   return json({ settings: await getSettings() });
 });

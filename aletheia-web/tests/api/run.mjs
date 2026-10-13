@@ -88,7 +88,7 @@ try {
 
   console.log('first administrator');
   const out = execFileSync(process.execPath, [path.join(webDir, 'scripts/db/officer-bootstrap.mjs'), 'registrar@stateofaletheia.org', 'Amara Okafor'], {
-    env: { ...process.env, ALETHEIADB_URL: env.dbUrl, BOOTSTRAP_PASSPHRASE: PASS },
+    env: { ...process.env, ALETHEIADB_URL: env.dbUrl, DATA_ENCRYPTION_MASTER_KEY: env.masterKey, BOOTSTRAP_PASSPHRASE: PASS },
     cwd: webDir,
   }).toString();
   const adminId = out.match(/(SEC-OFFICER-\d+)/)[1];
@@ -96,7 +96,7 @@ try {
   check('bootstrap prints officer id and TOTP secret', adminId === 'SEC-OFFICER-0001' && adminSecret.length >= 32, out);
   let again = '';
   try {
-    execFileSync(process.execPath, [path.join(webDir, 'scripts/db/officer-bootstrap.mjs'), 'x@y.org', 'X'], { env: { ...process.env, ALETHEIADB_URL: env.dbUrl, BOOTSTRAP_PASSPHRASE: PASS }, cwd: webDir, stdio: 'pipe' });
+    execFileSync(process.execPath, [path.join(webDir, 'scripts/db/officer-bootstrap.mjs'), 'x@y.org', 'X'], { env: { ...process.env, ALETHEIADB_URL: env.dbUrl, DATA_ENCRYPTION_MASTER_KEY: env.masterKey, BOOTSTRAP_PASSPHRASE: PASS }, cwd: webDir, stdio: 'pipe' });
   } catch (e) {
     again = String(e.stderr);
   }
@@ -127,6 +127,7 @@ try {
   r = await ada.patch('/api/portal/me', { name: 'Ada King', email: 'ada@example.org', notifyEmail: false, notifyLedger: true });
   check('profile update saved', r.account?.name === 'Ada King' && r.account.notifyEmail === false);
   check('profile update persisted', (await ada2.get('/api/portal/me')).account?.name === 'Ada King');
+  check('email preferences re-enabled', (await ada.patch('/api/portal/me', { name: 'Ada King', email: 'ada@example.org', notifyEmail: true, notifyLedger: true })).account?.notifyEmail === true);
 
   console.log('e-residency application');
   check('company needs residency', (await ada.post('/api/portal/companies', { name: 'X Ltd', structure: 'SARL (Limited)', shareCapital: 1000, beneficialOwners: 'Ada (100%)', purpose: 'Software' })).status === 403);
@@ -203,10 +204,17 @@ try {
   r = await off.post(`/api/admin/applications/${citAppId}/decision`, { decision: 'approve' });
   check('citizenship approved', r.application?.status === 'Approved');
   r = await ada.get('/api/portal/me');
-  check('account is citizen with national ID and passport', r.account?.status === 'citizen' && /^ALE-NAT-/.test(r.account.nationalId) && /^ALE-\d{6}$/.test(r.account.passportNumber));
+  check('citizenship granted, oath pending', r.account?.status === 'e-resident' && /^ALE-NAT-/.test(r.account.oathPending?.nationalId) && r.account.passportNumber === null);
+  check('registry shows oath pending', (await off.get('/api/admin/citizens')).citizens?.[0]?.status === 'Oath Pending');
+  check('oath needs the exact name', (await ada.post('/api/portal/oath', { name: 'Someone Else', sworn: true })).status === 400);
+  check('oath must be sworn', (await ada.post('/api/portal/oath', { name: 'Ada King' })).status === 400);
+  r = await ada.post('/api/portal/oath', { name: '  ada   king ', sworn: true });
+  check('oath sworn: citizen with national ID and passport', r.account?.status === 'citizen' && /^ALE-NAT-/.test(r.account.nationalId) && /^ALE-\d{6}$/.test(r.account.passportNumber), JSON.stringify(r).slice(0, 200));
+  check('oath cannot be sworn twice', (await ada.post('/api/portal/oath', { name: 'Ada King', sworn: true })).status === 409);
   const { nationalId, passportNumber } = r.account;
   r = await off.get('/api/admin/citizens');
-  check('citizen registry lists her', r.citizens?.length === 1 && r.citizens[0].nationalId === nationalId && r.citizens[0].status === 'Active');
+  check('citizen registry lists her', r.citizens?.length === 1 && r.citizens[0].nationalId === nationalId && r.citizens[0].status === 'Active' && r.citizens[0].name === 'Ada King');
+  check('credential issued after oath', (await ada.get('/api/portal/documents')).documents.some((d) => d.kind === 'digital-credential'));
 
   console.log('border');
   r = await off.get(`/api/admin/immigration?passport=${passportNumber}`);
@@ -223,17 +231,21 @@ try {
   check('overdraft refused', (await ada.post('/api/portal/wallet/transfers', { recipient: bobId, amount: 10 })).status === 400);
   check('self-transfer refused', (await ada.post('/api/portal/wallet/transfers', { recipient: adaId, amount: 1 })).status === 400);
   check('unknown recipient', (await ada.post('/api/portal/wallet/transfers', { recipient: 'ALE-ID-2000-000000', amount: 1 })).status === 404);
-  // No endpoint mints AEY; fund the account directly in the database to test a transfer.
-  const accountsColl = AletheiaDB.connect(env.dbUrl).db().collection('accounts');
-  const adaDoc = await accountsColl.findOne({ aletheiaId: adaId });
-  await accountsColl.updateOne(adaDoc._id, adaDoc._rev, { $set: { balanceCents: 10000 } });
+  check('issuance needs a reason', (await off.post('/api/admin/treasury', { recipient: adaId, amount: 100, reason: '' })).status === 400);
+  check('citizens cannot reach the treasury', (await ada.post('/api/admin/treasury', { recipient: adaId, amount: 100, reason: 'x' })).status === 401);
+  r = await off.post('/api/admin/treasury', { recipient: adaId, amount: 100, reason: 'Founding grant for testing' });
+  check('treasury issues AEY', r.status === 201 && /^ISS-/.test(r.issuance?.reference) && r.issuance.state === 'completed', JSON.stringify(r));
+  r = await off.get('/api/admin/treasury');
+  check('issuance listed with total', r.issuances?.length === 1 && r.total === 100 && r.issuances[0].recipient === adaId);
+  r = await ada.get('/api/portal/wallet');
+  check('issuance credited with entry', r.balance === 100 && r.transactions[0]?.description.startsWith('Issued by the Treasury'));
   check('fractional cents refused', (await ada.post('/api/portal/wallet/transfers', { recipient: bobId, amount: 1.234 })).status === 400);
   r = await ada.post('/api/portal/wallet/transfers', { recipient: bobId.toLowerCase(), amount: 25.5, memo: 'Gears' });
   check('transfer completes', r.status === 201 && r.transfer?.state === 'completed' && r.wallet?.balance === 74.5, JSON.stringify(r).slice(0, 300));
   r = await bob.get('/api/portal/wallet');
-  check('recipient credited with entry', r.balance === 25.5 && r.transactions.length === 1 && r.transactions[0].type === 'Credit');
+  check('recipient credited with entry', r.balance === 25.5 && r.transactions.length === 1 && r.transactions[0].type === 'Credit' && r.transactions[0].description.includes('Ada King') && r.transactions[0].description.includes('Gears'));
   r = await ada.get('/api/portal/wallet');
-  check('sender has debit entry', r.transactions.length === 1 && r.transactions[0].type === 'Debit' && r.transactions[0].amount === 25.5);
+  check('sender has debit entry', r.transactions.length === 2 && r.transactions[0].type === 'Debit' && r.transactions[0].amount === 25.5 && r.transactions[0].description.includes('Bob Builder'));
   const results = await Promise.all([1, 2, 3, 4].map(() => ada.post('/api/portal/wallet/transfers', { recipient: bobId, amount: 30 })));
   r = await ada.get('/api/portal/wallet');
   check('concurrent transfers never overdraw', r.balance >= 0 && results.filter((x) => x.status === 201).length === 2 && Math.abs(r.balance - 14.5) < 1e-9, `${results.map((x) => x.status)} balance ${r.balance}`);
@@ -264,11 +276,19 @@ try {
   check('new officer signs in', (await kofi.post('/api/admin/auth/login', { officerId: 'SEC-OFFICER-0002', passphrase: 'temporary passphrase 77', code: totp(r.totpSecret) })).status === 200);
   check('non-administrator cannot change settings', (await kofi.patch('/api/admin/settings', { sessionTimeoutMinutes: 60 })).status === 403);
   check('non-administrator cannot create officers', (await kofi.post('/api/admin/officers', {})).status === 403);
+  check('non-administrator cannot issue AEY', (await kofi.post('/api/admin/treasury', { recipient: adaId, amount: 1, reason: 'not allowed' })).status === 403);
+  check('administrator cannot disable self', (await off.patch(`/api/admin/officers/${adminId}`, { disabled: true })).status === 400);
+  check('non-administrator cannot disable officers', (await kofi.patch(`/api/admin/officers/${adminId}`, { disabled: true })).status === 403);
   r = await kofi.post('/api/admin/rescissions', { nationalId, basis: 'Fraudulent Acquisition', stage: 'Evidence Review', dossierRef: 'DOS-2' });
   check('non-administrator cannot rescind', (await kofi.post(`/api/admin/rescissions/${r.case.id}/decision`, { decision: 'rescind' })).status === 403);
   r = await off.post(`/api/admin/rescissions/${r.case.id}/decision`, { decision: 'rescind' });
   check('administrator rescinds', r.case?.status === 'Rescinded');
   check('account back to e-resident', (await ada.get('/api/portal/me')).account.status === 'e-resident');
+  r = await off.patch('/api/admin/officers/SEC-OFFICER-0002', { disabled: true });
+  check('administrator disables an officer', r.officer?.disabled === true);
+  check('disabled officer is signed out at once', (await kofi.get('/api/admin/me')).status === 401);
+  check('disabled officer cannot sign in', (await new Client(base).post('/api/admin/auth/login', { officerId: 'SEC-OFFICER-0002', passphrase: 'temporary passphrase 77', code: '123456' })).status === 403);
+  check('officer re-enabled', (await off.patch('/api/admin/officers/SEC-OFFICER-0002', { disabled: false })).officer?.disabled === false);
 
   console.log('passphrase change');
   check('wrong current refused', (await ada.post('/api/portal/me/passphrase', { current: 'nope nope nope', next: 'another long passphrase 9' })).status === 401);
@@ -289,12 +309,46 @@ try {
   r = await ada.post('/api/portal/identity/key', { publicKey: newKey });
   check('key rotated', r.account?.publicKey === newKey && r.account.keyRotatedAt);
 
+  console.log('audit paging');
+  r = await off.get('/api/admin/activity');
+  const fifth = r.events[4];
+  const older = await off.get(`/api/admin/activity?before=${encodeURIComponent(fifth.timestamp)}`);
+  check('activity pages by cursor', older.events.length === r.events.length - 5 && older.events.every((e) => e.timestamp < fifth.timestamp), `${older.events.length} vs ${r.events.length}`);
+  check('audit trail names no people', r.events.every((e) => !/Ada|Bob|Kofi|Amara/.test(e.action + e.actor)));
+
+  console.log('encryption at rest');
+  const raw = AletheiaDB.connect(env.dbUrl).db();
+  const dump = async (c) => JSON.stringify((await raw.collection(c).find({}, { limit: 1000 })).documents);
+  const everything = (await Promise.all(['accounts', 'officers', 'applications', 'citizens', 'documents', 'companies', 'notifications', 'wallet_entries', 'wallet_transfers', 'audit_events', 'outbox', 'border_crossings', 'rescissions'].map(dump))).join('\n');
+  check('no names in the database', !/Ada King|Bob Builder|Kofi Mensah|Amara Okafor/.test(everything));
+  check('no emails in the database', !/ada@example\.org|bob@example\.org|kofi@stateofaletheia/.test(everything));
+  check('no foreign passport or birth date in the database', !/GB1234567|1990-12-10/.test(everything));
+  const chunks = await dump('file_chunks');
+  check('uploaded files are encrypted', chunks.length > 0 && !chunks.includes(Buffer.alloc(300, 'a').toString('base64').slice(0, 200)));
+
+  console.log('email');
+  const until = Date.now() + 10_000;
+  while (Date.now() < until && !env.mails.some((m) => m.raw.includes('E-Residency granted'))) await new Promise((res) => setTimeout(res, 200));
+  const toAda = env.mails.filter((m) => m.to.includes('ada@example.org'));
+  check('decisions are emailed', toAda.some((m) => m.raw.includes('E-Residency granted')) && toAda.some((m) => m.raw.includes('Citizenship granted')), `${env.mails.length} mails`);
+
+  console.log('erasure');
+  const erase = execFileSync(process.execPath, [path.join(webDir, 'scripts/db/erase-person.mjs'), bobId, '--yes'], { env: { ...process.env, ALETHEIADB_URL: env.dbUrl }, cwd: webDir }).toString();
+  check('erasure shreds the key', erase.includes('shredded'), erase);
+  check('erased person is signed out', (await bob.get('/api/portal/me')).status === 401);
+  check('erased person cannot sign in', [401, 403].includes((await new Client(base).post('/api/portal/auth/login', { identifier: bobId, passphrase: PASS })).status));
+  const bobDoc = await raw.collection('accounts').findOne({ aletheiaId: bobId });
+  check('erased data key is gone', (await raw.collection('subject_keys').count({ subject: bobDoc.subject })) === 0);
+  r = await ada.get('/api/portal/wallet');
+  check('other wallets keep their own records', r.transactions.length >= 2);
+
   console.log('lockout');
+  const carolId = (await new Client(base).post('/api/portal/auth/register', { name: 'Carol Danvers', email: 'carol@example.org', passphrase: PASS })).account.id;
   const mallory = new Client(base);
   let last;
-  for (let i = 0; i < 10; i++) last = await mallory.post('/api/portal/auth/login', { identifier: bobId, passphrase: `guess number ${i}` });
+  for (let i = 0; i < 10; i++) last = await mallory.post('/api/portal/auth/login', { identifier: carolId, passphrase: `guess number ${i}` });
   check('sign-in rate limited or account locked', last.status === 429 || last.status === 401);
-  const locked = await mallory.post('/api/portal/auth/login', { identifier: bobId, passphrase: PASS });
+  const locked = await mallory.post('/api/portal/auth/login', { identifier: carolId, passphrase: PASS });
   check('locked account refuses even the right passphrase', locked.status === 423 || locked.status === 429, String(locked.status));
 } finally {
   env.stop();

@@ -20,6 +20,7 @@ import {
   LogOut,
   ChevronRight,
   Bell,
+  Landmark,
   Search,
   Menu,
   X,
@@ -54,6 +55,7 @@ const NAV_SECTIONS = [
     items: [
       { label: 'Company Formations', href: '/admin/companies', badge: null, badgeColor: 'bg-gold/15 text-gold border border-gold/20' },
       { label: 'Document Review', href: '/admin/documents', badge: null, badgeColor: '' },
+      { label: 'Treasury Issuance', href: '/admin/treasury', badge: null, badgeColor: '' },
     ],
   },
   {
@@ -80,6 +82,7 @@ const NAV_ICONS: Record<string, React.ComponentType<{ className?: string; style?
   '/admin/e-residency': Globe2,
   '/admin/companies': Building2,
   '/admin/documents': FileSearch,
+  '/admin/treasury': Landmark,
   '/admin/security': ShieldAlert,
   '/admin/settings': Settings,
 };

@@ -43,11 +43,11 @@ const browser = await chromium.launch({ headless: true, executablePath: process.
   env.stop();
   throw e;
 });
-setTimeout(() => { console.error('ui test: overall timeout'); process.exit(2); }, 240_000).unref();
+setTimeout(() => { console.error('ui test: overall timeout'); process.exit(2); }, 420_000).unref();
 try {
   const { base } = env;
   const out = execFileSync(process.execPath, [path.join(webDir, 'scripts/db/officer-bootstrap.mjs'), 'registrar@stateofaletheia.org', 'Amara Okafor'], {
-    env: { ...process.env, ALETHEIADB_URL: env.dbUrl, BOOTSTRAP_PASSPHRASE: PASS },
+    env: { ...process.env, ALETHEIADB_URL: env.dbUrl, DATA_ENCRYPTION_MASTER_KEY: env.masterKey, BOOTSTRAP_PASSPHRASE: PASS },
     cwd: webDir,
   }).toString();
   const officerId = out.match(/(SEC-OFFICER-\d+)/)[1];
@@ -120,7 +120,17 @@ try {
   await o.getByText(`${reference} approved for Grace Hopper`).first().waitFor();
   check('officer grants e-residency', true);
 
-  for (const path of ['/admin', '/admin/activity', '/admin/citizens', '/admin/citizenship', '/admin/rescissions', '/admin/immigration', '/admin/e-residency', '/admin/companies', '/admin/documents', '/admin/security', '/admin/settings']) {
+  console.log('treasury');
+  o.on('dialog', (d) => d.accept());
+  await o.goto(`${base}/admin/treasury`);
+  await o.getByLabel('Recipient Aletheia ID').fill('ALE-ID-' + new Date().getUTCFullYear() + '-000001');
+  await o.getByLabel('Amount (AEY)').fill('50');
+  await o.getByLabel('Reason').fill('Founding grant (test)');
+  await o.getByRole('button', { name: 'Issue', exact: true }).click();
+  await o.getByText(/AEY issued to ALE-ID-/).first().waitFor();
+  check('administrator issues AEY from the Treasury page', (await o.getByText('Total issued: 50.00 AEY').count()) === 1);
+
+  for (const path of ['/admin', '/admin/activity', '/admin/treasury', '/admin/citizens', '/admin/citizenship', '/admin/rescissions', '/admin/immigration', '/admin/e-residency', '/admin/companies', '/admin/documents', '/admin/security', '/admin/settings']) {
     await o.goto(base + path);
     await o.locator('main main h1').first().waitFor();
     await o.waitForLoadState('networkidle');
@@ -154,6 +164,51 @@ try {
     const text = await p.locator('main main').innerText();
     check(`portal page ${path} renders`, !/Something went wrong|Loading…$/.test(text));
   }
+  await p.goto(`${base}/portal/wallet`);
+  await p.getByText('Issued by the Treasury').first().waitFor();
+  check('issued AEY appears in the wallet', (await p.getByText('50.00').count()) > 0);
+
+  console.log('passkey');
+  const cdp = await citizen.newCDPSession(p);
+  await cdp.send('WebAuthn.enable');
+  await cdp.send('WebAuthn.addVirtualAuthenticator', { options: { protocol: 'ctap2', transport: 'internal', hasResidentKey: true, hasUserVerification: true, isUserVerified: true, automaticPresenceSimulation: true } });
+  await p.goto(`${base}/portal/biometrics`);
+  await p.getByLabel('Passkey name').fill('Test laptop');
+  await p.getByRole('button', { name: 'Add a passkey' }).click();
+  await p.getByText('Passkey added.').first().waitFor();
+  check('passkey registered', (await p.getByText('Test laptop').count()) === 1);
+  await citizen.clearCookies();
+  await p.goto(`${base}/portal/login`);
+  await p.getByRole('button', { name: 'Sign in with a passkey' }).click();
+  await p.waitForURL(/\/portal$/);
+  await p.getByText('Welcome, Grace Hopper').first().waitFor();
+  check('signed in with the passkey alone', true);
+
+  console.log('citizenship and oath');
+  await p.goto(`${base}/portal/apply?route=naturalisation`);
+  await p.locator('input[type=date]').fill('1906-12-09');
+  await p.locator('input.font-mono').first().fill('US1234567');
+  await p.getByRole('button', { name: 'Continue' }).click();
+  await p.getByRole('button', { name: 'Continue' }).click();
+  await p.getByRole('button', { name: 'Continue' }).click();
+  await p.locator('input[type=checkbox]').check();
+  await p.getByRole('button', { name: 'Submit Application' }).click();
+  const citRef = (await p.locator('div.text-sm', { hasText: /^CIT-APP-/ }).innerText()).trim();
+  check('citizenship application submitted', /^CIT-APP-/.test(citRef), citRef);
+  await o.goto(`${base}/admin/citizenship`);
+  await o.getByRole('button', { name: 'Grant Citizenship' }).first().click();
+  await o.getByText(`${citRef} approved for Grace Hopper`).first().waitFor();
+  await p.goto(`${base}/portal/identity`);
+  await p.getByText('Your citizenship has been granted: swear the oath').waitFor();
+  await p.getByLabel('Type your full name').fill('Grace Hopper');
+  await p.getByLabel('I swear this oath freely and in good faith.').check();
+  await p.getByRole('button', { name: 'Swear the oath' }).click();
+  await p.getByText(/Passport: ALE-\d{6}/).first().waitFor();
+  check('oath sworn in the portal; passport issued', true);
+  await o.goto(`${base}/admin/citizens`);
+  await o.getByRole('cell', { name: 'Grace Hopper' }).first().waitFor();
+  check('new citizen in the registry', true);
+
   await p.goto(`${base}/portal/companies`);
   await p.getByRole('button', { name: 'Incorporate New Entity' }).click();
   await p.getByLabel('Company name').fill('Hopper Compilers');

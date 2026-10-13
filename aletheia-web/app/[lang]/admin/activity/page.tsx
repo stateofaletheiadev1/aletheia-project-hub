@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { AdminShell } from '@/components/layout/AdminShell';
-import { useApi } from '@/lib/client/api';
+import { api, useApi } from '@/lib/client/api';
 import { shortHash } from '@/lib/auth';
 import { ListState } from '@/components/admin/Notice';
 import { Activity } from 'lucide-react';
@@ -19,10 +19,18 @@ interface ActivityLog {
 
 export default function AdminLiveActivityFeedPage() {
   const [filter, setFilter] = useState('ALL');
-  const { data, error, loading } = useApi<{ categories: string[]; events: ActivityLog[] }>(
-    filter === 'ALL' ? '/api/admin/activity' : `/api/admin/activity?category=${encodeURIComponent(filter)}`,
-  );
-  const filtered = data?.events ?? [];
+  const base = filter === 'ALL' ? '/api/admin/activity?' : `/api/admin/activity?category=${encodeURIComponent(filter)}&`;
+  const { data, error, loading } = useApi<{ categories: string[]; events: ActivityLog[]; next: string | null }>(base);
+  // Older pages, fetched on demand with the cursor of the page before.
+  const [older, setOlder] = useState<{ base: string; events: ActivityLog[]; next: string | null } | null>(null);
+  const extra = older?.base === base ? older : null;
+  const filtered = [...(data?.events ?? []), ...(extra?.events ?? [])];
+  const next = extra ? extra.next : data?.next;
+  const loadOlder = async () => {
+    if (!next) return;
+    const r = await api<{ events: ActivityLog[]; next: string | null }>(`${base}before=${encodeURIComponent(next)}`);
+    setOlder({ base, events: [...(extra?.events ?? []), ...r.events], next: r.next });
+  };
   const categories = ['ALL', ...(data?.categories ?? [])];
 
   return (
@@ -103,6 +111,11 @@ export default function AdminLiveActivityFeedPage() {
               </div>
             </div>
           ))}
+          {next && (
+            <button type="button" onClick={loadOlder} className="w-full py-2 rounded-sm border border-gold/25 text-gold text-xs font-mono hover:bg-gold/10">
+              Load older events
+            </button>
+          )}
         </div>
       </div>
     </AdminShell>

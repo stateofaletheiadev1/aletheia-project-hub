@@ -79,6 +79,12 @@ export default function CivicPortalDashboard() {
             <ShieldCheck className="w-3.5 h-3.5" />{verified ? t("Identity Verified") : t("Application stage")}</div>
         </div>
 
+        {tx(account?.oathPending && (
+          <Link href="/portal/identity" className="block p-4 rounded-sm border-2 border-gold/60 bg-white text-sm font-bold text-navy hover:border-gold">
+            {t("Your citizenship has been granted. Swear the oath to receive your passport →")}
+          </Link>
+        ))}
+
         {/* ── Status Cards ── */}
         <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 transition-all duration-500 delay-75 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
           {STATUS_CARDS.map(({ label, value, sub, icon: Icon, accent, bg }) => (

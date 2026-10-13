@@ -123,8 +123,24 @@ export default function AdminSettingsConsolePage() {
               <div className="divide-y divide-white/5">
                 {(officers.data?.officers ?? []).map((o) => (
                   <div key={o.officerId} className="py-2 flex items-center justify-between gap-3">
-                    <span className="text-parchment"><strong>{o.id}</strong> · {o.name} · {o.role}</span>
+                    <span className={o.disabled ? 'text-parchment/40 line-through' : 'text-parchment'}><strong>{o.id}</strong> · {o.name} · {o.role}</span>
                     <span className="text-parchment/40">last sign-in {fmtDate(o.lastSignInAt)}</span>
+                    {o.id !== officer?.id && (
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() =>
+                          run(async () => {
+                            await api(`/api/admin/officers/${o.id}`, { method: 'PATCH', body: { disabled: !o.disabled } });
+                            await reload('/api/admin/officers');
+                            return `${o.id} ${o.disabled ? 're-enabled' : 'disabled and signed out'}.`;
+                          })
+                        }
+                        className={`px-2 py-1 rounded-sm border text-[11px] ${o.disabled ? 'border-emerald-500/40 text-emerald-300' : 'border-red-500/40 text-red-300'}`}
+                      >
+                        {o.disabled ? 'Enable' : 'Disable'}
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>

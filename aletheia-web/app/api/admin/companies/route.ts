@@ -5,5 +5,5 @@ import { companies, companyView } from '@/lib/server/companies';
 export const GET = route(async (req) => {
   await requireOfficer(req);
   const { documents } = await companies().find({}, { sort: { submittedAt: -1 }, limit: 500 });
-  return json({ companies: documents.map(companyView) });
+  return json({ companies: await Promise.all(documents.map(companyView)) });
 });

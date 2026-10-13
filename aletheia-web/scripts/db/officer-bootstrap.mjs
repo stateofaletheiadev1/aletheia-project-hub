@@ -1,18 +1,20 @@
 // Creates the FIRST administrator of the officer console. Refuses if an administrator already
 // exists: every later officer is created by an administrator in the console (Settings).
-//   BOOTSTRAP_PASSPHRASE='…12+ chars…' ALETHEIADB_URL=aletheiadb://… \
+//   BOOTSTRAP_PASSPHRASE='…12+ chars…' ALETHEIADB_URL=aletheiadb://… DATA_ENCRYPTION_MASTER_KEY=… \
 //     node scripts/db/officer-bootstrap.mjs you@example.org "Your Name"
 // Prints the officer ID and the authenticator (TOTP) secret: add it to an authenticator app.
-import { randomBytes, scrypt } from 'node:crypto';
+import { randomBytes, randomUUID, scrypt } from 'node:crypto';
 import { promisify } from 'node:util';
 import { AletheiaDB } from '@aletheia/aletheiadb';
+import { blindIndex, masterKey, newSubjectKey, sealFields } from './envelope.mjs';
 
 const [email, name] = process.argv.slice(2).map((s) => s?.trim());
 const passphrase = process.env.BOOTSTRAP_PASSPHRASE ?? '';
 if (!email?.includes('@') || !name || passphrase.length < 12 || !process.env.ALETHEIADB_URL) {
-  console.error('usage: BOOTSTRAP_PASSPHRASE=<12+ chars> ALETHEIADB_URL=<aletheiadb://…> officer-bootstrap.mjs <email> "<full name>"');
+  console.error('usage: BOOTSTRAP_PASSPHRASE=<12+ chars> ALETHEIADB_URL=<aletheiadb://…> DATA_ENCRYPTION_MASTER_KEY=<…> officer-bootstrap.mjs <email> "<full name>"');
   process.exit(2);
 }
+const master = masterKey();
 
 // Same format as lib/server/crypto.ts hashPassword().
 const salt = randomBytes(16);
@@ -48,14 +50,18 @@ for (;;) {
   }
 }
 const officerId = `SEC-OFFICER-${String(n).padStart(4, '0')}`;
+const subject = randomUUID();
+const dataKey = await newSubjectKey(db, master, subject);
 const now = new Date().toISOString();
 const officer = await officers.insertOne({
-  officerId, name, email: email.toLowerCase(), passwordHash, totpSecret, lastTotpCounter: 0,
+  officerId, subject, emailIndex: blindIndex(master, 'officer-email', email),
+  pii: sealFields(dataKey, { name, email: email.toLowerCase() }, 'officers'),
+  passwordHash, totpSecret, lastTotpCounter: 0,
   role: 'administrator', clearance: 'Administrator', department: 'General Secretariat of State', badgeNumber: '',
   disabled: false, failedSignIns: 0, lockedUntil: null, createdAt: now, createdBy: 'bootstrap', lastSignInAt: null,
 });
 await db.collection('audit_events').insertOne({
-  at: now, category: 'Security', actor: 'bootstrap', actorId: null, action: `Created first administrator ${officerId} (${name})`,
+  at: now, day: now.slice(0, 10), category: 'Security', actor: 'bootstrap', actorId: null, action: `Created first administrator ${officerId}`,
   subjectAccountId: null, outcome: 'success', hash: '',
 });
 console.log(`Administrator created: ${officerId} (${officer._id})`);

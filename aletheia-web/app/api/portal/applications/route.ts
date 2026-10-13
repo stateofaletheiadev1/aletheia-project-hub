@@ -26,7 +26,6 @@ export const POST = route(async (req) => {
     purpose: str(b, 'purpose', { max: 60, label: 'Purpose' }),
     intendedEntity: str(b, 'intendedEntity', { max: 60, optional: true }),
     publicKey,
-    acceptedCovenant: true,
   });
   return json({ application: { id: app._id, reference: app.reference, status: app.status, type: app.type } }, 201);
 });

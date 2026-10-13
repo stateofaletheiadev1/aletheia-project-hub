@@ -2,6 +2,7 @@ import 'server-only';
 import { NextResponse, type NextRequest } from 'next/server';
 import { AletheiaDBError, ConflictError } from '@aletheia/aletheiadb';
 import { NotConfiguredError } from './db';
+import { NoMasterKeyError } from './envelope';
 
 // Shared plumbing for every /api route: JSON in and out, one error shape, same-origin checks
 // for writes and a small in-memory rate limiter for sign-in.
@@ -32,7 +33,7 @@ export function route<C = unknown>(fn: Handler<C>): Handler<C> {
       return await fn(req, ctx);
     } catch (e) {
       if (e instanceof ApiError) return json({ error: e.message }, e.status);
-      if (e instanceof NotConfiguredError) return json({ error: 'The service is not connected to its database yet.' }, 503);
+      if (e instanceof NotConfiguredError || e instanceof NoMasterKeyError) return json({ error: 'The service is not connected to its database yet.' }, 503);
       if (e instanceof ConflictError) return json({ error: 'The record changed while you were working on it. Please try again.' }, 409);
       if (e instanceof AletheiaDBError) {
         console.error(`[api] ${req.method} ${req.nextUrl.pathname}: database ${e.code}: ${e.message}`);

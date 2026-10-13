@@ -8,7 +8,7 @@ export const POST = route(async (req) => {
   const identifier = str(b, 'identifier', { max: 254, label: 'Aletheia ID or email' });
   const passphrase = typeof b.passphrase === 'string' ? b.passphrase.slice(0, 200) : '';
   const account = await checkAccountCredentials(identifier, passphrase);
-  const res = json({ account: accountView(account) });
+  const res = json({ account: await accountView(account) });
   setSessionCookie(res, 'citizen', await createSession('citizen', account._id, req, 30));
   return res;
 });

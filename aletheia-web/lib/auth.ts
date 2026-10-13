@@ -16,6 +16,7 @@ export interface PortalAccount {
   nationality: string | null;
   dob: string | null;
   residency: { validFrom: string; validUntil: string } | null;
+  oathPending: { nationalId: string; grantedAt: string } | null;
   nationalId: string | null;
   passportNumber: string | null;
   balance: number;

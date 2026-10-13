@@ -6,7 +6,7 @@ import { audit } from '@/lib/server/records';
 export const GET = route(async (req) => {
   await requireOfficer(req, { administrator: true });
   const { documents } = await officers().find({}, { sort: { createdAt: 1 }, limit: 500 });
-  return json({ officers: documents.map(officerView) });
+  return json({ officers: await Promise.all(documents.map(officerView)) });
 });
 
 /** Creates an officer. The response carries the authenticator secret once: hand it to the officer. */
@@ -28,6 +28,6 @@ export const POST = route(async (req) => {
     temporaryPassword: temporaryPassphrase,
     createdBy: admin.officerId,
   });
-  await audit({ category: 'Security', actor: admin.name, actorId: admin._id, action: `Created officer ${officer.officerId} (${officer.name}, ${officer.role})` });
-  return json({ officer: officerView(officer), totpSecret, otpauthUri: `otpauth://totp/Aletheia:${officer.officerId}?secret=${totpSecret}&issuer=Aletheia` }, 201);
+  await audit({ category: 'Security', actor: admin.officerId, actorId: admin._id, action: `Created officer ${officer.officerId} (${officer.role})` });
+  return json({ officer: await officerView(officer), totpSecret, otpauthUri: `otpauth://totp/Aletheia:${officer.officerId}?secret=${totpSecret}&issuer=Aletheia` }, 201);
 });
