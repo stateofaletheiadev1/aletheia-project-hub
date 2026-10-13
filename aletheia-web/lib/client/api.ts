@@ -10,6 +10,7 @@ export class ApiError extends Error {
   constructor(
     readonly status: number,
     message: string,
+    readonly data: Record<string, unknown> = {},
   ) {
     super(message);
   }
@@ -24,7 +25,7 @@ export async function api<T = Record<string, unknown>>(path: string, opts: { met
     cache: 'no-store',
   });
   const data = (await res.json().catch(() => ({}))) as T & { error?: string };
-  if (!res.ok) throw new ApiError(res.status, data.error ?? `Request failed (${res.status}).`);
+  if (!res.ok) throw new ApiError(res.status, data.error ?? `Request failed (${res.status}).`, data as Record<string, unknown>);
   return data;
 }
 

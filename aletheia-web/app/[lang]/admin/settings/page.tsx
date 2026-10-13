@@ -5,7 +5,7 @@ import { AdminShell } from '@/components/layout/AdminShell';
 import { api, reload, useApi } from '@/lib/client/api';
 import { OFFICER_ME, type OfficerProfile } from '@/lib/auth';
 import { fmtDate, Notice } from '@/components/admin/Notice';
-import { KeyRound, Lock, UserCheck, UserPlus } from 'lucide-react';
+import { KeyRound, Lock, ShieldCheck, UserCheck, UserPlus } from 'lucide-react';
 
 const field = 'w-full px-3 py-2 bg-navy-deep border border-gold/25 rounded-sm text-parchment focus:outline-none focus:border-gold';
 
@@ -17,7 +17,9 @@ export default function AdminSettingsConsolePage() {
   const [timeoutMinutes, setTimeoutMinutes] = useState<string | null>(null);
   const [pass, setPass] = useState({ current: '', next: '' });
   const [newOfficer, setNewOfficer] = useState({ name: '', email: '', role: 'officer', department: '', clearance: '', badgeNumber: '', temporaryPassphrase: '' });
-  const [created, setCreated] = useState<{ id: string; secret: string; uri: string } | null>(null);
+  const [setup, setSetup] = useState<{ secret: string; uri: string } | null>(null);
+  const [code, setCode] = useState('');
+  const [offPass, setOffPass] = useState('');
   const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -114,6 +116,64 @@ export default function AdminSettingsConsolePage() {
             <button type="submit" disabled={busy} className="px-6 py-2.5 bg-gold text-navy font-bold rounded-sm hover:bg-gold-tint transition-colors text-xs disabled:opacity-50">Change Passphrase</button>
           </form>
 
+          <div className="p-5 rounded-sm bg-[#111827] border border-gold/15 space-y-3">
+            <h3 className="text-xs font-bold text-parchment uppercase tracking-wider flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-gold" />
+              <span>Authenticator Code (optional)</span>
+            </h3>
+            {officer?.twoStep ? (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  run(async () => {
+                    await api(`/api/admin/me/totp`, { method: 'DELETE', body: { passphrase: offPass } });
+                    setOffPass('');
+                    await reload(OFFICER_ME);
+                    return 'Authenticator code switched off. You sign in with your username and password.';
+                  });
+                }}
+                className="space-y-3"
+              >
+                <p className="text-emerald-400">On: sign-in asks for your password and the 6-digit code from your app.</p>
+                <input type="password" required aria-label="Password to switch off" placeholder="Your password" value={offPass} onChange={(e) => setOffPass(e.target.value)} className={field} />
+                <button type="submit" disabled={busy} className="px-4 py-2 border border-red-500/40 text-red-300 rounded-sm text-xs disabled:opacity-50">Switch off</button>
+              </form>
+            ) : setup ? (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  run(async () => {
+                    await api(`/api/admin/me/totp`, { method: 'PUT', body: { code } });
+                    setSetup(null);
+                    setCode('');
+                    await reload(OFFICER_ME);
+                    return 'Authenticator code switched on. Next time you sign in, it will be asked for.';
+                  });
+                }}
+                className="space-y-3 break-all"
+              >
+                <p className="text-parchment/70">1. In your authenticator app, add an account with this key:</p>
+                <p className="text-gold font-bold text-sm">{setup.secret}</p>
+                <p className="text-parchment/40">{setup.uri}</p>
+                <p className="text-parchment/70">2. Type the 6-digit code it shows:</p>
+                <input required inputMode="numeric" aria-label="6-digit code" placeholder="000000" value={code} onChange={(e) => setCode(e.target.value)} className={field} />
+                <button type="submit" disabled={busy} className="px-4 py-2 bg-gold text-navy font-bold rounded-sm text-xs disabled:opacity-50">Confirm and switch on</button>
+              </form>
+            ) : (
+              <>
+                <p className="text-parchment/60">Off: you sign in with your username and password only. Switching the code on protects the console if your password is ever stolen.</p>
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => run(async () => { setSetup(await api<{ secret: string; uri: string }>('/api/admin/me/totp', { body: {} })); return 'Add the key to your authenticator app, then confirm with a code.'; })}
+                  className="px-4 py-2 bg-gold text-navy font-bold rounded-sm text-xs disabled:opacity-50"
+                >
+                  Switch on
+                </button>
+              </>
+            )}
+          </div>
+
           {officer?.isAdministrator && (
             <div className="p-5 rounded-sm bg-[#111827] border border-gold/15 space-y-4">
               <h3 className="text-xs font-bold text-parchment uppercase tracking-wider flex items-center gap-2">
@@ -148,11 +208,10 @@ export default function AdminSettingsConsolePage() {
                 onSubmit={(e) => {
                   e.preventDefault();
                   run(async () => {
-                    const r = await api<{ officer: OfficerProfile; totpSecret: string; otpauthUri: string }>('/api/admin/officers', { body: newOfficer });
-                    setCreated({ id: r.officer.id, secret: r.totpSecret, uri: r.otpauthUri });
+                    const r = await api<{ officer: OfficerProfile }>('/api/admin/officers', { body: newOfficer });
                     setNewOfficer({ name: '', email: '', role: 'officer', department: '', clearance: '', badgeNumber: '', temporaryPassphrase: '' });
                     await reload('/api/admin/officers');
-                    return `Officer ${r.officer.id} created.`;
+                    return `Officer ${r.officer.id} created. They sign in with ${r.officer.id} (or their email) and the temporary passphrase.`;
                   });
                 }}
                 className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2"
@@ -169,13 +228,7 @@ export default function AdminSettingsConsolePage() {
                 <input required minLength={12} type="text" placeholder="Temporary passphrase (12+ characters)" aria-label="Temporary passphrase" value={newOfficer.temporaryPassphrase} onChange={(e) => setNewOfficer({ ...newOfficer, temporaryPassphrase: e.target.value })} className={`${field} sm:col-span-2`} />
                 <button type="submit" disabled={busy} className="sm:col-span-2 px-6 py-2.5 bg-gold text-navy font-bold rounded-sm hover:bg-gold-tint transition-colors text-xs disabled:opacity-50">Create Officer</button>
               </form>
-              {created && (
-                <div className="p-3 rounded-sm border border-gold/40 bg-navy-deep space-y-1 break-all">
-                  <p className="text-gold font-bold">Give these to {created.id} now. The secret is not shown again.</p>
-                  <p className="text-parchment">Authenticator secret: <strong>{created.secret}</strong></p>
-                  <p className="text-parchment/60">{created.uri}</p>
-                </div>
-              )}
+
             </div>
           )}
         </div>

@@ -25,7 +25,7 @@ Step by step, with exact commands: **[go-live.md](go-live.md)**. In short:
 1. On the database server, create the `web` database, an admin key (for setup) and a readWrite key (for the site).
 2. Write the secrets into git-ignored files; generate and back up `DATA_ENCRYPTION_MASTER_KEY`.
 3. `node --env-file=.env.bootstrap.local scripts/db/bootstrap.mjs` creates the collections; then revoke the admin key.
-4. `node --env-file=.env.production.local scripts/db/officer-bootstrap.mjs <email> "<name>"` (with `BOOTSTRAP_PASSPHRASE`) creates the first administrator and prints the authenticator secret.
+4. `node --env-file=.env.production.local scripts/db/officer-bootstrap.mjs <email> "<name>"` (with `BOOTSTRAP_PASSPHRASE`) creates the first administrator.
 5. **Run the site** with the variables above in its server environment. They are read on the
    server only and never sent to the browser.
 
@@ -64,7 +64,7 @@ The schema (collections and indexes) is `lib/server/schema.json`.
 - **Citizenship:** apply → officer approves (national ID reserved, status "Oath Pending") → the person swears the oath of allegiance in the portal by typing their full name → citizenship takes effect, passport number and credential issued.
 - **Companies:** e-residents and citizens file → the Registrar approves (charter issued) or requests changes → the founder amends and refiles.
 - **AEY:** enters wallets only by **Treasury issuance** (administrators, reason required, audited, listed on the Treasury page with the total issued); afterwards it moves between accounts by transfer.
-- **Officers:** administrators create officers (the authenticator secret is shown once), disable them (signed out at once) and re-enable them. An administrator cannot disable themselves or the last administrator.
+- **Officers:** administrators create officers (who sign in with their officer ID or email and a temporary password), disable them (signed out at once) and re-enable them. An administrator cannot disable themselves or the last administrator.
 - **Erasure:** `npm run erase-person -- ALE-ID-2026-000001 --yes` shreds the person's data key, deletes their sessions and passkeys and suspends the account. Records the State keeps (references, decisions, audit trail) remain without personal data.
 
 ## Security
@@ -73,7 +73,7 @@ The schema (collections and indexes) is `lib/server/schema.json`.
 - Passkeys (WebAuthn): portal sign-in with a fingerprint, face or device PIN; registered from Keys & Security.
 - Passphrases: scrypt (N=2¹⁵, r=8, p=1), at least 12 characters; an unknown ID takes as long to refuse as a wrong passphrase.
 - Lockout: portal accounts after 10 failures, officers after 5, for 15 minutes; sign-in is also rate limited per IP.
-- Officers: passphrase + TOTP; a code is accepted once (no replay within its 30-second window).
+- Officers: username (officer ID or email) and password. Each officer can switch on a 6-digit authenticator code (TOTP) in Settings; then sign-in asks for it, and a code is accepted once.
 - Sessions: random 256-bit token in an HttpOnly, SameSite=Strict cookie (Secure in production); only its hash is stored; 30 minutes idle (officers: configurable in Settings), 12 hours at most. Changing a passphrase signs out every other session.
 - Writes must come from the site itself (Origin / Sec-Fetch-Site check).
 - Administrators only: console settings, creating officers, executing or dismissing rescissions.
@@ -106,7 +106,7 @@ Both start a throwaway AletheiaDB (`cargo build --release` in `aletheia-db` firs
 
 ```sh
 npm run build
-npm run test:api                                   # 120 API checks: every endpoint, access rule, encryption at rest, email, erasure
+npm run test:api                                   # 130 API checks: every endpoint, access rule, encryption at rest, email, erasure
 CHROMIUM_PATH=/path/to/chrome npm run test:ui      # the whole flow in a real browser, including passkeys and the oath
 ```
 

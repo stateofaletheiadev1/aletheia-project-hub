@@ -1,14 +1,13 @@
 /**
  * Browser test of the portal and the officer console against a real AletheiaDB:
  * an applicant signs up, uploads a document and applies for e-residency; an officer signs in
- * with a TOTP code, verifies the document and grants the application; the applicant then sees
+ * with username and password, verifies the document and grants the application; the applicant then sees
  * the e-residency and downloads the certificate. Every portal and console page is opened and
  * must render without errors.
  *
  *   npm run build && npm run test:ui
  */
 import { execFileSync } from 'node:child_process';
-import { createHmac } from 'node:crypto';
 import path from 'node:path';
 import { chromium } from 'playwright';
 import { start } from './harness.mjs';
@@ -20,22 +19,6 @@ const check = (name, cond, detail = '') => {
   console.log(`  ${cond ? '✓' : '✗'} ${name}${!cond && detail ? ` — ${detail}` : ''}`);
   if (!cond) failures++;
 };
-
-function totp(secret, t = Date.now()) {
-  const B32 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
-  let bits = 0, value = 0;
-  const out = [];
-  for (const c of secret) {
-    value = (value << 5) | B32.indexOf(c);
-    bits += 5;
-    if (bits >= 8) { out.push((value >>> (bits - 8)) & 255); bits -= 8; }
-  }
-  const msg = Buffer.alloc(8);
-  msg.writeBigUInt64BE(BigInt(Math.floor(t / 30_000)));
-  const mac = createHmac('sha1', Buffer.from(out)).update(msg).digest();
-  const o = mac[mac.length - 1] & 15;
-  return String((mac.readUInt32BE(o) & 0x7fffffff) % 1_000_000).padStart(6, '0');
-}
 
 const env = await start({ dbPort: 7798, webPort: 3198 });
 // CHROMIUM_PATH points at a browser when the installed Playwright has none of its own.
@@ -51,7 +34,6 @@ try {
     cwd: webDir,
   }).toString();
   const officerId = out.match(/(SEC-OFFICER-\d+)/)[1];
-  const secret = out.match(/secret \(TOTP[^:]*: ([A-Z2-7]+)/)[1];
 
   const errorsOf = (page) => {
     const errors = [];
@@ -101,9 +83,9 @@ try {
   await o.goto(`${base}/admin`);
   await o.waitForURL('**/admin/login');
   check('unauthenticated console redirects to sign-in', true);
-  await o.getByLabel('Officer ID').fill(officerId);
-  await o.getByLabel('Passphrase', { exact: true }).fill(PASS);
-  await o.getByLabel('6-digit authenticator code').fill(totp(secret));
+  await o.getByLabel('Username').fill(officerId);
+  await o.getByLabel('Password', { exact: true }).fill(PASS);
+  check('no code asked for by default', (await o.getByLabel('6-digit authenticator code').count()) === 0);
   await o.getByRole('button', { name: /Authorize Console Session/ }).click();
   await o.waitForURL(/\/admin$/);
   await o.getByRole('cell', { name: reference, exact: true }).waitFor();

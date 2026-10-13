@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 
 import { OFFICER_ME, type OfficerProfile } from '@/lib/auth';
-import { api, clearCache, setCached } from '@/lib/client/api';
+import { api, ApiError, clearCache, setCached } from '@/lib/client/api';
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -23,6 +23,7 @@ export default function AdminLoginPage() {
   const [isVerifying, setIsVerifying] = useState(false);
   const [showPin, setShowPin] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [needsCode, setNeedsCode] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -35,11 +36,13 @@ export default function AdminLoginPage() {
     setIsVerifying(true);
     setError(null);
     try {
-      const { officer } = await api<{ officer: OfficerProfile }>('/api/admin/auth/login', { body: { officerId, passphrase: pin, code: totpCode } });
+      const { officer } = await api<{ officer: OfficerProfile }>('/api/admin/auth/login', { body: { username: officerId, passphrase: pin, code: totpCode } });
       clearCache();
       setCached(OFFICER_ME, { officer });
       router.push('/admin');
     } catch (err) {
+      // Officers who switched on the authenticator code are asked for it after the passphrase.
+      if (err instanceof ApiError && err.data.needsCode) setNeedsCode(true);
       setError(err instanceof Error ? err.message : 'Sign-in failed. Please try again.');
       setIsVerifying(false);
     }
@@ -108,26 +111,28 @@ export default function AdminLoginPage() {
 
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-1.5">
-                  <label htmlFor="officer-id" className="text-[10px] font-mono font-bold tracking-[0.20em] uppercase text-gold block">Officer ID</label>
-                  <input id="officer-id" type="text" required autoComplete="username" placeholder="e.g. SEC-OFFICER-0001" value={officerId} onChange={(e) => setOfficerId(e.target.value)} className="w-full px-4 py-3 text-sm rounded-sm focus:outline-none font-mono" style={fieldStyle} onFocus={focus} onBlur={blur} />
+                  <label htmlFor="officer-id" className="text-[10px] font-mono font-bold tracking-[0.20em] uppercase text-gold block">Username</label>
+                  <input id="officer-id" type="text" required autoComplete="username" placeholder="Officer ID or email" value={officerId} onChange={(e) => setOfficerId(e.target.value)} className="w-full px-4 py-3 text-sm rounded-sm focus:outline-none font-mono" style={fieldStyle} onFocus={focus} onBlur={blur} />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label htmlFor="officer-pass" className="text-[10px] font-mono font-bold tracking-[0.20em] uppercase text-gold block">Passphrase</label>
+                  <label htmlFor="officer-pass" className="text-[10px] font-mono font-bold tracking-[0.20em] uppercase text-gold block">Password</label>
                   <div className="relative">
-                    <input id="officer-pass" type={showPin ? 'text' : 'password'} required autoComplete="current-password" placeholder="Officer passphrase" value={pin} onChange={(e) => setPin(e.target.value)} className="w-full px-4 py-3 text-sm rounded-sm focus:outline-none font-mono" style={fieldStyle} onFocus={focus} onBlur={blur} />
+                    <input id="officer-pass" type={showPin ? 'text' : 'password'} required autoComplete="current-password" placeholder="Password" value={pin} onChange={(e) => setPin(e.target.value)} className="w-full px-4 py-3 text-sm rounded-sm focus:outline-none font-mono" style={fieldStyle} onFocus={focus} onBlur={blur} />
                     <button type="button" aria-label="Show or hide passphrase" onClick={() => setShowPin(!showPin)} className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors" style={{ color: 'rgba(244,238,223,0.35)' }}>
                       {showPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                 </div>
 
+                {needsCode && (
                 <div className="space-y-1.5">
                   <label htmlFor="officer-code" className="text-[10px] font-mono font-bold tracking-[0.20em] uppercase text-gold block">6-digit authenticator code</label>
                   <input
                     id="officer-code"
                     type="text"
                     required
+                    autoFocus
                     inputMode="numeric"
                     autoComplete="one-time-code"
                     pattern="[0-9 ]{6,7}"
@@ -141,6 +146,7 @@ export default function AdminLoginPage() {
                     onBlur={blur}
                   />
                 </div>
+                )}
 
                 {error && (
                   <p role="alert" className="text-[12px] font-semibold px-3 py-2 rounded-sm" style={{ background: 'rgba(192,57,43,0.12)', color: '#fca5a5', border: '1px solid rgba(192,57,43,0.35)' }}>{error}</p>

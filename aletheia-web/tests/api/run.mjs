@@ -92,8 +92,7 @@ try {
     cwd: webDir,
   }).toString();
   const adminId = out.match(/(SEC-OFFICER-\d+)/)[1];
-  const adminSecret = out.match(/secret \(TOTP[^:]*: ([A-Z2-7]+)/)[1];
-  check('bootstrap prints officer id and TOTP secret', adminId === 'SEC-OFFICER-0001' && adminSecret.length >= 32, out);
+  check('bootstrap prints the officer id', adminId === 'SEC-OFFICER-0001', out);
   let again = '';
   try {
     execFileSync(process.execPath, [path.join(webDir, 'scripts/db/officer-bootstrap.mjs'), 'x@y.org', 'X'], { env: { ...process.env, ALETHEIADB_URL: env.dbUrl, DATA_ENCRYPTION_MASTER_KEY: env.masterKey, BOOTSTRAP_PASSPHRASE: PASS }, cwd: webDir, stdio: 'pipe' });
@@ -159,10 +158,26 @@ try {
 
   console.log('officer sign-in');
   const off = new Client(base);
-  check('wrong TOTP refused', (await off.post('/api/admin/auth/login', { officerId: adminId, passphrase: PASS, code: '000000' })).status === 401);
-  r = await off.post('/api/admin/auth/login', { officerId: adminId, passphrase: PASS, code: totp(adminSecret) });
-  check('officer signs in with passphrase + TOTP', r.status === 200 && r.officer?.isAdministrator === true, JSON.stringify(r));
-  check('same TOTP code cannot be replayed', (await new Client(base).post('/api/admin/auth/login', { officerId: adminId, passphrase: PASS, code: totp(adminSecret) })).status === 401);
+  check('wrong password refused', (await off.post('/api/admin/auth/login', { username: adminId, passphrase: 'wrong password!!' })).status === 401);
+  r = await off.post('/api/admin/auth/login', { username: adminId, passphrase: PASS });
+  check('officer signs in with username and password only', r.status === 200 && r.officer?.isAdministrator === true && r.officer.twoStep === false, JSON.stringify(r));
+  check('email works as the username', (await new Client(base).post('/api/admin/auth/login', { username: 'Registrar@StateOfAletheia.org', passphrase: PASS })).status === 200);
+
+  console.log('optional authenticator code');
+  const setupTotp = await off.post('/api/admin/me/totp');
+  check('code setup gives a key', /^[A-Z2-7]{32}$/.test(setupTotp.secret ?? ''), JSON.stringify(setupTotp));
+  check('wrong confirmation refused', (await off.put('/api/admin/me/totp', { code: '000000' })).status === 400);
+  r = await off.put('/api/admin/me/totp', { code: totp(setupTotp.secret) });
+  check('code switched on', r.officer?.twoStep === true);
+  const adminSecret = setupTotp.secret;
+  r = await new Client(base).post('/api/admin/auth/login', { username: adminId, passphrase: PASS });
+  check('sign-in now asks for the code', r.status === 401 && r.needsCode === true);
+  check('wrong code refused', (await new Client(base).post('/api/admin/auth/login', { username: adminId, passphrase: PASS, code: '000000' })).status === 401);
+  check('same code cannot be replayed', (await new Client(base).post('/api/admin/auth/login', { username: adminId, passphrase: PASS, code: totp(adminSecret) })).status === 401);
+  check('next code signs in', (await new Client(base).post('/api/admin/auth/login', { username: adminId, passphrase: PASS, code: totp(adminSecret, Date.now() + 30_000) })).status === 200);
+  check('switching off needs the password', (await off.req('DELETE', '/api/admin/me/totp', { passphrase: 'nope' })).status === 401);
+  check('code switched off', (await off.req('DELETE', '/api/admin/me/totp', { passphrase: PASS })).officer?.twoStep === false);
+  check('username and password work again', (await new Client(base).post('/api/admin/auth/login', { username: adminId, passphrase: PASS })).status === 200);
   check('citizen session does not open admin API', (await ada.get('/api/admin/dashboard')).status === 401);
   check('officer session does not open portal API', (await off.get('/api/portal/me')).status === 401);
 
@@ -271,9 +286,9 @@ try {
   check('timeout validated', (await off.patch('/api/admin/settings', { sessionTimeoutMinutes: 2 })).status === 400);
   check('timeout saved', (await off.patch('/api/admin/settings', { sessionTimeoutMinutes: 15 })).settings?.sessionTimeoutMinutes === 15);
   r = await off.post('/api/admin/officers', { name: 'Kofi Mensah', email: 'kofi@stateofaletheia.org', role: 'officer', temporaryPassphrase: 'temporary passphrase 77' });
-  check('officer created with TOTP secret', r.status === 201 && r.officer?.id === 'SEC-OFFICER-0002' && r.totpSecret);
+  check('officer created', r.status === 201 && r.officer?.id === 'SEC-OFFICER-0002');
   const kofi = new Client(base);
-  check('new officer signs in', (await kofi.post('/api/admin/auth/login', { officerId: 'SEC-OFFICER-0002', passphrase: 'temporary passphrase 77', code: totp(r.totpSecret) })).status === 200);
+  check('new officer signs in', (await kofi.post('/api/admin/auth/login', { username: 'SEC-OFFICER-0002', passphrase: 'temporary passphrase 77' })).status === 200);
   check('non-administrator cannot change settings', (await kofi.patch('/api/admin/settings', { sessionTimeoutMinutes: 60 })).status === 403);
   check('non-administrator cannot create officers', (await kofi.post('/api/admin/officers', {})).status === 403);
   check('non-administrator cannot issue AEY', (await kofi.post('/api/admin/treasury', { recipient: adaId, amount: 1, reason: 'not allowed' })).status === 403);
@@ -287,7 +302,7 @@ try {
   r = await off.patch('/api/admin/officers/SEC-OFFICER-0002', { disabled: true });
   check('administrator disables an officer', r.officer?.disabled === true);
   check('disabled officer is signed out at once', (await kofi.get('/api/admin/me')).status === 401);
-  check('disabled officer cannot sign in', (await new Client(base).post('/api/admin/auth/login', { officerId: 'SEC-OFFICER-0002', passphrase: 'temporary passphrase 77', code: '123456' })).status === 403);
+  check('disabled officer cannot sign in', (await new Client(base).post('/api/admin/auth/login', { username: 'SEC-OFFICER-0002', passphrase: 'temporary passphrase 77' })).status === 403);
   check('officer re-enabled', (await off.patch('/api/admin/officers/SEC-OFFICER-0002', { disabled: false })).officer?.disabled === false);
 
   console.log('passphrase change');

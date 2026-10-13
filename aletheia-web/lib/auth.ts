@@ -37,6 +37,7 @@ export interface OfficerProfile {
   department: string;
   badgeNumber: string;
   tokenType: string;
+  twoStep: boolean;
   disabled: boolean;
   lastSignInAt: string | null;
   createdAt: string;

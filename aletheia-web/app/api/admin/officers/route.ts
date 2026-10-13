@@ -9,7 +9,7 @@ export const GET = route(async (req) => {
   return json({ officers: await Promise.all(documents.map(officerView)) });
 });
 
-/** Creates an officer. The response carries the authenticator secret once: hand it to the officer. */
+/** Creates an officer, who signs in with their officer ID or email and the temporary passphrase. */
 export const POST = route(async (req) => {
   const { officer: admin } = await requireOfficer(req, { administrator: true });
   const b = await body(req);
@@ -18,7 +18,7 @@ export const POST = route(async (req) => {
   const temporaryPassphrase = typeof b.temporaryPassphrase === 'string' ? b.temporaryPassphrase : '';
   const problem = passwordProblem(temporaryPassphrase, email);
   if (problem) fail(400, problem);
-  const { officer, totpSecret } = await createOfficer({
+  const { officer } = await createOfficer({
     name: str(b, 'name', { max: 120, label: 'Full name' }),
     email,
     role: oneOf(b, 'role', ['administrator', 'officer'] as const),
@@ -29,5 +29,5 @@ export const POST = route(async (req) => {
     createdBy: admin.officerId,
   });
   await audit({ category: 'Security', actor: admin.officerId, actorId: admin._id, action: `Created officer ${officer.officerId} (${officer.role})` });
-  return json({ officer: await officerView(officer), totpSecret, otpauthUri: `otpauth://totp/Aletheia:${officer.officerId}?secret=${totpSecret}&issuer=Aletheia` }, 201);
+  return json({ officer: await officerView(officer) }, 201);
 });

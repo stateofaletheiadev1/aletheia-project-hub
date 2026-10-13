@@ -2,7 +2,8 @@
 // exists: every later officer is created by an administrator in the console (Settings).
 //   BOOTSTRAP_PASSPHRASE='…12+ chars…' ALETHEIADB_URL=aletheiadb://… DATA_ENCRYPTION_MASTER_KEY=… \
 //     node scripts/db/officer-bootstrap.mjs you@example.org "Your Name"
-// Prints the officer ID and the authenticator (TOTP) secret: add it to an authenticator app.
+// Then sign in at /admin/login with the officer ID (or the email) and the passphrase.
+// An authenticator code can be switched on later in the console's Settings.
 import { randomBytes, randomUUID, scrypt } from 'node:crypto';
 import { promisify } from 'node:util';
 import { AletheiaDB } from '@aletheia/aletheiadb';
@@ -20,14 +21,6 @@ const master = masterKey();
 const salt = randomBytes(16);
 const key = await promisify(scrypt)(passphrase, salt, 64, { N: 32768, r: 8, p: 1, maxmem: 64 * 1024 * 1024 });
 const passwordHash = `scrypt$32768$8$1$${salt.toString('base64')}$${key.toString('base64')}`;
-
-const B32 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
-let bits = 0, value = 0, totpSecret = '';
-for (const byte of randomBytes(20)) {
-  value = (value << 8) | byte;
-  bits += 8;
-  while (bits >= 5) { totpSecret += B32[(value >>> (bits - 5)) & 31]; bits -= 5; }
-}
 
 const db = AletheiaDB.connect(process.env.ALETHEIADB_URL).db();
 const officers = db.collection('officers');
@@ -56,7 +49,7 @@ const now = new Date().toISOString();
 const officer = await officers.insertOne({
   officerId, subject, emailIndex: blindIndex(master, 'officer-email', email),
   pii: sealFields(dataKey, { name, email: email.toLowerCase() }, 'officers'),
-  passwordHash, totpSecret, lastTotpCounter: 0,
+  passwordHash, totpSecret: null, lastTotpCounter: 0,
   role: 'administrator', clearance: 'Administrator', department: 'General Secretariat of State', badgeNumber: '',
   disabled: false, failedSignIns: 0, lockedUntil: null, createdAt: now, createdBy: 'bootstrap', lastSignInAt: null,
 });
@@ -65,5 +58,4 @@ await db.collection('audit_events').insertOne({
   subjectAccountId: null, outcome: 'success', hash: '',
 });
 console.log(`Administrator created: ${officerId} (${officer._id})`);
-console.log(`Authenticator secret (TOTP, SHA-1, 6 digits, 30 s): ${totpSecret}`);
-console.log(`otpauth://totp/Aletheia:${officerId}?secret=${totpSecret}&issuer=Aletheia`);
+console.log(`Sign in at /admin/login with username ${officerId} (or ${email.toLowerCase()}) and the passphrase you chose.`);

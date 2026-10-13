@@ -70,17 +70,16 @@ unset K
 
 (Create a new admin key the same way whenever the schema grows and `bootstrap.mjs` must run again.)
 
-## 5. Create the first administrator (do this yourself, not through an AI assistant)
-
-It prints a secret for your authenticator app, which must stay with you:
+## 5. Create the first administrator
 
 ```sh
-BOOTSTRAP_PASSPHRASE='<a temporary passphrase, 12+ characters>' \
+BOOTSTRAP_PASSPHRASE='<a temporary password, 12+ characters>' \
   node --env-file=.env.production.local scripts/db/officer-bootstrap.mjs <your email> "<Your Full Name>"
 ```
 
-Add the printed secret to an authenticator app (Google Authenticator, Microsoft Authenticator,
-1Password …). Note the officer ID it prints (`SEC-OFFICER-0001`).
+It prints your officer ID (`SEC-OFFICER-0001`). Sign in at `/admin/login` with that ID (or your
+email) as the username and the password you chose. Change the password in Settings. An
+authenticator code (6-digit, from a phone app) is optional and can be switched on in Settings.
 
 ## 6. Put the secrets into the hosting provider and deploy
 
@@ -100,8 +99,8 @@ emails wait in the outbox and are sent once `SMTP_URL` is set.
 
 ## 7. Check
 
-1. `https://stateofaletheia.org/admin/login`: sign in with your officer ID, the temporary
-   passphrase and the 6-digit code. Settings: change the passphrase.
+1. `https://stateofaletheia.org/admin/login`: sign in with your officer ID (or email) and the
+   temporary password. Settings: change the password.
 2. `https://stateofaletheia.org/portal/login`: Create account, then check it appears and you
    can sign out and in again.
 3. In the console, Live Activity Feed shows both sign-ins.
