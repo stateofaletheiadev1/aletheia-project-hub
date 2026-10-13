@@ -92,6 +92,11 @@ try {
   browser = await chromium.launch({ headless: true, executablePath: process.env.CHROMIUM_PATH || undefined });
   const page = await browser.newPage();
 
+  console.log("readiness");
+  const ready = await (await fetch(`${base}/api/health/ready`)).json();
+  check("readiness: database reached and set up, encryption and sessions configured", ready.status === "ok" && ready.checks.recordStore === "ok" && ready.checks.encryption === "configured" && ready.checks.sessions === "configured", JSON.stringify(ready));
+  check("readiness exposes no secrets or hosts", !/aletheiadb:|localhost|127\.0\.0\.1|secret/i.test(JSON.stringify(ready)));
+
   console.log("register interest");
   await page.goto(`${base}/register-interest`);
   await page.getByText("Kinds of position you are interested in", { exact: true }).waitFor();

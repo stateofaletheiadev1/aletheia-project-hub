@@ -101,6 +101,11 @@ try {
   }
   check('bootstrap refuses a second time', again.includes('Refusing'));
 
+  console.log('readiness');
+  const ready = await (await fetch(`${base}/api/health/ready`)).json();
+  check('readiness: database reached and set up, encryption configured', ready.status === 'ok' && ready.checks.database === 'ok' && ready.checks.encryption === 'configured', JSON.stringify(ready));
+  check('readiness exposes no secrets or hosts', !/aletheiadb:|localhost|127\.0\.0\.1|secret/i.test(JSON.stringify(ready)));
+
   console.log('access rules');
   const anon = new Client(base);
   check('portal API needs a session', (await anon.get('/api/portal/me')).status === 401);

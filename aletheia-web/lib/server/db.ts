@@ -35,3 +35,17 @@ export function collection<T extends object>(name: CollectionName): Collection<T
   if (!db) throw new NotConfiguredError();
   return db.db().collection<T>(name);
 }
+
+/** "ok" when AletheiaDB answers with this key and every collection in schema.json exists. */
+export async function databaseStatus(): Promise<'ok' | 'not_configured' | 'unreachable' | 'not_set_up'> {
+  const db = connect();
+  if (!db) return 'not_configured';
+  try {
+    const signal = AbortSignal.timeout(4000);
+    await db.whoami({ signal });
+    const names = new Set((await db.db().listCollections({ signal })).map((c) => c.name));
+    return Object.keys(schema).every((n) => names.has(n)) ? 'ok' : 'not_set_up';
+  } catch {
+    return 'unreachable';
+  }
+}
