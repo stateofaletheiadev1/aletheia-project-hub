@@ -54,7 +54,7 @@ export const footerNav: { title: string; links: NavLink[] }[] = [
   {
     title: "Take Part",
     links: [
-      { href: "/opportunities", label: "Founding opportunities" },
+      { href: "/opportunities", label: "Opportunities" },
       { href: "/build-aletheia", label: "Build Aletheia" },
       { href: "/projects", label: "Programmes" },
       { href: "/events", label: "Events" },

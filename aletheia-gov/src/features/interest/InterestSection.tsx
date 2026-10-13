@@ -18,10 +18,10 @@ export function InterestSection({ institution, mark = "R" }: { institution?: { s
         <div className="col-span-12 lg:col-span-4">
           <SectionMark n={mark} label="Register your interest" />
           <h2 id="interest-heading" className="t-h1 mt-8">
-            {institution ? `Help found ${/^The /.test(institution.name) ? institution.name.replace(/^The /, "the ") : `the ${institution.name}`}.` : "Help found an institution."}
+            {institution ? `Work with ${/^The /.test(institution.name) ? institution.name.replace(/^The /, "the ") : `the ${institution.name}`}.` : "Work with the institutions of Aletheia."}
           </h2>
           <p className="mt-6 max-w-[40ch] text-[1.0625rem] leading-relaxed text-ink-600">
-            No roles are open yet. Choose every institution you would like to help found, leave your details and attach your CV. You will be among the first contacted when founding roles are published.
+            Choose the kinds of position you are interested in (founding roles, permanent, fixed-term, advisory or volunteer) and every institution you would like to work in, leave your details and attach your CV. You will be contacted when matching positions are published.
           </p>
           <p className="mt-6 max-w-[40ch] text-[0.875rem] leading-relaxed text-ink-500">
             Your name, email, note and CV are encrypted before they are stored. Registering is not an application and confers no role or status.

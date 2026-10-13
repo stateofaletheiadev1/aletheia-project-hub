@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import { ArrowLink } from "@/components/editorial/ArrowLink";
+import Link from "next/link";
 import { RegisterPage } from "@/components/editorial/RegisterPage";
+import { POSITION_TYPES } from "@/content/positions";
 
 export const metadata: Metadata = {
-  title: "Founding opportunities",
-  description: "Founding roles in the institutions of Aletheia, published with a reference, a mandate and selection criteria.",
+  title: "Opportunities",
+  description: "Positions in the institutions of Aletheia (founding roles, and permanent, fixed-term, advisory and volunteer positions), published with a reference, a mandate and selection criteria.",
 };
 
 const steps = [
@@ -20,17 +22,18 @@ export default function OpportunitiesPage() {
     <RegisterPage
       kind="opportunity"
       basePath="/opportunities"
-      mark={{ n: "P1", label: "Founding opportunities" }}
-      title="Founding opportunities"
-      lede="Aletheia is being built by people who choose to. Founding roles are recruited in the open, against published criteria, with every appointment on the record."
+      mark={{ n: "P1", label: "Opportunities" }}
+      title="Opportunities"
+      lede="Aletheia is being built by people who choose to. Founding roles and every other position are recruited in the open, against published criteria, with every appointment on the record."
       image="working-papers"
       pattern="AGV-OPP-····-····"
       margin={[
         { label: "Reference format", value: <span className="t-ref">AGV-OPP-YYYY-NNNN</span> },
+        { label: "Kinds of position", value: POSITION_TYPES.map((p) => p.name).join(" · ") },
         { label: "Review", value: "Two reviewers, published rubric" },
         { label: "Personal data", value: "Encrypted before storage; never published" },
       ]}
-      emptyTitle="No founding roles are open at this time."
+      emptyTitle="No positions are open at this time."
       emptyText="Roles will be published here with a reference and a closing date. Nothing is recruited outside this register."
     >
       <section aria-labelledby="how">
@@ -38,7 +41,11 @@ export default function OpportunitiesPage() {
           How recruitment works
         </h2>
         <p className="t-body mt-4 text-ink-600">
-          The applicant portal opens with the first published role. Until then, no applications are taken through this site or anywhere else.
+          The same process applies to every kind of position. The applicant portal opens with the first published position. Until then, no applications are taken through this site or anywhere else; you can{" "}
+          <Link className="link-ledger" href="/register-interest">
+            register your interest
+          </Link>{" "}
+          to be contacted when one opens.
         </p>
         <ol className="mt-10 border-t rule">
           {steps.map(([title, text], i) => (

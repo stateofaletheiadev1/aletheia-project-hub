@@ -33,8 +33,8 @@ export default function PrivacyPage() {
 
       <h2>Registering interest</h2>
       <p>
-        If you register interest, we keep: your full name, email address, the institutions you chose, your main area of expertise, your optional note, your CV,
-        and the time you registered. We use them only to contact you when founding roles for those institutions are published. Registering again with the same
+        If you register interest, we keep: your full name, email address, the kinds of position and the institutions you chose, your main area of expertise, your
+        optional note, your CV, and the time you registered. We use them only to contact you when positions of those kinds in those institutions are published. Registering again with the same
         email adds to your earlier registration rather than creating a second one.
       </p>
       <ul>

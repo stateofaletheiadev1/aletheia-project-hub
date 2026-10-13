@@ -15,13 +15,14 @@ export async function submitInterest(_prev: InterestState, form: FormData): Prom
   const values: InterestValues = {
     fullName: String(form.get("fullName") ?? "").slice(0, 200),
     email: String(form.get("email") ?? "").slice(0, 200),
+    positionTypes: form.getAll("positionTypes").map(String).slice(0, 10),
     institutions: form.getAll("institutions").map(String).slice(0, 40),
     expertise: String(form.get("expertise") ?? ""),
     note: String(form.get("note") ?? "").slice(0, 2000),
     consent: form.get("consent") === "on",
   };
   // Spam checks first: a hidden field humans never fill, and a minimum time on the form.
-  if (String(form.get("website") ?? "") !== "") return { status: "saved", reference: "", institutions: [], cv: false };
+  if (String(form.get("website") ?? "") !== "") return { status: "saved", reference: "", positionTypes: [], institutions: [], cv: false };
   const startedAt = Number(form.get("startedAt"));
   if (startedAt && Date.now() - startedAt < MIN_FILL_MS) {
     return { status: "error", message: "That was very quick. Please check your details and send again.", fieldErrors: {}, values };
@@ -36,6 +37,7 @@ export async function submitInterest(_prev: InterestState, form: FormData): Prom
   const parsed = InterestInput.safeParse({
     fullName: form.get("fullName") ?? "",
     email: form.get("email") ?? "",
+    positionTypes: form.getAll("positionTypes").map(String),
     institutions: form.getAll("institutions").map(String),
     expertise: form.get("expertise") ?? "",
     note: form.get("note") ?? "",
@@ -74,5 +76,5 @@ export async function submitInterest(_prev: InterestState, form: FormData): Prom
       values,
     };
   }
-  return { status: "saved", reference: outcome.reference, institutions: outcome.institutions, cv: outcome.cv };
+  return { status: "saved", reference: outcome.reference, positionTypes: outcome.positionTypes, institutions: outcome.institutions, cv: outcome.cv };
 }

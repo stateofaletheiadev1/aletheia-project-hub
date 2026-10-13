@@ -16,7 +16,7 @@ test.describe("without JavaScript", () => {
         }).length,
     );
     expect(hidden).toBe(0);
-    await expect(page.getByText("No founding roles are open at this time.")).toBeVisible();
+    await expect(page.getByText("No positions are open at this time.")).toBeVisible();
   });
 
   test("search still works as a plain form", async ({ page }) => {

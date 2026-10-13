@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 const OFFICES = [
   ["General enquiries", "Questions about the founding government and this record."],
-  ["Recruitment", "Questions about a published founding role."],
+  ["Recruitment", "Questions about a published position."],
   ["Press", "Requests from journalists."],
   ["Privacy and data", "Requests about personal data."],
   ["Security", "Reports of vulnerabilities in this platform."],
@@ -36,7 +36,7 @@ export default function ContactPage() {
         ))}
       </ul>
       <p>
-        Each channel will be published on this page when it is staffed. Until then, the founding government makes no contact through any other channel claiming to represent it. Founding roles are recruited only through the <Link href="/opportunities">register of opportunities</Link>.
+        Each channel will be published on this page when it is staffed. Until then, the founding government makes no contact through any other channel claiming to represent it. Positions, founding or otherwise, are recruited only through the <Link href="/opportunities">register of opportunities</Link>.
       </p>
     </ProsePage>
   );

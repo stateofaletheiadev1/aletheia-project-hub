@@ -1,6 +1,6 @@
 import "server-only";
 import { database } from "@/server/aletheiadb/client";
-import { decryptRegistration, registrations, type InterestStatus } from "@/server/services/interest";
+import { decryptRegistration, positionTypesOf, registrations, type InterestStatus } from "@/server/services/interest";
 
 // Read models for workbench screens. Callers must have checked permissions first.
 
@@ -11,6 +11,7 @@ export type RegistrationRow = {
   submittedAt: string;
   updatedAt: string;
   retainUntil: string;
+  positionTypes: string[];
   institutions: string[];
   expertise: string[];
   status: InterestStatus;
@@ -20,10 +21,13 @@ export type RegistrationRow = {
   notes: { text: string; at: string }[];
 };
 
-export async function listRegistrations(opts: { institution?: string; status?: string; page: number; pageSize: number }) {
+export async function listRegistrations(opts: { institution?: string; positionType?: string; status?: string; page: number; pageSize: number }) {
   const db = database()!;
   const filter: Record<string, unknown> = {};
   if (opts.institution) filter.institutions = opts.institution;
+  // Early registrations have no positionTypes and count as founding.
+  if (opts.positionType === "founding") filter.$or = [{ positionTypes: "founding" }, { positionTypes: { $exists: false } }];
+  else if (opts.positionType) filter.positionTypes = opts.positionType;
   if (opts.status) filter.status = opts.status;
   const [page, total] = await Promise.all([
     registrations(db).find(filter, { sort: { submittedAt: -1 }, limit: opts.pageSize, skip: (opts.page - 1) * opts.pageSize }),
@@ -54,6 +58,7 @@ function toRow(r: Awaited<ReturnType<ReturnType<typeof registrations>["findOne"]
     submittedAt: r.submittedAt,
     updatedAt: r.updatedAt,
     retainUntil: r.retainUntil,
+    positionTypes: positionTypesOf(r),
     institutions: r.institutions,
     expertise: r.expertise,
     status: r.status,

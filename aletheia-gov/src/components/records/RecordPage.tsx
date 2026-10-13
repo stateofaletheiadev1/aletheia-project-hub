@@ -6,7 +6,7 @@ import { formatDateLong } from "@/lib/dates";
 import { getPublished, type Block, type RecordKind } from "@/server/records/public-records";
 
 const LABEL: Record<RecordKind, string> = {
-  opportunity: "Founding opportunity",
+  opportunity: "Opportunity",
   document: "Document",
   decision: "Decision",
   dispatch: "Dispatch",

@@ -8,7 +8,8 @@ import { nextReference } from "@/server/records/sequence";
 import { deleteAttachment, readAttachment, storeAttachment, type AttachmentMeta } from "@/server/storage/attachments";
 
 // Registrations of interest: one record per person (keyed by a blind index of their email),
-// covering any number of institutions. Personal fields and CVs are encrypted under the
+// covering any number of institutions and kinds of position (founding, permanent, …).
+// Registrations made before kinds of position existed were all for founding roles. Personal fields and CVs are encrypted under the
 // person's key before they reach AletheiaDB (brief §8.4). A repeat registration adds
 // institutions, a note or a CV; it never overwrites what is already there.
 
@@ -22,6 +23,8 @@ export type Pii = { fullName: string; email: string; notes: { text: string; at: 
 export type Registration = {
   reference: string;
   subject: string;
+  /** Kinds of position (content/positions.ts). Missing on early records: read as ["founding"]. */
+  positionTypes?: string[];
   institutions: string[];
   expertise: string[];
   pii: Sealed;
@@ -35,7 +38,7 @@ export type Registration = {
 };
 
 export type InterestOutcome =
-  | { ok: true; reference: string; institutions: string[]; cv: boolean }
+  | { ok: true; reference: string; positionTypes: string[]; institutions: string[]; cv: boolean }
   | { ok: false; reason: "not_configured" | "unavailable" };
 
 export function interestConfigured(): boolean {
@@ -44,6 +47,11 @@ export function interestConfigured(): boolean {
 
 export function registrations(db: AletheiaDB) {
   return db.collection<Registration>(COLLECTION);
+}
+
+/** The kinds of position a registration covers; early registrations were all for founding roles. */
+export function positionTypesOf(r: Pick<Registration, "positionTypes">): string[] {
+  return r.positionTypes?.length ? r.positionTypes : ["founding"];
 }
 
 function retainUntil(from = new Date()): string {
@@ -78,6 +86,7 @@ export async function registerInterest(
             {
               reference,
               subject,
+              positionTypes: input.positionTypes,
               institutions: input.institutions,
               expertise: [input.expertise],
               pii: encryptFields(key, { fullName: input.fullName, email: input.email, notes: note } satisfies Pii, COLLECTION),
@@ -91,7 +100,7 @@ export async function registerInterest(
             },
             { idempotencyKey: opts.idempotencyKey },
           );
-          return { ok: true, reference, institutions: input.institutions, cv: Boolean(cvMeta) };
+          return { ok: true, reference, positionTypes: input.positionTypes, institutions: input.institutions, cv: Boolean(cvMeta) };
         } catch (e) {
           if (e instanceof ConflictError) continue; // registered concurrently: merge instead
           throw e;
@@ -105,6 +114,7 @@ export async function registerInterest(
       try {
         await regs.updateOne(existing._id, existing._rev, {
           $set: {
+            positionTypes: [...new Set([...positionTypesOf(existing), ...input.positionTypes])],
             institutions: [...new Set([...existing.institutions, ...input.institutions])],
             expertise: [...new Set([...existing.expertise, input.expertise])],
             pii: encryptFields(key, { ...pii, notes: [...pii.notes, ...note] }, COLLECTION),
@@ -114,7 +124,7 @@ export async function registerInterest(
           },
         });
         for (const old of dropped) await deleteAttachment(db, old.fileId);
-        return { ok: true, reference: existing.reference, institutions: input.institutions, cv: Boolean(cvMeta) };
+        return { ok: true, reference: existing.reference, positionTypes: input.positionTypes, institutions: input.institutions, cv: Boolean(cvMeta) };
       } catch (e) {
         if (!(e instanceof ConflictError)) throw e; // changed meanwhile: read again
       }

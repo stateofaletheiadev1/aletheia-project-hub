@@ -1,5 +1,6 @@
 import "server-only";
 import { z } from "zod";
+import { POSITION_SLUGS, type PositionType } from "@/content/positions";
 import { database } from "@/server/aletheiadb/client";
 
 // The single boundary between public pages and the public record (brief §8.2, §16).
@@ -36,6 +37,8 @@ const PublicRecordSchema = z.object({
   summary: z.string().optional(),
   issuer: z.string().optional(),
   status: z.string().optional(),
+  /** Opportunities: the kind of position (content/positions.ts); absent means a founding role. */
+  positionType: z.enum(POSITION_SLUGS).optional(),
   body: z.array(Block).default([]),
   facts: z.array(z.object({ label: z.string(), value: z.string() })).default([]),
   publication: z.object({ state: z.literal("published"), publishedAt: z.string() }),
@@ -49,6 +52,7 @@ export type PublicRecord = {
   summary?: string;
   issuer?: string;
   status?: string;
+  positionType?: PositionType;
   body: Block[];
   facts: { label: string; value: string }[];
   publishedAt: string;
@@ -77,6 +81,7 @@ function toPublic(doc: unknown): PublicRecord | null {
     summary: r.summary,
     issuer: r.issuer,
     status: r.status,
+    positionType: r.positionType,
     body: r.body,
     facts: r.facts,
     publishedAt: r.publication.publishedAt,

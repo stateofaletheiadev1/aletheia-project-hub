@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useActionState, useEffect, useRef } from "react";
 import { submitInterest } from "./actions";
+import { POSITION_TYPES, positionName } from "@/content/positions";
 import { ANY_INSTITUTION, EXPERTISE, institutionName, type InterestState } from "./schema";
 
 type Group = { title: string; options: { slug: string; name: string }[] };
@@ -39,6 +40,16 @@ export function InterestForm({ groups, preselected }: { groups: Group[]; presele
             Your reference: <span className="t-ref text-gold-700">{state.reference}</span>
           </p>
         ) : null}
+        {state.positionTypes.length ? (
+          <>
+            <p className="t-meta mt-6 text-[0.6875rem] text-ink-500">Kinds of position</p>
+            <ul className="mt-2 space-y-1 text-[0.9375rem] text-ink-800">
+              {state.positionTypes.map((s) => (
+                <li key={s}>— {positionName(s)}</li>
+              ))}
+            </ul>
+          </>
+        ) : null}
         {state.institutions.length ? (
           <>
             <p className="t-meta mt-6 text-[0.6875rem] text-ink-500">Registered just now for</p>
@@ -52,7 +63,7 @@ export function InterestForm({ groups, preselected }: { groups: Group[]; presele
         {state.cv ? <p className="mt-4 text-[0.9375rem] text-ink-700">Your CV was received and stored encrypted.</p> : null}
         <p className="mt-5 max-w-[58ch] text-[0.9375rem] leading-relaxed text-ink-600">
           If you registered before with the same email, these are added to your earlier registration under the same reference. No email was sent: confirmation emails
-          are not set up yet. Founding roles are published on the{" "}
+          are not set up yet. Open positions are published on the{" "}
           <Link className="link-ledger" href="/opportunities">
             register of opportunities
           </Link>
@@ -66,6 +77,7 @@ export function InterestForm({ groups, preselected }: { groups: Group[]; presele
   // After a failed submit React resets the form; refill it with what was typed.
   const v = state.status === "error" ? state.values : undefined;
   const ticked = (slug: string) => (v ? v.institutions.includes(slug) : slug === preselected);
+  const typeTicked = (slug: string) => (v ? v.positionTypes.includes(slug) : false);
   const err = (name: keyof typeof errors) =>
     errors[name] ? (
       <p id={`${name}-error`} className="mt-1.5 text-[0.875rem] font-medium text-[#9b2c2c]">
@@ -110,8 +122,27 @@ export function InterestForm({ groups, preselected }: { groups: Group[]; presele
         </div>
       </div>
 
+      <fieldset id="interest-positionTypes" {...a11y("positionTypes")}>
+        <legend className={label}>Kinds of position you are interested in</legend>
+        <p className="mt-1.5 text-[0.875rem] text-ink-500">Choose as many as you like.</p>
+        <ul className="mt-4 grid gap-x-10 gap-y-3 md:grid-cols-2">
+          {POSITION_TYPES.map((p) => (
+            <li key={p.slug}>
+              <label className="flex items-start gap-3 text-[0.9375rem] leading-snug text-ink-800">
+                <input type="checkbox" name="positionTypes" value={p.slug} defaultChecked={typeTicked(p.slug)} className="mt-[3px] h-4 w-4 shrink-0 accent-[#15294A]" />
+                <span>
+                  <span className="font-medium">{p.name}</span>
+                  <span className="block text-[0.8125rem] text-ink-500">{p.description}</span>
+                </span>
+              </label>
+            </li>
+          ))}
+        </ul>
+        {err("positionTypes")}
+      </fieldset>
+
       <fieldset id="interest-institutions" {...a11y("institutions")}>
-        <legend className={label}>Institutions you would like to help found</legend>
+        <legend className={label}>Institutions you would like to work in</legend>
         <p className="mt-1.5 text-[0.875rem] text-ink-500">Choose as many as you like.</p>
         <label className="mt-4 flex items-center gap-3 border-y border-[var(--rule-ledger)] py-3 text-[1rem] font-medium">
           <input type="checkbox" name="institutions" value={ANY_INSTITUTION} defaultChecked={ticked(ANY_INSTITUTION)} className="h-4 w-4 accent-[#15294A]" />
@@ -192,7 +223,7 @@ export function InterestForm({ groups, preselected }: { groups: Group[]; presele
         <label className="flex items-start gap-3 text-[0.9375rem] leading-relaxed text-ink-700">
           <input id="interest-consent" name="consent" type="checkbox" defaultChecked={v?.consent} className="mt-1 h-4 w-4 shrink-0 accent-[#15294A]" {...a11y("consent")} />
           <span>
-            I agree that the founding government keeps these details and my CV, encrypted, for up to 12 months to contact me about founding roles. See the{" "}
+            I agree that the founding government keeps these details and my CV, encrypted, for up to 12 months to contact me about positions of the kinds I chose. See the{" "}
             <Link className="link-ledger" href="/privacy">
               privacy notice
             </Link>

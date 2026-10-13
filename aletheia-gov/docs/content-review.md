@@ -30,7 +30,8 @@ Tick each item when reviewed. Source for structural content: National Blueprint,
 - [ ] The five phases and their aims (`src/content/founding.ts`).
 - [ ] `/government`: the "What it does not do" paragraph (no territory, passports, taxes or diplomatic relations).
 - [ ] `/privacy`: retention statement for unsuccessful applications (12 months). This is a design commitment; it must match `docs/data-governance.md` when the portal is built.
-- [ ] `/build-aletheia`: "Founding roles are voluntary unless a role states approved compensation."
+- [ ] `/build-aletheia`: "Every position states whether it is paid; founding and volunteer roles are unpaid unless the role states approved compensation."
+- [ ] Kinds of position offered (`src/content/positions.ts`): founding, permanent, fixed-term, advisory, volunteer. Confirm the list and the descriptions.
 - [ ] `/contact`: no enquiry channels published yet. Add real addresses when staffed.
 - [ ] Outbound links: `https://stateofaletheia.org/stablechain`.
 

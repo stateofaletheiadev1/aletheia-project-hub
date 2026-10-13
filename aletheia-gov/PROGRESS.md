@@ -31,6 +31,14 @@ Last updated: 2026-10-09. Phases from brief §25.
 - Search over all published content (server-side).
 - robots (noindex unless `APP_ENV=production`), sitemap, Open Graph image, `/api/health`, `/api/health/ready`, `/.well-known/security.txt` (only when `SECURITY_CONTACT` is set).
 
+### Positions beyond founding roles (13 October 2026)
+- Register your interest and the register of opportunities cover every kind of position: founding roles, permanent, fixed-term and contract, advisory/board/expert and volunteer (`src/content/positions.ts`).
+- The form asks which kinds of position (required) and lists every institution that is not suspended or archived, operational ones included.
+- Opportunity records may carry `positionType` (absent means a founding role); the register labels each one.
+- Workbench: filter and column by kind of position. Registrations made before this change count as founding roles.
+- Tests: `tests/unit/positions.test.ts`; `tests/integration/positions.mjs` (browser + real AletheiaDB: registration, refusal without a kind, workbench filters, legacy registrations).
+- Visual baselines for `/`, `/opportunities`, `/register-interest`, `/build-aletheia`, `/contact` and `/privacy` changed with the wording: regenerate them.
+
 ## Verified (commands actually run, 9 October 2026)
 
 | Check | Result |

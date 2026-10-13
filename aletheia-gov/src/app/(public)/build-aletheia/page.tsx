@@ -8,16 +8,16 @@ import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Build Aletheia",
-  description: "Ways to contribute to the founding of Aletheia: founding roles, expertise, scrutiny of the public record.",
+  description: "Ways to contribute to Aletheia: founding roles and other positions, expertise, scrutiny of the public record.",
 };
 
 const WAYS = [
   {
     n: "01",
-    title: "Take a founding role",
-    text: "Founding roles are published with a reference, a mandate and selection criteria. Applications open with the first published role.",
+    title: "Take a founding role or another position",
+    text: "Founding roles and permanent, fixed-term, advisory and volunteer positions are published with a reference, a mandate and selection criteria. Applications open with the first published position.",
     href: "/opportunities",
-    cta: "Founding opportunities",
+    cta: "Opportunities",
   },
   {
     n: "02",
@@ -103,7 +103,7 @@ export default function BuildAletheiaPage() {
               No promises of office, land or money. <span className="text-gold-400">A fair process, in public.</span>
             </p>
             <p className="mt-10 max-w-[56ch] text-[1.0625rem] leading-relaxed text-parchment-300">
-              Founding roles are voluntary unless a role states approved compensation. Contributing to the founding government confers no citizenship, residence or title.
+              Every position states whether it is paid; founding and volunteer roles are unpaid unless the role states approved compensation. Holding a position confers no citizenship, residence or title.
             </p>
           </div>
         </div>

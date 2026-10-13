@@ -247,7 +247,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* § 04 — Founding opportunities (Sea) */}
+      {/* § 04 — Opportunities (Sea) */}
       <section aria-labelledby="s04" className="sea relative overflow-hidden">
         <div className="relative h-[42vh] min-h-[280px] overflow-hidden md:h-[56vh]">
           <Photo name="deep-water" sizes="100vw" parallax={0.07} className="absolute inset-0" />
@@ -255,16 +255,16 @@ export default async function HomePage() {
         </div>
         <div className="shell relative grid-12 gap-y-14 pb-[var(--chapter-space)] pt-10">
           <div className="col-span-12 lg:col-span-5">
-            <SectionMark n="04" label="Founding opportunities" tone="sea" />
+            <SectionMark n="04" label="Opportunities" tone="sea" />
             <h2 id="s04" className="t-h1 mt-8 text-parchment-50">
               Aletheia is being built by people who choose to.
             </h2>
             <p className="mt-6 max-w-[44ch] text-[1.0625rem] leading-relaxed text-parchment-300">
-              Founding roles are published here with a reference, a mandate and the criteria for selection. Applications are reviewed by two people, and every appointment is published.
+              Founding roles and every other position (permanent, fixed-term, advisory, volunteer) are published here with a reference, a mandate and the criteria for selection. Applications are reviewed by two people, and every appointment is published.
             </p>
             <div className="mt-10 flex flex-wrap gap-x-10 gap-y-4">
               <Link href="/opportunities" className="group inline-flex items-center gap-3 text-[1rem] font-semibold text-gold-300">
-                <span className="draw-link">Founding opportunities</span>
+                <span className="draw-link">Opportunities</span>
                 <span aria-hidden className="arrow-nudge">→</span>
               </Link>
               <Link href="/register-interest" className="group inline-flex items-center gap-3 text-[1rem] text-parchment-200">
@@ -274,12 +274,12 @@ export default async function HomePage() {
           </div>
           <div className="col-span-12 lg:col-span-6 lg:col-start-7">
             <div className="flex items-baseline justify-between border-b rule pb-4">
-              <p className="t-meta text-[0.6875rem] text-parchment-400">Open roles</p>
+              <p className="t-meta text-[0.6875rem] text-parchment-400">Open positions</p>
               <p className="t-ref text-parchment-300">{opportunities.items.length} open</p>
             </div>
             {opportunities.items.length === 0 ? (
-              <EmptyRecord tone="sea" pattern="AGV-OPP-····-····" title="No founding roles are open at this time.">
-                When a role opens it will appear here with its reference, institution and closing date. Nothing is recruited outside this register.
+              <EmptyRecord tone="sea" pattern="AGV-OPP-····-····" title="No positions are open at this time.">
+                When a position opens it will appear here with its reference, institution and closing date. Nothing is recruited outside this register.
               </EmptyRecord>
             ) : (
               <ul>

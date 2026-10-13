@@ -15,5 +15,5 @@ export async function generateMetadata(props: PageProps<"/opportunities/[slug]">
 }
 
 export default async function Page(props: PageProps<"/opportunities/[slug]">) {
-  return <RecordPage kind="opportunity" slug={(await props.params).slug} back={{ href: "/opportunities", label: "All founding opportunities" }} />;
+  return <RecordPage kind="opportunity" slug={(await props.params).slug} back={{ href: "/opportunities", label: "All opportunities" }} />;
 }

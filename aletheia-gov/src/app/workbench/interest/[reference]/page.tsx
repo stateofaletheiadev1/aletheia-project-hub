@@ -1,3 +1,4 @@
+import { positionName } from "@/content/positions";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ActionForm } from "@/components/workbench/ActionForm";
@@ -45,6 +46,14 @@ export default async function RegistrationDetail(props: PageProps<"/workbench/in
       <div className="grid gap-12 xl:grid-cols-[1fr_20rem]">
         <dl className="border-t border-[var(--rule-ledger)]">
           {row("Email", r.email ? <a className="link-ledger" href={`mailto:${r.email}`}>{r.email}</a> : "—")}
+          {row(
+            "Kinds of position",
+            <ul className="space-y-1">
+              {r.positionTypes.map((s) => (
+                <li key={s}>{positionName(s)}</li>
+              ))}
+            </ul>,
+          )}
           {row(
             "Institutions",
             <ul className="space-y-1">
