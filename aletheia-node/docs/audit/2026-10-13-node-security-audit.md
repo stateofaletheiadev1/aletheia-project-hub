@@ -29,6 +29,7 @@ resources, or degrades a defence; **Low** is hardening.
 | L-2 | Low | Mempool | Block candidates are taken in sender-address order; a full pool never evicts by fee |
 | L-3 | Low | Executor | Contract workers run without seccomp, landlock or a memory rlimit |
 | L-4 | Low | Monetary | `check_signatures` relies on the decoder for signer uniqueness |
+| L-5 | Low | Executor | Worker sandbox directories collide across runners in one process (**fixed**) |
 | D-1 | Medium | Dependencies | `quick-xml` 0.38.4: quadratic duplicate-attribute check on rails input (RUSTSEC-2026-0194) |
 
 ## High
@@ -142,6 +143,13 @@ Also record a short ban on the source address (per /64 for IPv6).
   transactions are refused regardless of fee.
 - **L-3** `crates/executor/src/lib.rs`: workers have no syscall filter and no memory rlimit
   (acknowledged in the module docs). Set `RLIMIT_AS`, then seccomp and landlock.
+- **L-5 (fixed)** `crates/executor/src/lib.rs` `spawn`: each worker's sandbox directory was
+  named `aletheia-arno-exec-{pid}-{n}` with `n` counted per `ProcessRunner`, so two runners in
+  one process shared `…-1`, `…-2`; when one worker was dropped it deleted the directory under
+  the other, whose spawn then failed ("cannot start the executor"). Two failed attempts on one
+  call end in `VM_INTERNAL`, a fail-stop. This made `sandbox::a_crashed_worker_is_replaced_and_its_attempt_undone`
+  fail about one run in three when tests ran in parallel. The name now uses a process-wide
+  counter; the sandbox suite passed 15 of 15 consecutive runs afterwards.
 - **L-4** `crates/execution/src/rules/v1/monetary.rs` `check_signatures`: signer uniqueness is
   enforced only by `decode_signatures`. Re-check strict ordering inside `check_signatures` so a
   future non-decoder caller cannot count one key twice.
@@ -169,17 +177,15 @@ from any peer), `finality_proof` (sync responses) and `p2p_hello` (pre-authentic
 handshake). The campaign ran with cargo-fuzz (libFuzzer, AddressSanitizer), seeded from
 `tests/vectors` and the Arno sources, with a 10 s per-input timeout and a 3 GiB RSS limit.
 
-Status when this report was committed (campaign still running; the first three targets
-each had about 20 minutes on a shared 4-core machine):
+First pass, stopped after about 15 minutes when the session was interrupted (three
+targets had run on a shared 4-core machine; the full campaign over all fourteen targets was
+restarted afterwards):
 
 | Target | Executions | Coverage (edges / features) | Crashes, hangs, OOMs |
 | --- | --- | --- | --- |
-| `ace_block_header` | 20,988,286 | 489 / 934 | none |
-| `ace_signed_transaction` | 16,638,513 | 1,837 / 3,094 | none |
-| `arno_compile` | 557,946 | 6,992 / 22,571 | none |
-| `arnobc_verify`, `base16_text`, `p2p_frames`, `stateless_validation`, `text_identifiers`, `vm_run` | queued | | |
-| `consensus_message`, `finality_proof`, `p2p_hello` (new) | queued | | |
-| `rails_xml`, `rails_camt` (new) | queued | | |
+| `ace_block_header` | 65,340,630 | 489 / 949 | none |
+| `ace_signed_transaction` | 44,709,655 | 1,931 / 3,369 | none |
+| `arno_compile` | 1,545,216 | 7,122 / 24,202 | none |
 
 Dependency audit (`cargo audit`, RustSec database of 2026-10-13): two advisories, both in
 `quick-xml` 0.38.4, used by the rails ISO 20022 reader (`crates/rails/src/iso/xml.rs`):
@@ -205,6 +211,8 @@ cargo +nightly fuzz run <target> corpus/<target> -- -max_total_time=86400 -timeo
 
 ## Tests
 
-`cargo fmt --check` and `./scripts/lint.sh` pass on this change. The full
-`cargo test --workspace --all-features --locked` run was still compiling RocksDB when this
-report was committed; its result is added in a follow-up commit.
+`cargo fmt --check`, `cargo clippy --all-targets --all-features -D warnings` on the changed
+crates and `./scripts/lint.sh` pass. `cargo test --workspace --all-features --locked`: 102
+suites, 526 tests passed and 1 failed before the L-5 fix (the sandbox test above, failing
+intermittently); after the fix the executor, node and arno-exec suites pass and the sandbox
+suite passed 15 consecutive runs.
