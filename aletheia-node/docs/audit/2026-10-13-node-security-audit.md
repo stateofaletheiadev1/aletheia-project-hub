@@ -2,13 +2,14 @@
 
 Scope: `aletheia-node/` at commit `8f8c121`. Manual review of the untrusted-input surface
 (P2P transport and handshake, consensus engine, BLS and Ed25519, the Arno VM interpreter and
-contract executor, monetary and bridge rules, mempool, RPC), followed by a coverage-guided
-fuzz campaign over every decoder at a trust boundary. No protocol or consensus code was
-changed by this audit; every fix below that touches consensus behaviour needs a protocol
-version per CLAUDE.md directive 13 and is left as a recommendation.
+contract executor, monetary and bridge rules, mempool, RPC, storage), a coverage-guided fuzz
+campaign over every decoder at a trust boundary, and end-to-end tests of a running node under
+crashes and memory pressure.
 
-All findings below come from code review and are traced through the source; none has been
-reproduced on a running network. Each fix should land with a test that reproduces it first.
+**Status (second pass, same day): every finding below is fixed**, each with a test that fails
+on the old code or pins the new behaviour. Rule changes to protocol version 1 (which is not
+frozen: no `frozen.toml`, no production network) are recorded in ADR-061. Sections "Fixes",
+"End-to-end results" and "Fuzzing" at the end give the details.
 
 Severity: **High** can halt or split the chain or exhaust validator memory from outside the
 validator set; **Medium** needs a Byzantine validator, a live bridge route or sustained
@@ -16,21 +17,24 @@ resources, or degrades a defence; **Low** is hardening.
 
 ## Summary
 
-| ID | Severity | Area | Finding |
-| --- | --- | --- | --- |
-| H-1 | High | VM | Value copies in `SETF`, `SETI`, `CALL` arguments and `EQ`/`NE` comparisons are not metered by size |
-| H-2 | High | P2P / node | Supervisor and sync loop can deadlock on each other's bounded queues |
-| M-1 | Medium | Bridge | Guardian quorum check costs up to 65 pairings for a flat 40,000 EU |
-| M-2 | Medium | Consensus | No upper bound on the rounds of accepted votes, timeouts and proposals |
-| M-3 | Medium | P2P | Rate limits count frames, not bytes |
-| M-4 | Medium | P2P | Unauthenticated handshake can buffer frames up to 16 MiB |
-| M-5 | Medium | P2P | Bans are keyed on a node key the peer chooses |
-| L-1 | Low | RPC | Per-IP limiter map is never pruned; batches count as one request; no header timeout |
-| L-2 | Low | Mempool | Block candidates are taken in sender-address order; a full pool never evicts by fee |
-| L-3 | Low | Executor | Contract workers run without seccomp, landlock or a memory rlimit |
-| L-4 | Low | Monetary | `check_signatures` relies on the decoder for signer uniqueness |
-| L-5 | Low | Executor | Worker sandbox directories collide across runners in one process (**fixed**) |
-| D-1 | Medium | Dependencies | `quick-xml` 0.38.4: quadratic duplicate-attribute check on rails input (RUSTSEC-2026-0194) |
+| ID | Severity | Area | Finding | Status |
+| --- | --- | --- | --- | --- |
+| H-1 | High | VM | Value copies in `SETF`, `SETI`, `CALL` arguments and `EQ`/`NE` comparisons are not metered by size | fixed |
+| H-2 | High | P2P / node | Supervisor and sync loop can deadlock on each other's bounded queues | fixed, reproduced first |
+| H-3 | High | VM | Zero values of huge or nested array types are built before any charge or memory check | fixed |
+| H-4 | High | Execution | No per-transaction EU ceiling: one call can outlast the 10 s contract watchdog and fail-stop validators | fixed |
+| S-1 | High | Storage | One RocksDB block cache per column family (10 x the budget) and unbounded memtables | fixed |
+| M-1 | Medium | Bridge | Guardian quorum check costs up to 65 pairings for a flat 40,000 EU | fixed |
+| M-2 | Medium | Consensus | No upper bound on the rounds of accepted votes, timeouts and proposals | fixed |
+| M-3 | Medium | P2P | Rate limits count frames, not bytes | fixed |
+| M-4 | Medium | P2P | Unauthenticated handshake can buffer frames up to 16 MiB | fixed |
+| M-5 | Medium | P2P | Bans are keyed on a node key the peer chooses | fixed |
+| D-1 | Medium | Dependencies | `quick-xml` 0.38.4: quadratic duplicate-attribute check on rails input (RUSTSEC-2026-0194) | fixed |
+| L-1 | Low | RPC | Per-IP limiter map is never pruned; batches count as one request | fixed |
+| L-2 | Low | Mempool | Block candidates are taken in sender-address order; a full pool never evicts by fee | fixed |
+| L-3 | Low | Executor | Contract workers run without a memory rlimit (seccomp and landlock remain open) | rlimit added |
+| L-4 | Low | Monetary | `check_signatures` relies on the decoder for signer uniqueness | fixed |
+| L-5 | Low | Executor | Worker sandbox directories collide across runners in one process | fixed |
 
 ## High
 
@@ -81,6 +85,32 @@ Fix: never await a bounded send in the supervisor. Deliver peer lifecycle change
 separate channel the sync loop always polls, or with `try_send` and a coalesced peer-state
 snapshot; have the sync loop use `try_send` for replies (dropping Pong / GetTxs replies under
 pressure is acceptable). Add a test that fills both queues and asserts progress.
+
+### H-3 VM: zero values built before any check
+
+`crates/vm/src/value.rs` (`zero`) and `interp.rs` (`call`). Registers and empty storage slots
+start as zero values, and the interpreter built every register's zero value before charging
+anything or checking memory. The verifier bounded text and byte lengths but not array lengths,
+so a deployed contract could declare an array type (or nested arrays) whose zero value is
+gigabytes; the first call to a function with such a register made every node try to allocate
+it, the worker died, the retry died the same way, and the call ended in the `VM_INTERNAL`
+fail-stop on every validator.
+
+### H-4 No per-transaction execution ceiling
+
+`crates/execution/src/rules/v1/limits.rs`. A transaction could set `eu_limit` up to the block
+limit of 2,000,000,000 EU. The interpreter measured about 58 million EU a second (release
+build, shared 4-core machine), so one contract call could run for over half a minute, past the
+10 s contract watchdog; the watchdog's second expiry is a fail-stop. Any user paying the fee
+could stop validators, and slower or swapping validators would stop first. An honest full
+block could also take far longer to execute than a consensus round.
+
+### S-1 Storage memory: a block cache per column family
+
+`crates/storage/src/rocks.rs`. `state_db_options` created a new 512 MiB LRU cache each time it
+was called, and it was called once for the database and once per column family (nine), so the
+"512 MiB" budget was up to about 5 GiB; memtables were RocksDB's default 2 x 64 MiB per family,
+up to about 1.3 GiB more. On a small VPS a warm node would be killed by the OOM killer.
 
 ## Medium
 
@@ -153,6 +183,27 @@ Also record a short ban on the source address (per /64 for IPv6).
 - **L-4** `crates/execution/src/rules/v1/monetary.rs` `check_signatures`: signer uniqueness is
   enforced only by `decode_signatures`. Re-check strict ordering inside `check_signatures` so a
   future non-decoder caller cannot count one key twice.
+
+## Fixes
+
+| ID | Change | Tests |
+| --- | --- | --- |
+| H-1 | `SETF`/`SETI` charge and count their copy like a register write; call frames are sized before they are built and charged beyond 1 KiB; `EQ`/`NE` over 64 bytes cost 1 EU per 32 bytes (`vm/src/interp.rs`, `cost.rs`). | VM, Arno, execution, determinism and golden suites unchanged |
+| H-2 | The supervisor keeps peer arrivals and departures per peer and delivers them as the event queue has room, never blocking; per peer a departure precedes a later arrival and an unseen arrival is cancelled by its departure (`p2p/src/network.rs`). | `a_full_event_queue_never_stops_the_supervisor_taking_commands` hangs on the old code; three lifecycle unit tests |
+| H-3 | `value::zero_sizes` sizes every type in one linear pass; the verifier refuses a type whose zero value, or a function whose registers, exceed 4 MiB; the interpreter checks and charges a frame before building it. | `types_whose_zero_value_exceeds_a_calls_memory_are_refused`, `a_function_whose_registers_start_too_large_is_refused`, `sizing_deeply_nested_types_takes_linear_time`, `zero_sizes_match_the_size_of_the_zero_values_they_describe` |
+| H-4 | `TxLimits::max_eu_limit` = 30,000,000 (stateless validation refuses more), `max_block_eu` = 60,000,000; ADR-061 item 6. | `an_eu_limit_above_the_transaction_ceiling_is_refused` |
+| S-1 | One block cache per instance shared by every column family; memtables held to a shared `write_buffer_bytes`; both sized from the memory the node may use (RAM or cgroup limit), overridable in `[storage]`. | storage conformance suite on RocksDB; constrained-memory end-to-end runs below |
+| M-1 | Attestations cost `BRIDGE_VERIFY_EU` + 40,000 per guardian named, charged from the bitmap before any pairing. | bridge suite; a refused attestation is charged for every signer it names |
+| M-2 | Votes, timeouts and proposals held only up to 64 rounds ahead; certificates from any round still advance the node; third and later twins of a proposal dropped unless certified. | `engine_window.rs` (3 tests); consensus suites |
+| M-3 | Per-channel byte budgets beside the frame budgets. | `large_frames_spend_the_byte_budget_within_the_frame_budget`, `every_channel_admits_its_largest_frame` |
+| M-4 | Frames before the hello verifies are capped at 1 KiB. | `a_limited_decoder_refuses_large_frames_from_the_header_and_lifts_on_request` |
+| M-5 | A ban also covers the inbound address (/64 for IPv6) for 60 s. | `a_banned_peer_cannot_return_at_once_under_a_new_key` |
+| D-1 | `quick-xml` 0.41.0 (both advisories fixed); at most 64 attributes per element; attribute values normalized per XML 1.0. | `an_element_with_thousands_of_attributes_is_refused_quickly`; rails, gateway, railsim suites |
+| L-1 | Limiter prunes ended windows above 4,096 addresses; a batch spends one unit per call. | three unit tests |
+| L-2 | Candidates round-robin across senders, highest fee first; a full pool evicts the cheapest last-pending transaction of another sender, never leaving a nonce gap. | `crates/node/tests/mempool.rs` (3 tests) |
+| L-3 | The worker caps its own address space at 1 GiB (`setrlimit`). seccomp and landlock remain for the hardening phase. | sandbox suite runs under the cap |
+| L-4 | `check_signatures` refuses repeated or unordered signer indices itself. | `one_key_listed_twice_never_meets_a_threshold_of_two` |
+| L-5 | Worker sandbox directories numbered process-wide. | sandbox suite, 15 consecutive passes |
 
 ## What held up
 
