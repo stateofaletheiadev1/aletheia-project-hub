@@ -5,8 +5,14 @@
 //! empty working directory, supervises it with a watchdog, and treats everything it says as
 //! untrusted.
 //!
-//! Debug builds accept `--fault <crash-first MARKER | hang | garbage>` so the supervisor's
-//! recovery can be tested; release builds ignore every argument.
+//! On Linux it sandboxes itself before reading its first request (`sandbox.rs`): no
+//! filesystem, no new processes, no sockets, a bounded address space.
+//!
+//! Debug builds accept `--fault <crash-first MARKER | hang | garbage | probe-sandbox>` so the
+//! supervisor's recovery and the sandbox can be tested; release builds ignore every argument.
+
+#[cfg(target_os = "linux")]
+mod sandbox;
 
 use std::io::Write;
 use std::process::ExitCode;
@@ -53,6 +59,19 @@ fn main() -> ExitCode {
                 return ExitCode::from(101);
             }
         }
+        _ => {}
+    }
+    // Everything above may touch the filesystem (the fault marker); nothing below may.
+    #[cfg(target_os = "linux")]
+    let applied = match sandbox::apply() {
+        Ok(applied) => applied,
+        // Refusing to run unconfined is safer than running: the node retries in a fresh
+        // worker and fail-stops if that cannot start either.
+        Err(_) => return ExitCode::from(2),
+    };
+    match fault() {
+        #[cfg(target_os = "linux")]
+        Some((kind, _)) if kind == "probe-sandbox" => return probe(applied),
         Some((kind, _)) if kind == "hang" => loop {
             std::thread::park();
         },
@@ -68,4 +87,32 @@ fn main() -> ExitCode {
         Ok(()) => ExitCode::SUCCESS,
         Err(_) => ExitCode::from(1),
     }
+}
+
+/// Debug builds only (`--fault probe-sandbox`): tries what the sandbox forbids and reports what
+/// got through as exit-status bits: 1 a file was read, 2 a socket was made, 4 a process was
+/// started, 8 the kernel does not enforce the filesystem rule (bit 1 is then expected).
+#[cfg(target_os = "linux")]
+fn probe(applied: sandbox::Applied) -> ExitCode {
+    let mut escaped = 0u8;
+    let exe = std::env::current_exe().unwrap_or_default();
+    if std::fs::read(&exe).is_ok() || std::fs::read("/proc/self/status").is_ok() {
+        escaped |= 1;
+    }
+    if std::net::TcpStream::connect("127.0.0.1:9").is_ok()
+        || std::net::UdpSocket::bind("127.0.0.1:0").is_ok()
+    {
+        escaped |= 2;
+    }
+    if std::process::Command::new(&exe)
+        .arg("--help")
+        .spawn()
+        .is_ok()
+    {
+        escaped |= 4;
+    }
+    if !applied.filesystem_denied {
+        escaped |= 8;
+    }
+    ExitCode::from(escaped)
 }
