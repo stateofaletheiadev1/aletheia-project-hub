@@ -8,8 +8,9 @@
 //! On Linux it sandboxes itself before reading its first request (`sandbox.rs`): no
 //! filesystem, no new processes, no sockets, a bounded address space.
 //!
-//! Debug builds accept `--fault <crash-first MARKER | hang | garbage | probe-sandbox>` so the
-//! supervisor's recovery and the sandbox can be tested; release builds ignore every argument.
+//! Debug builds, and builds with the `fault-injection` feature (test builds only), accept
+//! `--fault <crash-first MARKER | hang | garbage | probe-sandbox>` so the supervisor's recovery
+//! and the sandbox can be tested; production builds ignore every argument.
 
 #[cfg(target_os = "linux")]
 mod sandbox;
@@ -18,7 +19,7 @@ use std::io::Write;
 use std::process::ExitCode;
 
 fn fault() -> Option<(String, Option<String>)> {
-    if !cfg!(debug_assertions) {
+    if !cfg!(any(debug_assertions, feature = "fault-injection")) {
         return None;
     }
     let args: Vec<String> = std::env::args().skip(1).collect();
@@ -89,7 +90,7 @@ fn main() -> ExitCode {
     }
 }
 
-/// Debug builds only (`--fault probe-sandbox`): tries what the sandbox forbids and reports what
+/// Test builds only (`--fault probe-sandbox`): tries what the sandbox forbids and reports what
 /// got through as exit-status bits: 1 a file was read, 2 a socket was made, 4 a process was
 /// started, 8 the kernel does not enforce the filesystem rule (bit 1 is then expected).
 #[cfg(target_os = "linux")]

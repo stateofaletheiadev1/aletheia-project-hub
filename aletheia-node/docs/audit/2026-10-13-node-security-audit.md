@@ -287,8 +287,16 @@ nonce gap (waits, then both apply); supply is conserved.
 
 ## Tests
 
-`cargo fmt --check`, `cargo clippy --all-targets --all-features -D warnings` on the changed
-crates and `./scripts/lint.sh` pass. `cargo test --workspace --all-features --locked`: 102
-suites, 526 tests passed and 1 failed before the L-5 fix (the sandbox test above, failing
-intermittently); after the fix the executor, node and arno-exec suites pass and the sandbox
-suite passed 15 consecutive runs.
+All on the final code, on this machine (shared 4-core, kernel 6.18):
+
+- `cargo fmt --check`, `cargo clippy --workspace --all-targets --all-features -D warnings` and
+  `./scripts/lint.sh`: clean.
+- `cargo test --workspace --all-features --locked` (debug): 104 suites, 558 tests, all pass.
+- `cargo test --workspace --all-features --release --locked` (as CI runs it): all pass. Three
+  supervisor tests in `apps/arno-exec/tests/sandbox.rs` failed in release on the code as it was
+  before this audit too: the worker accepted `--fault` only in debug builds. A
+  `fault-injection` feature (on under `--all-features`, as in the node crate) now enables it in
+  test builds; production builds still ignore every argument.
+- DSP Byzantine suite: 10 scenarios x 20 seeds, release, all pass.
+- `scripts/e2e_crash_recovery.sh` with release binaries: 6 crash cycles, 295 transfers, pass;
+  peak node memory about 20 MiB on devnet.

@@ -28,5 +28,11 @@ aletheia-core.workspace = true
 aletheia-execution.workspace = true
 aletheia-executor.workspace = true
 
+[features]
+# Accepts `--fault <…>` in release builds too, for the supervisor and sandbox tests that
+# `cargo test --release --all-features` runs. Debug builds always accept it. Never enable it in
+# a production build (the node never passes the worker any argument either way).
+fault-injection = []
+
 [lints]
 workspace = true
