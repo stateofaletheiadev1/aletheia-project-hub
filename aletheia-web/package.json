@@ -19,7 +19,8 @@
     "officer:bootstrap": "node scripts/db/officer-bootstrap.mjs",
     "test:api": "node tests/api/run.mjs",
     "test:ui": "node tests/api/ui.mjs",
-    "erase-person": "node scripts/db/erase-person.mjs"
+    "erase-person": "node scripts/db/erase-person.mjs",
+    "officer:code-off": "node scripts/db/officer-code-off.mjs"
   },
   "dependencies": {
     "@aletheia/aletheiadb": "file:vendor/aletheia-aletheiadb-0.1.0.tgz",
