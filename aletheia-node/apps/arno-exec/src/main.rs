@@ -23,7 +23,27 @@ fn fault() -> Option<(String, Option<String>)> {
     }
 }
 
+/// The worker's address-space ceiling. A call may use 4 MiB and a transaction 32 MiB of
+/// metered memory (Section 28), with at most 16 frames; the interpreter itself needs little
+/// more. A worker that somehow grows past this fails its allocation and exits, which the node
+/// treats as a worker failure, instead of drawing on the host's memory (or swap) until the
+/// kernel steps in.
+#[cfg(unix)]
+const ADDRESS_SPACE_BYTES: u64 = 1024 * 1024 * 1024;
+
 fn main() -> ExitCode {
+    #[cfg(unix)]
+    if rlimit::setrlimit(
+        rlimit::Resource::AS,
+        ADDRESS_SPACE_BYTES,
+        ADDRESS_SPACE_BYTES,
+    )
+    .is_err()
+    {
+        // Refusing to run unbounded is safer than running: the node retries in a fresh
+        // worker and fail-stops if that cannot start either.
+        return ExitCode::from(2);
+    }
     let mut stdin = std::io::stdin().lock();
     let mut stdout = std::io::stdout().lock();
     match fault() {

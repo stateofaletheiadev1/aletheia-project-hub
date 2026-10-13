@@ -10,6 +10,11 @@ publish.workspace = true
 [dependencies]
 aletheia-vm.workspace = true
 
+[target.'cfg(unix)'.dependencies]
+# Caps the worker's address space at start-up (a safe wrapper over setrlimit; unsafe code is
+# forbidden in this workspace).
+rlimit = "0.10"
+
 [dev-dependencies]
 aletheia-arno.workspace = true
 aletheia-core.workspace = true

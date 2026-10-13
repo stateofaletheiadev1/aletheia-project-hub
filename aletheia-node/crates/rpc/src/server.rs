@@ -30,18 +30,26 @@ struct Limiter {
     windows: Mutex<HashMap<IpAddr, (Instant, u32)>>,
 }
 
+/// Above this many tracked addresses, windows that have ended are dropped before a new one is
+/// added, so a sender rotating source addresses (an IPv6 /64 holds 2^64) cannot grow the map
+/// without bound: it holds at most the addresses seen in the last second.
+const PRUNE_ABOVE: usize = 4_096;
+
 impl Limiter {
-    /// Whether `ip` may make another request in the current one-second window.
-    fn allow(&self, ip: IpAddr) -> bool {
+    /// Whether `ip` may make `calls` more calls in the current one-second window.
+    fn allow(&self, ip: IpAddr, calls: u32) -> bool {
         let Ok(mut windows) = self.windows.lock() else {
             return false;
         };
         let now = Instant::now();
+        if windows.len() >= PRUNE_ABOVE && !windows.contains_key(&ip) {
+            windows.retain(|_, (start, _)| now.duration_since(*start).as_secs() < 1);
+        }
         let entry = windows.entry(ip).or_insert((now, 0));
         if now.duration_since(entry.0).as_secs() >= 1 {
             *entry = (now, 0);
         }
-        entry.1 = entry.1.saturating_add(1);
+        entry.1 = entry.1.saturating_add(calls);
         entry.1 <= self.per_second
     }
 }
@@ -65,7 +73,7 @@ async fn rpc<B: Backend + 'static>(
     ConnectInfo(peer): ConnectInfo<SocketAddr>,
     body: Bytes,
 ) -> Response {
-    if !shared.limiter.allow(peer.ip()) {
+    if !shared.limiter.allow(peer.ip(), jsonrpc::calls_in(&body)) {
         let error = serde_json::json!({ "jsonrpc": "2.0", "id": null, "error": RpcError::rate_limited().to_json() });
         return json_response(429, error.to_string());
     }
@@ -115,7 +123,7 @@ async fn api<B: Backend + 'static>(
     RawQuery(query): RawQuery,
     body: Bytes,
 ) -> Response {
-    if !shared.limiter.allow(peer.ip()) {
+    if !shared.limiter.allow(peer.ip(), 1) {
         return json_response(429, RpcError::rate_limited().to_rest().to_string());
     }
     let path = decode(uri.path().strip_prefix("/api/v1").unwrap_or(""));
@@ -160,4 +168,54 @@ pub async fn serve<B: Backend + 'static>(
         app.into_make_service_with_connect_info::<SocketAddr>(),
     )
     .await
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_batch_spends_one_unit_per_call() {
+        let limiter = Limiter {
+            per_second: 10,
+            windows: Mutex::new(HashMap::new()),
+        };
+        let ip: IpAddr = "192.0.2.1".parse().unwrap();
+        assert!(limiter.allow(ip, 10));
+        assert!(
+            !limiter.allow(ip, 1),
+            "a 10-call batch used the whole budget"
+        );
+    }
+
+    #[test]
+    fn rotating_addresses_cannot_grow_the_limiter_without_bound() {
+        let limiter = Limiter {
+            per_second: 10,
+            windows: Mutex::new(HashMap::new()),
+        };
+        for i in 0..u32::try_from(PRUNE_ABOVE + 10).unwrap() {
+            let ip = IpAddr::V6(std::net::Ipv6Addr::from(u128::from(i)));
+            limiter.allow(ip, 1);
+        }
+        // Every window is still within its second, so none could be dropped yet; once they
+        // end, the next new address prunes them.
+        {
+            let mut windows = limiter.windows.lock().unwrap();
+            let past = Instant::now() - std::time::Duration::from_secs(2);
+            for (start, _) in windows.values_mut() {
+                *start = past;
+            }
+        }
+        limiter.allow("2001:db8::1".parse().unwrap(), 1);
+        assert_eq!(limiter.windows.lock().unwrap().len(), 1);
+    }
+
+    #[test]
+    fn calls_are_counted_without_trusting_the_body() {
+        assert_eq!(jsonrpc::calls_in(br#"{"jsonrpc":"2.0"}"#), 1);
+        assert_eq!(jsonrpc::calls_in(b"  [1, 2, 3]"), 3);
+        assert_eq!(jsonrpc::calls_in(b"[]"), 1);
+        assert_eq!(jsonrpc::calls_in(b"[not json"), 1);
+    }
 }
