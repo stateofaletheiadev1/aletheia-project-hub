@@ -63,11 +63,6 @@ export default function HomePage() {
         <div className="absolute inset-0 bg-gradient-to-br from-[#060C14]/92 via-[#0E1B31]/72 to-[#090F1A]/85 pointer-events-none" />
         <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-[#060C14] to-transparent pointer-events-none" />
 
-        {/* Floating ambient orbs */}
-        <div className="orb-gold w-[580px] h-[580px] -top-40 -left-48 opacity-60 animate-orb-float-1" />
-        <div className="orb-burgundy w-[440px] h-[440px] -bottom-32 right-10 opacity-50 animate-orb-float-2" />
-        <div className="orb-navy w-[520px] h-[520px] top-1/4 right-1/3 opacity-40 animate-orb-float-3" />
-
         {/* Fine geometric hexagonal watermark */}
         <div className="absolute inset-0 opacity-[0.038] pointer-events-none flex items-center justify-end pr-4 lg:pr-12">
           <svg width="720" height="720" viewBox="0 0 100 100" fill="none" className="flex-shrink-0">
@@ -98,15 +93,13 @@ export default function HomePage() {
                   <StarOfTruth size={14} />
                   <span className="text-[11px] font-bold tracking-[0.22em] uppercase text-gold">{t("Sovereign Covenant State")}</span>
                   <span className="text-parchment/25">│</span>
-                  <span className="text-[11px] text-parchment/70 font-serif italic">{t("Veritas in Foedere")}</span>
+                  <span className="text-[11px] text-parchment/75 italic">{t("Veritas in Foedere")}</span>
                 </div>
               </div>
 
               {/* Hero headline */}
-              <h1 className="heading-hero animate-fade-in-up delay-100">{t("Building a new standard")}<br />{t("for life, technology")}{' '}
-                <span className="text-gold-metallic">{t("& civic")}</span>
-                <br />
-                <span className="text-gold-metallic">{t("infrastructure.")}</span>
+              <h1 className="heading-hero animate-fade-in-up delay-100 max-w-[13em]">{t("Building a new standard")}{' '}{t("for life, technology")}{' '}
+                <span className="text-gold-metallic">{t("& civic")}{' '}{t("infrastructure.")}</span>
               </h1>
 
               {/* Sub-headline */}
@@ -152,7 +145,7 @@ export default function HomePage() {
                   <Link
                     key={label}
                     href={href}
-                    className="px-3 py-1.5 text-[11px] font-semibold tracking-wider uppercase text-parchment/50 border border-parchment/12 rounded-sm hover:text-gold hover:border-gold/40 transition-all duration-200 backdrop-blur-sm"
+                    className="px-3 py-1.5 text-[11px] font-semibold tracking-wider uppercase text-parchment/70 border border-parchment/20 rounded-sm hover:text-parchment hover:border-parchment/40 transition-colors duration-150"
                   >
                     {tx(label)}
                   </Link>
@@ -162,11 +155,9 @@ export default function HomePage() {
 
             {/* ─── RIGHT: SOVEREIGN ACHIEVEMENT CARD ─── */}
             <div className="lg:col-span-5 flex flex-col items-center lg:items-end animate-fade-in-up delay-200">
-              <div className="w-full max-w-sm bg-[#0A1420]/85 border border-gold/35 rounded-sm p-7 shadow-2xl relative overflow-hidden backdrop-blur-xl gold-glow-intense">
+              <div className="w-full max-w-sm bg-[#0A1420]/85 border border-gold/35 rounded-sm p-7 relative overflow-hidden gold-glow-intense">
                 {/* Top gold hairline */}
-                <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-gold to-transparent" />
-                {/* Ambient glow center */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-gold/8 rounded-full blur-3xl pointer-events-none" />
+                <div className="absolute top-0 left-0 right-0 h-[3px] bg-gold" />
 
                 <div className="relative z-10 text-center space-y-5">
                   <div className="relative inline-block p-5 bg-navy/50 border border-gold/20 rounded-sm">
@@ -296,7 +287,7 @@ export default function HomePage() {
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
           3b. THE SOVEREIGN COVENANT STATE IN FOCUS — PHOTOGRAPHIC BENTO
       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-      <section className="bg-parchment-light section-lg border-b border-navy/08">
+      <section className="on-light bg-parchment-light section-lg border-b border-navy/08">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
             <div className="space-y-3 max-w-2xl">
@@ -341,7 +332,7 @@ export default function HomePage() {
               <div className="space-y-3">
                 <div className="eyebrow">{t("Part I: The Covenant")}</div>
                 <h2 className="text-4xl lg:text-5xl font-bold tracking-tight text-navy leading-[1.12]">{t("Truth unhidden: why Aletheia")}<br />{t("builds upon a")}{' '}
-                  <em className="not-italic text-gold">{t("provable ledger.")}</em>
+                  <em className="not-italic text-gold-ink">{t("provable ledger.")}</em>
                 </h2>
               </div>
 

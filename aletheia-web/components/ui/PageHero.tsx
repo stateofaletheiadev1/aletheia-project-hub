@@ -29,9 +29,9 @@ export function PageHero({ eyebrow, title, lead, image, status, imagePosition, c
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-20 lg:pt-36 lg:pb-28">
         <div className="max-w-3xl space-y-6">
           <div className="flex flex-wrap items-center gap-3 animate-fade-in-up">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 border border-gold/35 bg-navy-deep/70 rounded-sm backdrop-blur-sm">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 border border-gold/35 bg-navy-deep/80 rounded-sm">
               <StarOfTruth size={14} />
-              <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-gold">{tx(eyebrow)}</span>
+              <span className="text-[11.5px] font-bold tracking-[0.13em] uppercase text-gold">{tx(eyebrow)}</span>
             </div>
             {tx(status && <StatusBadge status={status} size="sm" />)}
           </div>

@@ -28,6 +28,7 @@ const config: Config = {
           DEFAULT: '#C49A4E',
           shadow: '#8F6A2A',
           tint: '#E4C689',
+          ink: '#A87D34',
           subtle: 'rgba(196, 154, 78, 0.12)',
           border: 'rgba(196, 154, 78, 0.35)',
         },
@@ -50,7 +51,13 @@ const config: Config = {
       },
       fontFamily: {
         sans: ['var(--font-manrope)', 'Manrope', 'sans-serif'],
-        serif: ['Georgia', 'serif'],
+        // Manrope is the State's only typeface: "serif" and "mono" resolve to it too.
+        serif: ['var(--font-manrope)', 'Manrope', 'sans-serif'],
+        mono: ['var(--font-manrope)', 'Manrope', 'sans-serif'],
+      },
+      fontWeight: {
+        // Manrope 300 is too faint for body copy on cream; light text sets at 400.
+        light: '400',
       },
       borderRadius: {
         none: '0px',
@@ -63,15 +70,16 @@ const config: Config = {
         tighter: '-0.03em',
         tight: '-0.015em',
         normal: '0em',
-        wide: '0.04em',
-        wider: '0.08em',
-        eyebrow: '0.18em',
+        wide: '0.03em',
+        wider: '0.06em',
+        widest: '0.1em',
+        eyebrow: '0.13em',
       },
       boxShadow: {
-        subtle: '0 1px 3px rgba(16, 20, 24, 0.05)',
-        institutional: '0 4px 20px -2px rgba(21, 41, 74, 0.08)',
-        elevated: '0 10px 30px -4px rgba(21, 41, 74, 0.12)',
-        goldGlow: '0 0 25px rgba(196, 154, 78, 0.18)',
+        subtle: '0 1px 2px rgba(16, 20, 24, 0.05)',
+        institutional: '0 1px 0 rgba(21, 41, 74, 0.04), 0 2px 6px -2px rgba(21, 41, 74, 0.08)',
+        elevated: '0 1px 0 rgba(21, 41, 74, 0.05), 0 10px 24px -12px rgba(21, 41, 74, 0.22)',
+        goldGlow: '0 0 0 1px rgba(196, 154, 78, 0.3)',
       },
     },
   },

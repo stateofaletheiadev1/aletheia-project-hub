@@ -64,7 +64,7 @@ export function Footer() {
               />
               <div>
                 <span className="block font-bold text-lg tracking-[0.14em] uppercase text-parchment font-sans">{t("ALETHEIA")}</span>
-                <span className="block text-xs text-gold tracking-[0.2em] uppercase font-medium">{t("Sovereign Covenant State")}</span>
+                <span className="block text-xs text-gold tracking-[0.14em] uppercase font-semibold">{t("Sovereign Covenant State")}</span>
               </div>
             </div>
 
@@ -81,7 +81,7 @@ export function Footer() {
               </div>
             </div>
 
-            <div className="pt-2 text-[11px] text-parchment/50">{t("Motto:")}{' '}<span className="text-gold font-serif italic">{t("Veritas in Foedere")}</span>{' '}{t("(Truth in Covenant)")}</div>
+            <div className="pt-2 text-[11px] text-parchment/50">{t("Motto:")}{' '}<span className="text-gold italic">{t("Veritas in Foedere")}</span>{' '}{t("(Truth in Covenant)")}</div>
           </div>
 
           {/* Column 1: Government & Law */}

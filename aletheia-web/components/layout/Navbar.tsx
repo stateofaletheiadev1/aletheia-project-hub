@@ -124,17 +124,17 @@ export function Navbar() {
         <div className="max-w-screen-xl mx-auto px-6 h-7 flex items-center justify-between">
 
           {/* left: branding sentence */}
-          <div className="flex items-center gap-3 text-[10px] leading-none">
-            <span className="flex items-center gap-1.5 font-bold tracking-[0.16em] uppercase text-[#C49A4E]">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#C49A4E] animate-pulse" />{t("Digital Platform")}</span>
+          <div className="flex items-center gap-3 text-[11px] leading-none">
+            <span className="flex items-center gap-1.5 font-bold tracking-[0.12em] uppercase text-[#C49A4E]">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#C49A4E]" />{t("Digital Platform")}</span>
             <span className="text-white/20">|</span>
-            <span className="text-white/45 tracking-wide">{t("The Sovereign Covenant State of Aletheia")}</span>
+            <span className="text-white/60">{t("The Sovereign Covenant State of Aletheia")}</span>
             <span className="text-white/20">|</span>
-            <span className="italic font-serif text-[#C49A4E]/70">{t("Veritas in Foedere")}</span>
+            <span className="italic text-[#C49A4E]/80">{t("Veritas in Foedere")}</span>
           </div>
 
           {/* right: utilities */}
-          <div className="flex items-center gap-4 text-[10px] text-white/40 leading-none">
+          <div className="flex items-center gap-4 text-[11px] text-white/60 leading-none">
             <button
               onClick={() => setSearchOpen(true)}
               aria-label={t("Search the platform (Ctrl or Command + K)")}
@@ -190,8 +190,8 @@ export function Navbar() {
                 priority
               />
               <div className="flex flex-col leading-none">
-                <span className="text-[15px] font-bold tracking-[0.18em] uppercase text-[#15294A] group-hover:text-[#15294A] whitespace-nowrap">{t("ALETHEIA")}</span>
-                <span className="text-[8.5px] font-semibold tracking-[0.16em] uppercase text-[#C49A4E] whitespace-nowrap mt-0.5">{t("Sovereign Covenant State")}</span>
+                <span className="text-[16px] font-extrabold tracking-[0.16em] uppercase text-[#15294A] whitespace-nowrap">{t("ALETHEIA")}</span>
+                <span className="text-[9px] font-bold tracking-[0.14em] uppercase text-[#A87D34] whitespace-nowrap mt-1">{t("Sovereign Covenant State")}</span>
               </div>
             </Link>
 
@@ -223,15 +223,15 @@ export function Navbar() {
                       aria-haspopup={hasDropdown ? 'true' : undefined}
                       aria-expanded={hasDropdown ? activeMenu === item.label : undefined}
                       aria-current={pathname === item.href ? 'page' : undefined}
-                      className={`relative flex items-center gap-0.5 px-1.5 2xl:px-3 py-2 text-[12.5px] 2xl:text-[13px] font-medium whitespace-nowrap rounded-[3px] transition-colors ${
+                      className={`relative flex items-center gap-0.5 px-1.5 2xl:px-3 py-2 text-[13px] 2xl:text-[14px] font-semibold whitespace-nowrap rounded-[3px] transition-colors ${
                         isActive
                           ? 'text-[#15294A]'
-                          : 'text-[#15294A]/60 hover:text-[#15294A] hover:bg-[#15294A]/[0.04]'
+                          : 'text-[#15294A]/70 hover:text-[#15294A] hover:bg-[#15294A]/[0.04]'
                       }`}
                     >
                       {/* active indicator */}
                       {tx(isActive && (
-                        <span className="absolute bottom-0 left-1.5 right-1.5 2xl:left-3 2xl:right-3 h-[2px] bg-[#C49A4E] rounded-full" />
+                        <span className="absolute bottom-0 left-1.5 right-1.5 2xl:left-3 2xl:right-3 h-[2px] bg-[#C49A4E]" />
                       ))}
                       {tx(label)}
                       {tx(hasDropdown && (
@@ -246,7 +246,7 @@ export function Navbar() {
                     {/* ── MEGA-MENU ─────────────────────────────── */}
                     {tx(hasDropdown && activeMenu === item.label && (
                       <div
-                        className="animate-fade-in absolute left-1/2 -translate-x-1/2 top-[calc(100%+2px)] w-[680px] bg-white border border-[#15294A]/[0.08] shadow-[0_12px_48px_-12px_rgba(21,41,74,0.18)] rounded-[4px] overflow-hidden z-50"
+                        className="animate-fade-in absolute left-1/2 -translate-x-1/2 top-[calc(100%+2px)] w-[680px] bg-white border border-[#15294A]/[0.08] shadow-[0_18px_40px_-16px_rgba(21,41,74,0.28)] border-t-2 border-t-[#C49A4E] rounded-b-[4px] overflow-hidden z-50"
                         onMouseEnter={() => enter(item.label)}
                         onMouseLeave={leave}
                       >
@@ -256,7 +256,7 @@ export function Navbar() {
                           <div className="col-span-8 p-5 grid grid-cols-2 gap-x-5 gap-y-0.5">
                             {item.children?.map(group => (
                               <div key={group.group}>
-                                <p className="text-[9.5px] font-bold tracking-[0.18em] uppercase text-[#C49A4E] mb-2.5 mt-1">
+                                <p className="text-[10.5px] font-bold tracking-[0.12em] uppercase text-[#A87D34] mb-2.5 mt-1">
                                   {tx(group.group)}
                                 </p>
                                 {group.items.map(sub => (
@@ -267,14 +267,14 @@ export function Navbar() {
                                   >
                                     <div className="flex-1 min-w-0">
                                       <div className="flex items-center gap-1.5 flex-wrap">
-                                        <span className="text-[12px] font-semibold text-[#15294A] group-hover/l:text-[#C49A4E] transition-colors leading-none">
+                                        <span className="text-[13.5px] font-semibold text-[#15294A] group-hover/l:underline underline-offset-[3px] decoration-[#C49A4E] decoration-2 leading-tight">
                                           {tx(sub.title)}
                                         </span>
                                         {tx(sub.status && (
                                           <StatusBadge status={sub.status} size="sm" />
                                         ))}
                                       </div>
-                                      <p className="text-[10.5px] text-[#15294A]/45 mt-0.5 line-clamp-1 leading-snug">
+                                      <p className="text-[12px] text-[#15294A]/60 mt-0.5 line-clamp-1 leading-snug">
                                         {tx(sub.desc)}
                                       </p>
                                     </div>
@@ -287,19 +287,19 @@ export function Navbar() {
                           {/* editorial panel */}
                           <div className="col-span-4 bg-[#15294A] p-5 flex flex-col justify-between">
                             <div className="space-y-2">
-                              <span className="text-[9px] font-bold tracking-[0.22em] uppercase text-[#C49A4E]/75 block">
+                              <span className="text-[10.5px] font-bold tracking-[0.12em] uppercase text-[#C49A4E] block">
                                 {tx(EDITORIAL[item.label]?.tag ?? 'FEATURED')}
                               </span>
-                              <h5 className="text-[13px] font-bold text-[#F4EEDF] leading-snug">
+                              <h5 className="text-[15px] font-bold text-[#F4EEDF] leading-snug">
                                 {tx(EDITORIAL[item.label]?.title ?? item.label)}
                               </h5>
-                              <p className="text-[10.5px] text-[#F4EEDF]/55 leading-relaxed">
+                              <p className="text-[12.5px] text-[#F4EEDF]/70 leading-relaxed">
                                 {tx(EDITORIAL[item.label]?.desc ?? item.description)}
                               </p>
                             </div>
                             <Link
                               href={EDITORIAL[item.label]?.href ?? item.href}
-                              className="inline-flex items-center gap-1.5 mt-5 pt-3 border-t border-[#F4EEDF]/[0.08] text-[10px] font-bold text-[#C49A4E] hover:text-[#E4C689] transition-colors uppercase tracking-[0.14em]"
+                              className="inline-flex items-center gap-1.5 mt-5 pt-3 border-t border-[#F4EEDF]/[0.08] text-[13px] font-bold text-[#C49A4E] hover:text-[#E4C689] transition-colors"
                             >{t("View details")}{' '}<ArrowRight className="w-3 h-3" />
                             </Link>
                           </div>
@@ -328,13 +328,13 @@ export function Navbar() {
               <Link
                 href="/portal/login"
                 title={t("Sign In")}
-                className="flex items-center gap-1.5 px-2.5 2xl:px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-wider text-[#15294A] bg-white border border-[#C49A4E]/40 rounded-sm hover:border-[#C49A4E] hover:bg-[#FAF7F0] transition-all whitespace-nowrap shadow-sm"
+                className="flex items-center gap-1.5 px-2.5 2xl:px-3.5 py-1.5 text-[13px] font-semibold text-[#15294A] bg-white border border-[#15294A]/20 rounded-[3px] hover:border-[#15294A]/45 transition-colors whitespace-nowrap"
               >
                 <UserCheck className="w-3.5 h-3.5 text-[#C49A4E]" aria-hidden="true" /><span className="sr-only 2xl:not-sr-only">{t("Sign In")}</span></Link>
 
               <Link
                 href="/e-residency"
-                className="btn-sovereign-gold flex items-center gap-1.5 px-4 py-1.5 text-[11px] rounded-sm transition-all whitespace-nowrap group"
+                className="btn-sovereign-gold flex items-center gap-1.5 px-4 py-[7px] !text-[13.5px] whitespace-nowrap group"
               >
                 <span>{t("Apply")}</span>
                 <ArrowRight className="w-3 h-3 text-[#0E1B31] group-hover:translate-x-0.5 transition-transform" />
@@ -372,10 +372,10 @@ export function Navbar() {
                   <Link
                     href={item.href}
                     onClick={() => setMobileOpen(false)}
-                    className={`flex items-center justify-between px-3 py-2.5 rounded-[3px] text-[13px] font-semibold transition-colors ${
+                    className={`flex items-center justify-between px-3 py-2.5 rounded-[3px] text-[15px] font-semibold transition-colors ${
                       pathname === item.href
                         ? 'bg-[#15294A]/[0.06] text-[#15294A]'
-                        : 'text-[#15294A]/65 hover:bg-[#15294A]/[0.04] hover:text-[#15294A]'
+                        : 'text-[#15294A]/80 hover:bg-[#15294A]/[0.04] hover:text-[#15294A]'
                     }`}
                   >
                     {tx(NAV_LABELS[item.label] ?? item.label)}
@@ -388,7 +388,7 @@ export function Navbar() {
                           key={sub.href}
                           href={sub.href}
                           onClick={() => setMobileOpen(false)}
-                          className="flex items-center justify-between px-3 py-1.5 text-[12px] text-[#15294A]/55 hover:text-[#15294A] hover:bg-[#15294A]/[0.04] rounded-[3px] transition-colors"
+                          className="flex items-center justify-between px-3 py-2 text-[13.5px] text-[#15294A]/70 hover:text-[#15294A] hover:bg-[#15294A]/[0.04] rounded-[3px] transition-colors"
                         >
                           {tx(sub.title)}
                           {tx(sub.status && <StatusBadge status={sub.status} size="sm" />)}
@@ -407,12 +407,12 @@ export function Navbar() {
               <Link
                 href="/e-residency"
                 onClick={() => setMobileOpen(false)}
-                className="w-full py-2.5 text-center text-[13px] font-bold text-[#F4EEDF] bg-[#15294A] border border-[#C49A4E]/25 rounded-[3px]"
+                className="w-full py-3 text-center text-[15px] font-bold text-white bg-[#15294A] rounded-[3px]"
               >{t("Apply for E-Residency")}</Link>
               <Link
                 href="/portal/login"
                 onClick={() => setMobileOpen(false)}
-                className="w-full py-2.5 text-center text-[13px] font-semibold text-[#15294A] border border-[#15294A]/15 rounded-[3px]"
+                className="w-full py-3 text-center text-[15px] font-semibold text-[#15294A] border border-[#15294A]/25 rounded-[3px]"
               >{t("Citizen Sign In")}</Link>
             </div>
           </div>
