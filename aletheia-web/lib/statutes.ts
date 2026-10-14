@@ -103,10 +103,10 @@ export const STATUTE_DATABASE: Record<string, StatuteDetail> = {
     preamble: 'An Act establishing the Aletheian Guilder (AEY) as the sole legal tender, guaranteeing 100% reserve backing and prohibiting inflationary monetization.',
     sections: [
       { number: 'Section 1', heading: 'Legal Tender & Unit of Account', text: 'The Aletheian Guilder (AEY) is the statutory currency of the Sovereign Covenant State, maintained at a fixed 1:1 parity with the European Euro.' },
-      { number: 'Section 2', heading: 'The 100% Reserve Floor', text: 'The Central Bank is prohibited from issuing AEY without matching segregated reserves of physical gold (London Good Delivery), tier-1 European debt, or liquid SDR claims.' },
+      { number: 'Section 2', heading: 'The 100% Reserve Floor', text: 'The Aletheian Reserve Bank is prohibited from issuing AEY without matching segregated reserves of physical gold (London Good Delivery), tier-1 European debt, or liquid SDR claims.' },
       { number: 'Section 3', heading: 'Par Redemption', text: 'Holders of AEY may demand unconditional redemption in physical Euros or gold at statutory parity without discount or fee.' },
     ],
-    signatory: 'Governor of the Central Bank & Minister of Treasury',
+    signatory: 'Governor of the Aletheian Reserve Bank & Minister of Treasury',
   },
   'executive-act': {
     slug: 'executive-act',

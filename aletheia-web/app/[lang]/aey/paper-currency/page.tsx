@@ -525,7 +525,7 @@ export default function AeyPaperCurrencyPage() {
             <Link
               href="/central-bank"
               className="px-6 py-2.5 border border-gold/30 text-parchment font-semibold text-xs uppercase tracking-wider rounded-sm hover:border-gold/60 transition-colors"
-            >{t("Central Bank Architecture")}</Link>
+            >{t("Reserve Bank Architecture")}</Link>
           </div>
         </div>
       </section>

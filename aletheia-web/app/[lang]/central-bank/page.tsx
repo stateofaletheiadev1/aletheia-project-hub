@@ -26,9 +26,9 @@ export default function CentralBankPage() {
               <StatusBadge status="Under Development" size="sm" />
             </div>
 
-            <h1 className="heading-hero">{t("Central Bank & Monetary Authority")}</h1>
+            <h1 className="heading-hero">{t("Aletheian Reserve Bank & Monetary Authority")}</h1>
 
-            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("Guarantor of monetary integrity, price stability, and reserve backing invariants. The Central Bank of Aletheia operates under constitutional limits that prohibit inflationary debasement and fractional reserve expansion.")}</p>
+            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("Guarantor of monetary integrity, price stability, and reserve backing invariants. The Aletheian Reserve Bank, central bank of the Sovereign Covenant State of Aletheia, operates under constitutional limits that prohibit inflationary debasement and fractional reserve expansion.")}</p>
           </div>
         </div>
       </section>
@@ -64,7 +64,7 @@ export default function CentralBankPage() {
           <div className="lg:col-span-7 space-y-6">
             <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">{t("Constitutional Monetary Law")}</span>
             <h2 className="text-2xl sm:text-3xl font-bold text-navy tracking-tight">{t("The Inviolable Reserve Invariant")}</h2>
-            <p className="text-sm text-navy/70 leading-relaxed">{t("Pursuant to Constitution Article 14, the Central Bank is legally prohibited from monetizing government deficits or creating unbacked liquidity. The monetary base is governed by mathematical algorithmic invariants published on the state ledger.")}</p>
+            <p className="text-sm text-navy/70 leading-relaxed">{t("Pursuant to Constitution Article 14, the Aletheian Reserve Bank is legally prohibited from monetizing government deficits or creating unbacked liquidity. The monetary base is governed by mathematical algorithmic invariants published on the state ledger.")}</p>
 
             <div className="space-y-3 text-xs text-navy/75">
               <div className="p-4 bg-white border border-navy/10 rounded-sm space-y-1">

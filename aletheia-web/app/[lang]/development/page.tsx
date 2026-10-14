@@ -14,7 +14,7 @@ import { Anchor, ArrowRight, Building2, CheckCircle, Cpu, Fish, Globe, Graduatio
 
 const DISTRICTS = [
   { name: 'Civic Core', ring: 'Ring 0 — Central', desc: 'The Constitutional Plaza, Covenant Assembly Hall, High Court and Chancellery, arranged around the Star of Truth.', icon: Building2 },
-  { name: 'Financial Quarter', ring: 'Ring 1 — Inner', desc: 'Treasury, Central Bank, the StableChain validator cluster and licensed financial institutions.', icon: Cpu },
+  { name: 'Financial Quarter', ring: 'Ring 1 — Inner', desc: 'Treasury, Aletheian Reserve Bank, the StableChain validator cluster and licensed financial institutions.', icon: Cpu },
   { name: 'Maritime & Port District', ring: 'Ring 2 — Coastal', desc: 'Coast Guard headquarters, customs and immigration facilities and the free-trade processing zone.', icon: Anchor },
   { name: 'Energy & Industrial Zone', ring: 'Ring 3 — Perimeter', desc: 'Offshore wind substation, SMR facility, hydrogen production and desalination infrastructure.', icon: Zap },
   { name: 'Residential Cantons', ring: 'Rings 1–2 — Interspersed', desc: 'Four mixed-use cantons with mandatory green coverage, woven between civic and commercial zones.', icon: TreePine },

@@ -206,7 +206,7 @@ export const CONSTITUTION_DATA: ConstitutionalArticle[] = [
       },
       {
         number: '16(2)',
-        text: 'The Central Bank and Monetary Board shall maintain reserve invariants I1 through I12. The state node network shall halt block confirmation rather than validate unbacked currency issuance.',
+        text: 'The Aletheian Reserve Bank and Monetary Board shall maintain reserve invariants I1 through I12. The state node network shall halt block confirmation rather than validate unbacked currency issuance.',
       },
       {
         number: '16(3)',
@@ -215,7 +215,7 @@ export const CONSTITUTION_DATA: ConstitutionalArticle[] = [
     ],
     crossReferences: ['art-1', 'art-30', 'art-32'],
     responsibleInstitution: {
-      name: 'Central Bank & Treasury',
+      name: 'Aletheian Reserve Bank & Treasury',
       href: '/treasury',
     },
     relatedLaw: {

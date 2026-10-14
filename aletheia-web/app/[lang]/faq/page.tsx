@@ -29,7 +29,7 @@ const FAQ: { group: string; items: { q: string; a: string; link?: { href: string
       { q: 'Is there really no income tax?', a: 'Personal income tax is prohibited by the Covenant. The State is funded by land leasehold dividends, payment-network and registry fees, maritime concessions, and the yield of the Covenant Endowment.', link: { href: '/treasury', label: 'How the Treasury is funded' } },
       { q: 'Is the AEY a cryptocurrency?', a: 'No. The Aletheian Guilder (AEY) is a sovereign unit of account pegged 1:1 to the euro and backed by fully audited reserves. It settles on StableChain, national payment infrastructure with fixed fees — not a speculative token.', link: { href: '/aey', label: 'About the AEY' } },
       { q: 'How much has been raised to build Aletheia?', a: 'The National Registry & Revenue page publishes funds raised by source — endowment capital, development bonds, investor contributions and fees — and how they are allocated to the port, the capital and the energy grid.', link: { href: '/registry', label: 'National Registry & Revenue' } },
-      { q: 'How can I verify the reserves?', a: 'The Monetary Board publishes a Merkle-attested reserve report every epoch. If any of the twelve supply invariants is violated, the state validators halt minting automatically rather than issue unbacked currency.', link: { href: '/central-bank', label: 'Central Bank & Reserve' } },
+      { q: 'How can I verify the reserves?', a: 'The Monetary Board publishes a Merkle-attested reserve report every epoch. If any of the twelve supply invariants is violated, the state validators halt minting automatically rather than issue unbacked currency.', link: { href: '/central-bank', label: 'Aletheian Reserve Bank' } },
     ],
   },
   {

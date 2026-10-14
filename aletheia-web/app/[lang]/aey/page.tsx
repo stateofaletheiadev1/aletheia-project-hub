@@ -50,9 +50,9 @@ const PAYMENT_INSTRUMENTS = [
     security: 'Multi-institutional HSM signers, programmable escrow, automated audit trails',
   },
   {
-    instrument: 'Central Bank Interbank Gateway',
+    instrument: 'Aletheian Reserve Bank Interbank Gateway',
     formFactor: 'Sovereign RTGS & SEPA ISO 20022 Clearing Corridor',
-    rail: 'Direct Central Bank Liquidity Bridge',
+    rail: 'Direct Reserve Bank Liquidity Bridge',
     velocity: 'Instant Parity Batch Settlement',
     fee: 'Zero Spread at Parity (1:1 EUR)',
     security: 'Daily Merkle reserve root verification, segregated Tier-1 European asset custody',
@@ -215,7 +215,7 @@ export default function AeyCurrencyPage() {
             <div className="space-y-3 pt-2 border-t border-navy/10 text-xs">
               <div className="flex items-start gap-2">
                 <CheckCircle2 className="w-4 h-4 text-laurel shrink-0 mt-0.5" />
-                <span><strong>{t("Interchangeable with Banknotes:")}</strong>{' '}{t("Card balances and AEY banknotes convert 1:1 at accredited banks and Central Bank redemption agents.")}</span>
+                <span><strong>{t("Interchangeable with Banknotes:")}</strong>{' '}{t("Card balances and AEY banknotes convert 1:1 at accredited banks and Aletheian Reserve Bank redemption agents.")}</span>
               </div>
               <div className="flex items-start gap-2">
                 <CheckCircle2 className="w-4 h-4 text-laurel shrink-0 mt-0.5" />
@@ -299,7 +299,7 @@ export default function AeyCurrencyPage() {
           <div className="lg:col-span-6 space-y-6">
             <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">{t("Public Parity Converter")}</span>
             <h2 className="text-3xl font-bold text-navy tracking-tight">{t("Convert & Verify Parity Value")}</h2>
-            <p className="text-sm text-navy/70 leading-relaxed">{t("Calculate the statutory purchasing value of international reserve currencies against AEY under the official Central Bank exchange reference rates.")}</p>
+            <p className="text-sm text-navy/70 leading-relaxed">{t("Calculate the statutory purchasing value of international reserve currencies against AEY under the official Aletheian Reserve Bank exchange reference rates.")}</p>
 
             <div className="p-6 bg-white border border-navy/15 rounded-sm shadow-sm space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -348,7 +348,7 @@ export default function AeyCurrencyPage() {
 
             <p className="text-xs text-parchment/75 leading-relaxed">{t("Article 14 § 3 of the Covenant provides:")}</p>
 
-            <blockquote className="p-4 bg-navy-deep border-l-2 border-gold font-serif italic text-xs text-parchment/90 leading-relaxed">{t("“Any natural or legal person presenting lawful AEY to the Central Bank or its designated redemption agents is entitled to immediate settlement in European Euros or London Good Delivery Gold at statutory parity, without fee, haircut, or administrative obstruction.”")}</blockquote>
+            <blockquote className="p-4 bg-navy-deep border-l-2 border-gold font-serif italic text-xs text-parchment/90 leading-relaxed">{t("“Any natural or legal person presenting lawful AEY to the Aletheian Reserve Bank or its designated redemption agents is entitled to immediate settlement in European Euros or London Good Delivery Gold at statutory parity, without fee, haircut, or administrative obstruction.”")}</blockquote>
 
             <div className="flex items-center justify-between pt-2 text-[11px] font-mono text-gold">
               <span>{t("Auditor: Tier-1 Independent Custody Attestation")}</span>
@@ -420,7 +420,7 @@ export default function AeyCurrencyPage() {
             <Link
               href="/central-bank"
               className="px-6 py-2.5 border border-gold/30 text-parchment font-semibold text-xs uppercase tracking-wider rounded-sm hover:border-gold/60 transition-colors"
-            >{t("Central Bank Architecture")}</Link>
+            >{t("Reserve Bank Architecture")}</Link>
             <Link
               href="/aey/paper-currency"
               className="px-6 py-2.5 border border-gold/30 text-parchment font-semibold text-xs uppercase tracking-wider rounded-sm hover:border-gold/60 transition-colors"
