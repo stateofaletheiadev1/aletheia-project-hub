@@ -52,7 +52,7 @@ const REVENUE_STREAMS = [
     id: 'eresidency',
     title: 'E-Residency Programme',
     desc: 'Annual digital residency permits for global entrepreneurs and remote entities.',
-    amount: '500 AEY / year',
+    amount: '150 AEY / year',
     icon: <Globe className="w-4 h-4 text-gold" />,
   },
   {

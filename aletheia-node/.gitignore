@@ -6,3 +6,6 @@
 /fuzz/artifacts
 /devnet-data
 /devnet-explorer-data
+
+# Local devnet output (aletheiad and devnet-traffic runs)
+/devnet-*.log

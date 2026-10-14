@@ -1,5 +1,0 @@
-aletheiad info configuration loaded path=configs/devnet-explorer.toml network=devnet chain_id=7771 genesis_id=986233202ee9a62a371156762c2467bd974802fd39ffebbf1a38b5d1b7523d3d
-aletheiad info contracts run in the sandboxed executor C:\Users\emi\Desktop\aletheia-project-hub\aletheia-node\target\debug\aletheia-arno-exec.exe
-aletheiad info storage block_cache_mb=512 write_buffer_mb=256 max_open_files=4096 background_jobs=4
-aletheiad info rpc listening on 127.0.0.1:7781 (REST /api/v1, JSON-RPC /rpc/v1)
-aletheiad info following data_dir=devnet-explorer-data listen=127.0.0.1:7771 finalized_height=0 hash=alt:B76EBE551bcC828dCA59257D11431114D213CB302c90044870A94BD269F261910 state_root=709957f055860e7c34dab440b2a56745be417d2411a457324f0a43fca5252602

@@ -40,7 +40,7 @@ const SNAPSHOT: RegistrySnapshot = {
     { id: 'investor', label: 'Covenant Investor contributions', amount: 0, note: 'National Development Contributions' },
     { id: 'registry', label: 'Company registry fees', amount: 0, note: 'Incorporations and annual licences' },
     { id: 'concessions', label: 'Port & energy concessions', amount: 0, note: 'Concession fees, St. Brendan & Benedict' },
-    { id: 'eresidency', label: 'E-residency fees', amount: 0, note: '500 AEY per e-resident per year' },
+    { id: 'eresidency', label: 'E-residency fees', amount: 0, note: '150 AEY per e-resident per year' },
   ],
   allocation: [
     { label: 'St. Brendan deepwater port', share: 0.38, href: '/infrastructure' },

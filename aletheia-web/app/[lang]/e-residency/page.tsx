@@ -87,7 +87,7 @@ const FAQS = [
   },
   {
     q: 'What is the annual fee?',
-    a: 'The e-residency fee is 500 AEY per year, payable in AEY or major fiat currencies. This covers all digital services, company filing tools, and StableChain portal access.',
+    a: 'The e-residency fee is 150 AEY (€150) per year, payable in AEY or major fiat currencies. This covers all digital services, company filing tools, and StableChain portal access.',
   },
   {
     q: 'Can I open a bank account?',
@@ -140,7 +140,7 @@ export default function EResidencyPage() {
               <p className="text-base sm:text-lg text-parchment/65 leading-relaxed font-light max-w-xl">{t("Aletheia E-Residency gives global entrepreneurs, developers, and professionals access to a cryptographically sovereign digital state — with zero income tax, 15-minute company formation, and EU-adjacent legal standards.")}</p>
 
               <div className="flex flex-wrap gap-4 pt-2">
-                <Link href="#apply" className="btn-sovereign-gold px-7 py-3.5 rounded-sm flex items-center gap-2.5 group text-sm">{t("Apply Now — 500 AEY/year")}<ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                <Link href="#apply" className="btn-sovereign-gold px-7 py-3.5 rounded-sm flex items-center gap-2.5 group text-sm">{t("Apply Now — 150 AEY/year")}<ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Link>
                 <Link href="#how-it-works" className="btn-sovereign-ghost px-6 py-3.5 rounded-sm text-sm">{t("How It Works")}</Link>
               </div>
@@ -169,7 +169,8 @@ export default function EResidencyPage() {
                   <StatusBadge status="Operational" size="sm" />
                 </div>
                 <div className="border-t border-parchment/[0.07] pt-4 space-y-3">
-                  <div className="text-3xl font-bold text-parchment">{t("500 AEY")}{' '}<span className="text-[14px] text-parchment/40 font-normal">{t("/ year")}</span></div>
+                  <div className="text-3xl font-bold text-parchment">{t("150 AEY")}{' '}<span className="text-[14px] text-parchment/40 font-normal">{t("/ year")}</span></div>
+                  <div className="text-xs text-parchment/60">{t("Equal to €150 at the statutory parity of 1 AEY = 1 EUR")}</div>
                   <div className="space-y-2">
                     {[
                       'Digital identity credential (StableChain NFT)',
@@ -302,7 +303,7 @@ export default function EResidencyPage() {
               >{t("Begin E-Residency Application")}<ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
               </Link>
             </div>
-            <p className="text-[11px] text-parchment/30">{t("Application fee: 500 AEY / year · Reviewed within 3–5 business days · Cryptographic identity credential issued on approval")}</p>
+            <p className="text-[11px] text-parchment/30">{t("Application fee: 150 AEY (€150) / year · Reviewed within 3–5 business days · Cryptographic identity credential issued on approval")}</p>
           </div>
         </div>
       </section>
