@@ -106,6 +106,9 @@ export function Footer() {
               <li>
                 <Link href="/transparency" className="hover:text-gold transition-colors">{t("Public Ledger Audit")}</Link>
               </li>
+              <li>
+                <a href="https://www.aletheiagov.org" target="_blank" rel="noopener noreferrer" className="hover:text-gold transition-colors">{t("Government Website (aletheiagov.org)")}</a>
+              </li>
             </ul>
           </div>
 
