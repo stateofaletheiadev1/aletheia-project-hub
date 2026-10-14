@@ -1162,7 +1162,7 @@
   "e.g. ALE-ID-2026-000002": "ad es. ALE-ID-2026-000002",
   "e.g. citizenship, maritime zone, treasury...": "es. cittadinanza, zona marittima, tesoro…",
   "e.g. Dr. Hélène de Vance": "es. Dott.ssa Hélène de Vance",
-  "e.g. SARL-2026-0819 or AL:T…": "es. SARL-2026-0819 o AL:T…",
+  "e.g. SARL-2026-0819 or alt:T…": "es. SARL-2026-0819 o alt:T…",
   "each": "ciascuno",
   "Each note carries matching serials in two positions, prefixed AEY and suffixed with the printing series letter.": "Ogni banconota riporta numeri di serie identici in due posizioni, con prefisso AEY e la lettera della serie di stampa come suffisso.",
   "Each passport shall contain a contactless microcontroller of not less than 80 KB storing Logical Data Structure version 1.7, including Data Group 1 (machine-readable zone), Data Group 2 (facial image) and Data Group 3 (fingerprints).": "Ogni passaporto contiene un microcontrollore contactless di almeno 80 KB che memorizza la Logical Data Structure versione 1.7, compresi il gruppo di dati 1 (zona a lettura ottica), il gruppo di dati 2 (immagine del volto) e il gruppo di dati 3 (impronte digitali).",

@@ -1162,7 +1162,7 @@
   "e.g. ALE-ID-2026-000002": "bijv. ALE-ID-2026-000002",
   "e.g. citizenship, maritime zone, treasury...": "bv. burgerschap, maritieme zone, schatkist…",
   "e.g. Dr. Hélène de Vance": "bv. dr. Hélène de Vance",
-  "e.g. SARL-2026-0819 or AL:T…": "bijv. SARL-2026-0819 of AL:T…",
+  "e.g. SARL-2026-0819 or alt:T…": "bijv. SARL-2026-0819 of alt:T…",
   "each": "per persoon",
   "Each note carries matching serials in two positions, prefixed AEY and suffixed with the printing series letter.": "Elk biljet draagt op twee plaatsen overeenkomende serienummers, met het voorvoegsel AEY en de letter van de drukserie als achtervoegsel.",
   "Each passport shall contain a contactless microcontroller of not less than 80 KB storing Logical Data Structure version 1.7, including Data Group 1 (machine-readable zone), Data Group 2 (facial image) and Data Group 3 (fingerprints).": "Elk paspoort bevat een contactloze microcontroller van ten minste 80 KB met de Logical Data Structure versie 1.7, waaronder gegevensgroep 1 (machineleesbare zone), gegevensgroep 2 (gezichtsopname) en gegevensgroep 3 (vingerafdrukken).",

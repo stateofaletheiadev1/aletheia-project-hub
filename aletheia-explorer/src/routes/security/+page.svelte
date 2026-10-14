@@ -46,7 +46,7 @@
     ["Supply invariants every block", "The AEY ledger checks I1–I15 after every block: issued, burned, held and escrowed amounts must reconcile, or the block is refused."],
     ["Keys stay with their owners", "Validator keys sit in a signer with a persistent record of what it signed; the RPC and explorer never hold keys and cannot move funds."],
     ["Network-bound signatures", "Every signature names the chain and the network, so a signature made for one network cannot be replayed on another."],
-    ["Checksummed identifiers", "Addresses and identifiers carry Bech32m checksums that name the network; a mistyped or foreign address is refused."],
+    ["Checksummed identifiers", "Addresses and identifiers carry a checksum in the case of their letters, as Ethereum addresses do, with the network folded in; a mistyped or foreign address is refused."],
     ["Finalized-only reads", "The RPC and this explorer serve finalized data only, so nothing shown can be rolled back."],
   ];
 </script>

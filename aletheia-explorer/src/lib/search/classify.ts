@@ -1,12 +1,12 @@
 // The Explorer's single search field (spec 41A.9). It recognises, without a mode switch:
-// heights (with or without grouping), AL: addresses, AL:T transaction ids, AL:B block ids,
+// heights (with or without grouping), alt: addresses, alt:T transaction ids, alt:B block ids,
 // 64-character hashes, AANs (MOD-97 checked before any request), UETRs, and "epoch N".
 // Everything is decided locally; nothing is sent until the input is known to be well formed.
 //
 // Messages are the reader-facing sentences. They are English here; the app routes them
 // through the ICU message files with the same keys (41A.10).
 
-import { parseIdentifier, type IdentifierKind, type NetworkKind } from "../encoding/identifiers.ts";
+import { parseIdentifier, TEXT_LEN, type IdentifierKind, type NetworkKind } from "../encoding/identifiers.ts";
 
 export type SearchTarget =
   | { readonly kind: "height"; readonly height: bigint }
@@ -45,8 +45,8 @@ function aanCheck(electronic: string): number {
 const IDENTIFIER_MESSAGES: Record<string, string> = {
   ADDR_WRONG_NETWORK: "This address belongs to a different Aletheia network",
   ID_WRONG_NETWORK: "This identifier belongs to a different Aletheia network",
-  ADDR_NON_CANONICAL: "Aletheia addresses are written with an uppercase AL: and lowercase letters after it.",
-  ID_NON_CANONICAL: "Aletheia identifiers are written with an uppercase prefix and lowercase letters after it.",
+  ADDR_NON_CANONICAL: "Aletheia addresses are written with a lowercase alt: and mixed-case hex after it; the capitals are the checksum. Copy it again from the source.",
+  ID_NON_CANONICAL: "Aletheia identifiers are written with a lowercase alt: and mixed-case hex after the T or B; the capitals are the checksum. Copy it again from the source.",
 };
 
 export function classify(input: string, network: NetworkKind): SearchTarget {
@@ -56,7 +56,7 @@ export function classify(input: string, network: NetworkKind): SearchTarget {
   if (/^0x/i.test(text)) {
     return refused(
       "search.prefixed-hex",
-      "Aletheia does not use the 0x prefix. Hashes are 64 lowercase hex characters; addresses start with AL:.",
+      "Aletheia does not use the 0x prefix. Hashes are 64 lowercase hex characters; addresses start with alt:.",
     );
   }
 
@@ -71,9 +71,9 @@ export function classify(input: string, network: NetworkKind): SearchTarget {
   const height = parseGroupedInteger(text);
   if (height !== null) return { kind: "height", height };
 
-  if (/^al:/i.test(text)) {
-    const kind: IdentifierKind = /^AL:T/.test(text) && text.length === 62 ? "transaction"
-      : /^AL:B/.test(text) && text.length === 62 ? "block"
+  if (/^alt:/i.test(text)) {
+    const kind: IdentifierKind = /^alt:T/i.test(text) && text.length === TEXT_LEN.transaction ? "transaction"
+      : /^alt:B/i.test(text) && text.length === TEXT_LEN.block ? "block"
       : "address";
     const parsed = parseIdentifier(kind, text, network);
     if (parsed.ok) return { kind, canonical: text };
@@ -111,5 +111,5 @@ export function classify(input: string, network: NetworkKind): SearchTarget {
     return { kind: "uetr", uetr: text.toLowerCase() };
   }
 
-  return refused("search.unrecognised", "Nothing on the chain has this form. Heights, addresses (AL:), transactions (AL:T), blocks (AL:B), hashes, AANs and UETRs are searchable.");
+  return refused("search.unrecognised", "Nothing on the chain has this form. Heights, addresses (alt:), transactions (alt:T), blocks (alt:B), hashes, AANs and UETRs are searchable.");
 }

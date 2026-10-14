@@ -3,9 +3,10 @@ import assert from "node:assert/strict";
 import { classify, type SearchTarget } from "../src/lib/search/classify.ts";
 import { renderIdentifier } from "../src/lib/encoding/identifiers.ts";
 
-const address = renderIdentifier("address", "mainnet", Uint8Array.from({ length: 33 }, (_, i) => (i === 0 ? 0 : i)));
-const blockId = renderIdentifier("block", "mainnet", new Uint8Array(32).fill(5));
-const txId = renderIdentifier("transaction", "mainnet", new Uint8Array(32).fill(6));
+// Bytes with plenty of a-f digits, so the case checksum has letters to work with.
+const address = renderIdentifier("address", "mainnet", Uint8Array.from({ length: 20 }, (_, i) => 0xa0 + i * 7));
+const blockId = renderIdentifier("block", "mainnet", new Uint8Array(32).fill(0xb5));
+const txId = renderIdentifier("transaction", "mainnet", new Uint8Array(32).fill(0xc6));
 
 function refusalKey(result: SearchTarget): string {
   assert.equal(result.kind, "refused");
@@ -30,14 +31,19 @@ test("addresses, transaction ids and block ids by prefix", () => {
 });
 
 test("an identifier from another network is refused, naming that network", () => {
-  const result = classify(renderIdentifier("address", "devnet", Uint8Array.from({ length: 33 })), "mainnet");
+  const result = classify(renderIdentifier("address", "devnet", Uint8Array.from({ length: 20 }, (_, i) => 0xa0 + i * 7)), "mainnet");
   assert.equal(refusalKey(result), "search.addr_wrong_network");
   assert.match(result.kind === "refused" ? result.message : "", /different Aletheia network \(devnet\)/);
 });
 
 test("a mistyped address is refused, never corrected into another valid one", () => {
-  const typo = address.slice(0, 20) + (address[20] === "q" ? "p" : "q") + address.slice(21);
+  // One digit changed: the case pattern no longer matches what Keccak gives the new value.
+  const typo = address.slice(0, 20) + (address[20] === "7" ? "8" : "7") + address.slice(21);
   assert.equal(refusalKey(classify(typo, "mainnet")), "search.addr_malformed");
+  // A letter's case flipped.
+  const at = [...address].findIndex((c, i) => i > 3 && /[a-fA-F]/.test(c));
+  const flipped = address.slice(0, at) + (address[at] === address[at]!.toLowerCase() ? address[at]!.toUpperCase() : address[at]!.toLowerCase()) + address.slice(at + 1);
+  assert.equal(refusalKey(classify(flipped, "mainnet")), "search.addr_malformed");
 });
 
 test("0x input is refused with one sentence", () => {

@@ -12,6 +12,7 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
+import { EXAMPLE, shortId } from '@/lib/stablechain';
 
 export default function TransparencyPage() {
   const { t } = useI18n();
@@ -122,21 +123,21 @@ export default function TransparencyPage() {
                   <td className="p-3 text-navy/80">{t("Ministry of Territorial Dev.")}</td>
                   <td className="p-3 font-sans text-navy/80">{t("St. Brendan Deepwater Seabed Core Analysis")}</td>
                   <td className="p-3 font-bold text-navy">{t("145,000 AEY")}</td>
-                  <td className="p-3 text-[10px] text-navy/50" translate="no" data-i18n-skip="">AL:Trfppjn…an67</td>
+                  <td className="p-3 text-[10px] text-navy/50" translate="no" data-i18n-skip="" title={EXAMPLE.tx[1]}>{shortId(EXAMPLE.tx[1])}</td>
                 </tr>
                 <tr>
                   <td className="p-3 font-bold text-navy">{t("EXP-2026-890")}</td>
                   <td className="p-3 text-navy/80">{t("ADSS Coast Guard")}</td>
                   <td className="p-3 font-sans text-navy/80">{t("Autonomous Navigational Buoy Array Maintenance")}</td>
                   <td className="p-3 font-bold text-navy">{t("42,500 AEY")}</td>
-                  <td className="p-3 text-[10px] text-navy/50" translate="no" data-i18n-skip="">AL:Tkvgqfz…83k3</td>
+                  <td className="p-3 text-[10px] text-navy/50" translate="no" data-i18n-skip="" title={EXAMPLE.tx[2]}>{shortId(EXAMPLE.tx[2])}</td>
                 </tr>
                 <tr>
                   <td className="p-3 font-bold text-navy">{t("EXP-2026-889")}</td>
                   <td className="p-3 text-navy/80">{t("National Registry Dept.")}</td>
                   <td className="p-3 font-sans text-navy/80">{t("Polycarbonate e-Passport Blank Stock Procurement")}</td>
                   <td className="p-3 font-bold text-navy">{t("88,200 AEY")}</td>
-                  <td className="p-3 text-[10px] text-navy/50" translate="no" data-i18n-skip="">AL:T4kmftt…kuha</td>
+                  <td className="p-3 text-[10px] text-navy/50" translate="no" data-i18n-skip="" title={EXAMPLE.tx[3]}>{shortId(EXAMPLE.tx[3])}</td>
                 </tr>
               </tbody>
             </table>

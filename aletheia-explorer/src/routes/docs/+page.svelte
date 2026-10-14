@@ -2,7 +2,7 @@
   import CodeBlock from "$lib/components/CodeBlock.svelte";
   import Icon from "$lib/components/Icon.svelte";
   import Star from "$lib/components/Star.svelte";
-  import { EXAMPLES, SAMPLE_ADDRESS, SAMPLE_BLOCK, SAMPLE_TX } from "$lib/docs/examples";
+  import { EXAMPLES, SAMPLE_ADDRESS, SAMPLE_BLOCK, SAMPLE_HEIGHT, SAMPLE_TX } from "$lib/docs/examples";
   import { PUBLIC } from "$lib/network";
 
   const sections = [
@@ -24,13 +24,13 @@
     { method: "GET", path: "/chain/finalized", rpc: "getFinalizedHead", what: "The same block as /chain/head, by its explicit name." },
     { method: "GET", path: "/chain/params", rpc: "getChainParams", what: "Chain ID, protocol version and the assets that may pay fees.", example: "params" },
     { method: "GET", path: "/blocks/height/{height}", rpc: "getBlockByHeight", what: "A finalized block by height." },
-    { method: "GET", path: "/blocks/{AL:B…}", rpc: "getBlock", what: "A finalized block by its identifier." },
-    { method: "GET", path: "/blocks/{AL:B…}/finality", rpc: "getFinalityProof", what: "The 2-chain finality certificate of a block, where one is stored." },
-    { method: "GET", path: "/transactions/{AL:T…}", rpc: "getTransaction", what: "A finalized transaction with its block, fee terms, payload and receipt summary.", example: "tx" },
-    { method: "GET", path: "/receipts/{AL:T…}", rpc: "getReceipt", what: "The full receipt: status, execution units, fee, write-set hash and events.", example: "receipt" },
-    { method: "GET", path: "/accounts/{AL:…}", rpc: "getAccount", what: "Whether the account exists, and its next nonce.", example: "account" },
-    { method: "GET", path: "/accounts/{AL:…}/nonce", rpc: "getAccount", what: "Only the next nonce, for wallets." },
-    { method: "GET", path: "/accounts/{AL:…}/balances?asset=AEY", rpc: "getBalance", what: "Balances in AEY and ALnT, or one asset with ?asset=.", example: "balances" },
+    { method: "GET", path: "/blocks/{alt:B…}", rpc: "getBlock", what: "A finalized block by its identifier." },
+    { method: "GET", path: "/blocks/{alt:B…}/finality", rpc: "getFinalityProof", what: "The 2-chain finality certificate of a block, where one is stored." },
+    { method: "GET", path: "/transactions/{alt:T…}", rpc: "getTransaction", what: "A finalized transaction with its block, fee terms, payload and receipt summary.", example: "tx" },
+    { method: "GET", path: "/receipts/{alt:T…}", rpc: "getReceipt", what: "The full receipt: status, execution units, fee, write-set hash and events.", example: "receipt" },
+    { method: "GET", path: "/accounts/{alt:…}", rpc: "getAccount", what: "Whether the account exists, and its next nonce.", example: "account" },
+    { method: "GET", path: "/accounts/{alt:…}/nonce", rpc: "getAccount", what: "Only the next nonce, for wallets." },
+    { method: "GET", path: "/accounts/{alt:…}/balances?asset=AEY", rpc: "getBalance", what: "Balances in AEY and ALnT, or one asset with ?asset=.", example: "balances" },
     { method: "GET", path: "/assets", rpc: "getAssets", what: "The asset registry: identifiers, names and decimals.", example: "assets" },
     { method: "GET", path: "/monetary/{asset}/supply", rpc: "getMonetarySupply", what: "The supply ledger: issued, burned, redeemed, circulating, locked and the rest.", example: "supply" },
     { method: "GET", path: "/validators?epoch={n}", rpc: "getValidatorSet", what: "The validator set of an epoch (default: the current one).", example: "validators" },
@@ -62,23 +62,23 @@
 curl -X POST ${PUBLIC.rest}/transactions/simulate \\
   -H 'content-type: application/json' -d '{"tx":"<signed transaction, base16>"}'
 
-# 2. Submit: admitted to the mempool; the answer carries the AL:T… identifier
+# 2. Submit: admitted to the mempool; the answer carries the alt:T… identifier
 curl -X POST ${PUBLIC.rest}/transactions \\
   -H 'content-type: application/json' -d '{"tx":"<signed transaction, base16>"}'
 
 # 3. Track: 404 until the block holding it is final, then the transaction
-curl ${PUBLIC.rest}/transactions/AL:T…`;
+curl ${PUBLIC.rest}/transactions/alt:T…`;
   const cli = `aletheia-cli --rpc 127.0.0.1:7781 status
 aletheia-cli keys new  --keystore wallet.json
 aletheia-cli keys show --keystore wallet.json
 aletheia-cli balance ${SAMPLE_ADDRESS} --asset AEY
-aletheia-cli transfer --keystore wallet.json --to AL:… --amount 25.50 --asset AEY
+aletheia-cli transfer --keystore wallet.json --to alt:… --amount 25.50 --asset AEY
 aletheia-cli tx show ${SAMPLE_TX}
 aletheia-cli block show 1200
 aletheia-cli --output json --network mainnet status`;
   const cliOut = `Network          devnet (chain 7771)
 Protocol         1
-Finalized        #88571   AL:Bm9pr77h7p6ctnxdnte78xapt09759dwfsmuze8ex9uldneld6m5qmk455x`;
+Finalized        #${SAMPLE_HEIGHT.toLocaleString("en")}   ${SAMPLE_BLOCK}`;
 </script>
 
 <svelte:head>
@@ -139,7 +139,7 @@ Finalized        #88571   AL:Bm9pr77h7p6ctnxdnte78xapt09759dwfsmuze8ex9uldneld6m
         <table class="scan">
           <thead><tr><th>Network</th><th>Purpose</th><th>RPC</th><th>Address prefix</th></tr></thead>
           <tbody>
-            <tr><td><strong>Mainnet</strong></td><td>The national ledger</td><td class="mono">{PUBLIC.rpc}</td><td class="mono">AL: · checksum al</td></tr>
+            <tr><td><strong>Mainnet</strong></td><td>The national ledger</td><td class="mono">{PUBLIC.rpc}</td><td class="mono">alt: · checksum al</td></tr>
             <tr><td><strong>Private validation</strong></td><td>Multi-operator rehearsal before mainnet</td><td class="faint">Operators only</td><td class="mono">checksum alt</td></tr>
             <tr><td><strong>Devnet</strong></td><td>Development and testing</td><td class="mono">{PUBLIC.localRpc}</td><td class="mono">checksum ald</td></tr>
           </tbody>
@@ -168,17 +168,19 @@ Finalized        #88571   AL:Bm9pr77h7p6ctnxdnte78xapt09759dwfsmuze8ex9uldneld6m
     <section id="identifiers" class="panel doc">
       <h2><span class="n">03</span> Identifiers & amounts</h2>
       <p>
-        Aletheia writes every identifier in one human-checkable form: a prefix that says what it is, and a Bech32m body whose
-        checksum catches typing errors and names the network. <strong>Aletheia never uses the <code>0x</code> prefix</strong>;
+        Aletheia writes every identifier in one human-checkable form: a prefix that says what it is, and a hex body whose
+        capital letters are a checksum, the EIP-55 rule Ethereum addresses use, with the network folded in. It catches typing
+        errors and an identifier from another network. Addresses are 20 bytes, so they look like Ethereum addresses after
+        <code>alt:</code>; copy them exactly, capitals included. <strong>Aletheia never uses the <code>0x</code> prefix</strong>;
         the RPC refuses any value that carries it.
       </p>
       <div class="table-wrap">
         <table class="scan">
           <thead><tr><th>What</th><th>Form</th><th>Example</th></tr></thead>
           <tbody>
-            <tr><td>Account address</td><td class="mono">AL:…</td><td class="mono wrap">{SAMPLE_ADDRESS}</td></tr>
-            <tr><td>Transaction</td><td class="mono">AL:T…</td><td class="mono wrap">{SAMPLE_TX}</td></tr>
-            <tr><td>Block</td><td class="mono">AL:B…</td><td class="mono wrap">{SAMPLE_BLOCK}</td></tr>
+            <tr><td>Account address</td><td class="mono">alt:…</td><td class="mono wrap">{SAMPLE_ADDRESS}</td></tr>
+            <tr><td>Transaction</td><td class="mono">alt:T…</td><td class="mono wrap">{SAMPLE_TX}</td></tr>
+            <tr><td>Block</td><td class="mono">alt:B…</td><td class="mono wrap">{SAMPLE_BLOCK}</td></tr>
             <tr><td>Hashes and roots</td><td>64 lowercase hex characters</td><td class="mono wrap">627df554bc4d8c1b83ac2ab8c9e0ca6f211d9f45cbdee23f590ff9956141215f</td></tr>
           </tbody>
         </table>
@@ -204,7 +206,7 @@ Finalized        #88571   AL:Bm9pr77h7p6ctnxdnte78xapt09759dwfsmuze8ex9uldneld6m
           <span class="faint">Utility and staking asset; pays fees</span>
         </div>
       </div>
-      <CodeBlock label={"GET /accounts/{AL:…}/balances · devnet"} lang="json" code={EXAMPLES["balances"] ?? ""} />
+      <CodeBlock label={"GET /accounts/{alt:…}/balances · devnet"} lang="json" code={EXAMPLES["balances"] ?? ""} />
       <CodeBlock label="A 0x-prefixed value is refused" lang="json" code={EXAMPLES["rpc-0x"] ?? ""} />
     </section>
 
@@ -257,10 +259,10 @@ Finalized        #88571   AL:Bm9pr77h7p6ctnxdnte78xapt09759dwfsmuze8ex9uldneld6m
         for one network can never be replayed on another. Wallets and the CLI do this for you; the RPC never sees a private key.
       </p>
       <ol class="steps">
-        <li><span class="step-n">1</span><div><strong>Read the nonce.</strong> Each account's transactions are numbered; use <code>/accounts/{"{AL:…}"}/nonce</code>.</div></li>
+        <li><span class="step-n">1</span><div><strong>Read the nonce.</strong> Each account's transactions are numbered; use <code>/accounts/{"{alt:…}"}/nonce</code>.</div></li>
         <li><span class="step-n">2</span><div><strong>Build and sign.</strong> Set the fee terms (fee asset, execution-unit limit, maximum fee) and a validity window in slots.</div></li>
         <li><span class="step-n">3</span><div><strong>Simulate.</strong> See the result and the exact fee before anything is sent.</div></li>
-        <li><span class="step-n">4</span><div><strong>Submit.</strong> The answer carries the <code>AL:T…</code> identifier.</div></li>
+        <li><span class="step-n">4</span><div><strong>Submit.</strong> The answer carries the <code>alt:T…</code> identifier.</div></li>
         <li><span class="step-n">5</span><div><strong>Track.</strong> The transaction is served once its block is final, about a second later.</div></li>
       </ol>
       <CodeBlock label="The three calls" lang="shell" code={submit} />
@@ -270,7 +272,7 @@ Finalized        #88571   AL:Bm9pr77h7p6ctnxdnte78xapt09759dwfsmuze8ex9uldneld6m
         set by governance and never auctioned, so a busy period never raises them. A simple transfer uses 2,000 units. A
         transaction that fails still pays for the units it used; nothing else moves.
       </p>
-      <CodeBlock label={"GET /transactions/{AL:T…} · devnet"} lang="json" code={EXAMPLES["tx"] ?? ""} />
+      <CodeBlock label={"GET /transactions/{alt:T…} · devnet"} lang="json" code={EXAMPLES["tx"] ?? ""} />
     </section>
 
     <section id="errors" class="panel doc">

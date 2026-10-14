@@ -41,32 +41,32 @@ export const NATIVE_ASSETS = [
 
 /**
  * Example identifiers for illustrations (sample statements, the demo portal). They are
- * correctly formed mainnet text (valid checksums, generated with the explorer's APS-0002
- * code from fixed labels) and name no real account, transaction or block.
+ * correctly formed mainnet text (valid EIP-55 case checksums, ADR-062; generated with the
+ * explorer's APS-0002 code from fixed labels) and name no real account, transaction or block.
  */
 export const EXAMPLE = {
-  address: 'AL:qq4w8las6xwf2d4fyzeqnadmx5jcrqleyh5jja988v8jylzzhujkkamd3k4',
-  citizen: 'AL:qp3f3ak4x56xchdg3n39eny2hs0xrhs25jvz7x64zv292slrn63pwhrwyxt',
-  treasury: 'AL:qr6g5wd4as5cgkcdjpdw67trytw7t7c2hejnpxay264eqsq5dwcp6jlx6gq',
+  address: 'alt:a7418e1BD7B3423b42Ccb25255Cbf9F2Cc0DBe8a',
+  citizen: 'alt:1045e751912C3AC9A13871e52Ce745734DE7c65b',
+  treasury: 'alt:65177Fcb5b49D041A63609d16D9C4c3ce43b0D28',
   citizenPublicKey: '3b9d366a42461e5a9637817911772474485d61d133b7c2645ece202ffcfbf986',
   tx: [
-    'AL:Tf77xujdm89atzthxpwfeyzt872d9xjjau2ut6mhmsc2jy9r70v8qd9mrrc',
-    'AL:Trfppjnh4sxf6wav2ljxvq8sx2yzglhn06sjk6tqgs9uhv96r3ucqtjan67',
-    'AL:Tkvgqfz6y98vjcz8n9z9dslzzzuqz5xcpckmapv7r2jum96hue0sqm283k3',
-    'AL:T4kmfttjr92v92w0fjpd6hkrkydjxgzyjd48dz78qtul6vza59n7s6ukuha',
-    'AL:Thm44l3hfkuzdnxvf5fj7ujppjfv4pahpmy9226fw94qfzfjhd4kqapd29q',
-    'AL:T0e46wm7akz495lvc0padmsa5esgjc4yw9jklp9g9cpfhw8m48c6quj7r43',
-    'AL:T9srtalrxcgqaw9dwkcnq3xn3tql9rw86mysyq84e953lkl0wnc4qzdrdnh',
-    'AL:Txn9s5yek3mjkmd2dp5sxwev0vt78c4c284umk73r7gexv2jy0m0qyan2wj',
-    'AL:Tdhwcu5zjm9ez6ww4c7gln58y2n0sxfrnlynfrrszdja0yueafuxqpwjxa6',
-    'AL:T4xfeu39zmehd48d66e5lmnpp38vl687p9arkcazezve74x528xwsx22zva',
-    'AL:Tf0m2upu8gesx430x3499zyg4tuxppplz879c3apw9ncgny6878xs5jj8k0',
-    'AL:Tn9uwch57mhz6u72y55xjtlgvfj93jncuvpd7mg0wev37g8dlj66skheygl',
+    'alt:T53E2A48AF0f15180c2b398D335Aa5aD8E8B50E4bF743E4c35e18ADA9751Ef393',
+    'alt:Tb9bf815FF3622E2D11ac6319830e7bC9eFB148321CAaAa5106e407599519aD3e',
+    'alt:Td13403B14f76a6565f57b39B689e96F23f793EBd4dBCB0719568c1cbfe649034',
+    'alt:T617C6d8a04281e548Dfe978e15ce91D0518868408aeA45DEA76562511e07aC6a',
+    'alt:T109F27a7191b35fb0EC4CA77dDAF6D0996B039A7aDc0FB22df5eB009db77e58b',
+    'alt:TAd869ba41F6674C6a1e3716c34B15Ed929924eC6E81a82062c9f43a2E9D11D8c',
+    'alt:TA553438697A46e77082485b991Fb7058Ed43b45A9D3475b5E3478911EBd5f5A7',
+    'alt:T7745B0593C7bEa3aFf1B7DD97CeE7cbbb8720d2E6128fF2F10Dc0F41bf7D2Dae',
+    'alt:Tc3b8cc473772D75c26365f600649BCa1e0b56f5037Bbd49B7aCb2A5792dFC4CF',
+    'alt:TdAf549B9996bc611F9Fdc15218913990beAb2F86EE386290eA2E1dD5AdE91b2d',
+    'alt:T3982c4Ee48f9A3efF12BD21EEAe5544176d3022c31D4B252c54E57eAdC2407E0',
+    'alt:Te30545CE2bBa613E08EF06B25e63f367d781C24296412511dA5155A563b7EF06',
   ],
   block: [
-    'AL:Bvdmvg9up3adj8jspulajwxzu887kux7dmzal6srntnk48u4ms2wqxjapv0',
-    'AL:Blmpy86578pvagzvqs25tq2flulz7xuqnzcvw95pp2yct0saqf80se06tgv',
-    'AL:Bpqg2tcvl5qcl356necww97ss7yxd90zah84ll52utlvel9hqs6rswjegfy',
+    'alt:B7768512e464d1C957fe7DC23CCe8aea0Bd23d2B0f7673bf3FaA15C27c902f200',
+    'alt:B8DeE2f3835dDA2A6E0157D74a14f3137F17ab774383dDDB63a12a714133c4C78',
+    'alt:BAfe7223dE85BB4Db75b030693FC256767BcD000958A1e99d8e7Ae98d08C23701',
   ],
   hash: [
     '6084717324f35d2c7f9a7155d761132e815b8c0c2a1734fcbccf0ed649167c48',
@@ -88,14 +88,14 @@ export const EXAMPLE = {
   ],
 } as const;
 
-/** "AL:Tf77xujd…mrrc": the first 10 and last 4 characters, for tight spaces; the full text stays in `title`. */
+/** "alt:T53E2A…f393": the first 10 and last 4 characters, for tight spaces; the full text stays in `title`. */
 export const shortId = (id: string, head = 10, tail = 4) => (id.length <= head + tail + 1 ? id : `${id.slice(0, head)}…${id.slice(-tail)}`);
 
 /** How identifiers are written (APS-0002). Aletheia never uses the 0x prefix. */
 export const IDENTIFIER_FORMATS = [
-  { what: 'Account address', form: 'AL:…', example: EXAMPLE.address },
-  { what: 'Transaction ID', form: 'AL:T…', example: EXAMPLE.tx[0] },
-  { what: 'Block ID', form: 'AL:B…', example: EXAMPLE.block[0] },
+  { what: 'Account address', form: 'alt:…', example: EXAMPLE.address },
+  { what: 'Transaction ID', form: 'alt:T…', example: EXAMPLE.tx[0] },
+  { what: 'Block ID', form: 'alt:B…', example: EXAMPLE.block[0] },
   { what: 'Hashes and roots', form: '64 lowercase hex characters', example: EXAMPLE.hash[0] },
 ] as const;
 

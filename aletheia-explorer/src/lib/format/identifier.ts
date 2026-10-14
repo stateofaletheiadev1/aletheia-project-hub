@@ -5,10 +5,10 @@
 // span. In dense tables, the first 8 and last 6 characters are shown with a full-value
 // tooltip. Copy always yields the exact canonical string.
 
-const PREFIXES = ["AL:T", "AL:B", "AL:", "ALX"] as const;
+const PREFIXES = ["alt:T", "alt:B", "alt:", "ALX"] as const;
 
 export interface GroupedIdentifier {
-  readonly prefix: string; // "AL:", "AL:T", "AL:B", "ALX" or ""
+  readonly prefix: string; // "alt:", "alt:T", "alt:B", "ALX" or ""
   readonly groups: readonly string[];
   readonly canonical: string; // exactly what copy yields
 }

@@ -28,7 +28,7 @@
     {autofocus}
     autocomplete="off"
     spellcheck="false"
-    placeholder="Block height, AL:T… transaction or AL:… address"
+    placeholder="Block height, alt:T… transaction or alt:… address"
   />
   <kbd aria-hidden="true">/</kbd>
   <button type="submit">

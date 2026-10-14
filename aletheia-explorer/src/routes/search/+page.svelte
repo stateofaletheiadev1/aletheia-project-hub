@@ -20,9 +20,9 @@
     <SearchBox value={data.query} autofocus />
     <ul class="hints">
       <li><strong>1200</strong> or <strong>1,200</strong>: a block height</li>
-      <li><strong class="mono">AL:T…</strong>: a transaction</li>
-      <li><strong class="mono">AL:B…</strong>: a block</li>
-      <li><strong class="mono">AL:…</strong>: an address</li>
+      <li><strong class="mono">alt:T…</strong>: a transaction</li>
+      <li><strong class="mono">alt:B…</strong>: a block</li>
+      <li><strong class="mono">alt:…</strong>: an address</li>
     </ul>
   </article>
 </section>

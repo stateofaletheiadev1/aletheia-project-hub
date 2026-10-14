@@ -10,8 +10,8 @@ const MAX_LISTED = 200;
 export const load: PageServerLoad = async ({ params, url, setHeaders }) => {
   const id = params.id.trim();
   const isHeight = /^\d+$/.test(id);
-  if (!isHeight && !id.startsWith("AL:B")) {
-    error(400, { message: "That is not a block", hint: "Blocks are found by height (1200) or by their AL:B… identifier." });
+  if (!isHeight && !id.startsWith("alt:B")) {
+    error(400, { message: "That is not a block", hint: "Blocks are found by height (1200) or by their alt:B… identifier." });
   }
   const [block, status] = await Promise.all([
     fromNode(() => (isHeight ? rpc.blockAt(Number(id)) : rpc.block(id)), "block"),

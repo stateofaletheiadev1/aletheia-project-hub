@@ -5,8 +5,8 @@ import type { PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async ({ params, url, setHeaders }) => {
   const id = params.id.trim();
-  if (!id.startsWith("AL:T")) {
-    error(400, { message: "That is not a transaction", hint: "Transactions are found by their AL:T… identifier." });
+  if (!id.startsWith("alt:T")) {
+    error(400, { message: "That is not a transaction", hint: "Transactions are found by their alt:T… identifier." });
   }
   const tx = await fromNode(() => rpc.transaction(id), "transaction");
   const [receipt, block, status] = await Promise.all([

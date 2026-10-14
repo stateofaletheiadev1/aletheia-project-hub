@@ -7,7 +7,7 @@
 
 <span class="hash {tone}">
   {#if href}<a class="mono" {href}>{value}</a>{:else}<span class="mono">{value}</span>{/if}
-  <CopyButton {value} label="Copy {value.startsWith('AL:') ? 'identifier' : 'hash'}" />
+  <CopyButton {value} label="Copy {value.startsWith('alt:') ? 'identifier' : 'hash'}" />
 </span>
 
 <style>

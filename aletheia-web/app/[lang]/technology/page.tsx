@@ -161,7 +161,7 @@ export default function TechnologyPage() {
                 <input
                   id="reg-query"
                   type="text"
-                  placeholder={t("e.g. SARL-2026-0819 or AL:T…")}
+                  placeholder={t("e.g. SARL-2026-0819 or alt:T…")}
                   value={queryInput}
                   onChange={(e) => setQueryInput(e.target.value)}
                   className="flex-1 px-4 py-2 text-xs border border-navy/20 rounded-sm focus:outline-none focus:border-navy font-mono"

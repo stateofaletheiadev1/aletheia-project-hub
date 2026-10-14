@@ -90,7 +90,7 @@
           <div><dt class="label">Native assets</dt><dd>AEY (Aletheian Guilder) · ALnT (Aletheia Talent)</dd></div>
           <div><dt class="label">Live feed</dt><dd class="mono">{feed} <CopyButton value={feed} /></dd></div>
         </dl>
-        <p class="hint">Addresses start with <span class="mono">AL:</span>. Aletheia never uses the <span class="mono">0x</span> prefix.</p>
+        <p class="hint">Addresses start with <span class="mono">alt:</span>. Aletheia never uses the <span class="mono">0x</span> prefix.</p>
       </div>
     </div>
   {/if}
