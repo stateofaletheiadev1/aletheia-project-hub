@@ -516,7 +516,7 @@ export default function HomePage() {
 
             <div className="lg:col-span-7 space-y-8">
               <div className="space-y-3">
-                <div className="eyebrow">{t("Part IV: Citizens & Society")}</div>
+                <div className="eyebrow">{t("Part III: Citizens & Society")}</div>
                 <h2 className="text-4xl font-bold tracking-tight text-navy leading-[1.15]">{t("Membership by Covenant:")}<br />
                   <span className="text-navy/60 font-light">{t("transparent standards for all.")}</span>
                 </h2>
@@ -561,7 +561,7 @@ export default function HomePage() {
         <div className="orb-burgundy w-[400px] h-[400px] -bottom-24 right-20 opacity-40" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-14">
           <div className="max-w-3xl space-y-4">
-            <div className="eyebrow" style={{ color: '#E4C689' }}>{t("Part V: The Financial Operating System")}</div>
+            <div className="eyebrow" style={{ color: '#E4C689' }}>{t("Part IV: The Financial Operating System")}</div>
             <h2 className="text-4xl lg:text-5xl font-bold tracking-tight text-parchment leading-[1.1]">{t("Critical national payment")}<br />{t("infrastructure, not a crypto")}<br /><span className="text-gold-metallic">{t("experiment.")}</span>
             </h2>
             <p className="text-parchment/68 text-base leading-relaxed font-light max-w-2xl">{t("Aletheia rejects volatile token speculation. The state operates StableChain: a Byzantine-fault-tolerant ledger with 500 ms slots and finality in about a second, real-time public reserve verification, and fixed settlement fees.")}</p>
@@ -605,7 +605,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div className="space-y-3">
-              <div className="eyebrow">{t("Part III: Security & Resilience")}</div>
+              <div className="eyebrow">{t("Part V: Security & Resilience")}</div>
               <h2 className="text-4xl font-bold tracking-tight text-navy">{t("Aletheian Defence &")}<br />{t("Security Service (ADSS)")}</h2>
               <p className="text-navy/58 max-w-xl text-sm leading-relaxed font-light">{t("A unified defence and civilian security institution operating under strict civilian command, with a mandatory sovereign Cybersecurity Department.")}</p>
             </div>

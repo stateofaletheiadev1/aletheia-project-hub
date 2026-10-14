@@ -2,18 +2,17 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useI18n } from '@/components/i18n/I18nProvider';
+import { compactNumber } from '@/lib/national-registry';
 
 interface CountUpProps {
   value: number;
-  /** 'aey-compact' renders 2.45B (or the reader's locale equivalent). */
+  /** 'aey-compact' renders 2.45bn (or the reader's locale equivalent). */
   format?: 'number' | 'aey-compact';
   durationMs?: number;
 }
 
 function render(n: number, format: CountUpProps['format'], intl: string) {
-  if (format === 'aey-compact' && n >= 1e6) {
-    return new Intl.NumberFormat(intl, { notation: 'compact', maximumFractionDigits: n >= 1e9 ? 2 : 1 }).format(n);
-  }
+  if (format === 'aey-compact' && n >= 1e6) return compactNumber(n, intl);
   return Math.round(n).toLocaleString(intl);
 }
 
