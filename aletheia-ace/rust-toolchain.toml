@@ -1,6 +1,0 @@
-# The toolchain is a reproducibility input (spec Section 3.1). It changes only through a
-# reviewed toolchain-update change, never as a side effect of another PR.
-[toolchain]
-channel = "1.91.1"
-components = ["rustfmt", "clippy"]
-profile = "minimal"
