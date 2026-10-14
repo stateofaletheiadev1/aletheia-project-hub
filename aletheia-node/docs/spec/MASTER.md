@@ -6788,7 +6788,7 @@ and a QR code back to the canonical URL.
     Socket/OSV scan in CI; the production bundle contains no package
     outside the allow-list.
 -   Lookalike-address defence: addresses are always shown with their
-    Bech32m checksum intact and grouped; the search refuses addresses
+    checksum casing intact and grouped; the search refuses addresses
     whose checksum fails and never "did you mean"s into a different
     valid address.
 

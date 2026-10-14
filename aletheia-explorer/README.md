@@ -25,11 +25,11 @@ npm run dev
 ## Pages
 
 - `/` dashboard: figures, live blocks and live transactions.
-- `/blocks`, `/blocks/<height or AL:B…>`: block register and block detail (Overview,
+- `/blocks`, `/blocks/<height or alt:B…>`: block register and block detail (Overview,
   Transactions).
-- `/transactions`, `/tx/<AL:T…>`: transaction register and detail (Overview, Logs).
-- `/address/<AL:…>`: balances and recent activity.
-- `/search?q=…`: heights, `AL:T` / `AL:B` / `AL:` identifiers.
+- `/transactions`, `/tx/<alt:T…>`: transaction register and detail (Overview, Logs).
+- `/address/<alt:…>`: balances and recent activity.
+- `/search?q=…`: heights, `alt:T` / `alt:B` / `alt:` identifiers.
 
 ## Checks
 

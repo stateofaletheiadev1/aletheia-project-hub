@@ -16,7 +16,7 @@ partly written; see the end of this file.
 | ACE reader/writer (`ace.rs`) | APS-0041 | yes | yes | unit, property | **no** | rustdoc | no |
 | Network identity, `H_domain` (`network.rs`) | APS-0001 | yes | yes | unit | n/a | rustdoc | no |
 | Base16 text codec (`base16.rs`) | APS-0048 | yes | yes | unit, property | **no** | rustdoc | no |
-| Bech32m engine (`bech32m.rs`) | APS-0002 | yes | yes | BIP-350 vectors, property vs `bech32` crate | **no** | rustdoc | no |
+| EIP-55 checksum casing (`text_id.rs`, ADR-062; replaced the Bech32m engine) | APS-0002 | yes | yes | EIP-55 vectors, property | **no** | rustdoc | no |
 | `alt:` addresses, 20 bytes, EIP-55 checksum (`address.rs`, ADR-062) | APS-0002 | yes | yes | unit, property | **no** | rustdoc | no |
 | `alt:T` / `alt:B` identifiers (`ids.rs`, ADR-062) | 12, 12.1 | yes | yes | unit, property | **no** | rustdoc | no |
 | Transaction wire format (`tx.rs`) | APS-0003 | yes (+ ERRATA E-10, E-12) | yes | unit, property, vectors | target written, smoke only | rustdoc | no |
@@ -307,7 +307,7 @@ partly written; see the end of this file.
 | Criterion | State |
 | --- | --- |
 | KATs pass | Ed25519 (RFC 8032) and BLS (consensus-spec `sign` vector) pass. BLAKE3 is exercised through `H_domain` against the normative formula; upstream BLAKE3 KATs are not yet in the suite. |
-| Round-trip property tests | ACE integers, lists and byte strings; base16; Bech32m regrouping; addresses; IDs. |
+| Round-trip property tests | ACE integers, lists and byte strings; base16; addresses; IDs. |
 | Fuzzers 24 h clean | **Not met yet.** Fourteen targets in `fuzz/` (decoders, stateless validation, P2P frames and hello, consensus messages, finality proofs, Arno compiler, package verifier, VM, ISO 20022 reader and camt). A stable smoke run passes on every CI run. A first coverage-guided pass of 20 minutes per target (about 1.06 billion executions) found nothing (docs/audit/2026-10-13-node-security-audit.md); the 24-hour campaign runs in the `node:fuzz` GitLab job and has not been run yet. |
 | Vectors published | Done: `tests/vectors/` APS-0001, 0002, 0003, 0004, 0006, 0009, 0041, 0048, checked against the implementation by `tests/conformance`. |
 | Transaction and block structures (Sections 13, 14) | Done (wire format, IDs, digests, stateless validation). |
