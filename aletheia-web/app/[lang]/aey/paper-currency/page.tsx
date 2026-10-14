@@ -111,8 +111,8 @@ const SECURITY_FEATURES = [
   },
   {
     icon: ShieldCheck,
-    title: 'Reserve Inscription',
-    body: 'Every note bears “100% Reserve Backed — StableChain Invariants I1–I12”, binding the design to the supply ledger.',
+    title: 'Reserve Bank Backing',
+    body: 'Every note is issued by the Aletheian Reserve Bank, the central bank of the Sovereign Covenant State, and bears “100% Reserve Backed — StableChain Invariants I1–I12”, binding the design to the supply ledger.',
   },
 ];
 
@@ -133,7 +133,7 @@ const TENDER_FORMS = [
     icon: Globe,
     eyebrow: 'Exchange',
     title: 'EUR, GBP & USD Abroad',
-    body: 'Outside the Republic, banknotes or StableChain AEY are exchanged for euros, pounds sterling or US dollars through the Central Bank and its accredited exchange partners.',
+    body: 'Outside the Republic, banknotes or StableChain AEY are exchanged for euros, pounds sterling or US dollars through the Aletheian Reserve Bank and its accredited exchange partners.',
   },
 ];
 
@@ -252,7 +252,7 @@ export default function AeyPaperCurrencyPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full pt-10">
         <div className="flex items-start gap-3 p-4 bg-white border border-gold/40 border-l-4 border-l-gold rounded-sm text-xs text-navy/80 leading-relaxed">
           <Info className="w-4 h-4 text-gold shrink-0 mt-0.5" />
-          <p><strong className="text-navy">{t("Series 2025 A — planned issue.")}</strong>{' '}{t("These designs are approved for the first AEY banknote series under the Currency & Digital Settlement Act 2026. Once issued by the Central Bank, the notes are legal tender alongside digital AEY; issue dates will be announced in the Official Gazette.")}</p>
+          <p><strong className="text-navy">{t("Series 2025 A — planned issue.")}</strong>{' '}{t("These designs are approved for the first AEY banknote series under the Currency & Digital Settlement Act 2026. Once issued by the Aletheian Reserve Bank, the notes are legal tender alongside digital AEY; issue dates will be announced in the Official Gazette.")}</p>
         </div>
       </div>
 
@@ -485,7 +485,7 @@ export default function AeyPaperCurrencyPage() {
               <span className="text-sm font-bold font-mono text-parchment block">EUR · GBP · USD</span>
             </div>
           </div>
-          <p className="mt-5 text-[11px] font-mono text-parchment/55 text-center leading-relaxed">{t("Notes and StableChain AEY convert 1:1 at par. EUR at the fixed constitutional parity; GBP and USD at the Central Bank reference rate.")}</p>
+          <p className="mt-5 text-[11px] font-mono text-parchment/55 text-center leading-relaxed">{t("Notes and StableChain AEY convert 1:1 at par. EUR at the fixed constitutional parity; GBP and USD at the Aletheian Reserve Bank reference rate.")}</p>
         </div>
       </section>
 
