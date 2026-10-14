@@ -126,8 +126,9 @@ export default function DevelopmentPage() {
 
       {/* ── STATS ── */}
       <section className="bg-navy-deep border-b border-gold/20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 md:grid-cols-4 md:divide-x divide-gold/15 gap-y-2">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 md:grid-cols-5 md:divide-x divide-gold/15 gap-y-2">
           {[
+            { v: '6,500 km²', l: 'National territory', s: 'Planned land area' },
             { v: '1 + 4', l: 'Districts & states', s: 'Antioch and four founding states' },
             { v: '6', l: 'Radial avenues', s: 'From the Constitutional Plaza' },
             { v: '40%', l: 'Green coverage', s: 'Constitutional floor' },

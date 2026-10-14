@@ -415,7 +415,7 @@ export default function HomePage() {
             <div className="space-y-3">
               <div className="eyebrow">{t("Part II: The Territory")}</div>
               <h2 className="text-4xl font-bold tracking-tight text-navy leading-tight">{t("Antioch & The Four")}<br />{t("Founding States")}</h2>
-              <p className="text-navy/60 max-w-xl text-base leading-relaxed font-light">{t("A geometric urban master plan radiating outward across concentric rings and six grand avenues, flanked by four specialized coastal and maritime states.")}</p>
+              <p className="text-navy/60 max-w-xl text-base leading-relaxed font-light">{t("A planned national territory of 6,500 km²: a geometric urban master plan radiating outward across concentric rings and six grand avenues, flanked by four specialized coastal and maritime states.")}</p>
             </div>
             <Link href="/development" className="inline-flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-navy hover:text-gold transition-colors shrink-0 group">
               <span>{t("Explore Urban Masterplan")}</span>

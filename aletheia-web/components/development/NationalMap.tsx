@@ -6,8 +6,10 @@ import React from 'react';
 /**
  * Proposed national map of the Sovereign Covenant State of Aletheia.
  *
- * Geometry is generated from a pointy-top hexagonal grid measured in
- * kilometres from Covenant Square (0, 0), at 10 SVG units per km. The
+ * Geometry is generated from a pointy-top hexagonal grid in plan units
+ * from Covenant Square (0, 0), at 10 SVG units per plan unit. One plan unit
+ * is KM_PER_UNIT km, which makes the land 6,500 km², the planned national
+ * territory; the km grid and scale bar use that measure. The
  * landmass is the set of grid cells inside a few overlapping lobes; each
  * cell belongs to the state whose sector contains it. Coastline and state
  * boundaries are the cell edges where the land or the state changes, which
@@ -18,11 +20,15 @@ export type RegionId = 'antioch' | 'barbara' | 'augustine' | 'benedict' | 'brend
 type StateId = Exclude<RegionId, 'antioch'>;
 
 const KM = 10;
-/** Grid cell size (centre to vertex), km. */
+/** Kilometres per plan unit: the 290 land cells and three islets (1,823 square units) measure 6,500 km². */
+const KM_PER_UNIT = 1.888;
+/** Plan units spanned by `km` kilometres. */
+const units = (km: number) => km / KM_PER_UNIT;
+/** Grid cell size (centre to vertex), plan units. */
 const CELL = 1.55;
-/** Federal District hexagon radius (centre to vertex), km. */
+/** Federal District hexagon radius (centre to vertex), plan units. */
 const FD_RADIUS = 7.5;
-/** The Covenant Ring inside the Federal District, km. */
+/** The Covenant Ring inside the Federal District, plan units. */
 const RING_RADIUS = 3.6;
 
 /** fill: resting; active: hovered or focused; muted: while another region is highlighted (opaque, so nothing beneath shows through). */
@@ -39,7 +45,7 @@ const SHELF_OUTER = '#D7E3EA';
 const SHELF_INNER = '#E3ECF1';
 const COAST = '#15294A';
 
-/** Land lobes in km: centre and radii. A cell is land when its centre lies in any lobe. */
+/** Land lobes in plan units: centre and radii. A cell is land when its centre lies in any lobe. */
 const LOBES = [
   { x: 0, y: 0, rx: 14, ry: 14 },
   { x: -2, y: -12, rx: 15, ry: 9.5 }, // St. Barbara, north
@@ -120,7 +126,7 @@ const GEO = buildGeometry();
 const FD_HEX = hexPoints(0, 0, FD_RADIUS * KM);
 const RING_HEX = hexPoints(0, 0, RING_RADIUS * KM);
 
-/** Positions in km from Covenant Square (x east, y south). */
+/** Positions in plan units from Covenant Square (x east, y south). */
 const CAPITALS: { name: string; x: number; y: number; dx: number; dy: number; position: 'start' | 'end' | 'middle' }[] = [
   { name: 'Port Michael', x: -3, y: -19.6, dx: 1.2, dy: -0.9, position: 'start' },
   { name: 'Port Nicholas', x: 30.4, y: -6.6, dx: -0.6, dy: -1.7, position: 'end' },
@@ -161,7 +167,7 @@ const ISLANDS: { name: string; x: number; y: number; r: number; dx: number; dy: 
 
 const RESERVOIR = { x: -20.5, y: 6.4, r: 1.6 };
 
-// Map frame, km.
+// Map frame, plan units.
 const VIEW = { x: -36, y: -29, w: 74, h: 55 };
 
 const k = (n: number) => round(n * KM);
@@ -191,12 +197,16 @@ export function NationalMap({ active, onActiveChange }: NationalMapProps) {
   const dim = (id: RegionId) => active !== null && active !== id;
   const fillOf = (id: RegionId) => (active === id ? REGION_COLORS[id].active : dim(id) ? REGION_COLORS[id].muted : REGION_COLORS[id].fill);
 
+  // A line every 10 km east and south of Covenant Square, both ways.
   const gridLines: React.ReactNode[] = [];
-  for (let x = -35; x <= 35; x += 5) {
-    gridLines.push(<line key={`gx${x}`} x1={k(x)} y1={k(VIEW.y)} x2={k(x)} y2={k(VIEW.y + VIEW.h)} />);
-  }
-  for (let y = -25; y <= 25; y += 5) {
-    gridLines.push(<line key={`gy${y}`} x1={k(VIEW.x)} y1={k(y)} x2={k(VIEW.x + VIEW.w)} y2={k(y)} />);
+  for (let km = -60; km <= 60; km += 10) {
+    const u = units(km);
+    if (u >= VIEW.x && u <= VIEW.x + VIEW.w) {
+      gridLines.push(<line key={`gx${km}`} x1={k(u)} y1={k(VIEW.y)} x2={k(u)} y2={k(VIEW.y + VIEW.h)} />);
+    }
+    if (u >= VIEW.y && u <= VIEW.y + VIEW.h) {
+      gridLines.push(<line key={`gy${km}`} x1={k(VIEW.x)} y1={k(u)} x2={k(VIEW.x + VIEW.w)} y2={k(u)} />);
+    }
   }
 
   const regionProps = (id: RegionId) => ({
@@ -331,12 +341,12 @@ export function NationalMap({ active, onActiveChange }: NationalMapProps) {
         <text y="-29" textAnchor="middle" fill={COAST} fontSize="11" fontWeight="700">{t("N")}</text>
       </g>
       <g transform={`translate(${k(20)} ${k(24.2)})`} pointerEvents="none" fill={COAST}>
-        <rect x="0" y="0" width={k(5)} height="4" />
-        <rect x={k(5)} y="0" width={k(5)} height="4" fill="#F4F1E8" stroke={COAST} strokeWidth="0.8" />
-        <rect x="0" y="0" width={k(10)} height="4" fill="none" stroke={COAST} strokeWidth="0.8" />
+        <rect x="0" y="0" width={k(units(10))} height="4" />
+        <rect x={k(units(10))} y="0" width={k(units(10))} height="4" fill="#F4F1E8" stroke={COAST} strokeWidth="0.8" />
+        <rect x="0" y="0" width={k(units(20))} height="4" fill="none" stroke={COAST} strokeWidth="0.8" />
         <text x="0" y="-4" textAnchor="middle" fontSize="8.5">0</text>
-        <text x={k(5)} y="-4" textAnchor="middle" fontSize="8.5">5</text>
-        <text x={k(10)} y="-4" textAnchor="middle" fontSize="8.5">{t("10 km")}</text>
+        <text x={k(units(10))} y="-4" textAnchor="middle" fontSize="8.5">10</text>
+        <text x={k(units(20))} y="-4" textAnchor="middle" fontSize="8.5">{t("20 km")}</text>
       </g>
     </svg>
   );
