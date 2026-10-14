@@ -1,0 +1,38 @@
+# ACE (aletheia-ace/): formatting, lints and unit tests. No secrets, no StableChain build.
+name: ace-ci
+
+on:
+  push:
+    paths:
+      - "aletheia-ace/**"
+      - ".github/workflows/ace-ci.yml"
+  pull_request:
+    paths:
+      - "aletheia-ace/**"
+      - ".github/workflows/ace-ci.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ace-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: aletheia-ace
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Toolchain pinned by aletheia-ace/rust-toolchain.toml
+        run: rustup toolchain install 1.91.1 --profile minimal --component rustfmt,clippy
+      - run: cargo fmt --check
+      - run: cargo clippy --locked --all-targets -- -D warnings
+      # The end-to-end tests print SKIPPED here (no node binaries); they run for real in
+      # ace-stablechain.yml, which sets ACE_REQUIRE_E2E so a skip fails that job.
+      - run: cargo test --locked

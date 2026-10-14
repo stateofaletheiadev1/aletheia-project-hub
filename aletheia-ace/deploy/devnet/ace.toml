@@ -1,0 +1,55 @@
+# ACE deployment: single-node devnet with the devnet producer, RPC on loopback.
+#
+# This is the only network StableChain can run at the pinned commit without a signer daemon:
+# aletheiad refuses plaintext keys outside devnet and regtest, and no public network with
+# peers exists to follow (docs/REPOSITORY_AUDIT.md). Paths are relative to this file;
+# "@source/" is inside the StableChain workspace checkout.
+config_version = 1
+
+[source]
+repository = "https://gitlab.com/emeka.iwuagwu/aletheia-project-hub.git"
+commit = "1b4f4dc409255e730b566b434c7fd955742cbc7c"
+reference = "main"
+workspace = "aletheia-node"
+checkout_dir = "work/src"
+
+[build]
+profile = "release"
+packages = ["aletheiad", "aletheia-arno-exec", "aletheia-cli"]
+features = ["aletheiad/devnet-producer"]
+binaries = ["aletheiad", "aletheia-arno-exec", "aletheia-cli"]
+target_dir = "work/target"
+output_dir = "work/bin"
+max_duration_s = 3600
+min_free_disk_mb = 2048
+
+[node]
+config = "node.toml"
+# aletheiad resolves the genesis, key and data paths in node.toml against this directory.
+working_dir = "@source"
+role = "devnet-producer"
+expected_network = "devnet"
+expected_chain_id = 7771
+# genesis/devnet-explorer.toml at the pinned commit, as aletheiad reported it. chain_id 7771
+# alone does not identify the chain: genesis/devnet.toml uses it too.
+expected_genesis_id = "9164487f5f211839f5796c6b2193e17d289a285d9eebce6bbc592f26a4c7719e"
+
+[runtime]
+state_dir = "work/run"
+startup_timeout_s = 120
+rpc_ready_timeout_s = 60
+shutdown_deadline_s = 120
+max_restarts = 3
+restart_window_s = 600
+health_interval_s = 10
+# The producer finalizes a block every 500 ms; 30 s without one is a stall.
+stall_after_s = 30
+
+[limits]
+min_free_disk_mb = 1024
+min_memory_mb = 1024
+max_snapshot_mb = 1024
+
+[persistence]
+mode = "ephemeral"
+checkpoint_dir = "work/checkpoints"

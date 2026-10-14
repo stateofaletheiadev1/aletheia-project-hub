@@ -1,0 +1,15 @@
+# aletheiad configuration for the persistent host (install as /etc/ace/node.toml).
+# genesis.toml is genesis/devnet-explorer.toml from the pinned commit; node.key is the
+# published devnet key (NON-PRODUCTION). Copy both to /etc/aletheia, key mode 0640.
+[node]
+data_dir = "/var/lib/aletheia/data"
+genesis = "/etc/aletheia/genesis.toml"
+listen = "0.0.0.0:7771"
+node_key_file = "/etc/aletheia/node.key"
+
+[devnet]
+produce_every_ms = 500
+
+[rpc]
+# Loopback only. Publish it through the tunnel (or a TLS reverse proxy), never directly.
+listen = "127.0.0.1:7781"

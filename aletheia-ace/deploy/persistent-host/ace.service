@@ -1,0 +1,52 @@
+# systemd unit: ACE supervising aletheiad on a long-lived Linux host (docs/DEPLOYMENT.md).
+# Install to /etc/systemd/system/ace.service; then systemctl daemon-reload && systemctl enable --now ace
+#
+# ACE restarts the node itself after the exits the node documents as recoverable, with backoff
+# and a restart budget. When ACE exits non-zero it is because an operator must act (wrong
+# configuration, protocol upgrade, restart budget spent, disk floor), so systemd restarts ACE
+# only if ACE itself dies abnormally (a signal or a watchdog), never on its own error exits.
+[Unit]
+Description=ACE supervising the Aletheia StableChain node
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=aletheia
+Group=aletheia
+ExecStart=/usr/local/bin/ace --config /etc/ace/ace.toml start
+Restart=on-abnormal
+RestartSec=10
+# SIGTERM goes to ACE only; ACE gives the node [runtime] shutdown_deadline_s (120 s) to drain
+# and checkpoint. Whatever is left after TimeoutStopSec is killed.
+KillMode=mixed
+KillSignal=SIGTERM
+TimeoutStopSec=180
+LimitNOFILE=65536
+OOMScoreAdjust=-800
+
+NoNewPrivileges=yes
+ProtectSystem=strict
+ReadWritePaths=/var/lib/aletheia /var/lib/ace
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+SystemCallArchitectures=native
+CapabilityBoundingSet=
+AmbientCapabilities=
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,203 @@
+# Build the pinned StableChain commit from GitLab with ACE, test ACE against the real node,
+# and run one bounded, supervised devnet session with a checkpoint at the end.
+#
+# What this is: temporary compute. The node and its RPC exist only while the "run" job runs
+# (at most run_minutes), on a loopback listener inside the runner. Nothing here is a
+# persistent or public deployment; the checkpoint artifact is a recovery point with GitHub's
+# artifact retention, not a database. See aletheia-ace/docs/DEPLOYMENT.md.
+name: ace-stablechain
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_minutes:
+        description: "Minutes the supervised node runs (1-45)"
+        required: true
+        default: "5"
+      restore_run_id:
+        description: "Optional: a previous run id whose checkpoint to restore before starting"
+        required: false
+        default: ""
+  push:
+    paths:
+      - "aletheia-ace/**"
+      - ".github/workflows/ace-stablechain.yml"
+
+# Least privilege: read the repository; read artifacts of earlier runs for a restore.
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: ace-stablechain-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  ACE_DEPLOYMENT: aletheia-ace/deploy/devnet
+  CARGO_TERM_COLOR: never
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    outputs:
+      commit: ${{ steps.pin.outputs.commit }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Job deadline for ACE (GitHub does not expose the remaining time)
+        run: echo "ACE_DEADLINE_EPOCH=$(( $(date +%s) + 85 * 60 ))" >> "$GITHUB_ENV"
+      - name: Pinned commit
+        id: pin
+        run: |
+          commit=$(sed -n 's/^commit = "\([0-9a-f]\{40\}\)"$/\1/p' "$ACE_DEPLOYMENT/ace.toml")
+          test -n "$commit"
+          echo "commit=$commit" >> "$GITHUB_OUTPUT"
+      - name: Native build dependencies (RocksDB is C++; its bindings need libclang)
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq clang libclang-dev
+      - name: Rust toolchain (StableChain and ACE both pin 1.91.1)
+        run: rustup toolchain install 1.91.1 --profile minimal --component rustfmt,clippy
+      # Only Cargo's download cache: crate sources are checked against Cargo.lock checksums.
+      # Compiled output is never cached, so a poisoned cache cannot inject a binary.
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/cache
+            ~/.cargo/registry/index
+          key: cargo-registry-${{ steps.pin.outputs.commit }}-${{ hashFiles('aletheia-ace/Cargo.lock') }}
+          restore-keys: cargo-registry-
+      - name: Build ACE
+        working-directory: aletheia-ace
+        run: cargo build --release --locked
+      - name: Preflight (build)
+        run: aletheia-ace/target/release/ace --config "$ACE_DEPLOYMENT/ace.toml" preflight --stage build
+      - name: Fetch, build and verify StableChain
+        env:
+          ACE_GITLAB_TOKEN: ${{ secrets.ACE_GITLAB_TOKEN }}
+          ACE_GITLAB_USER: ${{ secrets.ACE_GITLAB_USER }}
+        run: aletheia-ace/target/release/ace --config "$ACE_DEPLOYMENT/ace.toml" build
+      - name: End-to-end tests against the real node
+        working-directory: aletheia-ace
+        env:
+          ACE_TEST_BIN_DIR: ${{ github.workspace }}/${{ env.ACE_DEPLOYMENT }}/work/bin
+          ACE_TEST_WORKSPACE: ${{ github.workspace }}/${{ env.ACE_DEPLOYMENT }}/work/src/aletheia-node
+          ACE_TEST_COMMIT: ${{ steps.pin.outputs.commit }}
+          ACE_REQUIRE_E2E: "1"
+        run: cargo test --release --locked --test node_e2e -- --test-threads=2
+      - name: Binaries and provenance
+        uses: actions/upload-artifact@v4
+        with:
+          name: stablechain-bin-${{ steps.pin.outputs.commit }}
+          path: ${{ env.ACE_DEPLOYMENT }}/work/bin/
+          retention-days: 7
+          if-no-files-found: error
+      - name: ACE binary for the run job
+        uses: actions/upload-artifact@v4
+        with:
+          name: ace-bin
+          path: aletheia-ace/target/release/ace
+          retention-days: 1
+          if-no-files-found: error
+      - name: Build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: ${{ env.ACE_DEPLOYMENT }}/work/run/build.log
+          retention-days: 7
+          if-no-files-found: ignore
+
+  run:
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Bounded run length
+        id: minutes
+        env:
+          REQUESTED: ${{ github.event.inputs.run_minutes || '3' }}
+          RESTORE_RUN_ID: ${{ github.event.inputs.restore_run_id }}
+        run: |
+          case "$RESTORE_RUN_ID" in (*[!0-9]*) echo "restore_run_id must be a run id (digits)" >&2; exit 1;; esac
+          case "$REQUESTED" in (''|*[!0-9]*) echo "run_minutes must be a number" >&2; exit 1;; esac
+          if [ "$REQUESTED" -lt 1 ] || [ "$REQUESTED" -gt 45 ]; then echo "run_minutes must be 1-45" >&2; exit 1; fi
+          echo "seconds=$(( REQUESTED * 60 ))" >> "$GITHUB_OUTPUT"
+          echo "ACE_DEADLINE_EPOCH=$(( $(date +%s) + 55 * 60 ))" >> "$GITHUB_ENV"
+      - uses: actions/download-artifact@v4
+        with:
+          name: ace-bin
+          path: bin
+      - uses: actions/download-artifact@v4
+        with:
+          name: stablechain-bin-${{ needs.build.outputs.commit }}
+          path: ${{ env.ACE_DEPLOYMENT }}/work/bin
+      - name: Install ACE
+        run: chmod 0755 bin/ace && echo "ACE=$PWD/bin/ace --config $ACE_DEPLOYMENT/ace.toml" >> "$GITHUB_ENV"
+      - name: Verify the downloaded binaries against their provenance
+        run: chmod 0755 "$ACE_DEPLOYMENT"/work/bin/aletheiad "$ACE_DEPLOYMENT"/work/bin/aletheia-arno-exec "$ACE_DEPLOYMENT"/work/bin/aletheia-cli && $ACE verify-build
+      - name: Fetch the pinned source (genesis and devnet key)
+        run: $ACE fetch-source
+      - name: Restore the checkpoint of an earlier run
+        if: github.event.inputs.restore_run_id != ''
+        uses: actions/download-artifact@v4
+        with:
+          name: checkpoint
+          path: ${{ env.ACE_DEPLOYMENT }}/work/checkpoints
+          run-id: ${{ github.event.inputs.restore_run_id }}
+          github-token: ${{ github.token }}
+      - name: Restore
+        if: github.event.inputs.restore_run_id != ''
+        run: $ACE restore-snapshot latest --yes
+      - name: Preflight (run)
+        run: $ACE preflight --stage run
+      - name: Supervised run
+        env:
+          SECONDS_TO_RUN: ${{ steps.minutes.outputs.seconds }}
+          RESTORE_RUN_ID: ${{ github.event.inputs.restore_run_id }}
+        run: |
+          $ACE start --run-for "$SECONDS_TO_RUN" > supervisor.out 2> supervisor.log &
+          supervisor=$!
+          ready=""
+          for _ in $(seq 1 120); do
+            if $ACE health > /dev/null 2>&1; then ready=yes; break; fi
+            if ! kill -0 "$supervisor" 2>/dev/null; then break; fi
+            sleep 1
+          done
+          $ACE status
+          if [ -z "$ready" ]; then
+            echo "the node never became healthy" >&2
+            cat supervisor.log >&2
+            exit 1
+          fi
+          $ACE inspect-rpc
+          if [ -n "$RESTORE_RUN_ID" ]; then
+            $ACE verify-restore "$(jq -r .checkpoint "$ACE_DEPLOYMENT/work/run/restore-report.json")"
+          fi
+          wait "$supervisor"
+          $ACE status
+      - name: Checkpoint after the clean stop
+        run: $ACE checkpoint
+      - name: Upload checkpoint
+        uses: actions/upload-artifact@v4
+        with:
+          name: checkpoint
+          path: ${{ env.ACE_DEPLOYMENT }}/work/checkpoints/
+          retention-days: 7
+          if-no-files-found: error
+      - name: Diagnostics
+        if: always()
+        run: $ACE diagnose --out ace-diagnostics || true
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: diagnostics
+          path: |
+            ace-diagnostics/
+            supervisor.log
+          retention-days: 7
+          if-no-files-found: ignore

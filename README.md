@@ -8,6 +8,7 @@ Monorepo for the Sovereign Covenant State of Aletheia.
 | `aletheia-gov/` | Government website (aletheiagov.org): Next.js app. Brief in `aletheia-gov/aletheiagov-master-engineering-prompt-v2.md`, status in `aletheia-gov/PROGRESS.md`. |
 | `aletheia-db/` | AletheiaDB, our own document database (Rust), live at db.stateofaletheia.org. See `aletheia-db/README.md`. |
 | `aletheia-node/` | Aletheia StableChain node: Rust Cargo workspace. Spec in `aletheia-node/docs/spec/MASTER.md`, progress in `aletheia-node/docs/STATUS.md`. |
+| `aletheia-ace/` | ACE, the Aletheia Compute Engine (Rust): builds the node from a pinned GitLab commit, supervises it, verifies its RPC, takes and restores checkpoints. See `aletheia-ace/README.md`. |
 | `aletheia-explorer/` | Aletheia Explorer, "The Public Ledger" (spec Section 41A). Not started; Phase 12C. |
 
 All work lands on the `main` branch.

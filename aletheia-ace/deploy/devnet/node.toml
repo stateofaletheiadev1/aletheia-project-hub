@@ -1,0 +1,18 @@
+# aletheiad configuration for the ACE devnet deployment. Identical to the repository's
+# configs/devnet-explorer.toml except data_dir: aletheiad at the pinned commit cannot initialize
+# a one-component relative data directory ("devnet-explorer-data" fail-stops with STO_IO
+# "sync directory"), so it is written "./devnet-explorer-data". Paths are relative to the
+# daemon's working directory, the aletheia-node workspace checkout.
+# NON-PRODUCTION: configs/devnet-node.key is a published development key, devnet only.
+[node]
+data_dir = "./devnet-explorer-data"
+genesis = "genesis/devnet-explorer.toml"
+listen = "127.0.0.1:7771"
+node_key_file = "configs/devnet-node.key"
+
+[devnet]
+produce_every_ms = 500
+
+[rpc]
+listen = "127.0.0.1:7781"
+requests_per_second = 1000
