@@ -4,17 +4,14 @@
 //! state key by hand and no record crosses into state un-encoded.
 
 use aletheia_core::{
-    AceDecode, AceEncode, AceReader, AceWriter, Address, AddressType, AletheiaError, AssetId,
-    ErrorCode, Hash32, NetworkIdentity,
+    AceDecode, AceEncode, AceReader, AceWriter, Address, AletheiaError, AssetId, ErrorCode, Hash32,
+    NetworkIdentity,
 };
 use aletheia_state::{Namespace, StateKey, StateOverlay, StateView};
 
-/// Native module accounts (APS-0002): type 3 addresses whose account hash is 31 zero bytes
-/// followed by the module id.
+/// Native module accounts (APS-0002, ADR-062): 19 zero bytes followed by the module id.
 pub const fn module_address(module_id: u8) -> Address {
-    let mut bytes = [0u8; 32];
-    bytes[31] = module_id;
-    Address::new(AddressType::NativeModule, Hash32::from_bytes(bytes))
+    Address::native_module(module_id)
 }
 
 /// Receives every fee (Section 23); distribution to validators happens at epoch end.

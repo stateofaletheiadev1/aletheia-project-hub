@@ -501,11 +501,10 @@ impl AceDecode for SignedTransaction {
 #[cfg(test)]
 pub(crate) mod tests {
     use super::*;
-    use crate::address::AddressType;
     use proptest::prelude::*;
 
-    pub(crate) fn address(seed: u8, address_type: AddressType) -> Address {
-        Address::new(address_type, Hash32::from_bytes([seed; 32]))
+    pub(crate) fn address(seed: u8) -> Address {
+        Address::from_bytes([seed; 20])
     }
 
     pub(crate) fn transfer_body() -> TransactionBody {
@@ -513,7 +512,7 @@ pub(crate) mod tests {
             version: TX_BODY_VERSION_1,
             chain_id: ChainId::new(7771),
             network_kind: NetworkKind::Devnet,
-            sender: address(1, AddressType::Ed25519Account),
+            sender: address(1),
             nonce: 42,
             fee: Fee {
                 fee_asset: AssetId::AEY,
@@ -524,7 +523,7 @@ pub(crate) mod tests {
             expiry_slot: Slot::new(200),
             memo: b"invoice 2026-118".to_vec(),
             payload: Payload::Transfer(TransferLeg {
-                recipient: address(2, AddressType::Ed25519Account),
+                recipient: address(2),
                 asset: AssetId::AEY,
                 amount: 125_000_000_000_000_000_000,
             }),
@@ -561,8 +560,8 @@ pub(crate) mod tests {
         assert_eq!(&bytes[2..6], &7771u32.to_le_bytes(), "chain_id");
         assert_eq!(bytes[6], 3, "network_kind");
         assert_eq!(&bytes[7..9], &[1, 0], "tx_type");
-        assert_eq!(bytes[9], 0, "sender address type");
-        assert_eq!(&bytes[42..50], &42u64.to_le_bytes(), "nonce");
+        assert_eq!(&bytes[9..29], &[1u8; 20], "sender: 20 raw address bytes");
+        assert_eq!(&bytes[29..37], &42u64.to_le_bytes(), "nonce");
     }
 
     #[test]
@@ -642,7 +641,7 @@ pub(crate) mod tests {
             let mut body = transfer_body();
             body.nonce = nonce;
             body.payload = Payload::BatchTransfer(
-                amounts.iter().map(|&amount| TransferLeg { recipient: address(3, AddressType::Contract), asset: AssetId::ALNT, amount }).collect(),
+                amounts.iter().map(|&amount| TransferLeg { recipient: address(3), asset: AssetId::ALNT, amount }).collect(),
             );
             let tx = signed(body);
             prop_assert_eq!(SignedTransaction::from_ace_bytes(&tx.to_ace_bytes()), Ok(tx));

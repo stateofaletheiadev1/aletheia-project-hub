@@ -14,7 +14,7 @@
    Upgradeability > Operational simplicity > Performance. Then implement.
 6. Never disable warnings, sanitizers or tests to make CI pass.
 7. Never log secrets. Secret-bearing values are wrapped in aletheia_crypto::Secret<T>, which has no Debug/Display.
-8. Never emit or accept "0x"-prefixed text. Use AL:, AL:T, AL:B identifiers and unprefixed
+8. Never emit or accept "0x"-prefixed text. Use alt:, alt:T, alt:B identifiers (ADR-062) and unprefixed
    lowercase base16 (Section 12.2). Write protocol codes in decimal.
 9. Arno is Pascal-style (Section 25). Do not introduce C/Rust/Solidity-like syntax.
 10. Write like a careful human engineer (Section 3.4): domain names, comments that explain why,

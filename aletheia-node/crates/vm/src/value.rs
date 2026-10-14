@@ -8,6 +8,12 @@
 use aletheia_core::{AceReader, AceWriter, AletheiaError};
 
 use crate::package::{Package, TypeDef};
+
+/// An `address` or `signer` value: the 20 raw bytes of an Aletheia address (ADR-062).
+pub const ADDRESS_BYTES: usize = aletheia_core::Address::LEN;
+/// The same size in the memory and cost accounting, which counts in `u64`.
+const ADDRESS_SIZE: u64 = 20;
+const _: () = assert!(ADDRESS_BYTES == 20, "ADDRESS_SIZE must track Address::LEN");
 use crate::trap::Trap;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -19,7 +25,7 @@ pub enum Value {
     U64(u64),
     U128(u128),
     I64(i64),
-    Address([u8; 33]),
+    Address([u8; ADDRESS_BYTES]),
     Hash([u8; 32]),
     Height(u64),
     Slot(u64),
@@ -35,7 +41,7 @@ pub enum Value {
         asset: u32,
         amount: u128,
     },
-    Signer([u8; 33]),
+    Signer([u8; ADDRESS_BYTES]),
     /// A coins register with nothing in it.
     Empty,
 }
@@ -55,7 +61,7 @@ impl Value {
                 .saturating_add(8),
             Value::Record(items) | Value::Array(items) | Value::List(items) => nested(items),
             Value::Optional(Some(inner)) => inner.size().saturating_add(8),
-            Value::Address(_) | Value::Signer(_) => 33,
+            Value::Address(_) | Value::Signer(_) => ADDRESS_SIZE,
             Value::Hash(_) => 32,
             Value::U128(_) | Value::Coins { .. } => 16,
             _ => 8,
@@ -111,7 +117,7 @@ pub fn zero_sizes(package: &Package) -> Vec<u64> {
         let earlier = |index: &u16| sizes.get(usize::from(*index)).copied().unwrap_or(0);
         let size = match ty {
             TypeDef::U128 => 16,
-            TypeDef::Address => 33,
+            TypeDef::Address => ADDRESS_SIZE,
             TypeDef::Hash => 32,
             TypeDef::BytesFixed { len } => u64::from(*len).saturating_add(8),
             TypeDef::Record { fields, .. } => fields
@@ -139,7 +145,7 @@ pub fn zero(package: &Package, index: u16) -> Result<Value, Trap> {
         TypeDef::U64 => Value::U64(0),
         TypeDef::U128 => Value::U128(0),
         TypeDef::I64 => Value::I64(0),
-        TypeDef::Address => Value::Address([0; 33]),
+        TypeDef::Address => Value::Address([0; ADDRESS_BYTES]),
         TypeDef::Hash => Value::Hash([0; 32]),
         TypeDef::Height => Value::Height(0),
         TypeDef::Slot => Value::Slot(0),

@@ -9,6 +9,7 @@ publish.workspace = true
 
 [dependencies]
 blake3.workspace = true
+sha3.workspace = true
 
 [features]
 # Adds the test-only `Remark` payload (tx type 4) used by the protocol-version-2 test rule set.
@@ -19,8 +20,6 @@ proptest.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 toml.workspace = true
-# Independent Bech32m implementation used only as a test oracle for our encoder.
-bech32 = "0.11"
 
 [lints]
 workspace = true

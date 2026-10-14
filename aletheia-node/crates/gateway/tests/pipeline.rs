@@ -14,7 +14,7 @@ use std::cell::Cell;
 use std::path::PathBuf;
 
 use aletheia_core::apn::{Aic, ApnOp, StandingAuthorization};
-use aletheia_core::{Address, AddressType, Hash32};
+use aletheia_core::{Address, Hash32};
 use aletheia_gateway::{
     ChainView, Gateway, GatewayConfig, InboxOutcome, LegState, MemoryAuditStore, Resolved,
     Screener, Screening, Stage, leg_id,
@@ -41,7 +41,7 @@ fn profiles() -> ProfileSet {
 }
 
 fn creditor_address() -> Address {
-    Address::new(AddressType::Ed25519Account, Hash32::from_bytes([5; 32]))
+    Address::from_bytes([5; 20])
 }
 
 struct Chain {

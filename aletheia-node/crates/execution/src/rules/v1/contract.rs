@@ -89,7 +89,7 @@ impl Host for OverlayHost<'_, '_> {
         Ok(())
     }
 
-    fn transfer(&mut self, asset: u32, amount: u128, to: &[u8; 33]) -> Result<(), Trap> {
+    fn transfer(&mut self, asset: u32, amount: u128, to: &[u8; 20]) -> Result<(), Trap> {
         let recipient =
             Address::from_ace_bytes(to).map_err(|_| Trap::Host(ErrorCode::AddrMalformed))?;
         let asset = AssetId::new(asset);
@@ -374,7 +374,7 @@ pub(crate) fn deploy(
     events.push(Event {
         emitter: crate::model::module_address(4),
         event_type: event_type("aletheia.contract.deployed.v1"),
-        topics: vec![contract.account_hash(), code_hash],
+        topics: vec![contract.to_word(), code_hash],
         data,
     });
     match package

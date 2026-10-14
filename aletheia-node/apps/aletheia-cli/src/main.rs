@@ -5,10 +5,10 @@
 //!   status
 //!   keys new  --keystore wallet.json        create a key (password asked without echo)
 //!   keys show --keystore wallet.json        the address, no password needed
-//!   account <AL:…>                          nonce and existence
-//!   balance <AL:…> [--asset AEY]
-//!   transfer --keystore wallet.json --to <AL:…> --amount 1.5 [--asset AEY] [--yes]
-//!   tx show <AL:T…>    receipt <AL:T…>    block show <height | AL:B…>
+//!   account <alt:…>                         nonce and existence
+//!   balance <alt:…> [--asset AEY]
+//!   transfer --keystore wallet.json --to <alt:…> --amount 1.5 [--asset AEY] [--yes]
+//!   tx show <alt:T…>   receipt <alt:T…>   block show <height | alt:B…>
 //! ```
 //!
 //! Every command checks that the node is on the expected network when `--network` is given.

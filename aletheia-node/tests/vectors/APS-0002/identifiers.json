@@ -2,29 +2,29 @@
   "aps": "APS-0002",
   "cases": [
     {
-      "block_id": "AL:Bq5xpxx3p9qhnv02yfdf9jcr8de6hequ2jxvflf4dkjau9jws6l0q7dz6dj",
+      "block_id": "alt:B050C131A21282f363D444b525960676e757c838a91989FA6adb4Bbc2C9d0d7de",
       "hash": "050c131a21282f363d444b525960676e757c838a91989fa6adb4bbc2c9d0d7de",
       "network_kind": 1,
-      "tx_id": "AL:Tq5xpxx3p9qhnv02yfdf9jcr8de6hequ2jxvflf4dkjau9jws6l0qj2rxyg"
+      "tx_id": "alt:T050c131A21282f363D444B525960676E757c838a91989Fa6ADb4bbc2C9d0D7De"
     },
     {
-      "block_id": "AL:Bq5xpxx3p9qhnv02yfdf9jcr8de6hequ2jxvflf4dkjau9jws6l0qdg8853",
+      "block_id": "alt:B050C131a21282f363D444B525960676e757c838A91989Fa6Adb4BBc2c9D0d7de",
       "hash": "050c131a21282f363d444b525960676e757c838a91989fa6adb4bbc2c9d0d7de",
       "network_kind": 2,
-      "tx_id": "AL:Tq5xpxx3p9qhnv02yfdf9jcr8de6hequ2jxvflf4dkjau9jws6l0qp0xmat"
+      "tx_id": "alt:T050C131a21282f363D444B525960676e757C838A91989fa6aDB4bBc2C9d0d7DE"
     },
     {
-      "block_id": "AL:Bq5xpxx3p9qhnv02yfdf9jcr8de6hequ2jxvflf4dkjau9jws6l0qadtqu9",
+      "block_id": "alt:B050C131A21282f363D444b525960676e757C838A91989FA6ADb4Bbc2c9d0d7DE",
       "hash": "050c131a21282f363d444b525960676e757c838a91989fa6adb4bbc2c9d0d7de",
       "network_kind": 3,
-      "tx_id": "AL:Tq5xpxx3p9qhnv02yfdf9jcr8de6hequ2jxvflf4dkjau9jws6l0q322u4l"
+      "tx_id": "alt:T050c131a21282f363D444b525960676E757c838A91989FA6aDB4bbC2C9d0d7De"
     },
     {
-      "block_id": "AL:Bq5xpxx3p9qhnv02yfdf9jcr8de6hequ2jxvflf4dkjau9jws6l0qtj3rhz",
+      "block_id": "alt:B050C131a21282F363d444B525960676e757c838a91989FA6Adb4bBc2C9d0d7dE",
       "hash": "050c131a21282f363d444b525960676e757c838a91989fa6adb4bbc2c9d0d7de",
       "network_kind": 4,
-      "tx_id": "AL:Tq5xpxx3p9qhnv02yfdf9jcr8de6hequ2jxvflf4dkjau9jws6l0q84sl7c"
+      "tx_id": "alt:T050c131A21282F363D444b525960676e757c838a91989Fa6ADB4Bbc2C9d0d7DE"
     }
   ],
-  "description": "AL:T transaction ids and AL:B block ids: 32-byte hash, Bech32m with HRP = network HRP + t / b, 62 characters"
+  "description": "alt:T transaction ids and alt:B block ids (ADR-062): 32-byte hash, 64 hex digits in EIP-55 mixed case over Keccak-256(network HRP + t / b, ':', lowercase hex), 69 characters"
 }

@@ -92,8 +92,8 @@ impl NetworkKind {
         }
     }
 
-    /// Bech32m human-readable part for addresses on this network. It is never displayed;
-    /// it only seeds the checksum, so text copied from one network fails on another.
+    /// Network tag of the identifier checksum (ADR-062). It is never displayed; it only
+    /// seeds the EIP-55 casing, so text copied from one network fails on another.
     pub const fn address_hrp(self) -> &'static str {
         match self {
             NetworkKind::Mainnet => "al",

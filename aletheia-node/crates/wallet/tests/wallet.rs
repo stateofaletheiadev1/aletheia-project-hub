@@ -262,7 +262,7 @@ async fn nothing_is_signed_without_confirmation_or_on_the_wrong_network() {
 #[test]
 fn the_keystore_opens_only_with_the_password_and_unchanged() {
     let seed = Secret::new([7u8; 32]);
-    let file = keystore::seal(&seed, b"correct horse", [1; 16], [2; 24], "AL:example").unwrap();
+    let file = keystore::seal(&seed, b"correct horse", [1; 16], [2; 24], "alt:example").unwrap();
     assert_eq!(
         keystore::open(&file, b"correct horse").unwrap().expose(),
         seed.expose()
@@ -298,7 +298,7 @@ fn payment_uris_round_trip_and_check_the_network() {
         memo: Some("Invoice 42 & rent".to_owned()),
     };
     let text = uri.format(NetworkKind::Devnet, 18);
-    assert!(text.starts_with("aletheia:AL"));
+    assert!(text.starts_with("aletheia:alt:"));
     assert!(text.contains("amount=125.000000000000000005"));
     assert_eq!(
         PaymentUri::parse(&text, NetworkKind::Devnet, 18).unwrap(),

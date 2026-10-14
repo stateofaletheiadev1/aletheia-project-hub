@@ -150,7 +150,7 @@ fn validate(call: &Map<String, Value>) -> Result<(&str, Map<String, Value>), Rpc
     };
     if has_hex_prefix(&Value::Object(params.clone())) {
         return Err(RpcError::invalid_params(
-            "0x-prefixed values are not accepted: use unprefixed lowercase base16 or AL: forms",
+            "0x-prefixed values are not accepted: use unprefixed lowercase base16 or alt: forms",
         ));
     }
     Ok((method, params))

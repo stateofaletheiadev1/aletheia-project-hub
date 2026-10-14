@@ -67,6 +67,8 @@ aletheia-node = { path = "crates/node" }
 aletheia-test-harness = { path = "tests/harness" }
 
 blake3 = { version = "1.8", default-features = false }
+# Keccak-256 for the EIP-55 mixed-case checksum of alt: identifiers only (ADR-062).
+sha3 = { version = "0.10", default-features = false }
 ed25519-dalek = { version = "2.2", default-features = false, features = ["std", "zeroize"] }
 blst = { version = "0.3", default-features = false }
 zeroize = { version = "1.8", features = ["derive"] }

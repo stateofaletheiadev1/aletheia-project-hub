@@ -54,7 +54,7 @@ pub struct AuditEntry {
     pub msg_id: String,
     pub end_to_end_id: Option<String>,
     pub stage: Stage,
-    /// `AL:T…` once submitted.
+    /// `alt:T…` once submitted.
     pub tx_id: Option<String>,
     /// The rail profile in force, by content hash.
     pub profile_hash: [u8; 32],

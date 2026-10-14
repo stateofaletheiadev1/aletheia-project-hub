@@ -28,9 +28,7 @@
 use std::collections::BTreeMap;
 use std::fmt::Write as _;
 
-use aletheia_core::{
-    Address, AddressType, AssetId, Hash32, Payload, SignedTransaction, TransferLeg,
-};
+use aletheia_core::{Address, AssetId, Hash32, Payload, SignedTransaction, TransferLeg};
 use aletheia_state::JellyfishMerkleTree;
 use aletheia_test_harness::{Devnet, EU_PRICE_AEY, ONE_AEY, ONE_ALNT};
 
@@ -55,11 +53,13 @@ impl Corpus {
 }
 
 fn fresh_recipient(corpus: &mut Corpus) -> Address {
-    let mut bytes = [0u8; 32];
+    let mut bytes = [0u8; 24];
     for chunk in bytes.chunks_mut(8) {
         chunk.copy_from_slice(&corpus.next().to_le_bytes());
     }
-    Address::new(AddressType::Ed25519Account, Hash32::from_bytes(bytes))
+    let mut address = [0u8; Address::LEN];
+    address.copy_from_slice(&bytes[..Address::LEN]);
+    Address::from_bytes(address)
 }
 
 fn generate_block(

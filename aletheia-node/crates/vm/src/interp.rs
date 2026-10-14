@@ -16,6 +16,7 @@ use crate::cost;
 use crate::opcode::{HostFn, Instr, Op};
 use crate::package::{Constant, Package, TypeDef};
 use crate::trap::Trap;
+use crate::value::ADDRESS_BYTES;
 use crate::value::{self, Value, from_wide, zero};
 
 /// Read-only facts about the block and transaction.
@@ -37,7 +38,7 @@ pub trait Host {
     /// `None` removes the key.
     fn storage_write(&mut self, slot: u16, key: &[u8], value: Option<&[u8]>) -> Result<(), Trap>;
     /// Moves `amount` of `asset` from the contract's account to `to`.
-    fn transfer(&mut self, asset: u32, amount: u128, to: &[u8; 33]) -> Result<(), Trap>;
+    fn transfer(&mut self, asset: u32, amount: u128, to: &[u8; ADDRESS_BYTES]) -> Result<(), Trap>;
     fn emit(&mut self, event: u16, data: Vec<u8>) -> Result<(), Trap>;
     fn verify_ed25519(&self, key: &[u8; 32], digest: &[u8; 32], signature: &[u8; 64]) -> bool;
 

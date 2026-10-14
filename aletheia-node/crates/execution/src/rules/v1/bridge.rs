@@ -23,9 +23,7 @@ use aletheia_core::bridge::{
     ALETHEIA_CHAIN, Attestation, BridgeMessage, BridgeOp, GuardianSet, RouteAsset,
     attestation_digest, control, control_digest, direction, kind, to_remote_units,
 };
-use aletheia_core::{
-    AceDecode, AceEncode, Address, AddressType, AletheiaError, AssetId, ErrorCode, Hash32,
-};
+use aletheia_core::{AceDecode, AceEncode, Address, AletheiaError, AssetId, ErrorCode, Hash32};
 use aletheia_crypto::bls::{BlsPublicKey, BlsSignature, ProvenBlsPublicKey, verify_aggregate};
 use aletheia_state::StateOverlay;
 
@@ -452,7 +450,7 @@ fn recipient(message: &BridgeMessage) -> Result<Address, AletheiaError> {
             format!("the recipient is not an Aletheia address: {}", e.detail()),
         )
     })?;
-    if address.address_type() == AddressType::NativeModule {
+    if address.is_native_module() {
         return Err(fail(
             ErrorCode::BridgeWrongDestination,
             "a bridge message cannot pay a native module",

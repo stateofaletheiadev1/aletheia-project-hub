@@ -17,6 +17,7 @@ use aletheia_core::{AceDecode, AceEncode, AceReader, AceWriter, AletheiaError, E
 
 use crate::interp::ChainInfo;
 use crate::trap::Trap;
+use crate::value::ADDRESS_BYTES;
 use crate::value::Value;
 
 /// Largest frame either side accepts.
@@ -320,7 +321,7 @@ pub enum WorkerMessage {
     Transfer {
         asset: u32,
         amount: u128,
-        to: [u8; 33],
+        to: [u8; ADDRESS_BYTES],
     },
     Emit {
         event: u16,

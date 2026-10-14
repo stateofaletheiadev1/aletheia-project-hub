@@ -435,7 +435,7 @@ pub fn reconcile(paynet: &PayNet, net: &Devnet) -> Vec<Break> {
         for receipt in &block.receipts {
             for event in &receipt.events {
                 if event.event_type == settled_event
-                    && event.topics.get(1) == Some(&address.account_hash())
+                    && event.topics.get(1) == Some(&address.to_word())
                     && let Some(dedup) = event.topics.first()
                 {
                     *on_chain.entry(*dedup).or_insert(0) += 1;

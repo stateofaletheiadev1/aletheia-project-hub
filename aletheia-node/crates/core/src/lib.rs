@@ -21,7 +21,6 @@ pub mod ace;
 pub mod address;
 pub mod apn;
 pub mod base16;
-mod bech32m;
 pub mod block;
 pub mod bridge;
 pub mod error;

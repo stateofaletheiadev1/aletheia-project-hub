@@ -9,9 +9,9 @@
 
 use aletheia_core::tx::TX_BODY_VERSION_1;
 use aletheia_core::{
-    AceEncode, Address, AddressType, AssetId, AuthScheme, Authorization, ChainId, ErrorCode, Fee,
-    Hash32, NetworkIdentity, NetworkKind, Payload, PublicKeyEntry, SignatureEntry,
-    SignedTransaction, Slot, TransactionBody, TransferLeg, TxType,
+    AceEncode, Address, AssetId, AuthScheme, Authorization, ChainId, ErrorCode, Fee, Hash32,
+    NetworkIdentity, NetworkKind, Payload, PublicKeyEntry, SignatureEntry, SignedTransaction, Slot,
+    TransactionBody, TransferLeg, TxType,
 };
 use aletheia_crypto::{Ed25519SigningKey, Secret};
 use aletheia_execution::{Rules, StatelessValidator};
@@ -44,7 +44,7 @@ fn body() -> TransactionBody {
         expiry_slot: Slot::new(100),
         memo: Vec::new(),
         payload: Payload::Transfer(TransferLeg {
-            recipient: Address::new(AddressType::Ed25519Account, Hash32::from_bytes([2; 32])),
+            recipient: Address::from_bytes([2; 20]),
             asset: AssetId::AEY,
             amount: 5,
         }),

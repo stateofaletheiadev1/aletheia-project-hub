@@ -6,11 +6,11 @@
 
 use aletheia_core::tx::TX_BODY_VERSION_1;
 use aletheia_core::{
-    AceDecode, AceEncode, AceReader, AceWriter, Address, AddressType, AletheiaError, AssetId,
-    AuthScheme, Authorization, BlockHeader, BlockId, ChainId, DomainTag, Epoch, Fee, Hash32,
-    Height, NetworkIdentity, NetworkKind, Payload, ProtocolVersion, PublicKeyEntry,
-    QuorumCertificate, SignatureEntry, SignedTransaction, Slot, TransactionBody, TransferLeg, TxId,
-    ValidatorIndex, base16,
+    AceDecode, AceEncode, AceReader, AceWriter, Address, AletheiaError, AssetId, AuthScheme,
+    Authorization, BlockHeader, BlockId, ChainId, DomainTag, Epoch, Fee, Hash32, Height,
+    NetworkIdentity, NetworkKind, Payload, ProtocolVersion, PublicKeyEntry, QuorumCertificate,
+    SignatureEntry, SignedTransaction, Slot, TransactionBody, TransferLeg, TxId, ValidatorIndex,
+    base16,
 };
 use aletheia_crypto::{BlsSecretKey, Ed25519SigningKey, Secret, merkle};
 use aletheia_execution::{Rules, StatelessValidator};
@@ -87,16 +87,21 @@ fn domain_hash() -> Value {
     })
 }
 
+fn address_pattern(seed: u8) -> Address {
+    let mut bytes = [0u8; Address::LEN];
+    bytes.copy_from_slice(&pattern(seed)[..Address::LEN]);
+    Address::from_bytes(bytes)
+}
+
 fn addresses() -> Value {
     let mut valid = Vec::new();
     for kind in NetworkKind::ALL {
-        for (address_type, seed) in [
-            (AddressType::Ed25519Account, 1),
-            (AddressType::MultisigAccount, 2),
-            (AddressType::Contract, 3),
-            (AddressType::NativeModule, 4),
+        for address in [
+            address_pattern(1),
+            address_pattern(2),
+            address_pattern(3),
+            Address::native_module(4),
         ] {
-            let address = Address::new(address_type, Hash32::from_bytes(pattern(seed)));
             valid.push(json!({
                 "network_kind": kind.code(),
                 "payload": base16::encode(&address.to_bytes()),
@@ -104,35 +109,36 @@ fn addresses() -> Value {
             }));
         }
     }
-    let sample = Address::new(AddressType::Ed25519Account, Hash32::from_bytes(pattern(1)));
+    let sample = address_pattern(1);
     let mainnet_text = sample.to_text(NetworkKind::Mainnet);
+    let hex = &mainnet_text[4..];
+    let first_letter = hex
+        .bytes()
+        .position(|c| c.is_ascii_alphabetic())
+        .expect("the sample address has a hex letter");
+    let mut recased = hex.as_bytes().to_vec();
+    recased[first_letter] ^= 0x20;
     let invalid_inputs = [
         (
             "other network",
             sample.to_text(NetworkKind::PrivateValidation),
         ),
         (
-            "uppercase data",
-            format!("AL:{}", mainnet_text[3..].to_uppercase()),
-        ),
-        ("lowercase prefix", format!("al:{}", &mainnet_text[3..])),
-        ("too short", mainnet_text[..61].to_owned()),
-        (
-            "checksum altered",
-            format!(
-                "{}{}",
-                &mainnet_text[..61],
-                if mainnet_text.ends_with('q') {
-                    'p'
-                } else {
-                    'q'
-                }
-            ),
+            "all lowercase hex",
+            format!("alt:{}", hex.to_ascii_lowercase()),
         ),
         (
-            "character outside charset",
-            format!("{}b{}", &mainnet_text[..10], &mainnet_text[11..]),
+            "all uppercase hex",
+            format!("alt:{}", hex.to_ascii_uppercase()),
         ),
+        ("uppercase prefix", format!("ALT:{hex}")),
+        ("0x after the prefix", format!("alt:0x{hex}")),
+        ("too short", mainnet_text[..43].to_owned()),
+        (
+            "checksum casing altered",
+            format!("alt:{}", String::from_utf8(recased).expect("ASCII")),
+        ),
+        ("character outside hex", format!("alt:{}g", &hex[..39])),
     ];
     let invalid: Vec<Value> = invalid_inputs
         .iter()
@@ -148,7 +154,7 @@ fn addresses() -> Value {
     let derived_key = Ed25519SigningKey::from_seed(&Secret::new(pattern(9))).public_key();
     json!({
         "aps": "APS-0002",
-        "description": "AL: addresses: 33-byte payload, Bech32m with the network HRP implied (al, alt, ald, alr), 62 characters",
+        "description": "alt: addresses (ADR-062): 20-byte payload, 40 hex digits in EIP-55 mixed case over Keccak-256(network HRP ':' lowercase hex), 44 characters",
         "valid": valid,
         "invalid": invalid,
         "derivation": [{
@@ -156,6 +162,7 @@ fn addresses() -> Value {
             "network_kind": NetworkKind::Devnet.code(),
             "chain_id": CHAIN_ID,
             "public_key": base16::encode(&derived_key.to_bytes()),
+            "account_hash": aletheia_crypto::address::ed25519_commitment(&devnet(), &derived_key).to_string(),
             "text": aletheia_crypto::address::ed25519_account(&devnet(), &derived_key).to_text(NetworkKind::Devnet),
         }],
     })
@@ -174,7 +181,7 @@ fn identifiers() -> Value {
     }
     json!({
         "aps": "APS-0002",
-        "description": "AL:T transaction ids and AL:B block ids: 32-byte hash, Bech32m with HRP = network HRP + t / b, 62 characters",
+        "description": "alt:T transaction ids and alt:B block ids (ADR-062): 32-byte hash, 64 hex digits in EIP-55 mixed case over Keccak-256(network HRP + t / b, ':', lowercase hex), 69 characters",
         "cases": cases,
     })
 }
@@ -195,7 +202,7 @@ fn sample_body(sender: Address) -> TransactionBody {
         expiry_slot: Slot::new(8_200),
         memo: b"vector 1".to_vec(),
         payload: Payload::Transfer(TransferLeg {
-            recipient: Address::new(AddressType::Ed25519Account, Hash32::from_bytes(pattern(2))),
+            recipient: address_pattern(2),
             asset: AssetId::AEY,
             amount: 125_000_000_000_000_000_000,
         }),
@@ -455,7 +462,7 @@ impl aletheia_vm::Host for VectorHost {
         };
         Ok(())
     }
-    fn transfer(&mut self, _: u32, _: u128, _: &[u8; 33]) -> Result<(), aletheia_vm::Trap> {
+    fn transfer(&mut self, _: u32, _: u128, _: &[u8; 20]) -> Result<(), aletheia_vm::Trap> {
         Ok(())
     }
     fn emit(&mut self, event: u16, data: Vec<u8>) -> Result<(), aletheia_vm::Trap> {

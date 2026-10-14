@@ -473,7 +473,7 @@ impl Cx<'_, '_> {
         data.extend_from_slice(purpose);
         self.emit(
             "aletheia.apn.payment.settled.v1",
-            vec![key, sender.account_hash(), leg.creditor.account_hash()],
+            vec![key, sender.to_word(), leg.creditor.to_word()],
             data,
         );
         Ok(())
@@ -560,7 +560,7 @@ pub(crate) fn apply(
                 let sender = cx.sender;
                 cx.emit(
                     "aletheia.apn.batch.skipped.v1",
-                    vec![sender.account_hash()],
+                    vec![sender.to_word()],
                     data.as_bytes().to_vec(),
                 );
             }
@@ -608,7 +608,7 @@ pub(crate) fn apply(
                 .put(cx.apn.request_key(&id), record.to_ace_bytes());
             cx.emit(
                 "aletheia.apn.request.created.v1",
-                vec![id, payee.account_hash(), payer.account_hash()],
+                vec![id, payee.to_word(), payer.to_word()],
                 amount.to_le_bytes().to_vec(),
             );
         }
@@ -709,7 +709,7 @@ pub(crate) fn apply(
                 .put(cx.apn.mandate_key(&id), record.to_ace_bytes());
             cx.emit(
                 "aletheia.apn.mandate.created.v1",
-                vec![id, debtor.account_hash(), creditor.account_hash()],
+                vec![id, debtor.to_word(), creditor.to_word()],
                 record.to_ace_bytes(),
             );
         }
@@ -902,7 +902,7 @@ pub(crate) fn apply(
             }
             cx.emit(
                 "aletheia.apn.payment.scheduled.v1",
-                vec![id, debtor.account_hash(), leg.creditor.account_hash()],
+                vec![id, debtor.to_word(), leg.creditor.to_word()],
                 execute_day.to_le_bytes().to_vec(),
             );
         }
@@ -981,7 +981,7 @@ pub(crate) fn apply(
                 .put(cx.apn.escrow_key(leg_id), record.to_ace_bytes());
             cx.emit(
                 "aletheia.apn.external.locked.v1",
-                vec![*leg_id, *uetr_hash, sender.account_hash()],
+                vec![*leg_id, *uetr_hash, sender.to_word()],
                 amount.to_le_bytes().to_vec(),
             );
         }
@@ -1006,7 +1006,7 @@ pub(crate) fn apply(
             data.extend_from_slice(msg_id_hash.as_bytes());
             cx.emit(
                 "aletheia.apn.external.settled.v1",
-                vec![*leg_id, *msg_id_hash, sender.account_hash()],
+                vec![*leg_id, *msg_id_hash, sender.to_word()],
                 data,
             );
         }
@@ -1024,7 +1024,7 @@ pub(crate) fn apply(
             data.extend_from_slice(reason);
             cx.emit(
                 "aletheia.apn.external.released.v1",
-                vec![*leg_id, record.sender.account_hash()],
+                vec![*leg_id, record.sender.to_word()],
                 data,
             );
         }
@@ -1109,7 +1109,7 @@ pub(crate) fn apply(
             data.extend_from_slice(&rail.to_le_bytes());
             cx.emit(
                 "aletheia.apn.external.inbound.v1",
-                vec![*uetr_hash, *msg_id_hash, creditor.account_hash()],
+                vec![*uetr_hash, *msg_id_hash, creditor.to_word()],
                 data,
             );
         }
@@ -1271,7 +1271,7 @@ pub(crate) fn apply(
             );
             cx.emit(
                 "aletheia.apn.aan.assigned.v1",
-                vec![address.account_hash()],
+                vec![address.to_word()],
                 aan.as_str().as_bytes().to_vec(),
             );
         }
@@ -1294,7 +1294,7 @@ pub(crate) fn apply(
                 .put(cx.apn.proxy_key(proxy), mapping.to_ace_bytes());
             cx.emit(
                 "aletheia.apn.proxy.registered.v1",
-                vec![*proxy, address.account_hash()],
+                vec![*proxy, address.to_word()],
                 Vec::new(),
             );
         }

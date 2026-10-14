@@ -274,7 +274,7 @@ impl aletheia_vm::Host for NullHost {
         };
         Ok(())
     }
-    fn transfer(&mut self, _: u32, _: u128, _: &[u8; 33]) -> Result<(), aletheia_vm::Trap> {
+    fn transfer(&mut self, _: u32, _: u128, _: &[u8; 20]) -> Result<(), aletheia_vm::Trap> {
         Ok(())
     }
     fn emit(&mut self, _: u16, _: Vec<u8>) -> Result<(), aletheia_vm::Trap> {

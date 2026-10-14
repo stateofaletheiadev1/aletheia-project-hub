@@ -478,7 +478,7 @@ fn order_destination_and_expiry_are_enforced() {
 
     // A recipient that is not an Aletheia address.
     let mut wrong = bed.message(1, AssetId::AEY, BOB, ONE_AEY);
-    wrong.recipient = vec![0x33; 20];
+    wrong.recipient = vec![0x33; 19];
     refused(
         &bed.deliver(&wrong, &[0, 1, 2]),
         ErrorCode::BridgeWrongDestination,

@@ -42,11 +42,7 @@ pub(crate) fn apply_legs(
         events.push(Event {
             emitter: crate::model::module_address(2),
             event_type: event_type(TRANSFER_EVENT_SCHEMA),
-            topics: vec![
-                sender.account_hash(),
-                leg.recipient.account_hash(),
-                asset_topic(leg),
-            ],
+            topics: vec![sender.to_word(), leg.recipient.to_word(), asset_topic(leg)],
             data,
         });
     }

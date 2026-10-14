@@ -355,7 +355,6 @@ impl AceDecode for ContractCall {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::address::AddressType;
     use crate::network::{ChainId, NetworkKind};
 
     fn network() -> NetworkIdentity {
@@ -367,7 +366,7 @@ mod tests {
             authorization_id: Hash32::from_bytes([1; 32]),
             asset: AssetId::AEY,
             amount: 500,
-            destination: Address::new(AddressType::Ed25519Account, Hash32::from_bytes([2; 32])),
+            destination: Address::from_bytes([2; 20]),
             reserve_ref: Hash32::from_bytes([3; 32]),
             valid_until_epoch: 9,
             signatures: indices
@@ -452,8 +451,8 @@ mod tests {
             agent_index: 0,
             agent_signature: [0; 64],
         };
-        let sender = Address::new(AddressType::Ed25519Account, Hash32::from_bytes([9; 32]));
-        let other = Address::new(AddressType::Ed25519Account, Hash32::from_bytes([8; 32]));
+        let sender = Address::from_bytes([9; 20]);
+        let other = Address::from_bytes([8; 20]);
         let digest = redemption.digest(&network(), &sender, 3);
         assert_ne!(digest, redemption.digest(&network(), &sender, 4));
         assert_ne!(digest, redemption.digest(&network(), &other, 3));

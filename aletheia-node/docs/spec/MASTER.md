@@ -10,7 +10,7 @@
 **Consensus:** DSP --- Deterministic Sovereign Pipeline (pipelined 2-chain BFT with chrono-slots)
 **Primary Databases:** RocksDB (consensus state/indexes) + append-only compressed block archive; PostgreSQL (off-chain indexer, explorer API, gateway and rail-adapter ledgers); ClickHouse (compressed logs/telemetry)
 **Interfaces:** REST (`/api/v1`) + JSON-RPC 2.0 (`/rpc/v1`) + Finalized Event Stream (APS-0058); public stablechain bridge (APS-0046)
-**Text encoding:** Aletheia-native identifiers (`AL:`, `AL:T`, `AL:B`); no `0x` anywhere
+**Text encoding:** Aletheia-native identifiers (`alt:`, `alt:T`, `alt:B`; ADR-062); no `0x` anywhere
 **Payments:** Aletheia Payment Network (APN, Section 40B), operated through **Aletheian PayNet** (Section 40D); SEPA / SWIFT CBPR+ / Fedwire / FedNow / T2 / CHAPS interoperability through a canonical payment model and versioned rail profiles (Section 40C)
 **Continuity:** Every release continues the chain from the last finalized block. No re-genesis, no resync, no hand-edited state --- ever (Section 44)
 **Explorer:** Aletheia Explorer --- "The Public Ledger", Manrope only, generative guilloche seals (Section 41A)
@@ -424,9 +424,9 @@ monetary unit and are reconciled by the Monetary Authority.
                                 transaction"              excluded); separate witness hash          signature-malleability
                                                                                                     changing IDs
 
-  10        Addresses           "`AL:` + Bech32m          Exact format: `AL:` + Bech32m data part,  Single canonical
-                                preferably"               33-byte payload, network bound into       length/encoding as v1
-                                                          checksum                                  demanded
+  10        Addresses           "`AL:` + Bech32m          Exact format: `alt:` + 40 hex digits in   Single canonical
+                                preferably"               EIP-55 case, 20-byte payload, network     length/encoding as v1
+                                                          bound into checksum (ADR-062)             demanded
 
   11        Arno VM             "Isolated VM"             Interpreter (no JIT in consensus) running Defense in depth against
                                                           in an **out-of-process sandboxed          VM escape
@@ -478,7 +478,7 @@ monetary unit and are reconciled by the Monetary Authority.
                                             spec, parity tests              
 
   3       Hex display        `0x…` in       **No `0x` anywhere**; new       12.1, 12.2
-                             examples       `AL:B` block IDs; unprefixed    
+                             examples       `AL:B` (now `alt:B`) block IDs; unprefixed    
                                             lowercase base16; spec codes in 
                                             decimal; parsers reject `0x`    
 
@@ -737,7 +737,7 @@ be copied into the repository root as `CLAUDE.md`.
    Upgradeability > Operational simplicity > Performance. Then implement.
 6. Never disable warnings, sanitizers or tests to make CI pass.
 7. Never log secrets. Secret-bearing values are wrapped in aletheia_crypto::Secret<T>, which has no Debug/Display.
-8. Never emit or accept "0x"-prefixed text. Use AL:, AL:T, AL:B identifiers and unprefixed
+8. Never emit or accept "0x"-prefixed text. Use alt:, alt:T, alt:B identifiers and unprefixed
    lowercase base16 (Section 12.2). Write protocol codes in decimal.
 9. Arno is Pascal-style (Section 25). Do not introduce C/Rust/Solidity-like syntax.
 10. Write like a careful human engineer (Section 3.4): domain names, comments that explain why,
@@ -1155,7 +1155,7 @@ Initial ADR register:
   020                     JSON-RPC 2.0 public interface alongside REST,
                           shared service layer
 
-  021                     No `0x` text encoding; `AL:B` block IDs;
+  021                     No `0x` text encoding; `AL:B` (now `alt:B`) block IDs;
                           unprefixed lowercase base16
 
   022                     Public stablechain bridge: native module,
@@ -1893,54 +1893,58 @@ the consensus or monetary safety assumptions.
 
 # 11. Address Standard (APS-0002) **\[CONSENSUS-CRITICAL\]**
 
-Human-facing format:
+Human-facing format (ADR-062):
 
 ``` text
-AL:<bech32m-data-part>
+alt:<40 hex digits, EIP-55 mixed case>
 ```
 
-Binary payload (33 bytes):
+Binary payload (20 bytes): the last 20 bytes of `account_hash`. The
+address does not record what controls it; that is the account's state.
+Native modules are the one range fixed by construction: 19 zero bytes
+followed by the module id (the fee pool is module 1), the same pattern
+Ethereum uses for its precompiles. A derived address falls in that range
+with probability 2^-152.
 
-  ------------------------------------------------------------------------
-  Offset                 Size                   Field
-  ---------------------- ---------------------- --------------------------
-  0                      1                      `address_type` (0 =
-                                                Ed25519 account, 1 =
-                                                multisig account, 2 = Arno
-                                                contract, 3 = native
-                                                module, 4 = ML-DSA account
-                                                (reserved))
-
-  1                      32                     `account_hash`
-  ------------------------------------------------------------------------
-
-Derivation:
+Derivation (the `u8` type codes keep the derivation domains apart; they
+are hashed, not stored):
 
 ``` text
 account_hash (Ed25519)  = H_domain("ALETHEIA/ADDR/v1", u8(0) || u8(alg_id) || pubkey)
 account_hash (multisig) = H_domain("ALETHEIA/ADDR/v1", u8(1) || ace(threshold, sorted_pubkeys))
 account_hash (contract) = H_domain("ALETHEIA/ADDR/v1", u8(2) || deployer || u64(deployer_nonce) || code_hash)
-account_hash (module)   = fixed constants published in APS-0002 (e.g., AEY module, Validator Registry)
+address                 = account_hash[12..32]
+address (module m)      = 19 zero bytes || u8(m)
 ```
+
+For key-controlled accounts the full 32-byte `account_hash` is also the
+account's `pubkey_commitment`. Stateful validation compares all 32 bytes
+on every transaction after the first, so a key whose hash merely shares
+an existing account's last 20 bytes cannot spend from it.
 
 Encoding:
 
--   33 bytes → 5-bit groups (Bech32 charset
-    `qpzry9x8gf2tvdw0s3jn54khce6mua7l`) = **53 characters**.
--   6-character **Bech32m** checksum computed with HRP = network HRP
-    (`al` / `alt` / `ald` / `alr`). The HRP is **not displayed**; it is
-    implied by the network, so an address copied from the private
-    validation network fails checksum on mainnet.
--   Canonical form: literal uppercase prefix `AL:` + 59 lowercase
-    characters. **Total length: 62 characters.**
--   Mixed case, uppercase data, whitespace, wrong length, wrong
-    checksum, non-zero padding bits, or unknown `address_type` → reject
-    (`AddrMalformed`, `AddrWrongNetwork`, `AddrNonCanonical`).
+-   20 bytes → 40 base16 digits.
+-   Checksum by letter case, as in EIP-55: digit `i` is uppercase when
+    it is a letter and nibble `i` of
+    `Keccak-256(tag || lowercase_hex)` is 8 or more. `tag` is the
+    network HRP and a colon (`al:` / `alt:` / `ald:` / `alr:`), which
+    folds the network into the checksum as EIP-1191 does; an address
+    copied from the private validation network fails on mainnet. With
+    an empty tag the rule is EIP-55 exactly, and the EIP-55 vectors are
+    part of the test suite.
+-   Canonical form: literal lowercase prefix `alt:` + 40 checksum-cased
+    hex digits. No `0x`. **Total length: 44 characters.**
+-   Any other spelling is refused, never normalized: an all-lowercase or
+    all-uppercase body, an uppercase prefix (`AddrNonCanonical`); a
+    casing valid for another network (`AddrWrongNetwork`); wrong length,
+    `0x`, a non-hex character, or casing that verifies for no network
+    (`AddrMalformed`).
 
-Example (illustrative, not a real vector):
+Example (APS-0002 vector, mainnet):
 
 ``` text
-AL:qz7m4k0f3v8u2d6y9p5x1w7c3n8e0h4s6j2r5t9g7l3a8q0u4m6k2d5vxl0e
+alt:01080F161D242B323940474e555C636A71787f86
 ```
 
 ``` rust
@@ -1960,7 +1964,7 @@ registry, but the protocol only transacts in canonical addresses.
 # 12. Transaction Identifier Standard **\[CONSENSUS-CRITICAL\] \[DECISION ADR-011\]**
 
 ``` text
-AL:T<bech32m-data-part>
+alt:T<64 hex digits, EIP-55 mixed case>
 ```
 
 -   `tx_id = H_domain("ALETHEIA/TXID/v1", ace(TransactionBody))` ---
@@ -1969,9 +1973,11 @@ AL:T<bech32m-data-part>
     intent.
 -   `witness_hash = H_domain("ALETHEIA/TXWIT/v1", ace(SignedTransaction))`
     --- commits the full signed bytes into the block's `tx_root`.
--   Encoding: 32 bytes → 52 chars + 6 Bech32m checksum chars (HRP =
-    network HRP + `t`, e.g. `alt`→`altt`) = 58 chars. Canonical form:
-    `AL:T` + 58 lowercase chars = **62 characters**.
+-   Encoding (ADR-062): 32 bytes → 64 base16 digits, cased by the
+    Section 11 checksum with tag = network HRP + `t` + `:` (e.g.
+    `alt:` → `altt:`); Keccak-256 gives one nibble per digit.
+    Canonical form: `alt:T` + 64 checksum-cased digits = **69
+    characters**.
 
 Transaction IDs are never random UUIDs, timestamps, database IDs or node
 counters.
@@ -1980,36 +1986,37 @@ A transaction ID is unique per chain because the body includes
 `sender` + `nonce`; the protocol rejects any second inclusion of a
 `(sender, nonce)` pair.
 
-## 12.1 Block Identifier Standard (`AL:B`)
+## 12.1 Block Identifier Standard (`alt:B`)
 
 ``` text
-AL:B<bech32m-data-part>
+alt:B<64 hex digits, EIP-55 mixed case>
 ```
 
 -   `block_id` = the 32-byte `block_hash` (Section 14.1), encoded
-    exactly like `AL:T`: 52 data characters + 6-character Bech32m
-    checksum computed with HRP = network HRP + `b` (e.g. `al` → `alb`).
-    Canonical form: `AL:B` + 58 lowercase characters = **62
-    characters**.
+    exactly like `alt:T`, with tag = network HRP + `b` + `:` (e.g.
+    `al` → `alb:`). Canonical form: `alt:B` + 64 checksum-cased
+    digits = **69 characters**.
 -   A block ID copied from the private validation network fails the
-    checksum on mainnet, exactly like addresses and transaction IDs.
+    checksum on mainnet, exactly like addresses and transaction IDs, and
+    a transaction ID relabelled `alt:B` fails as a block ID.
 
 ## 12.2 Text Encoding of Binary Values --- No `0x` **\[CONSENSUS-CRITICAL for parsers\] \[DECISION ADR-021\]**
 
-Aletheia follows no Ethereum conventions. The `0x` prefix is **not used
-anywhere**: not in RPC (REST or JSON-RPC), CLI output, logs,
+Aletheia borrows two things from Ethereum and nothing else: the 20-byte
+address and the EIP-55 mixed-case checksum (ADR-062). The `0x` prefix is
+**not used anywhere**: not in RPC (REST or JSON-RPC), CLI output, logs,
 configuration, genesis files, test vectors, SDKs or documentation.
 
   -----------------------------------------------------------------------
   Value           Canonical text form
   --------------- -------------------------------------------------------
-  Account /       `AL:` + Bech32m (Section 11)
+  Account /       `alt:` + 40 checksum-cased hex digits (Section 11)
   contract        
   address         
 
-  Transaction ID  `AL:T` + Bech32m (Section 12)
+  Transaction ID  `alt:T` + 64 checksum-cased hex digits (Section 12)
 
-  Block ID        `AL:B` + Bech32m (Section 12.1)
+  Block ID        `alt:B` + 64 checksum-cased hex digits (Section 12.1)
 
   Other hashes    Lowercase base16, **no prefix**, exactly 64 characters
   (state root,    
@@ -2038,7 +2045,9 @@ Parser rules:
     (`EncPrefixedHexRejected`, JSON-RPC `-32602`) --- it is never
     silently stripped.
 -   Uppercase base16 is rejected (one canonical form only); odd length
-    or wrong fixed length is rejected.
+    or wrong fixed length is rejected. The mixed case inside `alt:`,
+    `alt:T` and `alt:B` identifiers is their checksum, not base16 in
+    this sense, and follows Sections 11 and 12.
 -   Remote-chain values (bridge recipients and token identifiers,
     Section 40A) are stored as raw bytes and shown in unprefixed base16
     together with a `format` field; wallets may render them in the
@@ -2295,9 +2304,9 @@ state_key = H_domain("ALETHEIA/STATEKEY/v1", u8(namespace) || ace(namespace_key)
 
   APN participants            100         AIC                participant record
 
-  AAN mapping                 101         AAN                `AL:` address
+  AAN mapping                 101         AAN                `alt:` address
 
-  Proxy aliases               102         H(salt ‖ alias)    `AL:` address (resolution restricted)
+  Proxy aliases               102         H(salt ‖ alias)    `alt:` address (resolution restricted)
 
   Mandates                    103         mandate_id         mandate
 
@@ -3193,7 +3202,7 @@ whose finalized height is durable in RocksDB are deleted (retain ≥ 2).
 
 ``` text
 1.  Acquire exclusive data-dir lock (flock); refuse to start if held.
-2.  Open WAL: validate segment headers; scan records; verify CRC and sequence continuity.
+2.  Open Walt: validate segment headers; scan records; verify CRC and sequence continuity.
 3.  Truncate at the first torn/corrupt record ONLY if it is in the last segment tail
     (torn write). Corruption earlier → refuse to start (StoWalChecksum), operator action.
 4.  Open RocksDB with paranoid_checks; read last_finalized {height, hash, state_root}.
@@ -3481,7 +3490,7 @@ intermediate.
 
   `Int64`                               Signed integer; overflow aborts
 
-  `Address`                             An `AL:` account or contract
+  `Address`                             An `alt:` account or contract
                                         address
 
   `Hash`                                32-byte hash
@@ -3983,23 +3992,23 @@ control uses gRPC on separate, non-public interfaces.
 
   Chain                           `GET /chain/head`, `GET /chain/finalized`, `GET /chain/params`
 
-  Blocks                          `GET /blocks/{AL:B…}`, `GET /blocks/height/{h}`,
-                                  `GET /blocks/{AL:B…}/finality`
+  Blocks                          `GET /blocks/{alt:B…}`, `GET /blocks/height/{h}`,
+                                  `GET /blocks/{alt:B…}/finality`
 
   Transactions                    `POST /transactions` (submitTransaction),
-                                  `GET /transactions/{AL:T…}`, `POST /transactions/simulate`
+                                  `GET /transactions/{alt:T…}`, `POST /transactions/simulate`
 
-  Accounts                        `GET /accounts/{AL:…}`, `GET /accounts/{AL:…}/balances`,
-                                  `GET /accounts/{AL:…}/nonce`
+  Accounts                        `GET /accounts/{alt:…}`, `GET /accounts/{alt:…}/balances`,
+                                  `GET /accounts/{alt:…}/nonce`
 
   Assets / Monetary               `GET /assets`, `GET /monetary/{asset}/supply` (full ledger +
                                   proof)
 
   Validators                      `GET /validators`, `GET /validators/set/{epoch}`
 
-  Contracts                       `GET /contracts/{AL:…}`, `POST /contracts/{AL:…}/view`
+  Contracts                       `GET /contracts/{alt:…}`, `POST /contracts/{alt:…}/view`
 
-  Receipts / Events               `GET /receipts/{AL:T…}`,
+  Receipts / Events               `GET /receipts/{alt:T…}`,
                                   `GET /events?contract=&type=&from_height=&to_height=&cursor=`
 
   State                           `GET /state/root/{height}`, `GET /state/proof?key=&height=`
@@ -4013,20 +4022,20 @@ control uses gRPC on separate, non-public interfaces.
 Example:
 
 ``` http
-GET /api/v1/transactions/AL:Tq9x...k3 HTTP/1.1
+GET /api/v1/transactions/alt:T050c...D7De HTTP/1.1
 ```
 
 ``` json
 {
-  "tx_id": "AL:Tq9x...k3",
+  "tx_id": "alt:T050c...D7De",
   "status": "FINALIZED",
-  "block": { "height": 1048576, "id": "AL:Bqk7r...m2x", "slot": 2097153 },
-  "sender": "AL:qz7m...l0e",
+  "block": { "height": 1048576, "id": "alt:B050C...d7de", "slot": 2097153 },
+  "sender": "alt:0108...7f86",
   "type": "Transfer",
-  "transfer": { "recipient": "AL:qv3r...8ha", "asset": "AEY", "amount": "125000000000000000000", "amount_display": "125.000000000000000000" },
+  "transfer": { "recipient": "alt:0209...8087", "asset": "AEY", "amount": "125000000000000000000", "amount_display": "125.000000000000000000" },
   "fee": { "asset": "AEY", "charged": "2100000000000000", "eu_used": 2100 },
   "receipt": { "status": "SUCCESS", "error_code": 0, "events": 1 },
-  "proof": { "receipt_proof": "9f3c…e1a0", "finality_proof_ref": "/api/v1/blocks/AL:Bqk7r...m2x/finality" }
+  "proof": { "receipt_proof": "9f3c…e1a0", "finality_proof_ref": "/api/v1/blocks/alt:B050C...d7de/finality" }
 }
 ```
 
@@ -4069,7 +4078,7 @@ Protocol rules (strict JSON-RPC 2.0):
 -   Batches: ≤ 50 calls and ≤ 1 MiB per batch; each call is rate-limited
     individually; responses may be returned in any order and are matched
     by `id`.
--   Value encoding follows Section 12.2: `AL:` / `AL:T` / `AL:B`
+-   Value encoding follows Section 12.2: `alt:` / `alt:T` / `alt:B`
     identifiers, unprefixed lowercase base16 for other binary values,
     decimal strings for all amounts. Any `0x`-prefixed value is rejected
     with `-32602`.
@@ -4092,21 +4101,21 @@ Methods (v1):
 
   `getChainParams`        ---                                                         protocol parameters in force
 
-  `getBlock`              `{ block: "AL:B…" }`                                        header + tx IDs
+  `getBlock`              `{ block: "alt:B…" }`                                        header + tx IDs
 
   `getBlockByHeight`      `{ height }`                                                header + tx IDs
 
-  `getFinalityProof`      `{ block: "AL:B…" }`                                        2-chain finality proof
+  `getFinalityProof`      `{ block: "alt:B…" }`                                        2-chain finality proof
 
-  `submitTransaction`     `{ tx: "<base16 ACE bytes>" }`                              `{ txId: "AL:T…", status: "ACCEPTED" }`
+  `submitTransaction`     `{ tx: "<base16 ACE bytes>" }`                              `{ txId: "alt:T…", status: "ACCEPTED" }`
 
   `simulateTransaction`   `{ tx }`                                                    eu_used, fee, effects, receipt preview
 
-  `getTransaction`        `{ txId: "AL:T…" }`                                         transaction + status
+  `getTransaction`        `{ txId: "alt:T…" }`                                         transaction + status
 
   `getReceipt`            `{ txId }`                                                  receipt + receipt proof
 
-  `getAccount`            `{ address: "AL:…" }`                                       nonce, auth scheme, flags
+  `getAccount`            `{ address: "alt:…" }`                                       nonce, auth scheme, flags
 
   `getBalance`            `{ address, asset }`                                        available, locked, display
 
@@ -4177,12 +4186,12 @@ Example:
 
 ``` json
 { "jsonrpc": "2.0", "id": 7, "method": "getBalance",
-  "params": { "address": "AL:qz7m...l0e", "asset": "AEY" } }
+  "params": { "address": "alt:0108...7f86", "asset": "AEY" } }
 ```
 
 ``` json
 { "jsonrpc": "2.0", "id": 7,
-  "result": { "address": "AL:qz7m...l0e", "asset": "AEY",
+  "result": { "address": "alt:0108...7f86", "asset": "AEY",
               "available": "125000000", "locked": "0", "display": "125.000000",
               "height": 1048576 } }
 ```
@@ -4283,7 +4292,7 @@ CREATE TABLE gateway_audit (
     msg_id         TEXT        NOT NULL,
     end_to_end_id  TEXT,
     stage          TEXT        NOT NULL,              -- RECEIVED|VALIDATED|SCREENED|MAPPED|SUBMITTED|FINALIZED|REJECTED
-    tx_id          TEXT,                              -- 'AL:T…' once submitted
+    tx_id          TEXT,                              -- 'alt:T…' once submitted
     payload_zstd   BYTEA       NOT NULL,              -- zstd-compressed original message
     payload_sha256 BYTEA       NOT NULL,
     prev_hash      BYTEA       NOT NULL,
@@ -4613,7 +4622,7 @@ recorded as personal on-chain histories.
                                                              BIC mapping
                                                              (40B.2)
 
-  Account addressing      IBAN, account numbers              `AL:` addresses +
+  Account addressing      IBAN, account numbers              `alt:` addresses +
                                                              **Aletheia
                                                              Account Number
                                                              (AAN)** + proxy
@@ -4627,7 +4636,7 @@ recorded as personal on-chain histories.
 
   Payment tracking        gpi / UETR                         UETR carried
                                                              end-to-end and
-                                                             linked to `AL:T`
+                                                             linked to `alt:T`
                                                              (40B.5)
 
   Settlement              Correspondent banking, RTGS        **Final on-chain
@@ -4668,7 +4677,7 @@ Participant                                   (state namespace 100)
 │                             | EXTERNAL_RAIL_OPERATOR | FX_PROVIDER | GOVERNMENT_AGENCY
 │                             | LIQUIDITY_PROVIDER | TECHNICAL_SERVICE_PROVIDER
 ├── sponsor_aic         Optional    (indirect participants settle through a direct participant)
-├── settlement_address  Address     (AL: account holding the participant's AEY)
+├── settlement_address  Address     (alt: account holding the participant's AEY)
 ├── messaging_keys      list<{alg, public_key, valid_from_epoch, valid_to_epoch}>
 ├── schemes             bitset      (which APN schemes it is certified for)
 ├── limits              {per_payment_max, daily_out_max, daily_in_max}
@@ -4693,7 +4702,7 @@ code. Aletheia's prefixes are split by where they appear:
   -----------------------------------------------------------------------
   Where            Prefix / code                            Why
   ---------------- ---------------------------------------- -------------
-  Protocol         `AL:`, `AL:T`, `AL:B`                    Aletheia's
+  Protocol         `alt:`, `alt:T`, `alt:B`                    Aletheia's
   addresses and                                             own format;
   IDs                                                       never parsed
                                                             as an ISO
@@ -4736,11 +4745,11 @@ A sender should never need to type a 62-character address.
   --------------------------------------------------------------------------------------------------
   Identifier                  Use              Resolution
   --------------------------- ---------------- -----------------------------------------------------
-  `AL:` address               Canonical        ---
+  `alt:` address               Canonical        ---
                               protocol         
                               identity         
 
-  **AAN --- Aletheia Account  Human-friendly   On-chain AAN → `AL:` mapping (namespace 101)
+  **AAN --- Aletheia Account  Human-friendly   On-chain AAN → `alt:` mapping (namespace 101)
   Number**                    account number   
                               for forms,       
                               invoices and     
@@ -4757,7 +4766,7 @@ A sender should never need to type a 62-character address.
 
   **Proxy aliases**           Phone number,    Privacy-preserving proxy registry (namespace 102):
                               email, residence the chain stores `H(salt ‖ normalized_alias)` →
-                              ID, business     `AL:`; only authorized participants can resolve, with
+                              ID, business     `alt:`; only authorized participants can resolve, with
                               registration     rate limits and audit
                               number,          
                               `@handle`        
@@ -4766,7 +4775,7 @@ A sender should never need to type a 62-character address.
                               outside banking  participant; mapped to AAN in the gateway (never
                               systems          claimed as Aletheia IBANs)
 
-  Payment QR                  In-person and    `aletheia:pay?to=AL:…&amount=12.50&asset=AEY&ref=…`
+  Payment QR                  In-person and    `aletheia:pay?to=alt:…&amount=12.50&asset=AEY&ref=…`
                               merchant         (payee name shown from the directory, never from the
                               payments         QR alone)
   --------------------------------------------------------------------------------------------------
@@ -4879,7 +4888,7 @@ participants.
 
 -   Every payment carries an ISO 20022 **UETR** (UUID v4, generated by
     the originator per the ISO standard) plus `EndToEndId`, and after
-    settlement the `AL:T` transaction ID.
+    settlement the `alt:T` transaction ID.
 -   The on-chain transaction memo carries `H(UETR)` (not the UETR
     itself), linking the external reference to the on-chain settlement
     without leaking it publicly.
@@ -4893,7 +4902,7 @@ participants.
     finality: once a payment's transaction is finalized, it is
     irrevocable, 24/7/365, in seconds. There is no end-of-day netting
     cycle.
--   Each participant holds a **settlement account** (`AL:` address of
+-   Each participant holds a **settlement account** (`alt:` address of
     participant type). Indirect participants settle through their
     sponsor.
 -   **External legs** (money entering or leaving Aletheia) are backed by
@@ -4965,7 +4974,7 @@ minting for that partner and alert operations.
                                                                          answers
 
   **Investigations &   camt.027 /        Off-chain APN messaging,        Case IDs link
-  disputes**           camt.087 /        anchored                        to `AL:T`
+  disputes**           camt.087 /        anchored                        to `alt:T`
                        camt.029                                          
 
   **Merchant           pain.013 or QR    `Payment` with merchant         POS and online
@@ -5875,7 +5884,7 @@ Cursor         { height u64, tx_index u32, event_index u32 }        // strictly 
 Envelope
 ├── cursor
 ├── block_hash, block_time_ms (protocol time), protocol_version, event_schema u16
-├── tx_id (AL:T…) | null for block-level events (migrations, epoch transitions, corrections)
+├── tx_id (alt:T…) | null for block-level events (migrations, epoch transitions, corrections)
 ├── kind (EventKind, decimal code) and payload (ACE bytes + JSON rendering)
 └── proof (optional): event inclusion proof against header.event_root + finality proof ref
 Heartbeat      { finalized_height, cursor_of_last_event }           // every 2 s when idle
@@ -6040,7 +6049,7 @@ suspends new submissions from the affected account until resolved.
 -   Key derivation: BIP-39 mnemonic (optional) → **SLIP-0010 Ed25519**
     hardened path `m/44'/<ALETHEIA_COIN_TYPE>'/<account>'/0'/<index>'`
     (coin type registered/assigned and recorded in APS-0030).
--   Addresses `AL:…`, transaction IDs `AL:T…`, block IDs `AL:B…`;
+-   Addresses `alt:…`, transaction IDs `alt:T…`, block IDs `alt:B…`;
     wallets never display `0x`; wallets MUST verify network (HRP
     checksum) and `chain_id` before signing.
 -   Signing flow: build body → **simulate** (`/transactions/simulate`
@@ -6050,7 +6059,7 @@ suspends new submissions from the affected account until resolved.
 -   Hardware wallet architecture: device signs the 32-byte `TXSIG`
     digest after displaying a decoded summary (device-side ACE decoder
     for `Transfer` and `BatchTransfer`).
--   QR: `aletheia:AL:…?asset=AEY&amount=125.000000000000000000&memo=…`
+-   QR: `aletheia:alt:…?asset=AEY&amount=125.000000000000000000&memo=…`
     (URI scheme spec in APS-0030).
 -   Backup/recovery: mnemonic or encrypted keystore (Argon2id +
     XChaCha20-Poly1305); social/multisig recovery via multisig accounts.
@@ -6144,7 +6153,7 @@ system fallback exists only for the instant before Manrope loads.
     font CDN at runtime. The SIL Open Font License ships with the font.
 -   **All numbers use tabular figures**. Heights, amounts and times line
     up in columns to the pixel.
--   **Identifiers** (`AL:…`, `AL:T…`, `AL:B…`, base16 hashes, AAN, AIC)
+-   **Identifiers** (`alt:…`, `alt:T…`, `alt:B…`, base16 hashes, AAN, AIC)
     are set in Manrope weight 500, tabular figures, +0.02em tracking,
     shown in groups of four separated by a thin space (U+2009) that is
     **not** part of the copied text. Full identifiers are shown in full
@@ -6606,8 +6615,8 @@ a CI test pins this behaviour.
 ## 41A.9 Search
 
 One field, always reachable with `/`. It recognises, without a mode
-switch: heights (with or without grouping), `AL:` addresses, `AL:T`
-transaction IDs, `AL:B` block IDs, 64-character hashes (state roots,
+switch: heights (with or without grouping), `alt:` addresses, `alt:T`
+transaction IDs, `alt:B` block IDs, 64-character hashes (state roots,
 code hashes), AAN (`ALX…`, MOD-97 checked before any request), AIC,
 UETR (hashed locally, Section 41A.8), epoch (`epoch 4096`) and
 validator names. Invalid checksums are explained inline
@@ -6977,7 +6986,7 @@ CREATE TABLE blocks (
   eu_used BIGINT NOT NULL, state_root BYTEA NOT NULL);
 
 CREATE TABLE transactions (
-  tx_id TEXT NOT NULL,                  -- 'AL:T…'
+  tx_id TEXT NOT NULL,                  -- 'alt:T…'
   height BIGINT NOT NULL REFERENCES blocks(height),
   idx INT NOT NULL, sender TEXT NOT NULL, tx_type SMALLINT NOT NULL, status SMALLINT NOT NULL,
   fee_asset INT NOT NULL, fee_charged NUMERIC(39,0) NOT NULL, eu_used BIGINT NOT NULL,
@@ -7015,7 +7024,7 @@ slot_duration_ms = 500
 profile = "v1"            # BLAKE3-256, Ed25519, BLS12-381 min-pk
 
 [[validators]]
-operator = "AL:q…"
+operator = "alt:0108…7f86"
 consensus_pubkey = "<base16>"
 proof_of_possession = "<base16>"
 node_identity_pubkey = "<base16>"
@@ -7026,7 +7035,7 @@ authorized_capacity = "0"         # capacity is granted by governance after laun
 epoch_issuance_cap = "0"
 
 [assets.ALnT]
-initial_allocations = [ { address = "AL:q…", mites = "1000000000" } ]
+initial_allocations = [ { address = "alt:0108…7f86", mites = "1000000000" } ]
 
 [monetary_authority]
 threshold = 3
@@ -7265,7 +7274,7 @@ aletheiad 2.5.1 — stopped cleanly.
 
 Protocol version 3 activates at height 4,194,304 (epoch 2,048).
 This binary supports protocol versions 1–2.
-Last finalized height: 4,194,303   hash: AL:Bq8f…7k2d   state root: 3c91…a0e4
+Last finalized height: 4,194,303   hash: alt:B050C…d7de   state root: 3c91…a0e4
 
 Install a release that supports version 3 (approved hashes are in the
 upgrade plan: `aletheia-cli upgrade show 9f3c…e1a0`) and start the node again.
@@ -8003,7 +8012,7 @@ must never leave a WAL that recovery has to truncate.
 Logs are written for the operator who reads them during an incident.
 
 ``` text
-finalized height=1048576 hash=AL:Bq8f…7k2d txs=212 eu=38190442 took_ms=1180
+finalized height=1048576 hash=alt:B050C…d7de txs=212 eu=38190442 took_ms=1180
 peer 9f3c…e1a0 dropped: invalid vote signature for round 2097152 (score −100, banned 10 min)
 storage: compaction behind (L0 files=36, slowdown at 40); finalize latency p99 410 ms
 signer refused timeout for round 2097153: already signed timeout for this round
@@ -8025,7 +8034,7 @@ in `docs/operations/exit-codes.md`.
 $ aletheia-cli node status
 Network        mainnet (chain 1)          Protocol    version 3 since height 4,194,304
 Role           validator #4 (active)      Following   yes, 0 blocks behind
-Finalized      1,048,576  AL:Bq8f…7k2d    Finality    p50 1.18 s  p99 1.92 s
+Finalized      1,048,576  alt:B050C…d7de    Finality    p50 1.18 s  p99 1.92 s
 Signer         connected, HSM slot 2      Last vote   round 2,097,153
 Storage        412 GiB used, 1.4 TiB free, schema 7
 Peers          6 validators, 14 sentries  Clock       ptp, offset 0.3 ms
@@ -8679,7 +8688,7 @@ aggregation, PoP), Ordering, Arno (compiler outputs for reference
 sources), VM (bytecode → receipts), EU (cost vectors), Monetary (ledger
 transitions + invariants), P2P (frame codec, handshake), RPC (OpenAPI
 contract tests + JSON-RPC 2.0 method/error vectors + REST/JSON-RPC
-parity), Text encoding (`0x` rejection, `AL:B` vectors), APN (scheme
+parity), Text encoding (`0x` rejection, `alt:B` vectors), APN (scheme
 conformance, ISO 20022 golden mappings, AAN checksum vectors, lifecycle
 transitions), Bridge (message encoding, proof verification, replay
 rejection, limits), Recovery (WAL scenarios), Upgrade (activation
@@ -8811,13 +8820,13 @@ arno-test            contract test runner
 Example output:
 
 ``` text
-$ aletheia-cli tx show AL:Tq9x…k3
-Transaction      AL:Tq9x…k3
+$ aletheia-cli tx show alt:T050c…D7De
+Transaction      alt:T050c…D7De
 Status           FINALIZED  (2-chain, finality proof ✓)
-Block            #1,048,576   AL:Bqk7r…m2x
+Block            #1,048,576   alt:B050C…d7de
 Slot             2,097,153   (epoch 4,096)
-Sender           AL:qz7m…l0e
-Recipient        AL:qv3r…8ha
+Sender           alt:0108…7f86
+Recipient        alt:0209…8087
 Amount           125.000000000000000000 AEY
 Fee              0.002100000000000000 AEY
 Execution Units  2,100 / 5,000
@@ -9318,9 +9327,9 @@ sanitizers.
                               finality is irreversible
 
   Transactions                Canonical ACE serialization; canonical
-                              `AL:T` IDs over body
+                              `alt:T` IDs over body
 
-  Addresses                   Canonical 62-character `AL:` addresses with
+  Addresses                   Canonical 62-character `alt:` addresses with
                               network-bound checksums
 
   Contracts                   Deterministic Arno execution; linear assets
@@ -9355,7 +9364,7 @@ sanitizers.
                               remote-chain failure is capped by route
                               limits
 
-  Encoding                    No `0x` anywhere; `AL:`, `AL:T`, `AL:B` and
+  Encoding                    No `0x` anywhere; `alt:`, `alt:T`, `alt:B` and
                               unprefixed lowercase base16 only
 
   Interfaces                  REST and JSON-RPC return identical data for
@@ -9564,7 +9573,7 @@ seat listed before any implementation depends on it.
   R.1    10        `NetworkIdentity`, `NetworkKind`, `ChainId` and APS-0001   Protocol
                    digest binding
 
-  R.2    11        `Address` (Bech32m `AL:`), HRP/checksum         APS-0002   Protocol,
+  R.2    11        `Address` (`alt:`, EIP-55), checksum tag         APS-0002   Protocol,
                    network binding, parse/display                             Security
 
   R.3    12.2      Base16 text codec rejecting `0x`, uppercase,    APS-0048   Protocol

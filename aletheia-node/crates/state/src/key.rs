@@ -139,7 +139,7 @@ pub const MAX_STATE_VALUE_BYTES: usize = 1024 * 1024;
 #[cfg(test)]
 mod tests {
     use super::*;
-    use aletheia_core::{Address, AddressType, AssetId, ChainId, NetworkKind};
+    use aletheia_core::{Address, AssetId, ChainId, NetworkKind};
     use std::collections::BTreeSet;
 
     fn network() -> NetworkIdentity {
@@ -188,7 +188,7 @@ mod tests {
 
     #[test]
     fn the_same_key_in_different_namespaces_differs() {
-        let address = Address::new(AddressType::Ed25519Account, Hash32::from_bytes([1; 32]));
+        let address = Address::from_bytes([1; 20]);
         let account = StateKey::derive(&network(), Namespace::Accounts, &address);
         let meta = StateKey::derive(&network(), Namespace::ContractMeta, &address);
         assert_ne!(account, meta);
@@ -196,7 +196,7 @@ mod tests {
 
     #[test]
     fn composite_keys_follow_the_normative_preimage() {
-        let address = Address::new(AddressType::Ed25519Account, Hash32::from_bytes([1; 32]));
+        let address = Address::from_bytes([1; 20]);
         let mut preimage = vec![Namespace::Balances.id()];
         preimage.extend_from_slice(&address.to_ace_bytes());
         preimage.extend_from_slice(&AssetId::AEY.to_ace_bytes());

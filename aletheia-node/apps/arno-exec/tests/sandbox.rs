@@ -19,7 +19,7 @@ use aletheia_vm::{ChainInfo, Host, Package, Trap, Value};
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
 struct State {
     storage: BTreeMap<(u16, Vec<u8>), Vec<u8>>,
-    transfers: Vec<(u32, u128, [u8; 33])>,
+    transfers: Vec<(u32, u128, [u8; 20])>,
     events: Vec<(u16, Vec<u8>)>,
 }
 
@@ -53,7 +53,7 @@ impl Host for MockHost {
         };
         Ok(())
     }
-    fn transfer(&mut self, asset: u32, amount: u128, to: &[u8; 33]) -> Result<(), Trap> {
+    fn transfer(&mut self, asset: u32, amount: u128, to: &[u8; 20]) -> Result<(), Trap> {
         self.state.transfers.push((asset, amount, *to));
         Ok(())
     }
@@ -112,7 +112,7 @@ type CallResult = Result<(Option<Value>, u64), (Trap, u64)>;
 
 fn lifecycle(run: &dyn ContractRunner) -> (Vec<CallResult>, State) {
     let (p, bytes) = escrow();
-    let (buyer, seller, arbiter) = ([1u8; 33], [2u8; 33], [3u8; 33]);
+    let (buyer, seller, arbiter) = ([1u8; 20], [2u8; 20], [3u8; 20]);
     let calls: Vec<(&str, Vec<Value>)> = vec![
         (
             "constructor",
@@ -166,7 +166,7 @@ fn the_sandbox_gives_exactly_the_in_process_results() {
     let (b, state_b) = lifecycle(&InProcess);
     assert_eq!(a, b, "results and EU match call for call");
     assert_eq!(state_a, state_b, "storage, transfers and events match");
-    assert_eq!(state_a.transfers, vec![(1, 500, [2; 33])]);
+    assert_eq!(state_a.transfers, vec![(1, 500, [2; 20])]);
     assert!(
         sandboxed.spawned() <= 2,
         "workers are reused: {}",

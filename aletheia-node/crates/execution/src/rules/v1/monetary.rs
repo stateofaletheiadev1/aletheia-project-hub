@@ -214,7 +214,7 @@ pub(crate) fn mint(
         "aletheia.monetary.mint.v1",
         vec![
             authorization.authorization_id,
-            authorization.destination.account_hash(),
+            authorization.destination.to_word(),
             asset_topic(asset),
         ],
         data,
@@ -386,7 +386,7 @@ pub(crate) fn burn(
     burn_units(records, overlay, holder, burn.asset, burn.amount, false)?;
     events.push(event(
         "aletheia.monetary.burn.v1",
-        vec![holder.account_hash(), asset_topic(burn.asset)],
+        vec![holder.to_word(), asset_topic(burn.asset)],
         burn.amount.to_le_bytes().to_vec(),
     ));
     Ok(Ok(()))
@@ -440,7 +440,7 @@ pub(crate) fn lock_or_unlock(
         } else {
             "aletheia.monetary.unlock.v1"
         },
-        vec![holder.account_hash(), asset_topic(asset)],
+        vec![holder.to_word(), asset_topic(asset)],
         amount.to_le_bytes().to_vec(),
     ));
     Ok(Ok(()))
@@ -494,7 +494,7 @@ pub(crate) fn redeem(
     events.push(event(
         "aletheia.monetary.redemption_requested.v1",
         vec![
-            holder.account_hash(),
+            holder.to_word(),
             asset_topic(redemption.asset),
             redemption.settlement_ref,
         ],

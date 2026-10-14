@@ -200,7 +200,7 @@ async fn a_transfer_goes_in_and_reads_back_through_json_rpc() {
 
     let submitted = rpc(&service, "submitTransaction", json!({ "tx": tx })).await;
     let tx_id = result(&submitted)["txId"].as_str().unwrap().to_owned();
-    assert!(tx_id.starts_with("AL:T"));
+    assert!(tx_id.starts_with("alt:T"));
     assert_eq!(result(&submitted)["status"], "ACCEPTED");
 
     let shown = rpc(&service, "getTransaction", json!({ "txId": tx_id })).await;
@@ -221,7 +221,7 @@ async fn a_transfer_goes_in_and_reads_back_through_json_rpc() {
         result(&receipt)["block"]
             .as_str()
             .unwrap()
-            .starts_with("AL:B")
+            .starts_with("alt:B")
     );
 
     let balance = rpc(
@@ -486,12 +486,12 @@ async fn json_rpc_2_0_is_strict() {
 #[tokio::test]
 async fn bad_identifiers_name_the_problem() {
     let service = service();
-    let answer = rpc(&service, "getTransaction", json!({ "txId": "AL:Tnope" })).await;
+    let answer = rpc(&service, "getTransaction", json!({ "txId": "alt:Tnope" })).await;
     assert_eq!(error_code(&answer), -32602);
     let answer = rpc(
         &service,
         "getBalance",
-        json!({ "address": "AL:qqq", "asset": "AEY" }),
+        json!({ "address": "alt:qqq", "asset": "AEY" }),
     )
     .await;
     assert_eq!(error_code(&answer), -32602);

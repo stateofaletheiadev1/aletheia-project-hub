@@ -28,6 +28,7 @@ use crate::package::{
     EFFECT_RECEIVES_COINS, EFFECT_SENDS_COINS, FLAG_CONSTRUCTOR, FLAG_ENTRY, FLAG_REENTRANT,
     FLAG_VIEW, FunctionDef, MAX_PARAMS, MAX_TEXT_CONSTANT, Package, TypeDef,
 };
+use crate::value::ADDRESS_BYTES;
 
 /// Frames on the call stack, the entry frame included (Section 28).
 pub const MAX_CALL_DEPTH: usize = 16;
@@ -548,7 +549,7 @@ impl FunctionCheck<'_> {
                     (Constant::Bytes(bytes), TypeDef::BytesMax { max }) => {
                         u32::try_from(bytes.len()).is_ok_and(|l| l <= *max)
                     }
-                    (Constant::Bytes(bytes), TypeDef::Address) => bytes.len() == 33,
+                    (Constant::Bytes(bytes), TypeDef::Address) => bytes.len() == ADDRESS_BYTES,
                     (Constant::Bytes(bytes), TypeDef::Hash) => bytes.len() == 32,
                     _ => false,
                 };

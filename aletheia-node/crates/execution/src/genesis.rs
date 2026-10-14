@@ -60,7 +60,7 @@ pub struct GenesisConfig {
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct GovernanceSection {
-    /// Council member addresses (`AL:` text).
+    /// Council member addresses (`alt:` text).
     pub council: Vec<String>,
     pub threshold: u8,
     /// Slots per governance epoch (timelocks count these); defaults to 512.

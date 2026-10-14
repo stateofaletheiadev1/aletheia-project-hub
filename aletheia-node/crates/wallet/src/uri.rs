@@ -1,4 +1,4 @@
-//! Payment URIs (spec Section 41): `aletheia:AL:…?asset=AEY&amount=125.000000000000000000&memo=…`.
+//! Payment URIs (spec Section 41): `aletheia:alt:…?asset=AEY&amount=125.000000000000000000&memo=…`.
 //! The amount is the decimal display form with exactly the asset's decimals or fewer; it is
 //! converted to base units exactly or refused.
 

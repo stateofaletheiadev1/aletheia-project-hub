@@ -22,8 +22,8 @@ pub mod monetary;
 pub mod registry;
 pub mod transfer;
 
-use aletheia_core::{AceEncode, AceWriter, AletheiaError, ErrorCode, Payload};
-use aletheia_crypto::address::authorization_address;
+use aletheia_core::{AceEncode, AceWriter, Address, AletheiaError, ErrorCode, Hash32, Payload};
+use aletheia_crypto::address::authorization_commitment;
 use aletheia_state::StateOverlay;
 
 use crate::context::{BlockContext, Meter, PayloadOutcome, outcome};
@@ -43,7 +43,7 @@ pub(crate) fn validate_stateful(
     overlay: &StateOverlay<'_>,
     verified: &VerifiedTransaction,
     ctx: &BlockContext,
-) -> Result<(Option<Account>, u128), AletheiaError> {
+) -> Result<(Option<Account>, u128, Hash32), AletheiaError> {
     let tx = verified.transaction();
     let body = &tx.body;
     if ctx.slot < body.valid_from_slot {
@@ -93,10 +93,11 @@ pub(crate) fn validate_stateful(
     }
 
     let account = records.account(overlay, &body.sender)?;
-    let controlling = authorization_address(records.network(), &tx.authorization)?;
+    // The full 32-byte commitment of the signing keys; the address is its last 20 bytes.
+    let commitment = authorization_commitment(records.network(), &tx.authorization)?;
     match &account {
         None => {
-            if controlling != body.sender {
+            if Address::from_account_hash(&commitment) != body.sender {
                 return Err(invalid(
                     ErrorCode::TxKeyMismatch,
                     "authorization keys do not derive the sender address".to_owned(),
@@ -110,7 +111,7 @@ pub(crate) fn validate_stateful(
             }
         }
         Some(existing) => {
-            if controlling.account_hash() != existing.pubkey_commitment {
+            if commitment != existing.pubkey_commitment {
                 return Err(invalid(
                     ErrorCode::TxKeyMismatch,
                     "authorization keys do not match the account's key commitment".to_owned(),
@@ -147,7 +148,7 @@ pub(crate) fn validate_stateful(
             ),
         ));
     }
-    Ok((account, price))
+    Ok((account, price, commitment))
 }
 
 /// Runs a transaction's payload; each protocol version supplies its own.
@@ -346,7 +347,7 @@ pub fn apply_transaction_with(
     index: u32,
     run: PayloadRunner,
 ) -> Result<(Receipt, Touched), AletheiaError> {
-    let (account, price) = validate_stateful(records, overlay, verified, ctx)?;
+    let (account, price, commitment) = validate_stateful(records, overlay, verified, ctx)?;
     let tx = verified.transaction();
     let body = &tx.body;
     let mark = overlay.mark();
@@ -411,7 +412,7 @@ pub fn apply_transaction_with(
         auth_scheme: account.map_or(tx.authorization.scheme.code(), |a| a.auth_scheme),
         pubkey_commitment: match account {
             Some(existing) => existing.pubkey_commitment,
-            None => body.sender.account_hash(),
+            None => commitment,
         },
         flags: account.map_or(0, |a| a.flags),
     };

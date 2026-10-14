@@ -2,132 +2,145 @@
   "aps": "APS-0002",
   "derivation": [
     {
+      "account_hash": "7583484be4a750c220e20b81ebac11edad5e5ec3516bd20a9dc04d6ed0db2c70",
       "chain_id": 7771,
       "kind": "ed25519 account",
       "network_kind": 3,
       "public_key": "5d130de8527df4df802812f4726d29236feb8e22e6a8ae43849fc46a3537045a",
-      "text": "AL:qp6cxjztujn4ps3qug9cr6avz8k66hj7cdgkh5s2nhqy6mksmvk8qj5vqaf"
+      "text": "alt:EBAC11EDad5E5EC3516BD20a9dc04D6ed0dB2c70"
     }
   ],
-  "description": "AL: addresses: 33-byte payload, Bech32m with the network HRP implied (al, alt, ald, alr), 62 characters",
+  "description": "alt: addresses (ADR-062): 20-byte payload, 40 hex digits in EIP-55 mixed case over Keccak-256(network HRP ':' lowercase hex), 44 characters",
   "invalid": [
     {
       "error": "ADDR_WRONG_NETWORK",
       "network_kind": 1,
       "reason": "other network",
-      "text": "AL:qqqssrckr5jzkv3egpr5u42uvd48z7rls6xefxaz4xct00k9enfa5sxw0d8"
+      "text": "alt:01080F161d242B323940474e555c636A71787F86"
     },
     {
       "error": "ADDR_NON_CANONICAL",
       "network_kind": 1,
-      "reason": "uppercase data",
-      "text": "AL:QQQSSRCKR5JZKV3EGPR5U42UVD48Z7RLS6XEFXAZ4XCT00K9ENFA50A7RYC"
+      "reason": "all lowercase hex",
+      "text": "alt:01080f161d242b323940474e555c636a71787f86"
     },
     {
       "error": "ADDR_NON_CANONICAL",
       "network_kind": 1,
-      "reason": "lowercase prefix",
-      "text": "al:qqqssrckr5jzkv3egpr5u42uvd48z7rls6xefxaz4xct00k9enfa50a7ryc"
+      "reason": "all uppercase hex",
+      "text": "alt:01080F161D242B323940474E555C636A71787F86"
+    },
+    {
+      "error": "ADDR_NON_CANONICAL",
+      "network_kind": 1,
+      "reason": "uppercase prefix",
+      "text": "ALT:01080F161D242B323940474e555C636A71787f86"
+    },
+    {
+      "error": "ADDR_MALFORMED",
+      "network_kind": 1,
+      "reason": "0x after the prefix",
+      "text": "alt:0x01080F161D242B323940474e555C636A71787f86"
     },
     {
       "error": "ADDR_MALFORMED",
       "network_kind": 1,
       "reason": "too short",
-      "text": "AL:qqqssrckr5jzkv3egpr5u42uvd48z7rls6xefxaz4xct00k9enfa50a7ry"
+      "text": "alt:01080F161D242B323940474e555C636A71787f8"
     },
     {
       "error": "ADDR_MALFORMED",
       "network_kind": 1,
-      "reason": "checksum altered",
-      "text": "AL:qqqssrckr5jzkv3egpr5u42uvd48z7rls6xefxaz4xct00k9enfa50a7ryq"
+      "reason": "checksum casing altered",
+      "text": "alt:01080f161D242B323940474e555C636A71787f86"
     },
     {
       "error": "ADDR_MALFORMED",
       "network_kind": 1,
-      "reason": "character outside charset",
-      "text": "AL:qqqssrcbr5jzkv3egpr5u42uvd48z7rls6xefxaz4xct00k9enfa50a7ryc"
+      "reason": "character outside hex",
+      "text": "alt:01080F161D242B323940474e555C636A71787f8g"
     }
   ],
   "valid": [
     {
       "network_kind": 1,
-      "payload": "0001080f161d242b323940474e555c636a71787f868d949ba2a9b0b7bec5ccd3da",
-      "text": "AL:qqqssrckr5jzkv3egpr5u42uvd48z7rls6xefxaz4xct00k9enfa50a7ryc"
+      "payload": "01080f161d242b323940474e555c636a71787f86",
+      "text": "alt:01080F161D242B323940474e555C636A71787f86"
     },
     {
       "network_kind": 1,
-      "payload": "01020910171e252c333a41484f565d646b727980878e959ca3aab1b8bfc6cdd4db",
-      "text": "AL:qypqjyqhrcjjcve6g9yy74jav34hy7vqs78ft89r42cm307xeh2dkqnvslm"
+      "payload": "020910171e252c333a41484f565d646b72798087",
+      "text": "alt:020910171E252C333A41484f565d646b72798087"
     },
     {
       "network_kind": 1,
-      "payload": "02030a11181f262d343b424950575e656c737a81888f969da4abb2b9c0c7ced5dc",
-      "text": "AL:qgps5ygcrunz6dpmgfy4q467v4k8x75p3z8ed8dy4wetnsx8em2acdmz0jk"
+      "payload": "030a11181f262d343b424950575e656c737a8188",
+      "text": "alt:030A11181f262d343B424950575E656C737A8188"
     },
     {
       "network_kind": 1,
-      "payload": "03040b121920272e353c434a51585f666d747b828990979ea5acb3bac1c8cfd6dd",
-      "text": "AL:qvzqkyseyqnjudfugd99zkzlvekhg7uz3xgf08494jem4swgeltd60k89u2"
+      "payload": "0000000000000000000000000000000000000004",
+      "text": "alt:0000000000000000000000000000000000000004"
     },
     {
       "network_kind": 2,
-      "payload": "0001080f161d242b323940474e555c636a71787f868d949ba2a9b0b7bec5ccd3da",
-      "text": "AL:qqqssrckr5jzkv3egpr5u42uvd48z7rls6xefxaz4xct00k9enfa5sxw0d8"
+      "payload": "01080f161d242b323940474e555c636a71787f86",
+      "text": "alt:01080F161d242B323940474e555c636A71787F86"
     },
     {
       "network_kind": 2,
-      "payload": "01020910171e252c333a41484f565d646b727980878e959ca3aab1b8bfc6cdd4db",
-      "text": "AL:qypqjyqhrcjjcve6g9yy74jav34hy7vqs78ft89r42cm307xeh2dklguuky"
+      "payload": "020910171e252c333a41484f565d646b72798087",
+      "text": "alt:020910171E252c333A41484f565D646b72798087"
     },
     {
       "network_kind": 2,
-      "payload": "02030a11181f262d343b424950575e656c737a81888f969da4abb2b9c0c7ced5dc",
-      "text": "AL:qgps5ygcrunz6dpmgfy4q467v4k8x75p3z8ed8dy4wetnsx8em2acjqjrmf"
+      "payload": "030a11181f262d343b424950575e656c737a8188",
+      "text": "alt:030a11181f262d343B424950575E656C737a8188"
     },
     {
       "network_kind": 2,
-      "payload": "03040b121920272e353c434a51585f666d747b828990979ea5acb3bac1c8cfd6dd",
-      "text": "AL:qvzqkyseyqnjudfugd99zkzlvekhg7uz3xgf08494jem4swgeltd6sdhf44"
+      "payload": "0000000000000000000000000000000000000004",
+      "text": "alt:0000000000000000000000000000000000000004"
     },
     {
       "network_kind": 3,
-      "payload": "0001080f161d242b323940474e555c636a71787f868d949ba2a9b0b7bec5ccd3da",
-      "text": "AL:qqqssrckr5jzkv3egpr5u42uvd48z7rls6xefxaz4xct00k9enfa5qrzg9n"
+      "payload": "01080f161d242b323940474e555c636a71787f86",
+      "text": "alt:01080F161D242B323940474E555c636A71787F86"
     },
     {
       "network_kind": 3,
-      "payload": "01020910171e252c333a41484f565d646b727980878e959ca3aab1b8bfc6cdd4db",
-      "text": "AL:qypqjyqhrcjjcve6g9yy74jav34hy7vqs78ft89r42cm307xeh2dk0dsm7s"
+      "payload": "020910171e252c333a41484f565d646b72798087",
+      "text": "alt:020910171e252C333A41484F565D646B72798087"
     },
     {
       "network_kind": 3,
-      "payload": "02030a11181f262d343b424950575e656c737a81888f969da4abb2b9c0c7ced5dc",
-      "text": "AL:qgps5ygcrunz6dpmgfy4q467v4k8x75p3z8ed8dy4wetnsx8em2acz97yna"
+      "payload": "030a11181f262d343b424950575e656c737a8188",
+      "text": "alt:030a11181f262d343B424950575e656C737a8188"
     },
     {
       "network_kind": 3,
-      "payload": "03040b121920272e353c434a51585f666d747b828990979ea5acb3bac1c8cfd6dd",
-      "text": "AL:qvzqkyseyqnjudfugd99zkzlvekhg7uz3xgf08494jem4swgeltd6qgmwap"
+      "payload": "0000000000000000000000000000000000000004",
+      "text": "alt:0000000000000000000000000000000000000004"
     },
     {
       "network_kind": 4,
-      "payload": "0001080f161d242b323940474e555c636a71787f868d949ba2a9b0b7bec5ccd3da",
-      "text": "AL:qqqssrckr5jzkv3egpr5u42uvd48z7rls6xefxaz4xct00k9enfa5kuctw5"
+      "payload": "01080f161d242b323940474e555c636a71787f86",
+      "text": "alt:01080F161D242b323940474E555C636A71787F86"
     },
     {
       "network_kind": 4,
-      "payload": "01020910171e252c333a41484f565d646b727980878e959ca3aab1b8bfc6cdd4db",
-      "text": "AL:qypqjyqhrcjjcve6g9yy74jav34hy7vqs78ft89r42cm307xeh2dkej2c4h"
+      "payload": "020910171e252c333a41484f565d646b72798087",
+      "text": "alt:020910171e252c333A41484F565d646b72798087"
     },
     {
       "network_kind": 4,
-      "payload": "02030a11181f262d343b424950575e656c737a81888f969da4abb2b9c0c7ced5dc",
-      "text": "AL:qgps5ygcrunz6dpmgfy4q467v4k8x75p3z8ed8dy4wetnsx8em2ac56y8c6"
+      "payload": "030a11181f262d343b424950575e656c737a8188",
+      "text": "alt:030A11181F262d343b424950575e656c737a8188"
     },
     {
       "network_kind": 4,
-      "payload": "03040b121920272e353c434a51585f666d747b828990979ea5acb3bac1c8cfd6dd",
-      "text": "AL:qvzqkyseyqnjudfugd99zkzlvekhg7uz3xgf08494jem4swgeltd6khpdkx"
+      "payload": "0000000000000000000000000000000000000004",
+      "text": "alt:0000000000000000000000000000000000000004"
     }
   ]
 }

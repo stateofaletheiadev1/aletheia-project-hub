@@ -44,7 +44,13 @@ fn a_transfer_moves_value_charges_the_fee_and_creates_the_account() {
     );
     assert_eq!(net.balance(&FEE_POOL, AssetId::ALNT).available, TRANSFER_EU);
     assert_eq!(net.account(&a).unwrap().next_nonce, 1);
-    assert_eq!(net.account(&a).unwrap().pubkey_commitment, a.account_hash());
+    // The stored commitment is the full 32-byte key hash; the address is its last 20 bytes.
+    let commitment = net.account(&a).unwrap().pubkey_commitment;
+    assert_eq!(
+        commitment,
+        aletheia_crypto::address::ed25519_commitment(&net.network, &net.keys[0].public_key())
+    );
+    assert_eq!(aletheia_core::Address::from_account_hash(&commitment), a);
     assert!(
         net.account(&b).is_none(),
         "receiving does not create an account record"

@@ -10,6 +10,7 @@ use std::io::{Read, Write};
 
 use crate::interp::{ChainInfo, Host, run};
 use crate::trap::Trap;
+use crate::value::ADDRESS_BYTES;
 use crate::wire::{Execute, HostReply, WorkerMessage, read_frame, write_frame};
 
 struct PipeHost<'a, R: Read, W: Write> {
@@ -68,7 +69,7 @@ impl<R: Read, W: Write> Host for PipeHost<'_, R, W> {
         }
     }
 
-    fn transfer(&mut self, asset: u32, amount: u128, to: &[u8; 33]) -> Result<(), Trap> {
+    fn transfer(&mut self, asset: u32, amount: u128, to: &[u8; ADDRESS_BYTES]) -> Result<(), Trap> {
         match self.ask(WorkerMessage::Transfer {
             asset,
             amount,

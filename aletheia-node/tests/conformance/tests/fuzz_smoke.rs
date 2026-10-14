@@ -82,7 +82,7 @@ proptest! {
     }
 
     #[test]
-    fn identifier_like_text(text in "AL:[TB]?[qpzry9x8gf2tvdw0s3jn54khce6mua7lA-Z ]{56,60}") {
+    fn identifier_like_text(text in "(alt|ALT):[TB]?(0x)?[0-9a-fA-Fg ]{38,66}") {
         fuzz::text_identifiers(text.as_bytes());
     }
 }

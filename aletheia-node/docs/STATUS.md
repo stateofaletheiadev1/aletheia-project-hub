@@ -17,8 +17,8 @@ partly written; see the end of this file.
 | Network identity, `H_domain` (`network.rs`) | APS-0001 | yes | yes | unit | n/a | rustdoc | no |
 | Base16 text codec (`base16.rs`) | APS-0048 | yes | yes | unit, property | **no** | rustdoc | no |
 | Bech32m engine (`bech32m.rs`) | APS-0002 | yes | yes | BIP-350 vectors, property vs `bech32` crate | **no** | rustdoc | no |
-| `AL:` addresses (`address.rs`) | APS-0002 | yes | yes | unit, property | **no** | rustdoc | no |
-| `AL:T` / `AL:B` identifiers (`ids.rs`) | 12, 12.1 | yes | yes | unit, property | **no** | rustdoc | no |
+| `alt:` addresses, 20 bytes, EIP-55 checksum (`address.rs`, ADR-062) | APS-0002 | yes | yes | unit, property | **no** | rustdoc | no |
+| `alt:T` / `alt:B` identifiers (`ids.rs`, ADR-062) | 12, 12.1 | yes | yes | unit, property | **no** | rustdoc | no |
 | Transaction wire format (`tx.rs`) | APS-0003 | yes (+ ERRATA E-10, E-12) | yes | unit, property, vectors | target written, smoke only | rustdoc | no |
 | Block wire format, QC, TC, signer bitmap (`block.rs`) | APS-0004, APS-0009 | yes (+ ERRATA E-11) | yes | unit, property, vectors | target written, smoke only | rustdoc | no |
 
@@ -336,3 +336,10 @@ rule corrections to the unfrozen version 1 in ADR-061. End-to-end crash recovery
 with and without swap, in `scripts/e2e_crash_recovery.sh`; VPS deployment in
 `docs/operations/vps.md` and `deploy/`.
 
+## alt: identifiers 2026-10-14
+
+Addresses are 20 bytes (the last 20 of the account hash; native modules 19 zero bytes and the
+id) written `alt:` + 40 hex digits; transaction and block IDs are `alt:T` / `alt:B` + 64. Letter
+case is the EIP-55 checksum over Keccak-256 with the network folded in. The full 32-byte hash
+stays the key commitment. Unfrozen version 1 changed in place (ADR-062, ERRATA E-34); vectors
+and golden hashes regenerated; devnets restart from genesis.

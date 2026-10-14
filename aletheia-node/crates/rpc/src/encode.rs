@@ -1,4 +1,4 @@
-//! Value encoding at the public boundary (Section 12.2): `AL:` / `AL:T` / `AL:B` identifiers
+//! Value encoding at the public boundary (Section 12.2, ADR-062): `alt:` / `alt:T` / `alt:B` identifiers
 //! for the node's network, lowercase base16 without a prefix for other binary values, decimal
 //! strings for every amount (with a display form using the asset's decimals).
 

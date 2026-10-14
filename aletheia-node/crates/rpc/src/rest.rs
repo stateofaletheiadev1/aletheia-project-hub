@@ -27,7 +27,7 @@ fn s(text: &str) -> Value {
     Value::String(text.to_owned())
 }
 
-/// Routes one request. `path` is below `/api/v1`, e.g. `/accounts/AL:…/balances`; `query` is
+/// Routes one request. `path` is below `/api/v1`, e.g. `/accounts/alt:…/balances`; `query` is
 /// the decoded query pairs; `body` the request body for POST.
 pub async fn route<B: Backend>(
     service: &Service<B>,
@@ -56,7 +56,7 @@ async fn dispatch<B: Backend>(
         || path.split('/').any(|seg| has_hex_prefix(&s(seg)))
     {
         return Err(RpcError::invalid_params(
-            "0x-prefixed values are not accepted: use unprefixed lowercase base16 or AL: forms",
+            "0x-prefixed values are not accepted: use unprefixed lowercase base16 or alt: forms",
         ));
     }
     let segments: Vec<&str> = path

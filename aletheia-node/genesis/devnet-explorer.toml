@@ -13,82 +13,82 @@ eu_price_alnt = "1"
 
 # Development accounts of devnet-traffic (published seeds; devnet only).
 [[allocations]]
-address = "AL:qzhg3yvsj9cakl8pe8wghf7rpzlrnwslx0aqghw7d2gtfe3rxcqky5qmd67"
+address = "alt:a7c308Be39bA1F33fa045Dde6A90b4E623360162"
 asset = "AEY"
 units = "1000000000000000000000000"
 
 [[allocations]]
-address = "AL:qzhg3yvsj9cakl8pe8wghf7rpzlrnwslx0aqghw7d2gtfe3rxcqky5qmd67"
+address = "alt:a7c308Be39bA1F33fa045Dde6A90b4E623360162"
 asset = "ALnT"
 units = "50000000000"
 
 [[allocations]]
-address = "AL:qr9a2tt2qdkf9z4qt7egvujtm6xmm79lhjxskc52uzppf6yv3eqc7w9ffqp"
+address = "alt:724bDE8dbDF8BFBc8D0B628Ae08214e88c8E418F"
 asset = "AEY"
 units = "1000000000000000000000000"
 
 [[allocations]]
-address = "AL:qr9a2tt2qdkf9z4qt7egvujtm6xmm79lhjxskc52uzppf6yv3eqc7w9ffqp"
+address = "alt:724bDE8dbDF8BFBc8D0B628Ae08214e88c8E418F"
 asset = "ALnT"
 units = "50000000000"
 
 [[allocations]]
-address = "AL:qqk0vf52hz6fdfxe3ygm0pcwktrtnkyldsqaq9pphj2v52cp7fw37wskztc"
+address = "alt:870eb2C6B9D89f6C01d01421BC94CA2b01F25D1f"
 asset = "AEY"
 units = "1000000000000000000000000"
 
 [[allocations]]
-address = "AL:qqk0vf52hz6fdfxe3ygm0pcwktrtnkyldsqaq9pphj2v52cp7fw37wskztc"
+address = "alt:870eb2C6B9D89f6C01d01421BC94CA2b01F25D1f"
 asset = "ALnT"
 units = "50000000000"
 
 [[allocations]]
-address = "AL:qp8h09lr6x57uangs5697k60y7d3zzugrc58mtxfg02fgepdr2wyu7uhrpu"
+address = "alt:5B4f279B110b881E287dACC943D494642d1A9C4e"
 asset = "AEY"
 units = "1000000000000000000000000"
 
 [[allocations]]
-address = "AL:qp8h09lr6x57uangs5697k60y7d3zzugrc58mtxfg02fgepdr2wyu7uhrpu"
+address = "alt:5B4f279B110b881E287dACC943D494642d1A9C4e"
 asset = "ALnT"
 units = "50000000000"
 
 [[allocations]]
-address = "AL:qrl2vjrgjj2j6xx2qhek26a0smmntc3jln9n7munhkaf5lex2t6usq5tgx3"
+address = "alt:6bAF86F735e232FcCb3f6f93bdbA9a7f2652f5C8"
 asset = "AEY"
 units = "1000000000000000000000000"
 
 [[allocations]]
-address = "AL:qrl2vjrgjj2j6xx2qhek26a0smmntc3jln9n7munhkaf5lex2t6usq5tgx3"
+address = "alt:6bAF86F735e232FcCb3f6f93bdbA9a7f2652f5C8"
 asset = "ALnT"
 units = "50000000000"
 
 [[allocations]]
-address = "AL:qrr2chrv4pkr49kx8wvfpxljpy47nwn4sgt7w6ra5fuxg72n72tmvrvdrcy"
+address = "alt:9BF2092BE9BA758217e7687dA278647953F297b6"
 asset = "AEY"
 units = "1000000000000000000000000"
 
 [[allocations]]
-address = "AL:qrr2chrv4pkr49kx8wvfpxljpy47nwn4sgt7w6ra5fuxg72n72tmvrvdrcy"
+address = "alt:9BF2092BE9BA758217e7687dA278647953F297b6"
 asset = "ALnT"
 units = "50000000000"
 
 [[allocations]]
-address = "AL:qr0zy5tucc36l2cty27seqm9tp2qheskj42c0r8ye2724xhy6n95c8y9pw3"
+address = "alt:836558540be6169555878CE4CAbCAa9AE4D4cB4C"
 asset = "AEY"
 units = "1000000000000000000000000"
 
 [[allocations]]
-address = "AL:qr0zy5tucc36l2cty27seqm9tp2qheskj42c0r8ye2724xhy6n95c8y9pw3"
+address = "alt:836558540be6169555878CE4CAbCAa9AE4D4cB4C"
 asset = "ALnT"
 units = "50000000000"
 
 [[allocations]]
-address = "AL:qpjp9yfj84r3vd05vem0lpu0tqzrf2wm7vm9kdt645ml8qchr8jgj0rhdkl"
+address = "alt:878f580434a9DbF3365b357Aad37F3831719e489"
 asset = "AEY"
 units = "1000000000000000000000000"
 
 [[allocations]]
-address = "AL:qpjp9yfj84r3vd05vem0lpu0tqzrf2wm7vm9kdt645ml8qchr8jgj0rhdkl"
+address = "alt:878f580434a9DbF3365b357Aad37F3831719e489"
 asset = "ALnT"
 units = "50000000000"
 

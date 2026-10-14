@@ -16,7 +16,7 @@ use aletheia_vm::{ChainInfo, Host, Package, Trap, Value, run};
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
 struct MockHost {
     storage: BTreeMap<(u16, Vec<u8>), Vec<u8>>,
-    transfers: Vec<(u32, u128, [u8; 33])>,
+    transfers: Vec<(u32, u128, [u8; 20])>,
     events: Vec<(u16, Vec<u8>)>,
     slot: u64,
 }
@@ -44,7 +44,7 @@ impl Host for MockHost {
         };
         Ok(())
     }
-    fn transfer(&mut self, asset: u32, amount: u128, to: &[u8; 33]) -> Result<(), Trap> {
+    fn transfer(&mut self, asset: u32, amount: u128, to: &[u8; 20]) -> Result<(), Trap> {
         self.transfers.push((asset, amount, *to));
         Ok(())
     }
@@ -97,8 +97,8 @@ fn error_index(p: &Package, name: &str) -> u16 {
     .unwrap()
 }
 
-fn addr(byte: u8) -> [u8; 33] {
-    [byte; 33]
+fn addr(byte: u8) -> [u8; 20] {
+    [byte; 20]
 }
 
 fn call(

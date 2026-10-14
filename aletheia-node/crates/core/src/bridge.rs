@@ -494,7 +494,7 @@ mod tests {
             asset: AssetId::AEY,
             remote_token: vec![1; 20],
             sender: vec![2; 20],
-            recipient: vec![3; 33],
+            recipient: vec![3; 20],
             amount: 5,
             fee: 0,
             expiry_slot: 99,

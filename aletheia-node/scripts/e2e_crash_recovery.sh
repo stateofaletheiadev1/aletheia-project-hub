@@ -143,7 +143,7 @@ final_total=$(total_aey)
 # The mempool lives in memory: transfers still pending when the node was killed are dropped
 # and their nonce is never used. Every transfer that did reach a finalized block must account
 # for exactly one nonce, no more and no less.
-submitted=$(sed -n 's/^sent .*  \(AL:T[0-9a-z]*\)$/\1/p' "$work/traffic.log")
+submitted=$(sed -n 's/^sent .*  \(alt:T[0-9a-fA-F]*\)$/\1/p' "$work/traffic.log")
 finalized=0
 for id in $submitted; do
   if "${cli[@]}" tx show "$id" > /dev/null 2>&1; then finalized=$((finalized + 1)); fi
