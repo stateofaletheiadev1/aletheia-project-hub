@@ -191,6 +191,28 @@ export default function DevelopmentPage() {
             </figure>
           </div>
         </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-16">
+          <figure className="bg-white rounded-sm border border-gold/30 shadow-elevated overflow-hidden">
+            <figcaption className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-5 py-3.5 border-b border-navy/10">
+              <span className="flex items-center gap-3">
+                <span className="text-sm font-bold text-navy tracking-tight">{t("Strategic Blueprint")}</span>
+                <StatusBadge status="Proposed" size="sm" />
+              </span>
+              <span className="text-[11px] font-mono text-navy/55">{t("Aerial concept of the island nation · illustrative, not to survey")}</span>
+            </figcaption>
+            <a href="/images/national-blueprint.webp" target="_blank" rel="noopener" className="block">
+              <Image
+                src="/images/national-blueprint.webp"
+                alt={t("Aerial concept of the Sovereign Covenant State of Aletheia: the Antioch Federal District at the centre, ringed by St. Barbara, Augustine, St. Brendan and Benedict States")}
+                width={1168}
+                height={784}
+                sizes="(min-width:1280px) 1216px, 100vw"
+                className="w-full h-auto"
+              />
+            </a>
+          </figure>
+        </div>
       </section>
 
       {/* ── ANTIOCH ── */}
