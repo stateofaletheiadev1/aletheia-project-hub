@@ -1,0 +1,1071 @@
+{
+  "info": {
+    "name": "AletheiaDB · Employee Management (aletheia-db-test)",
+    "description": "CRUD demo backed by AletheiaDB. Start the API with `npm start`, then use Run collection to execute all requests in order. Each request has a saved example response from a real run.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4000"
+    },
+    {
+      "key": "employeeId",
+      "value": ""
+    },
+    {
+      "key": "secondEmployeeId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "0. Health check",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"status is 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "health"
+          ]
+        },
+        "description": "Confirms the API is up and connected to AletheiaDB."
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
+            "description": "Confirms the API is up and connected to AletheiaDB."
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            }
+          ],
+          "body": "{\n  \"status\": \"ok\",\n  \"database\": \"emp_test\",\n  \"role\": \"readWrite\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "1. Create employee (Ada)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"status is 201\", () => pm.response.to.have.status(201));",
+              "pm.collectionVariables.set(\"employeeId\", pm.response.json().data.id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullname\": \"Ada Okafor\",\n  \"address\": \"12 Harbour Road, Lagos\",\n  \"email\": \"ada.okafor@example.org\",\n  \"telephone\": \"+234 803 555 0101\",\n  \"gender\": \"female\",\n  \"salary\": 450000\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/employees",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "employees"
+          ]
+        },
+        "description": "Creates an employee. Saves the new id into {{employeeId}} for the next requests."
+      },
+      "response": [
+        {
+          "name": "201 Created",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullname\": \"Ada Okafor\",\n  \"address\": \"12 Harbour Road, Lagos\",\n  \"email\": \"ada.okafor@example.org\",\n  \"telephone\": \"+234 803 555 0101\",\n  \"gender\": \"female\",\n  \"salary\": 450000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/employees",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "employees"
+              ]
+            },
+            "description": "Creates an employee. Saves the new id into {{employeeId}} for the next requests."
+          },
+          "status": "Created",
+          "code": 201,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            }
+          ],
+          "body": "{\n  \"message\": \"Employee created\",\n  \"data\": {\n    \"id\": \"01a1247fa77c7578ad6471ceb3942f8c\",\n    \"fullname\": \"Ada Okafor\",\n    \"address\": \"12 Harbour Road, Lagos\",\n    \"email\": \"ada.okafor@example.org\",\n    \"telephone\": \"+234 803 555 0101\",\n    \"gender\": \"female\",\n    \"salary\": 450000,\n    \"created_at\": \"2026-10-10T06:28:28.143Z\",\n    \"updated_at\": \"2026-10-10T06:28:28.156Z\",\n    \"version\": 1\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "2. Create employee (Marko)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"status is 201\", () => pm.response.to.have.status(201));",
+              "pm.collectionVariables.set(\"secondEmployeeId\", pm.response.json().data.id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullname\": \"Marko Petrović\",\n  \"address\": \"Knez Mihailova 5, Belgrade\",\n  \"email\": \"marko.petrovic@example.org\",\n  \"telephone\": \"+381 11 555 0199\",\n  \"gender\": \"male\",\n  \"salary\": 380000\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/employees",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "employees"
+          ]
+        },
+        "description": "A second employee, to see lists and filters."
+      },
+      "response": [
+        {
+          "name": "201 Created",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullname\": \"Marko Petrović\",\n  \"address\": \"Knez Mihailova 5, Belgrade\",\n  \"email\": \"marko.petrovic@example.org\",\n  \"telephone\": \"+381 11 555 0199\",\n  \"gender\": \"male\",\n  \"salary\": 380000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/employees",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "employees"
+              ]
+            },
+            "description": "A second employee, to see lists and filters."
+          },
+          "status": "Created",
+          "code": 201,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            }
+          ],
+          "body": "{\n  \"message\": \"Employee created\",\n  \"data\": {\n    \"id\": \"01a1247fa85d7545a163bc655803f445\",\n    \"fullname\": \"Marko Petrović\",\n    \"address\": \"Knez Mihailova 5, Belgrade\",\n    \"email\": \"marko.petrovic@example.org\",\n    \"telephone\": \"+381 11 555 0199\",\n    \"gender\": \"male\",\n    \"salary\": 380000,\n    \"created_at\": \"2026-10-10T06:28:28.365Z\",\n    \"updated_at\": \"2026-10-10T06:28:28.381Z\",\n    \"version\": 1\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "3. Create with invalid data → 400",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"status is 400\", () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullname\": \"A\",\n  \"address\": \"x\",\n  \"email\": \"not-an-email\",\n  \"telephone\": \"12\",\n  \"gender\": \"unknown\",\n  \"salary\": -5\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/employees",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "employees"
+          ]
+        },
+        "description": "Every invalid field is reported with its own message."
+      },
+      "response": [
+        {
+          "name": "400 Bad Request",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullname\": \"A\",\n  \"address\": \"x\",\n  \"email\": \"not-an-email\",\n  \"telephone\": \"12\",\n  \"gender\": \"unknown\",\n  \"salary\": -5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/employees",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "employees"
+              ]
+            },
+            "description": "Every invalid field is reported with its own message."
+          },
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            }
+          ],
+          "body": "{\n  \"error\": \"Validation failed\",\n  \"details\": [\n    {\n      \"field\": \"fullname\",\n      \"message\": \"fullname must be at least 2 characters\"\n    },\n    {\n      \"field\": \"address\",\n      \"message\": \"address must be at least 5 characters\"\n    },\n    {\n      \"field\": \"email\",\n      \"message\": \"email must be a valid email address\"\n    },\n    {\n      \"field\": \"telephone\",\n      \"message\": \"telephone must be 7-20 digits, optionally starting with +\"\n    },\n    {\n      \"field\": \"gender\",\n      \"message\": \"gender must be one of: male, female, other\"\n    },\n    {\n      \"field\": \"salary\",\n      \"message\": \"salary cannot be negative\"\n    }\n  ]\n}"
+        }
+      ]
+    },
+    {
+      "name": "4. Create with duplicate email → 409",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"status is 409\", () => pm.response.to.have.status(409));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullname\": \"Ada Duplicate\",\n  \"address\": \"12 Harbour Road, Lagos\",\n  \"email\": \"ada.okafor@example.org\",\n  \"telephone\": \"+234 803 555 0101\",\n  \"gender\": \"female\",\n  \"salary\": 450000\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/employees",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "employees"
+          ]
+        },
+        "description": "Refused by AletheiaDB's unique index on email."
+      },
+      "response": [
+        {
+          "name": "409 Conflict",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullname\": \"Ada Duplicate\",\n  \"address\": \"12 Harbour Road, Lagos\",\n  \"email\": \"ada.okafor@example.org\",\n  \"telephone\": \"+234 803 555 0101\",\n  \"gender\": \"female\",\n  \"salary\": 450000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/employees",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "employees"
+              ]
+            },
+            "description": "Refused by AletheiaDB's unique index on email."
+          },
+          "status": "Conflict",
+          "code": 409,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            }
+          ],
+          "body": "{\n  \"error\": \"An employee with this email already exists\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "5. List employees",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"status is 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/employees",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "employees"
+          ]
+        },
+        "description": "Newest first. Optional query: page, limit (max 100), gender."
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "employees"
+              ]
+            },
+            "description": "Newest first. Optional query: page, limit (max 100), gender."
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            }
+          ],
+          "body": "{\n  \"data\": [\n    {\n      \"id\": \"01a1247fa85d7545a163bc655803f445\",\n      \"fullname\": \"Marko Petrović\",\n      \"address\": \"Knez Mihailova 5, Belgrade\",\n      \"email\": \"marko.petrovic@example.org\",\n      \"telephone\": \"+381 11 555 0199\",\n      \"gender\": \"male\",\n      \"salary\": 380000,\n      \"created_at\": \"2026-10-10T06:28:28.365Z\",\n      \"updated_at\": \"2026-10-10T06:28:28.381Z\",\n      \"version\": 1\n    },\n    {\n      \"id\": \"01a1247fa77c7578ad6471ceb3942f8c\",\n      \"fullname\": \"Ada Okafor\",\n      \"address\": \"12 Harbour Road, Lagos\",\n      \"email\": \"ada.okafor@example.org\",\n      \"telephone\": \"+234 803 555 0101\",\n      \"gender\": \"female\",\n      \"salary\": 450000,\n      \"created_at\": \"2026-10-10T06:28:28.143Z\",\n      \"updated_at\": \"2026-10-10T06:28:28.156Z\",\n      \"version\": 1\n    }\n  ],\n  \"page\": 1,\n  \"limit\": 10,\n  \"total\": 2,\n  \"hasMore\": false\n}"
+        }
+      ]
+    },
+    {
+      "name": "6. List employees by gender",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"status is 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/employees?gender=female",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "employees"
+          ],
+          "query": [
+            {
+              "key": "gender",
+              "value": "female"
+            }
+          ]
+        },
+        "description": "Filter by gender: male, female or other."
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees?gender=female",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "employees"
+              ],
+              "query": [
+                {
+                  "key": "gender",
+                  "value": "female"
+                }
+              ]
+            },
+            "description": "Filter by gender: male, female or other."
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            }
+          ],
+          "body": "{\n  \"data\": [\n    {\n      \"id\": \"01a1247fa77c7578ad6471ceb3942f8c\",\n      \"fullname\": \"Ada Okafor\",\n      \"address\": \"12 Harbour Road, Lagos\",\n      \"email\": \"ada.okafor@example.org\",\n      \"telephone\": \"+234 803 555 0101\",\n      \"gender\": \"female\",\n      \"salary\": 450000,\n      \"created_at\": \"2026-10-10T06:28:28.143Z\",\n      \"updated_at\": \"2026-10-10T06:28:28.156Z\",\n      \"version\": 1\n    }\n  ],\n  \"page\": 1,\n  \"limit\": 10,\n  \"total\": 1,\n  \"hasMore\": false\n}"
+        }
+      ]
+    },
+    {
+      "name": "7. Get one employee",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"status is 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/employees/{{employeeId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "employees",
+            "{{employeeId}}"
+          ]
+        },
+        "description": "Reads one employee by id."
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees/{{employeeId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "employees",
+                "{{employeeId}}"
+              ]
+            },
+            "description": "Reads one employee by id."
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            }
+          ],
+          "body": "{\n  \"data\": {\n    \"id\": \"01a1247fa77c7578ad6471ceb3942f8c\",\n    \"fullname\": \"Ada Okafor\",\n    \"address\": \"12 Harbour Road, Lagos\",\n    \"email\": \"ada.okafor@example.org\",\n    \"telephone\": \"+234 803 555 0101\",\n    \"gender\": \"female\",\n    \"salary\": 450000,\n    \"created_at\": \"2026-10-10T06:28:28.143Z\",\n    \"updated_at\": \"2026-10-10T06:28:28.156Z\",\n    \"version\": 1\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "8. Update some fields (PATCH)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"status is 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"salary\": 500000,\n  \"address\": \"14 Harbour Road, Lagos\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/employees/{{employeeId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "employees",
+            "{{employeeId}}"
+          ]
+        },
+        "description": "Changes only the fields you send. version goes up by 1."
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "originalRequest": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"salary\": 500000,\n  \"address\": \"14 Harbour Road, Lagos\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/employees/{{employeeId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "employees",
+                "{{employeeId}}"
+              ]
+            },
+            "description": "Changes only the fields you send. version goes up by 1."
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            }
+          ],
+          "body": "{\n  \"message\": \"Employee updated\",\n  \"data\": {\n    \"id\": \"01a1247fa77c7578ad6471ceb3942f8c\",\n    \"fullname\": \"Ada Okafor\",\n    \"address\": \"14 Harbour Road, Lagos\",\n    \"email\": \"ada.okafor@example.org\",\n    \"telephone\": \"+234 803 555 0101\",\n    \"gender\": \"female\",\n    \"salary\": 500000,\n    \"created_at\": \"2026-10-10T06:28:28.143Z\",\n    \"updated_at\": \"2026-10-10T06:28:29.756Z\",\n    \"version\": 2\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "9. Replace employee (PUT)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"status is 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullname\": \"Ada N. Okafor\",\n  \"address\": \"14 Harbour Road, Lagos\",\n  \"email\": \"ada.okafor@example.org\",\n  \"telephone\": \"+234 803 555 0101\",\n  \"gender\": \"female\",\n  \"salary\": 520000\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/employees/{{employeeId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "employees",
+            "{{employeeId}}"
+          ]
+        },
+        "description": "Replaces all fields. created_at is kept."
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "originalRequest": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullname\": \"Ada N. Okafor\",\n  \"address\": \"14 Harbour Road, Lagos\",\n  \"email\": \"ada.okafor@example.org\",\n  \"telephone\": \"+234 803 555 0101\",\n  \"gender\": \"female\",\n  \"salary\": 520000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/employees/{{employeeId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "employees",
+                "{{employeeId}}"
+              ]
+            },
+            "description": "Replaces all fields. created_at is kept."
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            }
+          ],
+          "body": "{\n  \"message\": \"Employee updated\",\n  \"data\": {\n    \"id\": \"01a1247fa77c7578ad6471ceb3942f8c\",\n    \"fullname\": \"Ada N. Okafor\",\n    \"address\": \"14 Harbour Road, Lagos\",\n    \"email\": \"ada.okafor@example.org\",\n    \"telephone\": \"+234 803 555 0101\",\n    \"gender\": \"female\",\n    \"salary\": 520000,\n    \"created_at\": \"2026-10-10T06:28:28.143Z\",\n    \"updated_at\": \"2026-10-10T06:28:30.196Z\",\n    \"version\": 3\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "10. Update with stale version → 409",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"status is 409\", () => pm.response.to.have.status(409));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"version\": 1,\n  \"salary\": 1\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/employees/{{employeeId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "employees",
+            "{{employeeId}}"
+          ]
+        },
+        "description": "Sending an old version is refused: no silent overwrite of someone else's change."
+      },
+      "response": [
+        {
+          "name": "409 Conflict",
+          "originalRequest": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"version\": 1,\n  \"salary\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/employees/{{employeeId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "employees",
+                "{{employeeId}}"
+              ]
+            },
+            "description": "Sending an old version is refused: no silent overwrite of someone else's change."
+          },
+          "status": "Conflict",
+          "code": 409,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            }
+          ],
+          "body": "{\n  \"error\": \"This employee was changed by someone else since you read it. Reload and try again.\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "11. Delete employee",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"status is 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/employees/{{employeeId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "employees",
+            "{{employeeId}}"
+          ]
+        },
+        "description": "Deletes the employee."
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "originalRequest": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees/{{employeeId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "employees",
+                "{{employeeId}}"
+              ]
+            },
+            "description": "Deletes the employee."
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            }
+          ],
+          "body": "{\n  \"message\": \"Employee deleted\",\n  \"id\": \"01a1247fa77c7578ad6471ceb3942f8c\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "12. Get deleted employee → 404",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"status is 404\", () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/employees/{{employeeId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "employees",
+            "{{employeeId}}"
+          ]
+        },
+        "description": "The employee no longer exists."
+      },
+      "response": [
+        {
+          "name": "404 Not Found",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees/{{employeeId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "employees",
+                "{{employeeId}}"
+              ]
+            },
+            "description": "The employee no longer exists."
+          },
+          "status": "Not Found",
+          "code": 404,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            }
+          ],
+          "body": "{\n  \"error\": \"Employee not found\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "13. Delete second employee (clean up)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"status is 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/employees/{{secondEmployeeId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "employees",
+            "{{secondEmployeeId}}"
+          ]
+        },
+        "description": "Leaves the collection empty, so the whole collection can be run again."
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "originalRequest": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/employees/{{secondEmployeeId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "employees",
+                "{{secondEmployeeId}}"
+              ]
+            },
+            "description": "Leaves the collection empty, so the whole collection can be run again."
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            }
+          ],
+          "body": "{\n  \"message\": \"Employee deleted\",\n  \"id\": \"01a1247fa85d7545a163bc655803f445\"\n}"
+        }
+      ]
+    }
+  ]
+}
