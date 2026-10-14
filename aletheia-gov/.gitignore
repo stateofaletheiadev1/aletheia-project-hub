@@ -12,3 +12,5 @@ next-env.d.ts
 
 # Local notes that may hold passwords; never committed
 *.local.md
+
+.vercel
