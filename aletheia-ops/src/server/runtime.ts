@@ -2,7 +2,9 @@ import "server-only";
 import { randomUUID } from "node:crypto";
 import { headers } from "next/headers";
 import { AletheiaDBStore } from "@/adapters/aletheiadb/aletheiadb-store";
+import { DevelopmentGateway } from "@/adapters/publication/development-gateway";
 import { env } from "@/lib/env";
+import type { PublicationGateway } from "@/ports/publication";
 import type { DocumentStore } from "@/ports/store";
 import type { IdentityDeps } from "@/services/identity/identity";
 
@@ -47,4 +49,21 @@ export async function requireDeps(): Promise<IdentityDeps> {
   const d = await deps();
   if (!d) throw new Error("The workbench is not connected to its database.");
   return d;
+}
+
+/**
+ * The publication gateway for this environment (brief §31.6). The portal adapter arrives with the
+ * portal's publication endpoint (ADR 0003); until then only the development adapter exists, and a
+ * production environment refuses to start with it (lib/env.ts).
+ */
+export function gateway(): PublicationGateway | null {
+  const e = env();
+  if (e.PUBLICATION_MODE === "development") return devGateway(e.PORTAL_BASE_URL);
+  return null;
+}
+
+let dev: DevelopmentGateway | undefined;
+function devGateway(base: string) {
+  dev ??= new DevelopmentGateway(base);
+  return dev;
 }

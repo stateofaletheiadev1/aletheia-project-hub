@@ -10,6 +10,12 @@ export const SCHEMA: CollectionSpec[] = [
   { name: "pending_changes", unique: ["id"], indexes: ["status", "target"] },
   { name: "audit_events", appendOnly: true, unique: ["seq", "id"], indexes: ["actorId", "action", "target.id", "correlationId"] },
   { name: "audit_head", unique: ["name"] },
+  { name: "records", unique: ["id", "reference"], indexes: ["register", "institution", "state", "authorId"] },
+  { name: "record_versions", appendOnly: true, unique: ["id"], indexes: ["recordId", "hash"] },
+  { name: "approvals", appendOnly: true, unique: ["id"], indexes: ["recordId", "versionHash"] },
+  { name: "transitions", appendOnly: true, unique: ["id"], indexes: ["recordId"] },
+  { name: "outbox", unique: ["id", "idempotencyKey"], indexes: ["state", "recordId"] },
+  { name: "publication_receipts", appendOnly: true, unique: ["id", "idempotencyKey"], indexes: ["recordId"] },
   { name: "counters", unique: ["name"] },
   { name: "requests", unique: ["key"] },
 ];

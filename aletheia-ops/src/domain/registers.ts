@@ -28,7 +28,7 @@ export const REGISTER: Record<Register, RegisterInfo> = {
     publicPath: "/documents",
     description: "Founding texts, frameworks, specifications and reports.",
     publicationRule: "Every version is kept, and every published version carries a SHA-256 content hash. An author cannot approve their own document.",
-    emptyText: "No documents yet. The founding framework will be drafted, reviewed and published here as versioned documents.",
+    emptyText: "The founding framework will be drafted, reviewed and published here as versioned documents.",
   },
   decisions: {
     label: "Decisions",
@@ -37,7 +37,7 @@ export const REGISTER: Record<Register, RegisterInfo> = {
     publicPath: "/decisions",
     description: "Adopted institutional decisions.",
     publicationRule: "Published only once adopted and approved by a second officer.",
-    emptyText: "No decisions yet. Decisions are published only once adopted and approved by a second officer.",
+    emptyText: "Decisions are published only once adopted and approved by a second officer.",
   },
   dispatches: {
     label: "Dispatches",
@@ -46,7 +46,7 @@ export const REGISTER: Record<Register, RegisterInfo> = {
     publicPath: "/dispatches",
     description: "Announcements and notices.",
     publicationRule: "One reviewer and a publishing officer.",
-    emptyText: "No dispatches yet. Announcements and notices are reviewed once and released by a publishing officer.",
+    emptyText: "Announcements and notices are reviewed once and released by a publishing officer.",
   },
   finance: {
     label: "Public finance",
@@ -55,7 +55,7 @@ export const REGISTER: Record<Register, RegisterInfo> = {
     publicPath: "/public-finance",
     description: "Budgets, receipts, expenditure and reports.",
     publicationRule: "Each item is traced to a source document and approved by a finance officer. Restricted until publication is authorised.",
-    emptyText: "No finance records yet. Each one will be traced to a source document before it can be submitted.",
+    emptyText: "Each finance record is traced to a source document before it can be submitted.",
   },
   appointments: {
     label: "Appointments",
@@ -64,7 +64,7 @@ export const REGISTER: Record<Register, RegisterInfo> = {
     publicPath: "/appointments",
     description: "Verified appointments only.",
     publicationRule: "Verified by an officer other than the drafter. Personal details are published only with explicit authorisation.",
-    emptyText: "No appointments yet. Only verified appointments are published.",
+    emptyText: "Only verified appointments are published.",
   },
   opportunities: {
     label: "Opportunities",
@@ -73,7 +73,7 @@ export const REGISTER: Record<Register, RegisterInfo> = {
     publicPath: "/opportunities",
     description: "Positions with reference, mandate and selection criteria; applications.",
     publicationRule: "Applications are reviewed by two people and are never published.",
-    emptyText: "No opportunities yet. Positions are published with their mandate and selection criteria.",
+    emptyText: "Positions are published with their mandate and selection criteria.",
   },
   events: {
     label: "Events",
@@ -82,7 +82,7 @@ export const REGISTER: Record<Register, RegisterInfo> = {
     publicPath: "/events",
     description: "Public sessions and meetings.",
     publicationRule: "Times are shown in the event's own timezone. Changes and cancellations are published as amendments.",
-    emptyText: "No events yet. Public sessions and meetings will be announced here.",
+    emptyText: "Public sessions and meetings will be announced here.",
   },
 };
 

@@ -29,7 +29,8 @@ export function proxy(request: NextRequest) {
     "base-uri 'self'",
     "form-action 'self'",
     "frame-ancestors 'none'",
-    ...(isDev ? [] : ["upgrade-insecure-requests"]),
+    // Only where the site is served over HTTPS; a production build run on localhost for tests is not.
+    ...(process.env.APP_ENV === "production" || process.env.APP_ENV === "staging" ? ["upgrade-insecure-requests"] : []),
   ].join("; ");
 
   const correlation = crypto.randomUUID();

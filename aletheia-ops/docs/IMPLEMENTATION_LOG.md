@@ -106,3 +106,40 @@ Fixed because the end-to-end test found it: sign-out crashed on `Origin: null` (
 
 Not yet: the `workbench` database on db.stateofaletheia.org (D4), Vercel project and domain,
 passkeys, authenticator reset, email. The local test accounts exist only on this machine.
+
+## 15–16 October 2026: D4 and the records phase
+
+**D4 done.** Database `workbench` created on db.stateofaletheia.org with every collection
+(append-only where the brief requires) and a readWrite application key scoped to it alone
+(verified: Forbidden on `gov`). The key and the two data keys are in the git-ignored
+`.env.production.local`, never printed. The root key was read over SSH into a process variable
+only. No officials exist there yet: the founding administrators are created at deployment.
+
+**Records (all seven registers).**
+- Working copy on the record; submission freezes it into a hashed, append-only version.
+  Approvals bind to the version hash; a revision invalidates them by construction.
+- Every step through the engine, in one atomic commit with its transition event, approval,
+  reference allocation, outbox entry and audit events. Stale revisions are refused.
+- References issued at publication authorisation, from a counter updated in the same commit
+  (AGV-{TYPE}-{YEAR}-NNNN; slug = reference in lower case). Assumption, changeable by policy.
+- Publication: outbox with one idempotency key per version, reused on retry; delivery confirms
+  only on the gateway's answer; unclear answers are reconciled by key before any retry. Only the
+  development gateway exists (simulated receipts, banner); the portal endpoint is next (ADR 0003).
+- Screens: registers with filters and pagination, composer (plain-text conventions, preview as on
+  the portal, autosave, unsaved-changes guard), folio with next action, stages,
+  countersignatures, eligibility, versions and receipt, word-by-word changes between versions,
+  My queue (derived from what the official may do now).
+- Officials and access now keeps recent decisions visible ("Decided in the last seven days");
+  the end-to-end test showed the confirmation message vanished with the item it confirmed.
+- Empty registers no longer repeat their heading in the explanation.
+
+**End-to-end tests now run on isolated data** (`npm run e2e`): a fresh database per run in the
+local AletheiaDB, a cast of officials created through the real services (privileged roles via the
+two-person rule), and a production build on port 3310.
+
+Verified (commands run): `npx vitest run` 183 tests pass; `tsc` and `eslint` clean;
+`npx playwright test` 2 tests pass (identity: E2E 1, 2, 19, 20; records: E2E 3, 4, 5, 6, 7, 9,
+10, 11, 16), watched headed by the owner for part of the runs.
+
+Not yet: the portal's publication endpoint and gateway (E2E 12–14 against a real portal),
+attachments and scanning, free-standing tasks and reassignment, notifications, Vercel and DNS.

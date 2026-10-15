@@ -623,3 +623,22 @@ export async function getOfficial(deps: IdentityDeps, actor: Actor, id: string):
   if (!o || (o.id !== actor.id && !seesOfficial(actor, o))) return null;
   return viewOf(deps, actor, o);
 }
+
+/** Names of officials by id, for showing who did what. Names are not secret within the workbench. */
+export async function namesOf(deps: { store: DocumentStore }, ids: string[]): Promise<Map<string, string>> {
+  const unique = [...new Set(ids.filter(Boolean))];
+  if (!unique.length) return new Map();
+  const page = await deps.store.find<Official>(OFFICIALS, { id: { $in: unique } }, { limit: unique.length });
+  return new Map(page.documents.map((o) => [o.id, o.name]));
+}
+
+/** Access changes decided recently, so a decision stays visible after it is made. */
+export async function listDecidedChanges(deps: IdentityDeps, actor: Actor, days = 7): Promise<Doc<PendingChange>[]> {
+  const since = new Date(deps.now().getTime() - days * 86_400_000).toISOString();
+  const page = await deps.store.find<PendingChange>(CHANGES, { status: { $in: ["confirmed", "rejected"] }, decidedAt: { $gte: since } }, { sort: { decidedAt: -1 }, limit: 100 });
+  return page.documents.filter((p) => {
+    if (p.change.kind === "workflow_policy") return can(actor, "policy.propose") || can(actor, "policy.confirm");
+    const inst = p.change.grant.institution === "*" ? undefined : p.change.grant.institution;
+    return can(actor, "role.propose", { institution: inst }) || can(actor, "role.confirm", { institution: inst });
+  });
+}

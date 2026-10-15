@@ -9,7 +9,7 @@ import { ACCOUNT_STATE } from "@/domain/glossary";
 import { grantLabel, institutionName } from "@/domain/labels";
 import { cx } from "@/lib/cx";
 import { can, institutionsWhere, ROLE_INFO } from "@/policy/roles";
-import { listOfficials, listPendingChanges } from "@/services/identity/identity";
+import { listDecidedChanges, listOfficials, listPendingChanges } from "@/services/identity/identity";
 import { requireDeps } from "@/server/runtime";
 import { requirePermission } from "@/server/session";
 import { decideAction } from "./actions";
@@ -26,7 +26,7 @@ const STATE_STYLE: Record<string, string> = {
 export default async function OfficialsPage() {
   const { official, actor } = await requirePermission("official.read");
   const d = await requireDeps();
-  const [officials, pending] = await Promise.all([listOfficials(d, actor), listPendingChanges(d, actor)]);
+  const [officials, pending, decided] = await Promise.all([listOfficials(d, actor), listPendingChanges(d, actor), listDecidedChanges(d, actor)]);
   const names = new Map(officials.map((o) => [o.id, o.name]));
   const invites = institutionsWhere(actor, "official.invite");
   return (
@@ -87,6 +87,36 @@ export default async function OfficialsPage() {
                 </li>
               );
             })}
+          </ul>
+        </section>
+      ) : null}
+
+      {decided.length ? (
+        <section aria-labelledby="decided">
+          <h2 id="decided" className="mb-3 border-b border-rule-strong pb-2 text-h3 text-ink">
+            Decided in the last seven days
+          </h2>
+          <ul className="grid">
+            {decided.map((p) => (
+              <li key={p.id} className="grid gap-1 border-b border-rule py-3">
+                <p className="text-ui text-ink">
+                  <span className={cx("font-semibold", p.status === "confirmed" ? "text-status-approved" : "text-status-danger")}>{p.status === "confirmed" ? "Confirmed" : "Rejected"}</span>
+                  {": "}
+                  {p.change.kind === "workflow_policy" ? `workflow policy for ${p.change.register}` : `${p.change.kind === "grant" ? "grant" : "removal"} of ${grantLabel(p.change.grant)} for ${names.get(p.change.target) ?? "an official"}`}
+                </p>
+                <p className="text-meta text-ink-2">
+                  {p.status === "confirmed" ? "Confirmed" : "Rejected"} by {names.get(p.decidedBy ?? "") ?? "an administrator"}
+                  {p.decidedAt ? (
+                    <>
+                      {" "}
+                      · <Timestamp at={p.decidedAt} timeZone={official.timezone} />
+                    </>
+                  ) : null}
+                  {" "}· proposed by {names.get(p.proposedBy) ?? "an administrator"}
+                  {p.decisionReason ? ` · “${p.decisionReason}”` : ""}
+                </p>
+              </li>
+            ))}
           </ul>
         </section>
       ) : null}
