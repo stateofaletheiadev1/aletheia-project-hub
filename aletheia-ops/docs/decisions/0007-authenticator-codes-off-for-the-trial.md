@@ -33,3 +33,8 @@ from their account. `AUTH_MFA=optional` (the old value `off` is read the same wa
 who has turned it on is always asked for a code; one who has not signs in with a password. They
 can turn it off again with their password while it is optional. `required` still forces it on for
 everyone, and production refuses `optional`.
+
+## Revision, 16 October 2026: optional in production
+
+At go-live the owner chose to keep two-step sign-in optional in production. The production check
+that refused `optional` was removed. Switching to `required` remains one setting.

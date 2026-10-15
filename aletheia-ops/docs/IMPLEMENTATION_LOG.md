@@ -210,3 +210,18 @@ attachments and scanning, free-standing tasks and reassignment, notifications, V
   publishing to a locally running test copy of the portal on its own database (E2E 12: the public
   page shows the record, reference and the same hash). Live: `publications` collection created in
   `gov`; secrets set in both Vercel projects (not printed; copy in `.env.production.local`).
+
+## 16 October 2026: go-live (production)
+
+- Owner's decisions: fresh start; optional two-step sign-in in production; ops.aletheiagov.org.
+- aletheiagov.org: the one test publication (AGV-DOC-2026-0001 "Biz test My Biz Test") and its
+  receipt removed in one commit; portal staff accounts untouched. Publication links now use
+  https://aletheiagov.org (portal APP_BASE_URL).
+- Workbench moved to a new, empty database `operations` (AletheiaDB cannot drop a database and the
+  audit history is append-only, so the test database `workbench` is left unused, ~1 MB); its key
+  revoked; new encryption keys. Founders Emeka and Su re-created with the Founder role.
+- `APP_ENV=production`, `AUTH_MFA=optional` (production check relaxed, ADR 0007),
+  `APP_BASE_URL=https://ops.aletheiagov.org`. Verified live: no staging marker, /design 404,
+  sign-in connected, CSP with upgrade-insecure-requests.
+- Domain added to the Vercel project. Needed at Spaceship: CNAME `ops` →
+  `1a0525dd1d6c62a0.vercel-dns-017.com` (owner).

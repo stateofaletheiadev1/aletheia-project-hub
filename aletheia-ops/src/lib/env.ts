@@ -29,8 +29,9 @@ const schema = z.object({
   PORTAL_HMAC_KEY_ID: optional,
   PORTAL_HMAC_SECRET: optional.pipe(z.union([z.string().min(32, "PORTAL_HMAC_SECRET must be at least 32 characters"), z.undefined()])),
   /**
-   * "optional": password sign-up; two-step sign-in is each official's choice (ADR 0007).
-   * "required": every account must have an authenticator. "off" is read as "optional".
+   * "optional": password sign-up; two-step sign-in is each official's choice (ADR 0007), allowed
+   * in production by the owner's decision of 16 October 2026. "required": every account must have
+   * an authenticator. "off" is read as "optional".
    */
   AUTH_MFA: z
     .enum(["required", "optional", "off"])
@@ -52,7 +53,6 @@ export function parseEnv(source: Record<string, string | undefined>): Env {
   if (e.APP_ENV === "production") {
     // Brief §31.6: the production build refuses to start with simulated publication.
     if (e.PUBLICATION_MODE !== "portal") throw new Error("Invalid environment: PUBLICATION_MODE must be 'portal' in production");
-    if (e.AUTH_MFA !== "required") throw new Error("Invalid environment: AUTH_MFA must be 'required' in production (ADR 0007)");
     const missing = (["ALETHEIADB_URL", "DATA_ENCRYPTION_KEY", "EMAIL_INDEX_KEY", "PORTAL_HMAC_KEY_ID", "PORTAL_HMAC_SECRET", "CRON_SECRET"] as const).filter((k) => !e[k]);
     if (missing.length) throw new Error(`Invalid environment: required in production: ${missing.join(", ")}`);
   }

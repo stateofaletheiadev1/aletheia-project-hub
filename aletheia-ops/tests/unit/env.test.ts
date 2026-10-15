@@ -28,8 +28,8 @@ describe("environment", () => {
     expect(() => parseEnv({ ...production, PUBLICATION_MODE: "development" })).toThrow(/must be 'portal' in production/);
   });
 
-  it("refuses to start production with authenticator codes off", () => {
-    expect(() => parseEnv({ ...production, AUTH_MFA: "off" })).toThrow(/AUTH_MFA must be 'required'/);
+  it("allows optional two-step sign-in in production, by the owner's decision (ADR 0007)", () => {
+    expect(parseEnv({ ...production, AUTH_MFA: "optional" }).AUTH_MFA).toBe("optional");
     expect(parseEnv({ AUTH_MFA: "off", APP_ENV: "staging" }).AUTH_MFA).toBe("optional");
     expect(parseEnv({ AUTH_MFA: "optional", APP_ENV: "staging" }).AUTH_MFA).toBe("optional");
   });
