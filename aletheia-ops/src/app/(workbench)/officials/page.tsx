@@ -8,6 +8,7 @@ import { Timestamp } from "@/components/ui/Timestamp";
 import { ACCOUNT_STATE } from "@/domain/glossary";
 import { grantLabel, institutionName } from "@/domain/labels";
 import { cx } from "@/lib/cx";
+import { env } from "@/lib/env";
 import { can, institutionsWhere, ROLE_INFO } from "@/policy/roles";
 import { listDecidedChanges, listOfficials, listPendingChanges } from "@/services/identity/identity";
 import { requireDeps } from "@/server/runtime";
@@ -29,6 +30,7 @@ export default async function OfficialsPage() {
   const [officials, pending, decided] = await Promise.all([listOfficials(d, actor), listPendingChanges(d, actor), listDecidedChanges(d, actor)]);
   const names = new Map(officials.map((o) => [o.id, o.name]));
   const invites = institutionsWhere(actor, "official.invite");
+  const mfaRequired = env().AUTH_MFA === "required";
   return (
     <div className="mx-auto grid max-w-7xl gap-10">
       <PageHeader
@@ -166,7 +168,7 @@ export default async function OfficialsPage() {
                 </td>
                 <td className="px-3 py-3 align-top">
                   <span className={cx("text-meta font-semibold", STATE_STYLE[o.state])}>{ACCOUNT_STATE[o.state].label}</span>
-                  {o.state === "active" && !o.mfa ? <p className="text-meta text-status-danger">No authenticator</p> : null}
+                  {o.state === "active" && !o.mfa ? <p className={cx("text-meta", mfaRequired ? "text-status-danger" : "text-ink-3")}>No authenticator{mfaRequired ? "" : " yet"}</p> : null}
                 </td>
                 <td className="hidden py-3 pl-3 text-right align-top text-meta text-ink-2 lg:table-cell">
                   {o.lastSignInAt ? <Timestamp at={o.lastSignInAt} timeZone={official.timezone} /> : <span className="text-ink-3">Never</span>}

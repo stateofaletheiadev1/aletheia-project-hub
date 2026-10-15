@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { clientAddress, createLimiter } from "@/lib/rate-limit";
-import { choosePassword, confirmAuthenticator, Refused } from "@/services/identity/identity";
+import { choosePassword, confirmAuthenticator, finishWithoutCode, Refused } from "@/services/identity/identity";
 import { requireDeps } from "@/server/runtime";
 import { deviceLabel, setSessionCookie } from "@/server/session";
 
@@ -27,13 +27,19 @@ export async function choosePasswordAction(_prev: AcceptState, form: FormData): 
   if (!("token" in g)) return g;
   const password = String(form.get("password") ?? "");
   if (password !== String(form.get("confirm") ?? "")) return { error: "The two passwords are different. Enter the same password twice." };
+  let signedIn = false;
   try {
-    await choosePassword(await requireDeps(), g.token, password);
+    const result = await choosePassword(await requireDeps(), g.token, password, await deviceLabel());
+    if (result.kind === "signed_in") {
+      // Authenticator codes are switched off (ADR 0007): the account is active now.
+      await setSessionCookie(result.sessionToken);
+      signedIn = true;
+    }
   } catch (e) {
     if (e instanceof Refused) return { error: e.message };
     throw e;
   }
-  redirect(`/invitation/${g.token}`);
+  redirect(signedIn ? "/?welcome=1" : `/invitation/${g.token}`);
 }
 
 export async function confirmAuthenticatorAction(_prev: AcceptState, form: FormData): Promise<AcceptState> {
@@ -41,6 +47,20 @@ export async function confirmAuthenticatorAction(_prev: AcceptState, form: FormD
   if (!("token" in g)) return g;
   try {
     const { sessionToken } = await confirmAuthenticator(await requireDeps(), g.token, String(form.get("code") ?? ""), await deviceLabel());
+    await setSessionCookie(sessionToken);
+  } catch (e) {
+    if (e instanceof Refused) return { error: e.message };
+    throw e;
+  }
+  redirect("/?welcome=1");
+}
+
+/** Codes switched off (ADR 0007): complete an invitation whose password is already chosen. */
+export async function finishAction(_prev: AcceptState, form: FormData): Promise<AcceptState> {
+  const g = await guard(form.get("token"));
+  if (!("token" in g)) return g;
+  try {
+    const { sessionToken } = await finishWithoutCode(await requireDeps(), g.token, await deviceLabel());
     await setSessionCookie(sessionToken);
   } catch (e) {
     if (e instanceof Refused) return { error: e.message };

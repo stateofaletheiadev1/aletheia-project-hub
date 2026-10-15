@@ -158,3 +158,15 @@ attachments and scanning, free-standing tasks and reassignment, notifications, V
 - Founding administrators created on the live database: Emeka Iwuagwu and Su (owner's choice).
   Their single-use links were given to the owner, not recorded here.
 - `ops.aletheiagov.org`: DNS for aletheiagov.org is at Spaceship; one CNAME is needed (owner).
+
+## 16 October 2026: authenticator codes switched off for the trial (ADR 0007)
+
+- Owner's request: no QR / authenticator step until real officials are enrolled. Implemented as
+  `AUTH_MFA=off` (refused in production), with a banner on every page and `mfa: off` on every
+  sign-in in the audit register. Set on the live staging site.
+- Half-finished invitations (password chosen while codes were required) finish with a single
+  "Finish joining" step. Emeka's live invitation was in this state.
+- Switching back to `required` ends sessions of officials without an authenticator and makes each
+  enrol one (QR) at the next sign-in.
+- Verified: 187 unit tests (including off mode, switching back, half-finished invitations);
+  both browser tests in required mode; live pages for both founders' invitations checked.

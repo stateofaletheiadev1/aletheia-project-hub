@@ -42,6 +42,7 @@ export async function deps(): Promise<IdentityDeps | null> {
     now: () => new Date(),
     correlationId: await correlationId(),
     keys: { data: Buffer.from(e.DATA_ENCRYPTION_KEY, "base64"), index: Buffer.from(e.EMAIL_INDEX_KEY, "base64") },
+    mfa: e.AUTH_MFA,
   };
 }
 

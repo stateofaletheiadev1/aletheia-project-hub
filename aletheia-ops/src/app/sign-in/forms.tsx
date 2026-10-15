@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Field, TextInput } from "@/components/ui/form";
-import { signInAction, verifyAction, type FormState } from "./actions";
+import { enrolAction, signInAction, verifyAction, type FormState } from "./actions";
 
 function Problem({ text }: { text?: string }) {
   return (
@@ -32,13 +32,13 @@ export function SignInForm({ next }: { next: string }) {
   );
 }
 
-export function CodeForm({ next }: { next: string }) {
-  const [state, action, pending] = useActionState<FormState, FormData>(verifyAction, {});
+export function CodeForm({ next, enrol = false }: { next: string; enrol?: boolean }) {
+  const [state, action, pending] = useActionState<FormState, FormData>(enrol ? enrolAction : verifyAction, {});
   return (
     <form action={action} className="grid gap-5" noValidate>
       <Problem text={state.error} />
       <input type="hidden" name="next" value={next} />
-      <Field id="code" label="Six-digit code" hint="From the authenticator app you set up when you joined.">
+      <Field id="code" label="Six-digit code" hint={enrol ? "The code the app shows now for Aletheia Operations." : "From the authenticator app you set up when you joined."}>
         <TextInput id="code" name="code" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9 ]*" maxLength={7} required autoFocus className="tnum tracking-widest" />
       </Field>
       <Button type="submit" variant="primary" pending={pending} pendingLabel="Checking…">

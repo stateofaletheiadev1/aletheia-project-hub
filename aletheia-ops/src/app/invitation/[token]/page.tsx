@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import QRCode from "qrcode";
 import { AuthShell } from "@/components/frame/AuthShell";
+import { env } from "@/lib/env";
 import { formatDateTime } from "@/lib/time";
 import { pendingEnrolment, viewInvitation } from "@/services/identity/identity";
 import { deps } from "@/server/runtime";
-import { AuthenticatorStep, PasswordStep } from "./forms";
+import { AuthenticatorStep, FinishStep, PasswordStep } from "./forms";
 
 // The site-wide Referrer-Policy (same-origin) keeps the token in this address from reaching any
 // other site. A stricter per-page policy would outlive the page in the app's client navigation
@@ -21,6 +22,14 @@ export default async function InvitationPage({ params }: { params: Promise<{ tok
         <p className="text-ui font-normal text-ink-2">
           It may have been used already, withdrawn, or it expired 72 hours after it was issued. Ask the administrator who invited you to send a new one.
         </p>
+      </AuthShell>
+    );
+  }
+
+  if (invitation.passwordSet && env().AUTH_MFA === "off") {
+    return (
+      <AuthShell title={`Welcome, ${invitation.name}`} lede="Your password is saved. Authenticator codes are switched off for now, so there is nothing more to set up.">
+        <FinishStep token={token} />
       </AuthShell>
     );
   }
@@ -56,7 +65,7 @@ export default async function InvitationPage({ params }: { params: Promise<{ tok
       title={`Welcome, ${invitation.name}`}
       lede={
         <>
-          You have been invited to Aletheia Government Operations as <span className="font-semibold text-ink">{invitation.email}</span>. Step 1 of 2. This invitation expires on{" "}
+          You have been invited to Aletheia Government Operations as <span className="font-semibold text-ink">{invitation.email}</span>.{env().AUTH_MFA === "off" ? " Choose a password to finish." : " Step 1 of 2."} This invitation expires on{" "}
           {formatDateTime(new Date(invitation.expiresAt))}.
         </>
       }

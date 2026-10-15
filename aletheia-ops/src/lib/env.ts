@@ -28,6 +28,8 @@ const schema = z.object({
   PORTAL_BASE_URL: z.url().default("https://www.aletheiagov.org"),
   PORTAL_HMAC_KEY_ID: optional,
   PORTAL_HMAC_SECRET: optional.pipe(z.union([z.string().min(32, "PORTAL_HMAC_SECRET must be at least 32 characters"), z.undefined()])),
+  /** "off" switches authenticator codes off for a trial (ADR 0007). Refused in production. */
+  AUTH_MFA: z.enum(["required", "off"]).default("required"),
   CRON_SECRET: optional.pipe(z.union([z.string().min(32, "CRON_SECRET must be at least 32 characters"), z.undefined()])),
 });
 
@@ -44,6 +46,7 @@ export function parseEnv(source: Record<string, string | undefined>): Env {
   if (e.APP_ENV === "production") {
     // Brief §31.6: the production build refuses to start with simulated publication.
     if (e.PUBLICATION_MODE !== "portal") throw new Error("Invalid environment: PUBLICATION_MODE must be 'portal' in production");
+    if (e.AUTH_MFA !== "required") throw new Error("Invalid environment: AUTH_MFA must be 'required' in production (ADR 0007)");
     const missing = (["ALETHEIADB_URL", "DATA_ENCRYPTION_KEY", "EMAIL_INDEX_KEY", "PORTAL_HMAC_KEY_ID", "PORTAL_HMAC_SECRET", "CRON_SECRET"] as const).filter((k) => !e[k]);
     if (missing.length) throw new Error(`Invalid environment: required in production: ${missing.join(", ")}`);
   }

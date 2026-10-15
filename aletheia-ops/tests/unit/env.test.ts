@@ -28,6 +28,11 @@ describe("environment", () => {
     expect(() => parseEnv({ ...production, PUBLICATION_MODE: "development" })).toThrow(/must be 'portal' in production/);
   });
 
+  it("refuses to start production with authenticator codes off", () => {
+    expect(() => parseEnv({ ...production, AUTH_MFA: "off" })).toThrow(/AUTH_MFA must be 'required'/);
+    expect(parseEnv({ AUTH_MFA: "off", APP_ENV: "staging" }).AUTH_MFA).toBe("off");
+  });
+
   it("names every missing production secret", () => {
     expect(() => parseEnv({ APP_ENV: "production", PUBLICATION_MODE: "portal", PORTAL_HMAC_KEY_ID: "k", PORTAL_HMAC_SECRET: "x".repeat(40) })).toThrow(
       /ALETHEIADB_URL, DATA_ENCRYPTION_KEY, EMAIL_INDEX_KEY, CRON_SECRET/,

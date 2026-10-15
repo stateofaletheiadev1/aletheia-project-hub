@@ -24,7 +24,16 @@ import {
   type Session,
 } from "./types";
 
-export type IdentityDeps = UnitOfWork & { keys: { data: Buffer; index: Buffer } };
+export type IdentityDeps = UnitOfWork & {
+  keys: { data: Buffer; index: Buffer };
+  /**
+   * "off" switches authenticator codes off for a trial (ADR 0007): sign-in is password only, and
+   * nobody is asked to enrol. A production environment refuses it (lib/env.ts). Default: required.
+   */
+  mfa?: "required" | "off";
+};
+
+const mfaOff = (deps: { mfa?: "required" | "off" }) => deps.mfa === "off";
 
 /** A refusal the official may read. Never says which of email, password or code was wrong. */
 export class Refused extends Error {
@@ -39,8 +48,9 @@ const INVITATIONS = "invitations";
 const SESSIONS = "sessions";
 const CHANGES = "pending_changes";
 
-export function toActor(o: Official): Actor {
-  return { id: o.id, state: o.state, mfa: Boolean(o.totpSealed), grants: o.grants };
+/** With codes switched off (ADR 0007) the second factor counts as satisfied; otherwise it must be enrolled. */
+export function toActor(o: Official, mfaSwitchedOff = false): Actor {
+  return { id: o.id, state: o.state, mfa: mfaSwitchedOff || Boolean(o.totpSealed), grants: o.grants };
 }
 
 function emailOf(deps: IdentityDeps, o: Official): string {
@@ -221,13 +231,19 @@ export async function viewInvitation(deps: IdentityDeps, token: string): Promise
   return { officialId: live.official.id, name: live.official.name, email: emailOf(deps, live.official), expiresAt: live.inv.expiresAt, passwordSet: Boolean(live.inv.passwordHash) };
 }
 
-/** Step 1 of accepting: choose a password. Returns the authenticator secret to enrol. */
-export async function choosePassword(deps: IdentityDeps, token: string, password: string): Promise<{ secret: string; uri: string }> {
+export type AcceptResult = { kind: "enrol"; secret: string; uri: string } | { kind: "signed_in"; sessionToken: string };
+
+/**
+ * Step 1 of accepting: choose a password. Returns the authenticator secret to enrol, or, with
+ * codes switched off (ADR 0007), activates the account and signs in at once.
+ */
+export async function choosePassword(deps: IdentityDeps, token: string, password: string, device = "Browser"): Promise<AcceptResult> {
   const live = await liveInvitation(deps, token);
   if (!live) throw new Refused("This invitation is no longer valid. Ask the administrator who invited you for a new one.");
   const email = emailOf(deps, live.official);
   const problems = passwordProblems(password, email, live.official.name);
   if (problems.length) throw new Refused(problems.join(" "));
+  if (mfaOff(deps)) return { kind: "signed_in", sessionToken: await activate(deps, live, await hashPassword(password), null, null, device) };
   const secret = newTotpSecret();
   await deps.store.commit([
     {
@@ -238,7 +254,53 @@ export async function choosePassword(deps: IdentityDeps, token: string, password
       update: { $set: { passwordHash: await hashPassword(password), totpSealed: seal(deps.keys.data, secret, `invitation:${live.inv.id}:totp`) } },
     },
   ]);
-  return { secret, uri: totpUri(secret, email) };
+  return { kind: "enrol", secret, uri: totpUri(secret, email) };
+}
+
+/**
+ * With codes switched off (ADR 0007): finishes an invitation whose password was chosen while
+ * codes were required. The pending authenticator secret is discarded.
+ */
+export async function finishWithoutCode(deps: IdentityDeps, token: string, device: string): Promise<{ sessionToken: string }> {
+  if (!mfaOff(deps)) throw new Refused("An authenticator app is required. Scan the code and enter the six digits it shows.");
+  const live = await liveInvitation(deps, token);
+  if (!live?.inv.passwordHash) throw new Refused("This invitation is no longer valid. Ask the administrator who invited you for a new one.");
+  return { sessionToken: await activate(deps, live, live.inv.passwordHash, null, null, device) };
+}
+
+/** Activates an invited official and signs them in, in one commit. */
+async function activate(
+  deps: IdentityDeps,
+  live: { inv: Doc<Invitation>; official: Doc<Official> },
+  passwordHash: string,
+  secret: string | null,
+  step: number | null,
+  device: string,
+): Promise<string> {
+  const now = deps.now();
+  const totpSealed = secret ? seal(deps.keys.data, secret, `official:${live.official.id}:totp`) : null;
+  const activated: Official = { ...live.official, state: "active", passwordHash, totpSealed, totpLastStep: step, activatedAt: now.toISOString(), lastSignInAt: now.toISOString() };
+  const s = sessionDoc(activated, "full", now, device);
+  await commitAudited(
+    deps,
+    [
+      {
+        op: "update",
+        collection: OFFICIALS,
+        id: live.official._id,
+        expectedRev: live.official._rev,
+        update: { $set: { state: "active", passwordHash, totpSealed, totpLastStep: step, activatedAt: activated.activatedAt, lastSignInAt: activated.lastSignInAt } },
+      },
+      { op: "update", collection: INVITATIONS, id: live.inv._id, expectedRev: live.inv._rev, update: { $set: { acceptedAt: now.toISOString() }, $unset: ["passwordHash", "totpSealed"] } },
+      { op: "insert", collection: SESSIONS, document: s.doc },
+    ],
+    [
+      { actorId: activated.id, action: "official.activate", target: { type: "official", id: activated.id } },
+      ...(secret ? [{ actorId: activated.id, action: "auth.mfa_enrol", target: { type: "official", id: activated.id } }] : []),
+      { actorId: activated.id, action: "auth.sign_in", target: { type: "session", id: s.doc.id }, details: secret ? undefined : { mfa: "off" } },
+    ],
+  );
+  return s.token;
 }
 
 /** The enrolment secret again, if the official reloads the page between the two steps. */
@@ -256,37 +318,7 @@ export async function confirmAuthenticator(deps: IdentityDeps, token: string, co
   const secret = open(deps.keys.data, live.inv.totpSealed, `invitation:${live.inv.id}:totp`);
   const step = verifyTotp(secret, code, null, deps.now().getTime());
   if (step === null) throw new Refused("That code was not accepted. Enter the six digits your authenticator app shows now.");
-  const now = deps.now();
-  const activated: Official = {
-    ...live.official,
-    state: "active",
-    passwordHash: live.inv.passwordHash,
-    totpSealed: seal(deps.keys.data, secret, `official:${live.official.id}:totp`),
-    totpLastStep: step,
-    activatedAt: now.toISOString(),
-    lastSignInAt: now.toISOString(),
-  };
-  const s = sessionDoc(activated, "full", now, device);
-  await commitAudited(
-    deps,
-    [
-      {
-        op: "update",
-        collection: OFFICIALS,
-        id: live.official._id,
-        expectedRev: live.official._rev,
-        update: { $set: { state: "active", passwordHash: activated.passwordHash, totpSealed: activated.totpSealed, totpLastStep: step, activatedAt: activated.activatedAt, lastSignInAt: activated.lastSignInAt } },
-      },
-      { op: "update", collection: INVITATIONS, id: live.inv._id, expectedRev: live.inv._rev, update: { $set: { acceptedAt: now.toISOString() }, $unset: ["passwordHash", "totpSealed"] } },
-      { op: "insert", collection: SESSIONS, document: s.doc },
-    ],
-    [
-      { actorId: activated.id, action: "official.activate", target: { type: "official", id: activated.id } },
-      { actorId: activated.id, action: "auth.mfa_enrol", target: { type: "official", id: activated.id } },
-      { actorId: activated.id, action: "auth.sign_in", target: { type: "session", id: s.doc.id } },
-    ],
-  );
-  return { sessionToken: s.token };
+  return { sessionToken: await activate(deps, live, live.inv.passwordHash, secret, step, device) };
 }
 
 // ---------------------------------------------------------------- sign in
@@ -320,8 +352,13 @@ function locked(o: Official, now: Date): boolean {
   return Boolean(o.lockedUntil && new Date(o.lockedUntil) > now);
 }
 
-/** First factor. Returns a short-lived token for the authenticator step. */
-export async function signInWithPassword(deps: IdentityDeps, email: string, password: string, device: string): Promise<{ mfaToken: string }> {
+export type SignInResult = { kind: "code"; mfaToken: string } | { kind: "enrol"; mfaToken: string } | { kind: "signed_in"; sessionToken: string };
+
+/**
+ * First factor. Next comes the authenticator code; or, for an account that has none while codes
+ * are required, enrolment of one; or, with codes switched off (ADR 0007), a full session at once.
+ */
+export async function signInWithPassword(deps: IdentityDeps, email: string, password: string, device: string): Promise<SignInResult> {
   const official = EMAIL.test(normaliseEmail(email)) ? await deps.store.findOne<Official>(OFFICIALS, { emailIndex: blindIndex(deps.keys.index, email) }) : null;
   if (!official || !official.passwordHash) {
     await verifyPassword(await decoyHash(), password); // same work whether or not the account exists
@@ -337,9 +374,78 @@ export async function signInWithPassword(deps: IdentityDeps, email: string, pass
     await recordFailure(deps, official, "auth.password");
     throw new Refused(SIGN_IN_REFUSED);
   }
-  const s = sessionDoc(official, "mfa", deps.now(), device);
+  const now = deps.now();
+  if (mfaOff(deps)) {
+    const full = sessionDoc(official, "full", now, device);
+    await commitAudited(
+      deps,
+      [
+        { op: "insert", collection: SESSIONS, document: full.doc },
+        { op: "update", collection: OFFICIALS, id: official._id, expectedRev: official._rev, update: { $set: { failedAttempts: 0, lockedUntil: null, lastSignInAt: now.toISOString() } } },
+      ],
+      [{ actorId: official.id, action: "auth.sign_in", target: { type: "session", id: full.doc.id }, details: { mfa: "off" } }],
+    );
+    return { kind: "signed_in", sessionToken: full.token };
+  }
+  const s = sessionDoc(official, "mfa", now, device);
+  // An account created while codes were off enrols an authenticator now, before anything else.
+  if (!official.totpSealed) s.doc.enrolSealed = seal(deps.keys.data, newTotpSecret(), `session:${s.doc.id}:totp`);
   await commitAudited(deps, [{ op: "insert", collection: SESSIONS, document: s.doc }], [{ actorId: official.id, action: "auth.password", target: { type: "official", id: official.id } }]);
-  return { mfaToken: s.token };
+  return official.totpSealed ? { kind: "code", mfaToken: s.token } : { kind: "enrol", mfaToken: s.token };
+}
+
+async function pendingSignIn(deps: IdentityDeps, mfaToken: string): Promise<{ session: Doc<Session>; official: Doc<Official> }> {
+  const session = await deps.store.findOne<Session>(SESSIONS, { tokenHash: sha256hex(mfaToken) });
+  if (!session || session.stage !== "mfa" || session.revokedAt || new Date(session.expiresAt) <= deps.now()) throw new Refused("Your sign-in has expired. Start again with your email and password.");
+  const official = await officialById(deps.store, session.officialId);
+  if (!official || official.state !== "active" || locked(official, deps.now())) throw new Refused(SIGN_IN_REFUSED);
+  return { session, official };
+}
+
+/** The authenticator to enrol during sign-in, for an account that has none (see signInWithPassword). */
+export async function signInEnrolment(deps: IdentityDeps, mfaToken: string): Promise<{ secret: string; uri: string } | null> {
+  try {
+    const { session, official } = await pendingSignIn(deps, mfaToken);
+    if (!session.enrolSealed || official.totpSealed) return null;
+    const secret = open(deps.keys.data, session.enrolSealed, `session:${session.id}:totp`);
+    return { secret, uri: totpUri(secret, emailOf(deps, official)) };
+  } catch (e) {
+    if (e instanceof Refused) return null;
+    throw e;
+  }
+}
+
+/** Confirms the enrolled authenticator with a code, stores it, and signs in. */
+export async function confirmSignInEnrolment(deps: IdentityDeps, mfaToken: string, code: string, device: string): Promise<{ sessionToken: string }> {
+  const { session, official } = await pendingSignIn(deps, mfaToken);
+  if (!session.enrolSealed || official.totpSealed) throw new Refused("Your sign-in has expired. Start again with your email and password.");
+  const secret = open(deps.keys.data, session.enrolSealed, `session:${session.id}:totp`);
+  const now = deps.now();
+  const step = verifyTotp(secret, code, null, now.getTime());
+  if (step === null) {
+    await recordFailure(deps, official, "auth.mfa_enrol");
+    throw new Refused("That code was not accepted. Enter the six digits your authenticator app shows now.");
+  }
+  const s = sessionDoc(official, "full", now, device);
+  await commitAudited(
+    deps,
+    [
+      { op: "update", collection: SESSIONS, id: session._id, expectedRev: session._rev, update: { $set: { revokedAt: now.toISOString() }, $unset: ["enrolSealed"] } },
+      { op: "insert", collection: SESSIONS, document: s.doc },
+      {
+        op: "update",
+        collection: OFFICIALS,
+        id: official._id,
+        expectedRev: official._rev,
+        update: { $set: { totpSealed: seal(deps.keys.data, secret, `official:${official.id}:totp`), totpLastStep: step, failedAttempts: 0, lockedUntil: null, lastSignInAt: now.toISOString() } },
+      },
+    ],
+    [
+      { actorId: official.id, action: "auth.mfa_enrol", target: { type: "official", id: official.id } },
+      { actorId: official.id, action: "auth.sign_in", target: { type: "session", id: s.doc.id } },
+    ],
+  );
+  return { sessionToken: s.token };
 }
 
 /** Second factor. Replaces the short-lived token with a new full session (session rotation). */
@@ -387,7 +493,9 @@ export async function resolveSession(deps: IdentityDeps, token: string | undefin
   if (!session || session.stage !== "full" || session.revokedAt) return null;
   if (new Date(session.expiresAt) <= now || now.getTime() - new Date(session.lastSeenAt).getTime() > minutes(IDLE_MINUTES)) return null;
   const official = await officialById(deps.store, session.officialId);
-  if (!official || official.state !== "active" || !official.totpSealed || official.sessionVersion !== session.sessionVersion) return null;
+  if (!official || official.state !== "active" || official.sessionVersion !== session.sessionVersion) return null;
+  // While codes are required, a session without an enrolled authenticator is not valid (ADR 0007).
+  if (!official.totpSealed && !mfaOff(deps)) return null;
   let current = session;
   if (now.getTime() - new Date(session.lastSeenAt).getTime() > 60_000) {
     try {
@@ -397,7 +505,7 @@ export async function resolveSession(deps: IdentityDeps, token: string | undefin
       if (!(e instanceof StoreConflict)) throw e; // a parallel request touched it first
     }
   }
-  return { official, session: current, actor: toActor(official) };
+  return { official, session: current, actor: toActor(official, mfaOff(deps)) };
 }
 
 export async function signOut(deps: IdentityDeps, token: string): Promise<void> {

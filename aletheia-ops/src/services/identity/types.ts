@@ -53,6 +53,8 @@ export type Session = {
   expiresAt: string;
   revokedAt: string | null;
   device: string;
+  /** Sign-in enrolment of an authenticator for an account that has none (ADR 0007), sealed. */
+  enrolSealed?: string;
 };
 
 export type PendingChange = {

@@ -6,6 +6,9 @@ import { StoreConflict, StoreForbidden } from "@/ports/store";
 import { ensureAuditHead, verifyChain } from "@/services/audit";
 import {
   bootstrapAdministrators,
+  confirmSignInEnrolment,
+  finishWithoutCode,
+  signInEnrolment,
   choosePassword,
   confirmAuthenticator,
   decideAccessChange,
@@ -38,14 +41,17 @@ const PASSWORD = "harbour lantern quiet 2026";
 
 /** Accepts an invitation end to end, returning a full session token. */
 async function accept(token: string): Promise<string> {
-  const { secret } = await choosePassword(deps, token, PASSWORD);
+  const r = await choosePassword(deps, token, PASSWORD);
+  if (r.kind !== "enrol") throw new Error("expected enrolment");
   tick(31_000);
-  const { sessionToken } = await confirmAuthenticator(deps, token, currentCode(secret, clock.getTime()), "test");
+  const { sessionToken } = await confirmAuthenticator(deps, token, currentCode(r.secret, clock.getTime()), "test");
   return sessionToken;
 }
 
 async function signIn(email: string, password = PASSWORD): Promise<string> {
-  const { mfaToken } = await signInWithPassword(deps, email, password, "test");
+  const first = await signInWithPassword(deps, email, password, "test");
+  if (first.kind !== "code") throw new Error(`expected a code step, got ${first.kind}`);
+  const { mfaToken } = first;
   const official = (await store.findOne<{ id: string; totpSealed: string }>("officials", { emailIndex: blindIndex(keys.index, email) }))!;
   const secret = open(keys.data, official.totpSealed, `official:${official.id}:totp`);
   tick(31_000);
@@ -149,7 +155,9 @@ describe("sign-in", () => {
 
   it("a code cannot be replayed, and the password step alone is not a session", async () => {
     await founders();
-    const { mfaToken } = await signInWithPassword(deps, "ada@example.org", PASSWORD, "t");
+    const first = await signInWithPassword(deps, "ada@example.org", PASSWORD, "t");
+    if (first.kind !== "code") throw new Error("expected a code step");
+    const { mfaToken } = first;
     expect(await resolveSession(deps, mfaToken)).toBeNull();
     const o = (await store.findOne<{ id: string; totpSealed: string; totpLastStep: number }>("officials", { emailIndex: blindIndex(keys.index, "ada@example.org") }))!;
     const secret = open(keys.data, o.totpSealed, `official:${o.id}:totp`);
@@ -255,5 +263,55 @@ describe("audit chain (E2E 16)", () => {
       ]),
     ).rejects.toBeInstanceOf(StoreConflict);
     expect(await store.count("audit_events")).toBe(before);
+  });
+});
+
+describe("authenticator codes switched off for a trial (ADR 0007)", () => {
+  it("accepting an invitation and signing in need a password only; the official has full authority", async () => {
+    const off = { ...deps, mfa: "off" as const };
+    const [a, b] = await bootstrapAdministrators(off, [
+      { name: "Ada Founder", email: "ada@example.org" },
+      { name: "Ben Founder", email: "ben@example.org" },
+    ]);
+    const accepted = await choosePassword(off, a!.token, PASSWORD);
+    expect(accepted.kind).toBe("signed_in");
+    const session = await resolveSession(off, accepted.kind === "signed_in" ? accepted.sessionToken : "");
+    expect(session?.actor.mfa).toBe(true);
+    await choosePassword(off, b!.token, PASSWORD);
+    const signedIn = await signInWithPassword(off, "ada@example.org", PASSWORD, "t");
+    expect(signedIn.kind).toBe("signed_in");
+    const events = (await store.find<{ action: string; details?: { mfa?: string } }>("audit_events", { action: "auth.sign_in" }, { limit: 10 })).documents;
+    expect(events.every((e) => e.details?.mfa === "off")).toBe(true);
+
+    // Switching codes back on: old sessions stop, and the next sign-in enrols an authenticator.
+    const t = signedIn.kind === "signed_in" ? signedIn.sessionToken : "";
+    expect(await resolveSession(off, t)).not.toBeNull();
+    expect(await resolveSession(deps, t)).toBeNull();
+    const again = await signInWithPassword(deps, "ada@example.org", PASSWORD, "t");
+    expect(again.kind).toBe("enrol");
+    const mfaToken = again.kind === "enrol" ? again.mfaToken : "";
+    expect(await resolveSession(deps, mfaToken)).toBeNull();
+    const enrolment = (await signInEnrolment(deps, mfaToken))!;
+    await expect(confirmSignInEnrolment(deps, mfaToken, "000000", "t")).rejects.toBeInstanceOf(Refused);
+    const { sessionToken } = await confirmSignInEnrolment(deps, mfaToken, currentCode(enrolment.secret, clock.getTime()), "t");
+    expect((await resolveSession(deps, sessionToken))?.actor.mfa).toBe(true);
+    // From now on, the code step applies.
+    tick(31_000);
+    expect((await signInWithPassword(deps, "ada@example.org", PASSWORD, "t")).kind).toBe("code");
+  });
+});
+
+describe("an invitation half-finished when codes were switched off", () => {
+  it("finishes with the password already chosen, without a code", async () => {
+    const [a] = await bootstrapAdministrators(deps, [
+      { name: "Ada Founder", email: "ada@example.org" },
+      { name: "Ben Founder", email: "ben@example.org" },
+    ]);
+    expect((await choosePassword(deps, a!.token, PASSWORD)).kind).toBe("enrol");
+    await expect(finishWithoutCode(deps, a!.token, "t")).rejects.toBeInstanceOf(Refused);
+    const off = { ...deps, mfa: "off" as const };
+    const { sessionToken } = await finishWithoutCode(off, a!.token, "t");
+    expect((await resolveSession(off, sessionToken))?.official.state).toBe("active");
+    expect((await signInWithPassword(off, "ada@example.org", PASSWORD, "t")).kind).toBe("signed_in");
   });
 });

@@ -23,6 +23,13 @@ export default async function WorkbenchLayout({ children }: { children: React.Re
       build={e.BUILD_ID}
       simulatedPublication={e.PUBLICATION_MODE === "development"}
       footerNote={`Data as of ${formatTime(new Date(), official.timezone)}`}
+      notice={
+        e.AUTH_MFA === "off" ? (
+          <p role="status" className="border-b border-status-returned bg-status-returned-tint px-5 py-2 text-ui font-semibold text-status-returned">
+            Authenticator codes are switched off for this trial: sign-in is by password only. They will be required before real officials are enrolled.
+          </p>
+        ) : undefined
+      }
     >
       {children}
     </AppFrame>

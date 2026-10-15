@@ -3,7 +3,7 @@
 import { useActionState, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Field, TextInput } from "@/components/ui/form";
-import { choosePasswordAction, confirmAuthenticatorAction, type AcceptState } from "./actions";
+import { choosePasswordAction, confirmAuthenticatorAction, finishAction, type AcceptState } from "./actions";
 
 function Problem({ text }: { text?: string }) {
   return text ? (
@@ -69,6 +69,19 @@ export function AuthenticatorStep({ token }: { token: string }) {
       </Field>
       <Button type="submit" variant="primary" pending={pending} pendingLabel="Checking…">
         Confirm and sign in
+      </Button>
+    </form>
+  );
+}
+
+export function FinishStep({ token }: { token: string }) {
+  const [state, action, pending] = useActionState<AcceptState, FormData>(finishAction, {});
+  return (
+    <form action={action} className="grid gap-5" noValidate>
+      <Problem text={state.error} />
+      <input type="hidden" name="token" value={token} />
+      <Button type="submit" variant="primary" pending={pending} pendingLabel="Finishing…">
+        Finish joining
       </Button>
     </form>
   );

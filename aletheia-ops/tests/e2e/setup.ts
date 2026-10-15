@@ -39,9 +39,10 @@ async function official(email: string) {
 }
 
 async function accept(token: string): Promise<string> {
-  const { secret: totp } = await choosePassword(deps, token, PASSWORD);
-  await confirmAuthenticator(deps, token, currentCode(totp), "e2e setup");
-  return totp;
+  const r = await choosePassword(deps, token, PASSWORD);
+  if (r.kind !== "enrol") throw new Error("the e2e setup expects authenticator codes to be required");
+  await confirmAuthenticator(deps, token, currentCode(r.secret), "e2e setup");
+  return r.secret;
 }
 
 const people: Record<string, { name: string; email: string; password: string; totp: string }> = {};
