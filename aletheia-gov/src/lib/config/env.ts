@@ -19,6 +19,11 @@ const schema = z.object({
   ),
   /** At least 32 random characters. Encrypts workbench session cookies. */
   AUTH_SECRET: optional.pipe(z.union([z.string().min(32, "AUTH_SECRET must be at least 32 characters"), z.undefined()])),
+  /**
+   * Keys the operations workbench signs publications with: "keyId:secret[,keyId:secret]".
+   * Unset: the publication endpoint refuses every request.
+   */
+  PUBLICATION_HMAC_KEYS: optional,
   /** Shared secret for scheduled jobs (Vercel Cron sends it as a Bearer token). */
   CRON_SECRET: optional.pipe(z.union([z.string().min(32, "CRON_SECRET must be at least 32 characters"), z.undefined()])),
   /** 32 random bytes, base64. Wraps the per-person keys that encrypt personal data (brief §8.4). */

@@ -18,7 +18,7 @@
     "check:public-env": "node scripts/check-public-env.mjs"
   },
   "dependencies": {
-    "@aletheia/aletheiadb": "file:vendor/aletheia-aletheiadb-0.1.0.tgz",
+    "@aletheia/aletheiadb": "file:vendor/aletheia-aletheiadb-0.2.0.tgz",
     "@node-rs/argon2": "2.2.2",
     "jose": "6.2.12",
     "next": "16.4.0",

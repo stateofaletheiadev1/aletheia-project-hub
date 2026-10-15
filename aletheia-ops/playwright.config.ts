@@ -31,11 +31,23 @@ export default defineConfig({
       slowMo: Number(process.env.SLOW_MO ?? 0),
     },
   },
-  webServer: {
-    command: "npx next start --port 3310",
-    url: "http://localhost:3310/sign-in",
-    reuseExistingServer: false,
-    timeout: 120_000,
-    env: { ...envFile(".env.e2e.local"), NODE_ENV: "production" },
-  },
+  webServer: [
+    {
+      command: "npx next start --port 3310",
+      url: "http://localhost:3310/sign-in",
+      reuseExistingServer: false,
+      timeout: 120_000,
+      env: { ...envFile(".env.e2e.local"), NODE_ENV: "production" },
+    },
+    {
+      // A test copy of aletheiagov.org (built with `npm run build` in ../aletheia-gov), on its own
+      // test database, receiving real signed publications.
+      command: "node scripts/start.mjs 3220",
+      cwd: "../aletheia-gov",
+      url: "http://localhost:3220/api/health",
+      reuseExistingServer: false,
+      timeout: 120_000,
+      env: { ...envFile(".env.e2e-portal.local"), NODE_ENV: "production" },
+    },
+  ],
 });

@@ -71,6 +71,25 @@ for (const p of (await store.find<PendingChange>("pending_changes", { status: "p
   await decideAccessChange(deps, adminB, p.id, "confirm", "End-to-end test cast");
 }
 
+// A test copy of the public portal's database, so publication goes to a real portal (E2E 12)
+// without touching aletheiagov.org's records.
+const govDb = `${database}gov`;
+const govRoot = `aletheiadb://root:${secret}@127.0.0.1:7791/${govDb}?tls=false`;
+{
+  const { AletheiaDB } = await import("@aletheia/aletheiadb");
+  const db = AletheiaDB.connect(govRoot).db(govDb);
+  await db.create();
+  for (const c of ["opportunities", "documents", "decisions", "dispatches", "finance", "appointments", "events"]) {
+    await db.ensureCollection(c);
+    await db.collection(c).createIndex("slug", { unique: true });
+    await db.collection(c).createIndex("reference", { unique: true });
+  }
+  for (const c of ["publications", "audit_events", "counters"]) await db.ensureCollection(c);
+  await db.collection("publications").createIndex("idempotencyKey", { unique: true });
+}
+const govUrl = await createAppKey(govRoot, govDb, `e2e-${govDb}`);
+const hmac = randomBytes(32).toString("base64url");
+
 writeFileSync(
   path.join(root, ".env.e2e.local"),
   [
@@ -79,9 +98,16 @@ writeFileSync(
     `ALETHEIADB_URL=${appUrl}`,
     `DATA_ENCRYPTION_KEY=${keys.data.toString("base64")}`,
     `EMAIL_INDEX_KEY=${keys.index.toString("base64")}`,
-    "PUBLICATION_MODE=development",
+    "PUBLICATION_MODE=portal",
+    "PORTAL_BASE_URL=http://localhost:3220",
+    "PORTAL_HMAC_KEY_ID=e2e",
+    `PORTAL_HMAC_SECRET=${hmac}`,
     "",
   ].join("\n"),
+);
+writeFileSync(
+  path.join(root, ".env.e2e-portal.local"),
+  ["APP_ENV=local", "APP_BASE_URL=http://localhost:3220", `ALETHEIADB_URL=${govUrl}`, `PUBLICATION_HMAC_KEYS=e2e:${hmac}`, ""].join("\n"),
 );
 writeFileSync(path.join(import.meta.dirname, ".state.json"), JSON.stringify({ database, people, adminInvitation: `http://localhost:3310/invitation/${c!.token}` }, null, 2));
 console.log(`E2E data ready in database ${database}: ${Object.keys(people).length} officials, one unused administrator invitation.`);

@@ -1,7 +1,7 @@
 import { expect, test, type Browser, type Page } from "@playwright/test";
 import { nav, nextStep, signIn, state, takeStep, type Person } from "./helpers";
 
-// A dispatch from draft to the public record (brief §38: E2E 3, 4, 5, 6, 7, 10, 11, 16).
+// A dispatch from draft to the public record (brief §38: E2E 3, 4, 5, 6, 7, 10, 11, 12, 16).
 // Four officials, each in their own browser: author, reviewer, approving officer, publisher.
 
 async function as(browser: Browser, who: Person, fresh: boolean): Promise<Page> {
@@ -79,8 +79,18 @@ test("a dispatch is drafted, returned, revised, approved, authorised and publish
   await takeStep(publisher, "Authorise publication");
   await expect(publisher.getByText("AGV-DSP-2026-0001").first()).toBeVisible();
   await takeStep(publisher, "Publish to the public record");
-  await expect(publisher.getByText("Simulated receipt: not public")).toBeVisible();
+  await expect(publisher.getByText("Publication receipt")).toBeVisible();
   await expect(publisher.getByText("Published", { exact: true }).first()).toBeVisible();
+  const hash = (await publisher.getByTitle("SHA-256").first().innerText()).trim();
+
+  // E2E 12: the portal shows the record, its reference and the same content hash.
+  const portal = await browser.newPage();
+  await portal.goto("http://localhost:3220/dispatches/agv-dsp-2026-0001");
+  await expect(portal.getByRole("heading", { name: "Notice of the first public session of the Treasury" })).toBeVisible();
+  await expect(portal.getByText("AGV-DSP-2026-0001").first()).toBeVisible();
+  await expect(portal.getByText(hash)).toBeVisible();
+  await expect(portal.getByText("in Antioch")).toBeVisible();
+  await portal.close();
 
   // E2E 16: the audit register holds every step, and its chain verifies.
   await approver.close();

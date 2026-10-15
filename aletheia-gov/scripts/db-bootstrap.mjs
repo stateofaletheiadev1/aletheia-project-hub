@@ -23,6 +23,8 @@ const PLAN = [
   { collection: "audit_events", indexes: [["action", false], ["actorId", false]] },
   { collection: "subject_keys", indexes: [["subject", true]] },
   { collection: "counters", indexes: [["name", true]] },
+  // Receipts of publications from the operations workbench (aletheia-ops ADR 0003).
+  { collection: "publications", indexes: [["idempotencyKey", true], ["reference", false]] },
 ];
 
 console.log(`bootstrap: database ${db.name}`);

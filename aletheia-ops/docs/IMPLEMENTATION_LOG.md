@@ -194,3 +194,19 @@ attachments and scanning, free-standing tasks and reassignment, notifications, V
 - Verified: 194 unit tests (a founder takes a decision from draft to publication alone, with five
   audited overrides; others still bound; founders still cannot publish non-Public records); both
   browser tests; deployed.
+
+## 16 October 2026: publication to aletheiagov.org (Phase 6)
+
+- Portal (aletheia-gov): `POST /api/publications` and `GET /api/publications/{key}`, HMAC-signed
+  (300 s window, rotating keys in `PUBLICATION_HMAC_KEYS`). The portal re-validates the payload,
+  recomputes the content hash, refuses mismatches and foreign references, and writes the record and
+  its receipt in one atomic AletheiaDB commit; a repeated key returns the first receipt. Corrections
+  (a newer version of the same reference) update the record and keep its first publication date.
+  Record pages now show the version and the SHA-256 content hash. SDK upgraded to 0.2.0.
+- Workbench: `PortalGateway` (definite refusals fail; timeouts, network errors and 5xx are
+  reconciled by key before any retry); `/api/jobs/publications` retried by Vercel Cron.
+- Shared content-hash vector asserted in both repositories.
+- Verified: workbench 200 unit tests; portal 91 unit tests; both browser tests with the workbench
+  publishing to a locally running test copy of the portal on its own database (E2E 12: the public
+  page shows the record, reference and the same hash). Live: `publications` collection created in
+  `gov`; secrets set in both Vercel projects (not printed; copy in `.env.production.local`).

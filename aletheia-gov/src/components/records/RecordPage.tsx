@@ -65,7 +65,12 @@ export async function RecordPage({ kind, slug, back }: { kind: RecordKind; slug:
                 ...(record.status ? [{ label: "Status", value: record.status }] : []),
                 ...(record.issuer ? [{ label: "Issued by", value: record.issuer }] : []),
                 { label: "Published", value: formatDateLong(record.publishedAt) },
+                ...(record.correctedAt ? [{ label: "Corrected", value: formatDateLong(record.correctedAt) }] : []),
+                ...(record.version ? [{ label: "Version", value: String(record.version) }] : []),
                 ...record.facts.map((f) => ({ label: f.label, value: f.value })),
+                ...(record.contentHash
+                  ? [{ label: "Content hash (SHA-256)", value: <span className="t-ref break-all">{record.contentHash}</span> }]
+                  : []),
               ]}
             />
           }

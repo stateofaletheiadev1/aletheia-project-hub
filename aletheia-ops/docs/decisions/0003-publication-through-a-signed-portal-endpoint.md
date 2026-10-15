@@ -1,6 +1,6 @@
 # ADR 0003: Publication through a signed endpoint on the portal
 
-- Status: Accepted (owner decision D2, 15 October 2026)
+- Status: Accepted (owner decision D2, 15 October 2026). Implemented 16 October 2026.
 - Date: 2026-10-15
 
 ## Decision

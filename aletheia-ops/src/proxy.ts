@@ -4,7 +4,7 @@ import { NextResponse, type NextRequest } from "next/server";
 // for logs and audit events, and a redirect to sign-in when no session cookie is present.
 // The page itself then checks the session against the database (server/session.ts).
 
-const PUBLIC = [/^\/sign-in(\/|$)/, /^\/invitation(\/|$)/, /^\/api\/health(\/|$)/, /^\/design(\/|$)/];
+const PUBLIC = [/^\/sign-in(\/|$)/, /^\/invitation(\/|$)/, /^\/api\/health(\/|$)/, /^\/api\/jobs\//, /^\/design(\/|$)/];
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;

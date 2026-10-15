@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { headers } from "next/headers";
 import { AletheiaDBStore } from "@/adapters/aletheiadb/aletheiadb-store";
 import { DevelopmentGateway } from "@/adapters/publication/development-gateway";
+import { PortalGateway } from "@/adapters/publication/portal-gateway";
 import { env } from "@/lib/env";
 import type { PublicationGateway } from "@/ports/publication";
 import type { DocumentStore } from "@/ports/store";
@@ -53,13 +54,13 @@ export async function requireDeps(): Promise<IdentityDeps> {
 }
 
 /**
- * The publication gateway for this environment (brief §31.6). The portal adapter arrives with the
- * portal's publication endpoint (ADR 0003); until then only the development adapter exists, and a
- * production environment refuses to start with it (lib/env.ts).
+ * The publication gateway for this environment (brief §31): signed requests to aletheiagov.org,
+ * or, with PUBLICATION_MODE=development, the simulated adapter, which production refuses.
  */
 export function gateway(): PublicationGateway | null {
   const e = env();
   if (e.PUBLICATION_MODE === "development") return devGateway(e.PORTAL_BASE_URL);
+  if (e.PORTAL_HMAC_KEY_ID && e.PORTAL_HMAC_SECRET) return new PortalGateway({ base: e.PORTAL_BASE_URL, keyId: e.PORTAL_HMAC_KEY_ID, secret: e.PORTAL_HMAC_SECRET });
   return null;
 }
 

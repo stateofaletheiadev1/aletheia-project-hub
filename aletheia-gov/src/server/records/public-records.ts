@@ -42,6 +42,10 @@ const PublicRecordSchema = z.object({
   body: z.array(Block).default([]),
   facts: z.array(z.object({ label: z.string(), value: z.string() })).default([]),
   publication: z.object({ state: z.literal("published"), publishedAt: z.string() }),
+  /** Set by publication from the operations workbench: the published version and its SHA-256. */
+  version: z.number().int().optional(),
+  contentHash: z.string().regex(/^[0-9a-f]{64}$/).optional(),
+  correctedAt: z.string().optional(),
   demo: z.boolean().optional(), // test records are never shown (toPublic)
 });
 
@@ -56,6 +60,9 @@ export type PublicRecord = {
   body: Block[];
   facts: { label: string; value: string }[];
   publishedAt: string;
+  version?: number;
+  contentHash?: string;
+  correctedAt?: string;
 };
 
 export type Source = "aletheiadb" | "not_configured" | "unavailable";
@@ -85,6 +92,9 @@ function toPublic(doc: unknown): PublicRecord | null {
     body: r.body,
     facts: r.facts,
     publishedAt: r.publication.publishedAt,
+    version: r.version,
+    contentHash: r.contentHash,
+    correctedAt: r.correctedAt,
   };
 }
 
