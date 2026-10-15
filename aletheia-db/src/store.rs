@@ -24,6 +24,8 @@ const IDEM: TableDefinition<Bytes, Bytes> = TableDefinition::new("idempotency");
 
 /// A query may examine at most this many documents without an index.
 pub const MAX_SCAN: usize = 50_000;
+/// Operations allowed in one atomic commit.
+pub const MAX_COMMIT_OPERATIONS: usize = 100;
 pub const MAX_LIMIT: usize = 1_000;
 pub const MAX_SKIP: usize = 10_000;
 const IDEMPOTENCY_TTL_MS: u64 = 24 * 3600 * 1000;
@@ -41,6 +43,10 @@ pub struct CollectionInfo {
     pub database: String,
     pub name: String,
     pub created_at: String,
+    /// Documents may be inserted but never updated, replaced or deleted, by any key.
+    /// Once set it cannot be cleared.
+    #[serde(default)]
+    pub append_only: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -193,7 +199,9 @@ impl Store {
         scan_prefix(&cat, &key(&[b"db"]))?.iter().map(|(_, v)| decode(v)).collect()
     }
 
-    pub fn ensure_collection(&self, db: &str, coll: &str) -> Result<(bool, CollectionInfo)> {
+    /// Creates the collection if needed. `append_only` can turn the flag on for an existing
+    /// collection, never off: asking without it leaves an append-only collection as it is.
+    pub fn ensure_collection(&self, db: &str, coll: &str, append_only: bool) -> Result<(bool, CollectionInfo)> {
         query::check_name("collection", coll)?;
         let tx = self.db.begin_write()?;
         let result = {
@@ -202,16 +210,25 @@ impl Store {
                 return Err(DbError::not_found(format!("database '{db}' does not exist")));
             }
             let k = coll_key(db, coll);
-            if let Some(existing) = cat.get(k.as_slice())? {
-                (false, decode(existing.value())?)
-            } else {
-                let info = CollectionInfo {
-                    database: db.into(),
-                    name: coll.into(),
-                    created_at: time::now_rfc3339(),
-                };
-                cat.insert(k.as_slice(), serde_json::to_vec(&info)?.as_slice())?;
-                (true, info)
+            let existing: Option<CollectionInfo> = cat.get(k.as_slice())?.map(|g| decode(g.value())).transpose()?;
+            match existing {
+                Some(mut info) => {
+                    if append_only && !info.append_only {
+                        info.append_only = true;
+                        cat.insert(k.as_slice(), serde_json::to_vec(&info)?.as_slice())?;
+                    }
+                    (false, info)
+                }
+                None => {
+                    let info = CollectionInfo {
+                        database: db.into(),
+                        name: coll.into(),
+                        created_at: time::now_rfc3339(),
+                        append_only,
+                    };
+                    cat.insert(k.as_slice(), serde_json::to_vec(&info)?.as_slice())?;
+                    (true, info)
+                }
             }
         };
         tx.commit()?;
@@ -493,7 +510,7 @@ pub fn modify_document(
     change: impl FnOnce(&mut Value) -> Result<()>,
 ) -> Result<Value> {
     let cat = tx.open_table(CATALOG)?;
-    require_collection(&cat, db, coll)?;
+    require_mutable(&cat, db, coll)?;
     let indexes = indexes_of(&cat, db, coll)?;
     drop(cat);
 
@@ -547,7 +564,7 @@ pub fn update_document(tx: &WriteTransaction, db: &str, coll: &str, id: &str, ex
 
 pub fn delete_document(tx: &WriteTransaction, db: &str, coll: &str, id: &str, expected_rev: u64) -> Result<Value> {
     let cat = tx.open_table(CATALOG)?;
-    require_collection(&cat, db, coll)?;
+    require_mutable(&cat, db, coll)?;
     let indexes = indexes_of(&cat, db, coll)?;
     drop(cat);
 
@@ -570,7 +587,98 @@ pub fn delete_document(tx: &WriteTransaction, db: &str, coll: &str, id: &str, ex
     Ok(json!({ "_id": id, "deleted": true }))
 }
 
+/// Fails unless the document exists at exactly `expected_rev`. Changes nothing; used in a
+/// commit to make other writes depend on a document that is only read.
+pub fn check_document(tx: &WriteTransaction, db: &str, coll: &str, id: &str, expected_rev: u64) -> Result<Value> {
+    require_collection(&tx.open_table(CATALOG)?, db, coll)?;
+    let docs = tx.open_table(DOCS)?;
+    let raw = docs
+        .get(doc_key(db, coll, id).as_slice())?
+        .ok_or_else(|| DbError::not_found(format!("no document '{id}' in {db}.{coll}")))?;
+    let doc: Value = decode(raw.value())?;
+    let current = doc["_rev"].as_u64().unwrap_or(0);
+    if current != expected_rev {
+        return Err(DbError::conflict(format!(
+            "this document changed since you read it (expected revision {expected_rev}, current {current})"
+        )));
+    }
+    Ok(json!({ "_id": id, "_rev": current }))
+}
+
+/// One operation of an atomic commit (docs/API.md, "Commit").
+#[derive(Debug, Clone)]
+pub enum Operation {
+    Insert {
+        collection: String,
+        document: Value,
+    },
+    Update {
+        collection: String,
+        id: String,
+        expected_rev: u64,
+        update: Value,
+    },
+    Replace {
+        collection: String,
+        id: String,
+        expected_rev: u64,
+        document: Value,
+    },
+    Delete {
+        collection: String,
+        id: String,
+        expected_rev: u64,
+    },
+    Check {
+        collection: String,
+        id: String,
+        expected_rev: u64,
+    },
+}
+
+/// Applies every operation in order inside one write transaction. The first failure is
+/// returned with its position; the transaction is then dropped, so nothing is written.
+pub fn apply_operations(tx: &WriteTransaction, db: &str, ops: Vec<Operation>) -> Result<Vec<Value>> {
+    let mut results = Vec::with_capacity(ops.len());
+    for (i, op) in ops.into_iter().enumerate() {
+        let outcome = match op {
+            Operation::Insert { collection, document } => insert_document(tx, db, &collection, document).map(|d| json!({ "document": d })),
+            Operation::Update {
+                collection,
+                id,
+                expected_rev,
+                update,
+            } => update_document(tx, db, &collection, &id, expected_rev, &update).map(|d| json!({ "document": d })),
+            Operation::Replace {
+                collection,
+                id,
+                expected_rev,
+                document,
+            } => replace_document(tx, db, &collection, &id, expected_rev, document).map(|d| json!({ "document": d })),
+            Operation::Delete { collection, id, expected_rev } => delete_document(tx, db, &collection, &id, expected_rev),
+            Operation::Check { collection, id, expected_rev } => check_document(tx, db, &collection, &id, expected_rev),
+        };
+        results.push(outcome.map_err(|e| e.at_operation(i))?);
+    }
+    Ok(results)
+}
+
 // ---------------------------------------------------------------- helpers
+
+/// Like `require_collection`, and also refuses append-only collections.
+fn require_mutable<T: ReadableTable<Bytes, Bytes>>(cat: &T, db: &str, coll: &str) -> Result<()> {
+    require_collection(cat, db, coll)?;
+    let raw = cat
+        .get(coll_key(db, coll).as_slice())?
+        .ok_or_else(|| DbError::not_found(format!("collection '{coll}' does not exist in '{db}'")))?;
+    let info: CollectionInfo = decode(raw.value())?;
+    if info.append_only {
+        return Err(DbError::Forbidden(format!(
+            "collection '{coll}' is append-only: its documents cannot be changed or deleted"
+        )));
+    }
+    Ok(())
+}
 
 fn require_collection<T: ReadableTable<Bytes, Bytes>>(cat: &T, db: &str, coll: &str) -> Result<()> {
     if cat.get(coll_key(db, coll).as_slice())?.is_some() {

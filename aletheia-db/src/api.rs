@@ -54,6 +54,7 @@ pub fn router(state: AppState) -> Router {
         )
         .route("/databases/{db}/collections/{coll}/query", post(find_documents))
         .route("/databases/{db}/collections/{coll}/count", post(count_documents))
+        .route("/databases/{db}/commit", post(commit))
         .route("/keys", get(list_keys).post(create_key))
         .route("/keys/{id}", axum::routing::delete(delete_key));
 
@@ -261,12 +262,19 @@ async fn put_collection(
     Extension(rid): Extension<RequestId>,
     headers: HeaderMap,
     Path((db, coll)): Path<(String, String)>,
+    body: Bytes,
 ) -> Response {
     let r = async {
         query::check_name("database", &db)?;
         authenticate(&s, &headers).await?.require(&db, Role::Admin)?;
+        let body = parse_body(&body)?;
+        let append_only = body
+            .get("appendOnly")
+            .map(|v| v.as_bool().ok_or_else(|| DbError::invalid("appendOnly must be true or false")))
+            .transpose()?
+            .unwrap_or(false);
         let store = s.store.clone();
-        let (created, info) = blocking(move || store.ensure_collection(&db, &coll)).await?;
+        let (created, info) = blocking(move || store.ensure_collection(&db, &coll, append_only)).await?;
         Ok((
             if created { StatusCode::CREATED } else { StatusCode::OK },
             json!({ "collection": info, "created": created }),
@@ -524,6 +532,103 @@ async fn count_documents(
         Ok((StatusCode::OK, json!({ "count": n })))
     };
     reply(&rid, r.await)
+}
+
+// ---------------------------------------------------------------- atomic commit
+
+fn op_string(op: &Value, i: usize, field: &str) -> Result<String> {
+    op.get(field)
+        .and_then(Value::as_str)
+        .map(str::to_string)
+        .ok_or_else(|| DbError::invalid(format!("operation {i}: \"{field}\" is required")))
+}
+
+fn op_rev(op: &Value, i: usize) -> Result<u64> {
+    expected_rev(op).map_err(|e| e.at_operation(i))
+}
+
+fn parse_operation(op: &Value, i: usize) -> Result<store::Operation> {
+    let collection = op_string(op, i, "collection")?;
+    query::check_name("collection", &collection).map_err(|e| e.at_operation(i))?;
+    let id = || -> Result<String> {
+        let id = op_string(op, i, "id")?;
+        check_id(&id).map_err(|e| e.at_operation(i))?;
+        Ok(id)
+    };
+    let object = |field: &str| -> Result<Value> {
+        op.get(field)
+            .filter(|v| v.is_object())
+            .cloned()
+            .ok_or_else(|| DbError::invalid(format!("operation {i}: \"{field}\" must be an object")))
+    };
+    Ok(match op_string(op, i, "op")?.as_str() {
+        "insert" => store::Operation::Insert {
+            collection,
+            document: object("document")?,
+        },
+        "update" => store::Operation::Update {
+            collection,
+            id: id()?,
+            expected_rev: op_rev(op, i)?,
+            update: object("update")?,
+        },
+        "replace" => store::Operation::Replace {
+            collection,
+            id: id()?,
+            expected_rev: op_rev(op, i)?,
+            document: object("document")?,
+        },
+        "delete" => store::Operation::Delete {
+            collection,
+            id: id()?,
+            expected_rev: op_rev(op, i)?,
+        },
+        "check" => store::Operation::Check {
+            collection,
+            id: id()?,
+            expected_rev: op_rev(op, i)?,
+        },
+        other => return Err(DbError::invalid(format!("operation {i}: unknown op '{other}'"))),
+    })
+}
+
+/// Applies up to `MAX_COMMIT_OPERATIONS` writes in one transaction: all of them, or none.
+async fn commit(
+    State(s): State<AppState>,
+    Extension(rid): Extension<RequestId>,
+    method: Method,
+    headers: HeaderMap,
+    Path(db): Path<String>,
+    raw: Bytes,
+) -> Response {
+    let r = async {
+        query::check_name("database", &db)?;
+        let p = authenticate(&s, &headers).await?;
+        p.require(&db, Role::ReadWrite)?;
+        let body = parse_body(&raw)?;
+        let list = body
+            .get("operations")
+            .and_then(Value::as_array)
+            .filter(|ops| !ops.is_empty())
+            .ok_or_else(|| DbError::invalid("body must be { \"operations\": [ ... ] } with at least one operation"))?;
+        if list.len() > store::MAX_COMMIT_OPERATIONS {
+            return Err(DbError::invalid(format!(
+                "a commit may hold at most {} operations",
+                store::MAX_COMMIT_OPERATIONS
+            )));
+        }
+        let ops = list.iter().enumerate().map(|(i, op)| parse_operation(op, i)).collect::<Result<Vec<_>>>()?;
+        let idem = idempotency(&headers, &p, &method, &format!("/v1/databases/{db}/commit"), &raw)?;
+        let store = s.store.clone();
+        blocking(move || {
+            store.write(idem.as_ref(), |tx| {
+                let results = store::apply_operations(tx, &db, ops)?;
+                Ok((200, json!({ "results": results })))
+            })
+        })
+        .await
+    };
+    write_reply(&rid, r.await)
 }
 
 // ---------------------------------------------------------------- api keys (root only)

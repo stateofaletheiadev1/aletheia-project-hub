@@ -68,6 +68,18 @@ impl DbError {
     pub fn conflict(msg: impl Into<String>) -> Self {
         DbError::Conflict(msg.into())
     }
+
+    /// Prefixes the message with the position of the failing operation in a commit.
+    pub fn at_operation(self, index: usize) -> Self {
+        let tag = |m: String| format!("operation {index}: {m}");
+        match self {
+            DbError::NotFound(m) => DbError::NotFound(tag(m)),
+            DbError::Conflict(m) => DbError::Conflict(tag(m)),
+            DbError::Invalid(m) => DbError::Invalid(tag(m)),
+            DbError::Forbidden(m) => DbError::Forbidden(tag(m)),
+            other => other,
+        }
+    }
 }
 
 macro_rules! internal_from {

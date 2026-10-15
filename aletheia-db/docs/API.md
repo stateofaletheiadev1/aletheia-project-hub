@@ -57,7 +57,7 @@ A key scoped to one database gets `Forbidden` for any other database.
 | `GET /v1/databases` | any | | databases visible to the key |
 | `PUT /v1/databases/{db}` | root | | 201 created / 200 existed |
 | `GET /v1/databases/{db}/collections` | read | | collections |
-| `PUT /v1/databases/{db}/collections/{coll}` | admin | | 201 / 200 (idempotent) |
+| `PUT /v1/databases/{db}/collections/{coll}` | admin | optional `{"appendOnly": true}` | 201 / 200 (idempotent) |
 | `GET /v1/databases/{db}/collections/{coll}/indexes` | read | | indexes |
 | `PUT /v1/databases/{db}/collections/{coll}/indexes/{field}` | admin | `{"unique": true}` | 201 / 200; builds over existing documents |
 
@@ -88,6 +88,32 @@ silently overwritten.
 the same request returns the first result (`Idempotent-Replayed: true`) without writing again; the
 same key with a different request is a `Conflict`. Keys are remembered for 24 hours. The record
 is committed in the same transaction as the write.
+
+**Append-only collections.** A collection created (or later marked) with `{"appendOnly": true}`
+accepts inserts only. Every update, replace and delete is refused with `Forbidden`, whatever the
+key, root included. The flag can be turned on for an existing collection and never off; a `PUT`
+without it leaves the flag as it is. Use it for audit trails and event logs.
+
+## Commit (several writes, all or nothing)
+
+`POST /v1/databases/{db}/commit` (readWrite) applies up to 100 operations in **one transaction**:
+
+```json
+{ "operations": [
+  { "op": "check",   "collection": "workflow", "id": "…", "expectedRev": 4 },
+  { "op": "update",  "collection": "records",  "id": "…", "expectedRev": 7, "update": { "$set": { "state": "approved" } } },
+  { "op": "insert",  "collection": "audit",    "document": { "action": "record.approve" } },
+  { "op": "replace", "collection": "…", "id": "…", "expectedRev": 1, "document": { … } },
+  { "op": "delete",  "collection": "…", "id": "…", "expectedRev": 2 }
+] }
+```
+
+Operations run in order. `check` writes nothing; it fails unless the document is at that revision.
+If any operation fails (stale revision, unique value taken, append-only collection, missing
+document, invalid input) **nothing is written**, and the error message starts with
+`operation N:` (zero-based). On success the answer is `200 {"results": [...]}`, one entry per
+operation: `{"document": …}` for insert, update and replace, `{"_id", "deleted": true}` for
+delete, `{"_id", "_rev"}` for check. `Idempotency-Key` works as for single writes.
 
 ## Filters
 

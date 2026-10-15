@@ -23,6 +23,7 @@ echo "== install and restart"
 set -euo pipefail
 SUM="$1"
 echo "$SUM  /tmp/aletheiadb.new" | sha256sum -c -
+chmod 0755 /tmp/aletheiadb.new  # scp from Windows does not carry the execute bit
 /tmp/aletheiadb.new version
 if [ -f /srv/aletheiadb/bin/aletheiadb ]; then
   sudo cp -a /srv/aletheiadb/bin/aletheiadb /srv/aletheiadb/bin/aletheiadb.previous

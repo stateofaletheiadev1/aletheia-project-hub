@@ -1,6 +1,6 @@
 {
   "name": "@aletheia/aletheiadb",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "TypeScript client for AletheiaDB (aletheiadb:// connection strings)",
   "license": "UNLICENSED",
   "private": true,

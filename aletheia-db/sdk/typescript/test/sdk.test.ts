@@ -140,6 +140,32 @@ describe.skipIf(!binary)("against a real AletheiaDB server", () => {
     expect(await app.whoami()).toMatchObject({ role: "readWrite", database: "gov" });
   });
 
+  it("commits several writes atomically and keeps append-only collections unchanged", async () => {
+    const admin = root();
+    await admin.db().create();
+    await admin.db().ensureCollection("records");
+    await admin.db().ensureCollection("events", { appendOnly: true });
+    const records = admin.collection<{ state: string }>("records");
+    const rec = await records.insertOne({ state: "draft" });
+
+    const results = await admin.db().commit([
+      { op: "update", collection: "records", id: rec._id, expectedRev: 1, update: { $set: { state: "submitted" } } },
+      { op: "insert", collection: "events", document: { record: rec._id, to: "submitted" } },
+    ]);
+    expect(results).toHaveLength(2);
+
+    await expect(
+      admin.db().commit([
+        { op: "insert", collection: "events", document: { record: rec._id, to: "approved" } },
+        { op: "update", collection: "records", id: rec._id, expectedRev: 1, update: { $set: { state: "approved" } } },
+      ]),
+    ).rejects.toBeInstanceOf(ConflictError);
+    expect(await admin.collection("events").count()).toBe(1);
+
+    const event = (await admin.collection("events").findOne())!;
+    await expect(admin.collection("events").deleteOne(event._id, event._rev)).rejects.toBeInstanceOf(ForbiddenError);
+  });
+
   it("refuses wrong keys", async () => {
     const bad = AletheiaDB.connect(`aletheiadb://root:wrong-secret-0123456789abcdef@127.0.0.1:${PORT}/gov?tls=false`);
     await expect(bad.whoami()).rejects.toBeInstanceOf(UnauthorizedError);

@@ -1,11 +1,20 @@
 # Progress: AletheiaDB
 
-Last updated: 2026-10-10.
+Last updated: 2026-10-15.
 
 ## Live
 
-`https://db.stateofaletheia.org` runs AletheiaDB 0.1.0 on the kortana-web VPS.
+`https://db.stateofaletheia.org` runs AletheiaDB 0.2.0 (deployed 15 October 2026) on the kortana-web VPS.
 Databases created: `gov` (for aletheiagov.org), `ops` (operational checks).
+
+## Done (0.2.0, 15 October 2026)
+
+- Atomic commit: `POST /v1/databases/{db}/commit`, up to 100 operations in one transaction,
+  all or nothing ([ADR 0003](docs/decisions/0003-atomic-commit-and-append-only.md)).
+- Append-only collections: inserts only, for every key including root.
+- SDK: `Database.commit()`, `ensureCollection(name, { appendOnly })`.
+- Verified: `cargo test` 13 unit + 12 end-to-end pass; clippy `-D warnings` clean; fmt clean;
+  SDK 9 tests pass against a real server; deployed, `/health/ready` reports 0.2.0 and ready.
 
 ## Done (v1)
 

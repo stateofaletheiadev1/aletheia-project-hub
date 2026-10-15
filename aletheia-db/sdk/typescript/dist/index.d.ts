@@ -65,6 +65,44 @@ export interface FindOptions {
     limit?: number;
     skip?: number;
 }
+/** One operation of an atomic commit (`Database.commit`). */
+export type Operation = {
+    op: "insert";
+    collection: string;
+    document: Record<string, unknown>;
+} | {
+    op: "update";
+    collection: string;
+    id: string;
+    expectedRev: number;
+    update: Update;
+} | {
+    op: "replace";
+    collection: string;
+    id: string;
+    expectedRev: number;
+    document: Record<string, unknown>;
+} | {
+    op: "delete";
+    collection: string;
+    id: string;
+    expectedRev: number;
+} | {
+    op: "check";
+    collection: string;
+    id: string;
+    expectedRev: number;
+};
+/** Per operation, in order: the written document, `{ _id, deleted }`, or `{ _id, _rev }` for a check. */
+export type OperationResult = {
+    document: Doc<Record<string, unknown>>;
+} | {
+    _id: string;
+    deleted: true;
+} | {
+    _id: string;
+    _rev: number;
+};
 export interface CallOptions {
     /** Propagated as X-Request-Id for end-to-end tracing. */
     requestId?: string;
@@ -109,10 +147,20 @@ export declare class Database {
     create(opts?: CallOptions): Promise<{
         created: boolean;
     }>;
-    /** Admin role. Idempotent: safe to call on every deploy. */
-    ensureCollection(name: string, opts?: CallOptions): Promise<{
+    /**
+     * Admin role. Idempotent: safe to call on every deploy. `appendOnly` makes the server refuse
+     * every update, replace and delete in the collection; it can be turned on, never off.
+     */
+    ensureCollection(name: string, options?: {
+        appendOnly?: boolean;
+    }, opts?: CallOptions): Promise<{
         created: boolean;
     }>;
+    /**
+     * Applies up to 100 operations in one transaction: all of them, or none. A stale revision,
+     * unique clash or append-only refusal fails the whole commit ("operation N: ..." in the message).
+     */
+    commit(operations: Operation[], opts?: CallOptions): Promise<OperationResult[]>;
     listCollections(opts?: CallOptions): Promise<{
         name: string;
         createdAt: string;

@@ -190,9 +190,21 @@ export class Database {
     async create(opts) {
         return this.client.request("PUT", `/v1/databases/${seg(this.name)}`, undefined, opts);
     }
-    /** Admin role. Idempotent: safe to call on every deploy. */
-    async ensureCollection(name, opts) {
-        return this.client.request("PUT", `/v1/databases/${seg(this.name)}/collections/${seg(name)}`, undefined, opts);
+    /**
+     * Admin role. Idempotent: safe to call on every deploy. `appendOnly` makes the server refuse
+     * every update, replace and delete in the collection; it can be turned on, never off.
+     */
+    async ensureCollection(name, options = {}, opts) {
+        const body = options.appendOnly ? { appendOnly: true } : undefined;
+        return this.client.request("PUT", `/v1/databases/${seg(this.name)}/collections/${seg(name)}`, body, opts);
+    }
+    /**
+     * Applies up to 100 operations in one transaction: all of them, or none. A stale revision,
+     * unique clash or append-only refusal fails the whole commit ("operation N: ..." in the message).
+     */
+    async commit(operations, opts) {
+        const r = await this.client.request("POST", `/v1/databases/${seg(this.name)}/commit`, { operations }, opts);
+        return r.results;
     }
     async listCollections(opts) {
         const r = await this.client.request("GET", `/v1/databases/${seg(this.name)}/collections`, undefined, opts);

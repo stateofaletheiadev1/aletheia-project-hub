@@ -580,3 +580,174 @@ async fn unknown_things_are_reported_clearly() {
     .await;
     assert_eq!(s, StatusCode::BAD_REQUEST);
 }
+
+#[tokio::test]
+async fn commit_applies_all_operations_or_none() {
+    let h = harness();
+    setup_gov(&h.app).await;
+    let r = root();
+    call(&h.app, "PUT", "/v1/databases/gov/collections/events", Some(&r), None, &[]).await;
+    call(
+        &h.app,
+        "PUT",
+        "/v1/databases/gov/collections/people/indexes/email",
+        Some(&r),
+        Some(json!({"unique": true})),
+        &[],
+    )
+    .await;
+    let w = key_for(&h.app, "readWrite").await;
+    let base = "/v1/databases/gov/collections/people/documents";
+    let (_, created, _) = call(
+        &h.app,
+        "POST",
+        base,
+        Some(&w),
+        Some(json!({"document": {"email": "a@x", "state": "draft"}})),
+        &[],
+    )
+    .await;
+    let id = created["document"]["_id"].as_str().unwrap().to_string();
+
+    // A transition and its event commit together.
+    let ops = json!({"operations": [
+        {"op": "update", "collection": "people", "id": id, "expectedRev": 1, "update": {"$set": {"state": "submitted"}}},
+        {"op": "insert", "collection": "events", "document": {"subject": id, "to": "submitted"}},
+    ]});
+    let (s, body, _) = call(&h.app, "POST", "/v1/databases/gov/commit", Some(&w), Some(ops), &[]).await;
+    assert_eq!(s, StatusCode::OK, "{body}");
+    assert_eq!(body["results"][0]["document"]["_rev"], 2);
+    assert_eq!(body["results"][1]["document"]["to"], "submitted");
+
+    // A stale revision in the second operation leaves the first one unwritten too.
+    let ops = json!({"operations": [
+        {"op": "insert", "collection": "events", "document": {"subject": id, "to": "approved"}},
+        {"op": "update", "collection": "people", "id": id, "expectedRev": 1, "update": {"$set": {"state": "approved"}}},
+    ]});
+    let (s, body, _) = call(&h.app, "POST", "/v1/databases/gov/commit", Some(&w), Some(ops), &[]).await;
+    assert_eq!(s, StatusCode::CONFLICT);
+    assert!(body["error"]["message"].as_str().unwrap().starts_with("operation 1:"), "{body}");
+    let (_, n, _) = call(&h.app, "POST", "/v1/databases/gov/collections/events/count", Some(&w), Some(json!({})), &[]).await;
+    assert_eq!(n["count"], 1);
+
+    // A unique-index clash rolls back an earlier insert as well.
+    let ops = json!({"operations": [
+        {"op": "insert", "collection": "people", "document": {"email": "b@x"}},
+        {"op": "insert", "collection": "people", "document": {"email": "a@x"}},
+    ]});
+    assert_eq!(
+        call(&h.app, "POST", "/v1/databases/gov/commit", Some(&w), Some(ops), &[]).await.0,
+        StatusCode::CONFLICT
+    );
+    let (_, n, _) = call(&h.app, "POST", "/v1/databases/gov/collections/people/count", Some(&w), Some(json!({})), &[]).await;
+    assert_eq!(n["count"], 1);
+
+    // `check` makes a write depend on a document that is only read.
+    let ops = json!({"operations": [
+        {"op": "check", "collection": "people", "id": id, "expectedRev": 1},
+        {"op": "insert", "collection": "events", "document": {"subject": id}},
+    ]});
+    assert_eq!(
+        call(&h.app, "POST", "/v1/databases/gov/commit", Some(&w), Some(ops), &[]).await.0,
+        StatusCode::CONFLICT
+    );
+    let ops = json!({"operations": [{"op": "check", "collection": "people", "id": id, "expectedRev": 2}]});
+    assert_eq!(
+        call(&h.app, "POST", "/v1/databases/gov/commit", Some(&w), Some(ops), &[]).await.0,
+        StatusCode::OK
+    );
+}
+
+#[tokio::test]
+async fn commit_validates_input_scope_and_idempotency() {
+    let h = harness();
+    setup_gov(&h.app).await;
+    let reader = key_for(&h.app, "read").await;
+    let w = key_for(&h.app, "readWrite").await;
+    let url = "/v1/databases/gov/commit";
+    let one = json!({"operations": [{"op": "insert", "collection": "people", "document": {"n": 1}}]});
+
+    assert_eq!(call(&h.app, "POST", url, Some(&reader), Some(one.clone()), &[]).await.0, StatusCode::FORBIDDEN);
+    for bad in [
+        json!({}),
+        json!({"operations": []}),
+        json!({"operations": [{"op": "merge", "collection": "people"}]}),
+        json!({"operations": [{"op": "update", "collection": "people", "id": "x", "update": {}}]}),
+        json!({"operations": [{"op": "insert", "collection": "people", "document": {"_id": "mine"}}]}),
+        json!({"operations": vec![json!({"op": "insert", "collection": "people", "document": {}}); 101]}),
+    ] {
+        let (s, body, _) = call(&h.app, "POST", url, Some(&w), Some(bad), &[]).await;
+        assert_eq!(s, StatusCode::BAD_REQUEST, "{body}");
+    }
+
+    let k = [("idempotency-key", "commit-1")];
+    let (s1, b1, _) = call(&h.app, "POST", url, Some(&w), Some(one.clone()), &k).await;
+    let (s2, b2, h2) = call(&h.app, "POST", url, Some(&w), Some(one), &k).await;
+    assert_eq!((s1, s2), (StatusCode::OK, StatusCode::OK));
+    assert_eq!(b1, b2);
+    assert_eq!(h2.get("idempotent-replayed").unwrap(), "true");
+    let (_, n, _) = call(&h.app, "POST", "/v1/databases/gov/collections/people/count", Some(&w), Some(json!({})), &[]).await;
+    assert_eq!(n["count"], 1);
+}
+
+#[tokio::test]
+async fn append_only_collections_refuse_changes_from_every_key() {
+    let h = harness();
+    setup_gov(&h.app).await;
+    let r = root();
+    let (s, body, _) = call(
+        &h.app,
+        "PUT",
+        "/v1/databases/gov/collections/audit",
+        Some(&r),
+        Some(json!({"appendOnly": true})),
+        &[],
+    )
+    .await;
+    assert_eq!(s, StatusCode::CREATED);
+    assert_eq!(body["collection"]["appendOnly"], true);
+    // Asking again without the flag does not clear it.
+    let (_, body, _) = call(&h.app, "PUT", "/v1/databases/gov/collections/audit", Some(&r), None, &[]).await;
+    assert_eq!(body["collection"]["appendOnly"], true);
+
+    let w = key_for(&h.app, "readWrite").await;
+    let base = "/v1/databases/gov/collections/audit/documents";
+    let (s, created, _) = call(&h.app, "POST", base, Some(&w), Some(json!({"document": {"action": "x"}})), &[]).await;
+    assert_eq!(s, StatusCode::CREATED);
+    let id = created["document"]["_id"].as_str().unwrap();
+    for key in [&w, &r] {
+        let patch = json!({"expectedRev": 1, "update": {"$set": {"action": "y"}}});
+        assert_eq!(
+            call(&h.app, "PATCH", &format!("{base}/{id}"), Some(key), Some(patch), &[]).await.0,
+            StatusCode::FORBIDDEN
+        );
+        let replace = json!({"expectedRev": 1, "document": {"action": "y"}});
+        assert_eq!(
+            call(&h.app, "PUT", &format!("{base}/{id}"), Some(key), Some(replace), &[]).await.0,
+            StatusCode::FORBIDDEN
+        );
+        assert_eq!(
+            call(&h.app, "DELETE", &format!("{base}/{id}?expectedRev=1"), Some(key), None, &[]).await.0,
+            StatusCode::FORBIDDEN
+        );
+    }
+    let ops = json!({"operations": [{"op": "delete", "collection": "audit", "id": id, "expectedRev": 1}]});
+    assert_eq!(
+        call(&h.app, "POST", "/v1/databases/gov/commit", Some(&w), Some(ops), &[]).await.0,
+        StatusCode::FORBIDDEN
+    );
+
+    // An existing collection can be made append-only; ordinary collections are unchanged.
+    let (_, body, _) = call(
+        &h.app,
+        "PUT",
+        "/v1/databases/gov/collections/people",
+        Some(&r),
+        Some(json!({"appendOnly": true})),
+        &[],
+    )
+    .await;
+    assert_eq!(body["collection"]["appendOnly"], true);
+    let (_, got, _) = call(&h.app, "GET", &format!("{base}/{id}"), Some(&w), None, &[]).await;
+    assert_eq!(got["document"]["action"], "x");
+}
