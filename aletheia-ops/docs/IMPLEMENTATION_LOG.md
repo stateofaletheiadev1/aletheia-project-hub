@@ -74,3 +74,35 @@ Vercel project and DNS. The sign-in page states that accounts are not open.
 **Assumptions:** reference numbers are issued at publication authorisation (so withdrawn and
 rejected drafts never consume one); priority due periods 14/5/1 days; one approval per register
 in version 1 of every definition. All changeable by policy.
+
+## 15 October 2026 (continued): Phase 3, identity and access
+
+Built:
+- Storage port with two adapters of identical semantics: AletheiaDB (`adapters/aletheiadb`) and an
+  in-memory store for tests only (`adapters/memory`). Schema in `adapters/schema.ts`.
+- Audit register: hash-chained events in an append-only collection, written in the same atomic
+  commit as each change; chain verification; request keys so a double submit acts once.
+- Identity service: founding administrators (at least two), invitations (single use, 72 h),
+  password (Argon2id) + authenticator (TOTP, replay-proof) sign-in, database sessions with
+  rotation, idle and absolute expiry, lockout, suspension and revocation on the next request,
+  role changes with the two-person rule, session lists and revocation.
+- Pages: sign-in, code, invitation (QR + key), Overview with real pending access changes,
+  Officials and access (list, invite with one-time link, detail with roles, state and sessions,
+  two-person decisions), Your account (preferences, password, sessions), Audit register with
+  live integrity check, honest "not open yet" pages for sections not built.
+- Proxy: per-request nonce CSP, correlation id, `no-store`, redirect without a session cookie.
+- Local development database (`npm run db:local`, `npm run db:bootstrap:local`, `npm run admin:bootstrap`).
+
+Verified (commands run): `npx vitest run` 160 tests pass (16 identity and audit, including lockout,
+code replay, idle expiry, suspension effective on the next request, the two-person rule, tamper
+detection, all-or-nothing); `tsc` and `eslint` clean; `npm run build` passes;
+`npx playwright test --headed` (tests/e2e/identity.spec.ts) passes against the dev server and a
+local AletheiaDB, watched by the owner: unauthenticated redirect, invitation and authenticator
+enrolment, invitation of an official with a privileged role held for a second administrator,
+audit integrity, sign-out, refused wrong password, two-step sign-in, and the invited official's
+limited access (404 on Officials and access). Cross-site sign-out probed with curl: 403.
+
+Fixed because the end-to-end test found it: sign-out crashed on `Origin: null` (ADR 0006).
+
+Not yet: the `workbench` database on db.stateofaletheia.org (D4), Vercel project and domain,
+passkeys, authenticator reset, email. The local test accounts exist only on this machine.

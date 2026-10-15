@@ -119,9 +119,8 @@ export function Masthead({
               </div>
               <ul className="py-1">
                 {[
-                  ["/account", "Profile"],
-                  ["/account/security", "Security and authenticator"],
-                  ["/settings/notifications", "Notification preferences"],
+                  ["/account", "Your account"],
+                  ["/account#password", "Change your password"],
                 ].map(([href, label]) => (
                   <li key={href}>
                     <Link href={href!} className="block px-4 py-2 text-ui hover:bg-sunken">

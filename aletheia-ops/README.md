@@ -16,10 +16,17 @@ Status and history: [`docs/IMPLEMENTATION_LOG.md`](docs/IMPLEMENTATION_LOG.md).
 | Design system, frame, archetypes | Built; reviewed at 375, 768, 1280 and 1600 px ([`docs/design/REVIEW.md`](docs/design/REVIEW.md)) |
 | Workflow engine, policy, two-person rule | Built as pure code, unit-tested; not yet connected to storage |
 | AletheiaDB atomic commit and append-only collections | Built and deployed (AletheiaDB 0.2.0) |
-| Sign-in, invitations, MFA, sessions | Not built. The sign-in page states that accounts are not open |
-| Persistence adapters, registers, publication | Not built |
+| Sign-in, invitations, MFA, sessions, officials and access, audit register | Built and tested end to end against a local AletheiaDB |
+| Registers, composer, review, publication | Not built |
 
-Nothing in this application is connected to live records yet.
+Not deployed yet, and not connected to the live database. Local development:
+
+```sh
+npm run db:local              # terminal 1: local AletheiaDB on 127.0.0.1:7791
+npm run db:bootstrap:local    # once: schema, keys and .env.local
+npm run admin:bootstrap -- "Ada Founder <ada@example.org>" "Ben Founder <ben@example.org>"
+npm run dev                   # terminal 2
+```
 
 ## Architecture
 

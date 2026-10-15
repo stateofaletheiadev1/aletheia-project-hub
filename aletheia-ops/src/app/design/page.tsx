@@ -32,7 +32,7 @@ export default function DesignReference() {
   return (
     <div className="mx-auto grid max-w-7xl gap-14">
       <PageHeader
-        caps={<SectionMark n="00">Design reference</SectionMark>}
+        overline={<SectionMark n="00">Design reference</SectionMark>}
         title="Aletheia Operations design system"
         lede="Every component in every state, set in Manrope with the colours of the public portal. The archetypes show the components in use."
         actions={

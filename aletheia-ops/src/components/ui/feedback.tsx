@@ -151,11 +151,11 @@ export function SectionMark({ n, children, className }: { n: string; children: R
 }
 
 /** A page title block: caps, title, optional lede and actions aligned to the title. */
-export function PageHeader({ caps, title, lede, actions, meta }: { caps?: ReactNode; title: string; lede?: ReactNode; actions?: ReactNode; meta?: ReactNode }) {
+export function PageHeader({ overline, title, lede, actions, meta }: { overline?: ReactNode; title: string; lede?: ReactNode; actions?: ReactNode; meta?: ReactNode }) {
   return (
     <header className="flex flex-wrap items-end justify-between gap-x-8 gap-y-4 border-b border-rule pb-6">
       <div className="min-w-0 max-w-3xl">
-        {caps ? <div className="mb-2">{caps}</div> : null}
+        {overline ? <div className="mb-2">{overline}</div> : null}
         <h1 className="text-h1 text-ink text-balance">{title}</h1>
         {lede ? <p className="mt-2 text-body font-normal text-ink-2 measure">{lede}</p> : null}
         {meta ? <div className="mt-3">{meta}</div> : null}

@@ -53,7 +53,7 @@ export default async function RegisterSpecimen({ searchParams }: { searchParams:
   return (
     <div className="mx-auto grid max-w-7xl gap-6">
       <PageHeader
-        caps={<SectionMark n="R2">The record</SectionMark>}
+        overline={<SectionMark n="R2">The record</SectionMark>}
         title={info.label}
         lede={info.description}
         meta={<p className="text-meta text-ink-2">Publication rule: {info.publicationRule}</p>}
