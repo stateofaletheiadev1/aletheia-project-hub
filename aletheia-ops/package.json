@@ -1,0 +1,46 @@
+{
+  "name": "aletheia-ops",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Aletheia Government Operations: the workbench behind the public record at aletheiagov.org",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "next dev --port 3300",
+    "build": "next build",
+    "start": "next start --port 3300",
+    "typecheck": "next typegen && tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "screenshots": "node scripts/screenshots.mjs",
+    "tokens": "node scripts/build-tokens.mts",
+    "docs": "vitest run tests/unit/generated-docs.test.ts --mode write",
+    "db:bootstrap": "node scripts/db-bootstrap.mjs"
+  },
+  "dependencies": {
+    "@aletheia/aletheiadb": "file:vendor/aletheia-aletheiadb-0.2.0.tgz",
+    "@node-rs/argon2": "2.2.2",
+    "lucide-react": "1.48.0",
+    "next": "16.4.0",
+    "otpauth": "9.5.1",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "server-only": "0.0.1",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
+    "@playwright/test": "1.64.0",
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/node": "^22.13.4",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "16.4.0",
+    "playwright": "1.64.0",
+    "tailwindcss": "4.3.3",
+    "typescript": "5.9.3",
+    "vitest": "5.0.3"
+  }
+}
