@@ -57,8 +57,8 @@ describe("drafting and submission", () => {
   });
 
   it("an author drafts, edits and submits; submission freezes a hashed version", async () => {
-    const id = await createDraft(uow(), author, { register: "dispatches", institution: "treasury", classification: "public", content: content("Draft") });
-    await expect(go(author, id, "submit")).rejects.toThrow(/title of at least 10/);
+    const id = await createDraft(uow(), author, { register: "dispatches", institution: "treasury", classification: "public", content: { ...content("Draft"), body: [] } });
+    await expect(go(author, id, "submit")).rejects.toThrow(/Write the text/);
     await saveDraft(uow(), author, id, (await rec(id))._rev, content(), "public");
     await go(author, id, "submit");
     const r = await rec(id);

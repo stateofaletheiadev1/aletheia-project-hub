@@ -85,7 +85,7 @@ export type ContentProblem = { field: "title" | "summary" | "body" | "facts" | "
 /** What must be true before a version can be submitted for review. */
 export function contentProblems(c: Content, register: string): ContentProblem[] {
   const p: ContentProblem[] = [];
-  if (c.title.trim().length < 10) p.push({ field: "title", message: "Give a title of at least 10 characters." });
+  if (c.title.trim().length < 3) p.push({ field: "title", message: "Give the record a title." });
   if (c.title.length > 240) p.push({ field: "title", message: "Keep the title under 240 characters." });
   if (c.summary.length > 600) p.push({ field: "summary", message: "Keep the summary under 600 characters." });
   if (c.body.length === 0) p.push({ field: "body", message: "Write the text of the record." });
