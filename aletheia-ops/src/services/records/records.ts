@@ -54,6 +54,7 @@ export async function recordFacts(uow: UnitOfWork, r: RecordDoc): Promise<Record
     // The working copy is frozen once submitted, so it always equals what is under review.
     sourceDocument: r.draft.sourceDocument,
     disclosureAuthorised: r.draft.disclosureAuthorised,
+    onPublicRecord: Boolean(r.publication && !r.publication.withdrawnAt && !r.publication.simulated),
   };
 }
 
@@ -290,6 +291,32 @@ export async function step(uow: UnitOfWork, who: Actorish | "system", id: string
         ops.push({ op: "insert", collection: OUTBOX, document: entry as unknown as Record<string, unknown> });
         outboxId = entry.id;
       }
+    }
+  }
+  if (decision.effects.includes("enqueue_withdrawal") && r.reference && r.publication) {
+    const key = `${r.id}:withdraw`;
+    const existing = await uow.store.findOne<OutboxDoc>(OUTBOX, { idempotencyKey: key });
+    const withdrawal = { register: r.register, reference: r.reference, workbenchRecordId: r.id, reason: (reason ?? "").trim() };
+    if (existing) {
+      ops.push({ op: "update", collection: OUTBOX, id: existing._id, expectedRev: existing._rev, update: { $set: { state: "pending", lastError: null } } });
+      outboxId = existing.id;
+    } else {
+      const v = await uow.store.findOne<VersionDoc>(VERSIONS, { recordId: r.id, number: r.currentVersion?.number ?? 0 });
+      const entry: OutboxDoc = {
+        id: randomUUID(),
+        recordId: r.id,
+        idempotencyKey: key,
+        kind: "withdraw",
+        payload: payloadFor(r, v!, r.reference),
+        withdrawal,
+        state: "pending",
+        attempts: 0,
+        createdAt: now,
+        lastAttemptAt: null,
+        lastError: null,
+      };
+      ops.push({ op: "insert", collection: OUTBOX, document: entry as unknown as Record<string, unknown> });
+      outboxId = entry.id;
     }
   }
   if (action === "adopt" || action === "verify") set.endorsedBy = actorId;

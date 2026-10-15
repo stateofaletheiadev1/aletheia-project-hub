@@ -1,5 +1,5 @@
 import { createHash, createHmac } from "node:crypto";
-import type { PublicationGateway, PublicationOutcome, PublicationPayload } from "@/ports/publication";
+import type { PublicationGateway, PublicationOutcome, PublicationPayload, WithdrawalPayload } from "@/ports/publication";
 
 // Publication to aletheiagov.org (ADR 0003): signed requests to the portal's own endpoint, which
 // checks everything again and is the only writer of the public record.
@@ -65,6 +65,15 @@ export class PortalGateway implements PublicationGateway {
     const reason = typeof r.json.error === "string" ? r.json.error : `HTTP ${r.status}`;
     // A definite refusal (bad payload, hash mismatch, reused key, credentials) is a failure;
     // anything else is unclear and is reconciled before a retry.
+    if ([400, 401, 403, 409, 413, 422].includes(r.status)) return { kind: "rejected", reason };
+    return { kind: "unknown", reason };
+  }
+
+  async withdraw(w: WithdrawalPayload, idempotencyKey: string): Promise<PublicationOutcome> {
+    const r = await this.call("POST", "/api/withdrawals", JSON.stringify(w), { "Idempotency-Key": idempotencyKey });
+    if ("failed" in r) return { kind: "unknown", reason: r.failed };
+    if (r.status === 200 || r.status === 201) return this.confirmed(r.json, null);
+    const reason = typeof r.json.error === "string" ? r.json.error : `HTTP ${r.status}`;
     if ([400, 401, 403, 409, 413, 422].includes(r.status)) return { kind: "rejected", reason };
     return { kind: "unknown", reason };
   }

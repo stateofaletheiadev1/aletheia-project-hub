@@ -37,11 +37,12 @@ export async function nav(page: Page, name: string): Promise<void> {
 }
 
 /** Takes a step from the folio's next-action panel, with a reason when the dialog asks for one. */
-export async function takeStep(page: Page, label: string, reason?: string): Promise<void> {
+export async function takeStep(page: Page, label: string, reason?: string, typed?: string): Promise<void> {
   await page.getByRole("region", { name: "Your next action" }).getByRole("button", { name: label }).click();
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();
   if (reason) await dialog.getByLabel(/Reason/).fill(reason);
+  if (typed) await dialog.getByLabel("Type the reference to confirm").fill(typed);
   await dialog.getByRole("button", { name: label }).click();
   await expect(dialog).toBeHidden();
 }

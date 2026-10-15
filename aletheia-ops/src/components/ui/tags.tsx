@@ -77,6 +77,7 @@ function Glyph({ state }: { state: RecordState }) {
       );
     case "rejected":
     case "publication_failed":
+    case "public_withdrawn":
       return (
         <>
           {ring}

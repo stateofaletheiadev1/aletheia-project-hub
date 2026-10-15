@@ -182,8 +182,11 @@ export default async function RecordPage({
       reasonLabel: NEEDS_REASON.includes(o.action)
         ? o.action === "withdraw"
           ? "Reason, recorded"
-          : "Reason, shown to the author"
+          : o.action === "withdraw_publication"
+            ? "Reason, shown publicly on the withdrawal notice"
+            : "Reason, shown to the author"
         : undefined,
+      typeToConfirm: o.action === "withdraw_publication" ? r.reference : undefined,
     };
   });
   const canEdit =

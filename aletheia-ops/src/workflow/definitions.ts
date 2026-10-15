@@ -64,6 +64,8 @@ function build(o: Options): WorkflowDefinition {
     t("withdraw", PRE_PUBLICATION, "withdrawn", "record.withdraw", ["reason_given"], ["notify_author", "close_tasks"]),
     t("archive", ["published", "rejected", "withdrawn"], "archived", "record.archive", [], ["close_tasks"]),
     t("reopen", ["rejected"], "draft", "record.approve", ["reason_given"], ["assign_author_task"]),
+    // Taking a record off aletheiagov.org (ADR 0010): the page stays with a withdrawal notice.
+    t("withdraw_publication", ["published", "archived"], "public_withdrawn", "publication.withdraw", ["is_on_public_record", "reason_given"], ["enqueue_withdrawal"]),
   );
 
   const stages: RecordState[] = ["draft", "submitted", "under_review", ...(o.endorsement ? [o.endorsement] : []), "approved", "publication_authorised", "publishing", "published"];

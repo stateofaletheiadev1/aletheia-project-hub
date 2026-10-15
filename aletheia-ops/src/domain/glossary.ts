@@ -23,6 +23,7 @@ export const RECORD_STATES = [
   "correction_in_progress",
   "withdrawn",
   "archived",
+  "public_withdrawn",
 ] as const;
 export type RecordState = (typeof RECORD_STATES)[number];
 
@@ -41,7 +42,11 @@ export const RECORD_STATE: Record<RecordState, Term> = {
   publication_failed: { label: "Publication failed", meaning: "The portal refused the publication. The reason is on the record; it can be corrected and retried." },
   correction_in_progress: { label: "Correction in progress", meaning: "A corrected version of a published record is going through review. The published version stays public meanwhile." },
   withdrawn: { label: "Withdrawn", meaning: "Withdrawn before publication, with a reason." },
-  archived: { label: "Archived", meaning: "Closed and kept for the record." },
+  archived: { label: "Archived", meaning: "Closed and kept for the record. If it was published, it stays on aletheiagov.org." },
+  public_withdrawn: {
+    label: "Withdrawn from the public record",
+    meaning: "Taken off aletheiagov.org with a reason. The page stays at its address with a withdrawal notice; the reference is never reused.",
+  },
 };
 
 /** Which visual role a state uses (status colour plus glyph); never colour alone. */
@@ -62,6 +67,7 @@ export const STATE_TONE: Record<RecordState, StatusTone> = {
   correction_in_progress: "returned",
   withdrawn: "muted",
   archived: "muted",
+  public_withdrawn: "danger",
 };
 
 // ---------------------------------------------------------------- classification

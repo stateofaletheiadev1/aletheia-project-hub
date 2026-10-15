@@ -23,6 +23,7 @@ export const ACTIONS = [
   "withdraw",
   "archive",
   "reopen",
+  "withdraw_publication",
 ] as const;
 export type Action = (typeof ACTIONS)[number];
 
@@ -44,6 +45,7 @@ export const ACTION_LABEL: Record<Action, string> = {
   withdraw: "Withdraw {noun}",
   archive: "Archive {noun}",
   reopen: "Reopen {noun}",
+  withdraw_publication: "Withdraw from the public record",
 };
 
 /** Named guards. Each one either passes or yields a sentence saying why not. */
@@ -61,6 +63,7 @@ export const GUARDS = [
   "disclosure_authorised",
   "reason_given",
   "system_only",
+  "is_on_public_record",
 ] as const;
 export type Guard = (typeof GUARDS)[number];
 
@@ -69,6 +72,7 @@ export type Effect =
   | "record_approval"
   | "issue_reference"
   | "enqueue_publication"
+  | "enqueue_withdrawal"
   | "store_receipt"
   | "assign_reviewer_task"
   | "assign_author_task"
@@ -120,6 +124,8 @@ export type RecordFacts = {
   attachmentsUnscanned: number;
   sourceDocument?: string;
   disclosureAuthorised?: boolean;
+  /** Whether the record is on aletheiagov.org now. */
+  onPublicRecord?: boolean;
 };
 
 export type Attempt = {

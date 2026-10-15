@@ -41,7 +41,12 @@ const PublicRecordSchema = z.object({
   positionType: z.enum(POSITION_SLUGS).optional(),
   body: z.array(Block).default([]),
   facts: z.array(z.object({ label: z.string(), value: z.string() })).default([]),
-  publication: z.object({ state: z.literal("published"), publishedAt: z.string() }),
+  publication: z.object({
+    state: z.enum(["published", "withdrawn"]),
+    publishedAt: z.string(),
+    withdrawnAt: z.string().optional(),
+    withdrawalReason: z.string().optional(),
+  }),
   /** Set by publication from the operations workbench: the published version and its SHA-256. */
   version: z.number().int().optional(),
   contentHash: z.string().regex(/^[0-9a-f]{64}$/).optional(),
@@ -63,6 +68,8 @@ export type PublicRecord = {
   version?: number;
   contentHash?: string;
   correctedAt?: string;
+  /** Withdrawn from the public record: the page stays, with this notice in place of the text. */
+  withdrawn?: { at: string; reason: string };
 };
 
 export type Source = "aletheiadb" | "not_configured" | "unavailable";
@@ -95,6 +102,7 @@ function toPublic(doc: unknown): PublicRecord | null {
     version: r.version,
     contentHash: r.contentHash,
     correctedAt: r.correctedAt,
+    withdrawn: r.publication.state === "withdrawn" ? { at: r.publication.withdrawnAt ?? r.publication.publishedAt, reason: r.publication.withdrawalReason ?? "" } : undefined,
   };
 }
 
@@ -120,7 +128,8 @@ export async function getPublished(kind: RecordKind, slug: string): Promise<Publ
   if (!db) return null;
   if (!/^[a-z0-9-]{1,120}$/.test(slug)) return null;
   try {
-    const doc = await db.collection(COLLECTION[kind]).findOne({ ...PUBLIC_ONLY, slug });
+    // A withdrawn record keeps its page (with the withdrawal notice); lists show published ones only.
+    const doc = await db.collection(COLLECTION[kind]).findOne({ visibility: "public", "publication.state": { $in: ["published", "withdrawn"] }, slug });
     return doc ? toPublic(doc) : null;
   } catch (e) {
     console.error(`public record unavailable (${kind}/${slug}):`, (e as Error).message);

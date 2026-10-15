@@ -135,3 +135,61 @@ export async function publish(db: AletheiaDB, p: Payload, idempotencyKey: string
   }
   return { receipt: { reference: receipt.reference, url, publishedAt, contentHash: receipt.contentHash }, replayed: false };
 }
+
+// ---------------------------------------------------------------- withdrawal
+
+export const WithdrawalSchema = z.object({
+  register: z.enum(Object.keys(REGISTER) as [string, ...string[]]),
+  reference: z.string().regex(/^AGV-(DOC|DEC|DSP|FIN|APT|OPP|EVT)-\d{4}-\d{4,}$/),
+  workbenchRecordId: z.string().uuid(),
+  reason: z.string().trim().min(3).max(1000),
+});
+export type Withdrawal = z.infer<typeof WithdrawalSchema>;
+
+export function validateWithdrawal(raw: unknown): Withdrawal {
+  const parsed = WithdrawalSchema.safeParse(raw);
+  if (!parsed.success) throw new Rejected(`invalid withdrawal: ${parsed.error.issues.map((i) => `${i.path.join(".")} ${i.message}`).join("; ")}`, 400);
+  return parsed.data;
+}
+
+/**
+ * Withdraws a published record (aletheia-ops ADR 0010): the page stays at its address with a
+ * withdrawal notice; its text is removed; it leaves every list. Only the workbench record that
+ * published it may withdraw it. Repeated requests return the first receipt.
+ */
+export async function withdraw(db: AletheiaDB, w: Withdrawal, idempotencyKey: string, raw: string, keyId: string, baseUrl: string, now: Date): Promise<{ receipt: Receipt; replayed: boolean }> {
+  const receipts = db.collection<ReceiptDoc>("publications");
+  const hash = bodyHash(raw);
+  const prior = await receipts.findOne({ idempotencyKey });
+  if (prior) {
+    if (prior.bodyHash !== hash) throw new Rejected("this idempotency key was already used for a different request", 409);
+    return { receipt: { reference: prior.reference, url: prior.url, publishedAt: prior.publishedAt, contentHash: prior.contentHash }, replayed: true };
+  }
+  const reg = REGISTER[w.register]!;
+  const collection = COLLECTION[reg.kind];
+  const record = await db.collection<Record<string, unknown> & { workbenchRecordId?: string; contentHash?: string; publication?: { state: string } }>(collection).findOne({ reference: w.reference });
+  if (!record) throw new Rejected("there is no published record with this reference", 422);
+  if (record.workbenchRecordId !== w.workbenchRecordId) throw new Rejected("this record was not published by this workbench record", 409);
+  const at = now.toISOString();
+  const url = `${baseUrl.replace(/\/$/, "")}${reg.path}/${record.slug as string}`;
+  const receipt: ReceiptDoc = { reference: w.reference, url, publishedAt: at, contentHash: record.contentHash ?? "", idempotencyKey, bodyHash: hash, register: w.register, workbenchRecordId: w.workbenchRecordId, version: Number(record.version ?? 0), keyId };
+  try {
+    await db.db().commit(
+      [
+        {
+          op: "update",
+          collection,
+          id: record._id as string,
+          expectedRev: record._rev as number,
+          update: { $set: { "publication.state": "withdrawn", "publication.withdrawnAt": at, "publication.withdrawalReason": w.reason, body: [], facts: [] }, $unset: ["summary"] },
+        },
+        { op: "insert", collection: "publications", document: { ...receipt, kind: "withdrawal" } },
+      ],
+      { idempotencyKey: `withdrawal:${idempotencyKey}` },
+    );
+  } catch (e) {
+    if (e instanceof ConflictError) throw new Retry(e.message);
+    throw e;
+  }
+  return { receipt: { reference: receipt.reference, url, publishedAt: at, contentHash: receipt.contentHash }, replayed: false };
+}

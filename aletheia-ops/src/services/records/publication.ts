@@ -63,6 +63,37 @@ async function settle(uow: UnitOfWork, entry: Doc<OutboxDoc>, outcome: Publicati
   return { state: "confirmed", message: outcome.simulated ? "Publication simulated. Nothing was sent to aletheiagov.org." : `Published as ${receipt.reference}.` };
 }
 
+/** Records the portal's answer to a withdrawal (ADR 0010). The record is already marked withdrawn. */
+async function settleWithdrawal(uow: UnitOfWork, entry: Doc<OutboxDoc>, outcome: PublicationOutcome): Promise<DeliveryResult> {
+  const now = uow.now().toISOString();
+  const attempt = { attempts: entry.attempts + 1, lastAttemptAt: now };
+  if (outcome.kind !== "confirmed") {
+    const state = outcome.kind === "rejected" ? "failed" : "needs_reconciliation";
+    await commitAudited(
+      uow,
+      [{ op: "update", collection: OUTBOX, id: entry._id, expectedRev: entry._rev, update: { $set: { ...attempt, state, lastError: outcome.reason } } }],
+      [{ actorId: null, action: outcome.kind === "rejected" ? "withdrawal.refused" : "withdrawal.unclear", outcome: "failure", target: { type: "record", id: entry.recordId }, reason: outcome.reason }],
+    );
+    return { state, message: outcome.kind === "rejected" ? `The portal refused the withdrawal: ${outcome.reason}` : "The portal did not answer clearly. It will be asked again." };
+  }
+  const record = (await uow.store.findOne<RecordDoc>("records", { id: entry.recordId }))!;
+  await commitAudited(
+    uow,
+    [
+      { op: "update", collection: OUTBOX, id: entry._id, expectedRev: entry._rev, update: { $set: { ...attempt, state: "confirmed", lastError: null } } },
+      {
+        op: "update",
+        collection: "records",
+        id: record._id,
+        expectedRev: record._rev,
+        update: { $set: { "publication.withdrawnAt": outcome.publishedAt, "publication.withdrawalReason": entry.withdrawal?.reason ?? "" } },
+      },
+    ],
+    [{ actorId: null, action: "withdrawal.confirmed", target: { type: "record", id: entry.recordId }, details: { reference: outcome.reference } }],
+  );
+  return { state: "confirmed", message: `Withdrawn from aletheiagov.org. The page now shows the withdrawal notice.` };
+}
+
 /** Sends one pending entry, or reconciles one whose earlier answer was unclear. */
 export async function deliver(uow: UnitOfWork, gateway: PublicationGateway, outboxId: string): Promise<DeliveryResult> {
   const entry = await uow.store.findOne<OutboxDoc>(OUTBOX, { id: outboxId });
@@ -70,11 +101,13 @@ export async function deliver(uow: UnitOfWork, gateway: PublicationGateway, outb
   if (entry.state === "confirmed") return { state: "confirmed", message: "Already published." };
   if (entry.state === "failed") return { state: "failed", message: entry.lastError ?? "Refused by the portal." };
   try {
+    const finish = entry.kind === "withdraw" ? settleWithdrawal : settle;
     if (entry.state === "needs_reconciliation") {
       const known = await gateway.lookup(entry.idempotencyKey);
-      if (known.kind !== "absent") return await settle(uow, entry, known);
+      if (known.kind !== "absent") return await finish(uow, entry, known);
     }
-    return await settle(uow, entry, await gateway.publish(entry.payload, entry.idempotencyKey));
+    const outcome = entry.kind === "withdraw" && entry.withdrawal ? await gateway.withdraw(entry.withdrawal, entry.idempotencyKey) : await gateway.publish(entry.payload, entry.idempotencyKey);
+    return await finish(uow, entry, outcome);
   } catch (e) {
     if (e instanceof StoreConflict) return { state: entry.state, message: "Another delivery of this entry is in progress." };
     if (e instanceof StoreUnavailable) return { state: entry.state, message: "The database did not answer; the entry is still queued." };

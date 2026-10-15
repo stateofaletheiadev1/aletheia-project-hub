@@ -3,7 +3,7 @@
 // receipt marked simulated; nothing reaches aletheiagov.org. A banner says so on every page.
 
 import { REGISTER } from "@/domain/registers";
-import type { PublicationGateway, PublicationOutcome, PublicationPayload } from "@/ports/publication";
+import type { PublicationGateway, PublicationOutcome, PublicationPayload, WithdrawalPayload } from "@/ports/publication";
 
 export class DevelopmentGateway implements PublicationGateway {
   readonly simulated = true;
@@ -26,6 +26,14 @@ export class DevelopmentGateway implements PublicationGateway {
       contentHash: payload.contentHash,
       simulated: true,
     };
+    this.seen.set(idempotencyKey, outcome);
+    return outcome;
+  }
+
+  async withdraw(w: WithdrawalPayload, idempotencyKey: string): Promise<PublicationOutcome> {
+    const prior = this.seen.get(idempotencyKey);
+    if (prior) return prior;
+    const outcome: PublicationOutcome = { kind: "confirmed", reference: w.reference, url: `${this.portalBase}${REGISTER[w.register].publicPath}/${w.reference.toLowerCase()}`, publishedAt: new Date().toISOString(), contentHash: "", simulated: true };
     this.seen.set(idempotencyKey, outcome);
     return outcome;
   }

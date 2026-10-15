@@ -35,7 +35,9 @@ export function consequence(action: Action, register: Register, ctx: { version?:
     case "withdraw":
       return `The ${noun} is withdrawn before publication, with your reason. This cannot be undone.`;
     case "archive":
-      return `The ${noun} is closed and kept for the record.`;
+      return `The ${noun} is closed and kept for the record. If it is on aletheiagov.org it stays there; to take it off, use “Withdraw from the public record”.`;
+    case "withdraw_publication":
+      return `${ctx.reference ?? "This record"} is taken off aletheiagov.org. Its page stays at the same address with a notice: “Withdrawn on [date]” and your reason, which is public. Its text is removed from the site, it leaves the registers and the homepage, and the reference is never used again. This cannot be undone.`;
     case "reopen":
       return `The ${noun} returns to draft for its author.`;
     default:
@@ -43,6 +45,6 @@ export function consequence(action: Action, register: Register, ctx: { version?:
   }
 }
 
-export const NEEDS_REASON: Action[] = ["request_revision", "reject", "withdraw", "start_correction", "reopen"];
-export const DANGER: Action[] = ["reject", "withdraw"];
+export const NEEDS_REASON: Action[] = ["request_revision", "reject", "withdraw", "start_correction", "reopen", "withdraw_publication"];
+export const DANGER: Action[] = ["reject", "withdraw", "withdraw_publication"];
 export const PRIMARY_ORDER: Action[] = ["submit", "take_for_review", "adopt", "verify", "approve", "authorise_publication", "publish", "retry_publication", "start_correction", "archive"];

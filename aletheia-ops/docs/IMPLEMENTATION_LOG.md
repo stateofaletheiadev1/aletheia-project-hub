@@ -225,3 +225,14 @@ attachments and scanning, free-standing tasks and reassignment, notifications, V
   sign-in connected, CSP with upgrade-insecure-requests.
 - Domain added to the Vercel project. Needed at Spaceship: CNAME `ops` →
   `1a0525dd1d6c62a0.vercel-dns-017.com` (owner).
+
+## 16 October 2026: withdrawal from the public record (ADR 0010)
+
+- The owner archived a published test document and found it still on aletheiagov.org. Archive only
+  closes a record in the workbench. Removed the test document (AGV-DOC-2026-0001 "Publication Test
+  test test") from the live site directly, on the owner's instruction.
+- Built "Withdraw from the public record" (founders; reason + typed reference), the portal
+  endpoint `POST /api/withdrawals`, withdrawal notices on record pages, and delivery through the
+  outbox.
+- Verified: workbench 203 unit tests, portal 92; both browser tests, including a founder
+  withdrawing a dispatch and the test portal showing the notice without the text.

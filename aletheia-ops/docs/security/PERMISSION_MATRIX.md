@@ -42,6 +42,7 @@ permission. Roles marked † need a second administrator to grant or remove (two
 | Approve finance records (`finance.approve`) | ● |  |  |  |  |  |  |  |  | ● |  |  |
 | Authorise publication (`publication.authorise`) | ● |  |  |  |  |  |  |  | ● |  |  |  |
 | Publish to the public record (`publication.publish`) | ● |  |  |  |  |  |  |  | ● |  |  |  |
+| Withdraw from the public record (`publication.withdraw`) | ● |  |  |  |  |  |  |  |  |  |  |  |
 | Assign and reassign work (`task.assign`) | ● |  | ● | ● |  |  |  |  |  |  |  |  |
 | Manage institutions and positions (`institution.manage`) | ● |  | ● |  |  |  |  |  |  |  |  |  |
 | See officials and their access (`official.read`) | ● | ● | ● | ● |  |  |  |  |  |  |  | ● |
@@ -78,6 +79,7 @@ Approvals required: 1. Approver may also release: yes.
 | Withdraw document | Draft, Submitted, Under review, Revision requested, Adopted, Verified, Approved, Publication authorised, Publication failed | Withdrawn | `record.withdraw` | `reason_given` |
 | Archive document | Published, Rejected, Withdrawn | Archived | `record.archive` |  |
 | Reopen document | Rejected | Draft | `record.approve` | `reason_given` |
+| Withdraw from the public record | Published, Archived | Withdrawn from the public record | `publication.withdraw` | `is_on_public_record`, `reason_given` |
 
 ### Decisions (`decisions.v1`)
 
@@ -101,6 +103,7 @@ Approvals required: 1. Approver may also release: no.
 | Withdraw decision | Draft, Submitted, Under review, Revision requested, Adopted, Verified, Approved, Publication authorised, Publication failed | Withdrawn | `record.withdraw` | `reason_given` |
 | Archive decision | Published, Rejected, Withdrawn | Archived | `record.archive` |  |
 | Reopen decision | Rejected | Draft | `record.approve` | `reason_given` |
+| Withdraw from the public record | Published, Archived | Withdrawn from the public record | `publication.withdraw` | `is_on_public_record`, `reason_given` |
 
 ### Dispatches (`dispatches.v1`)
 
@@ -123,6 +126,7 @@ Approvals required: 1. Approver may also release: yes.
 | Withdraw dispatch | Draft, Submitted, Under review, Revision requested, Adopted, Verified, Approved, Publication authorised, Publication failed | Withdrawn | `record.withdraw` | `reason_given` |
 | Archive dispatch | Published, Rejected, Withdrawn | Archived | `record.archive` |  |
 | Reopen dispatch | Rejected | Draft | `record.approve` | `reason_given` |
+| Withdraw from the public record | Published, Archived | Withdrawn from the public record | `publication.withdraw` | `is_on_public_record`, `reason_given` |
 
 ### Public finance (`finance.v1`)
 
@@ -145,6 +149,7 @@ Approvals required: 1. Approver may also release: no.
 | Withdraw finance record | Draft, Submitted, Under review, Revision requested, Adopted, Verified, Approved, Publication authorised, Publication failed | Withdrawn | `record.withdraw` | `reason_given` |
 | Archive finance record | Published, Rejected, Withdrawn | Archived | `record.archive` |  |
 | Reopen finance record | Rejected | Draft | `record.approve` | `reason_given` |
+| Withdraw from the public record | Published, Archived | Withdrawn from the public record | `publication.withdraw` | `is_on_public_record`, `reason_given` |
 
 ### Appointments (`appointments.v1`)
 
@@ -168,6 +173,7 @@ Approvals required: 1. Approver may also release: no.
 | Withdraw appointment | Draft, Submitted, Under review, Revision requested, Adopted, Verified, Approved, Publication authorised, Publication failed | Withdrawn | `record.withdraw` | `reason_given` |
 | Archive appointment | Published, Rejected, Withdrawn | Archived | `record.archive` |  |
 | Reopen appointment | Rejected | Draft | `record.approve` | `reason_given` |
+| Withdraw from the public record | Published, Archived | Withdrawn from the public record | `publication.withdraw` | `is_on_public_record`, `reason_given` |
 
 ### Opportunities (`opportunities.v1`)
 
@@ -190,6 +196,7 @@ Approvals required: 1. Approver may also release: yes.
 | Withdraw opportunity | Draft, Submitted, Under review, Revision requested, Adopted, Verified, Approved, Publication authorised, Publication failed | Withdrawn | `record.withdraw` | `reason_given` |
 | Archive opportunity | Published, Rejected, Withdrawn | Archived | `record.archive` |  |
 | Reopen opportunity | Rejected | Draft | `record.approve` | `reason_given` |
+| Withdraw from the public record | Published, Archived | Withdrawn from the public record | `publication.withdraw` | `is_on_public_record`, `reason_given` |
 
 ### Events (`events.v1`)
 
@@ -212,3 +219,4 @@ Approvals required: 1. Approver may also release: yes.
 | Withdraw event | Draft, Submitted, Under review, Revision requested, Adopted, Verified, Approved, Publication authorised, Publication failed | Withdrawn | `record.withdraw` | `reason_given` |
 | Archive event | Published, Rejected, Withdrawn | Archived | `record.archive` |  |
 | Reopen event | Rejected | Draft | `record.approve` | `reason_given` |
+| Withdraw from the public record | Published, Archived | Withdrawn from the public record | `publication.withdraw` | `is_on_public_record`, `reason_given` |

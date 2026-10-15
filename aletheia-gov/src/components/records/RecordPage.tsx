@@ -65,6 +65,7 @@ export async function RecordPage({ kind, slug, back }: { kind: RecordKind; slug:
                 ...(record.status ? [{ label: "Status", value: record.status }] : []),
                 ...(record.issuer ? [{ label: "Issued by", value: record.issuer }] : []),
                 { label: "Published", value: formatDateLong(record.publishedAt) },
+                ...(record.withdrawn ? [{ label: "Withdrawn", value: formatDateLong(record.withdrawn.at) }] : []),
                 ...(record.correctedAt ? [{ label: "Corrected", value: formatDateLong(record.correctedAt) }] : []),
                 ...(record.version ? [{ label: "Version", value: String(record.version) }] : []),
                 ...record.facts.map((f) => ({ label: f.label, value: f.value })),
@@ -75,9 +76,19 @@ export async function RecordPage({ kind, slug, back }: { kind: RecordKind; slug:
             />
           }
         >
-          <article className="prose-ledger">
-            {record.body.length ? record.body.map((b, i) => <BlockView key={i} block={b} />) : <p className="text-ink-600">This record has no further text.</p>}
-          </article>
+          {record.withdrawn ? (
+            <div className="border-l-2 border-gold-700 pl-6">
+              <p className="t-meta text-gold-700">Withdrawn from the public record</p>
+              <p className="mt-3 t-body">
+                This record was withdrawn on {formatDateLong(record.withdrawn.at)}. Its reference, {record.reference}, will not be used again.
+              </p>
+              {record.withdrawn.reason ? <p className="mt-3 t-body text-ink-700">Reason: {record.withdrawn.reason}</p> : null}
+            </div>
+          ) : (
+            <article className="prose-ledger">
+              {record.body.length ? record.body.map((b, i) => <BlockView key={i} block={b} />) : <p className="text-ink-600">This record has no further text.</p>}
+            </article>
+          )}
           <div className="mt-14">
             <ArrowLink href={back.href}>{back.label}</ArrowLink>
           </div>

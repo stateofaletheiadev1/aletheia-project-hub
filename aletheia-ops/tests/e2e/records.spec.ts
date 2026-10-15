@@ -98,6 +98,20 @@ test("a dispatch is drafted, returned, revised, approved, authorised and publish
   await nav(admin, "Audit register");
   await expect(admin.getByText(/Integrity verified as of/)).toBeVisible();
 
+  // ADR 0010: a founder withdraws it; the public page keeps its address and shows the notice.
+  await admin.goto(recordUrl);
+  await takeStep(admin, "Withdraw from the public record", "Published during testing.", "AGV-DSP-2026-0001");
+  await expect(admin.getByText("Withdrawn from the public record").first()).toBeVisible();
+  await expect(admin.getByText("Published during testing.").first()).toBeVisible();
+  const site = await browser.newPage();
+  await expect(async () => {
+    await site.goto("http://localhost:3220/dispatches/agv-dsp-2026-0001");
+    await expect(site.getByText("Withdrawn from the public record")).toBeVisible({ timeout: 2_000 });
+  }).toPass({ timeout: 150_000, intervals: [5_000] });
+  await expect(site.getByText("Reason: Published during testing.")).toBeVisible();
+  await expect(site.getByText("in Antioch")).toHaveCount(0);
+  await site.close();
+
   // The register lists the record with its reference and state.
   await nav(author, "Dispatches");
   await expect(author.getByRole("table", { name: "Dispatches" }).getByText("AGV-DSP-2026-0001")).toBeVisible();

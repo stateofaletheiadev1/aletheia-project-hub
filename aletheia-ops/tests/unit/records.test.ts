@@ -164,6 +164,7 @@ describe("publication", () => {
       simulated: false,
       publish: async (_p, key) => (calls.push(`publish ${key}`), answer),
       lookup: async (key) => (calls.push(`lookup ${key}`), { kind: "absent" as const }),
+      withdraw: async () => ({ kind: "unknown", reason: "not used" }),
     };
     expect((await deliver(uow(), flaky, outboxId!)).state).toBe("needs_reconciliation");
     expect((await rec(id)).state).toBe("publishing"); // not assumed failed
@@ -250,5 +251,54 @@ describe("a founder's authority (ADR 0009)", () => {
     await go(founder, id, "take_for_review");
     await go(founder, id, "approve");
     await expect(go(founder, id, "authorise_publication")).rejects.toThrow(/classified internal/);
+  });
+});
+
+describe("withdrawal from the public record (ADR 0010)", () => {
+  // A portal stand-in that confirms everything, not simulated, and records what it was asked.
+  const asked: string[] = [];
+  const portalLike: PublicationGateway = {
+    simulated: false,
+    publish: async (p) => (asked.push(`publish ${p.reference}`), { kind: "confirmed", reference: p.reference, url: `https://aletheiagov.org/dispatches/${p.slug}`, publishedAt: "2026-10-16T10:00:00.000Z", contentHash: p.contentHash, simulated: false }),
+    withdraw: async (w) => (asked.push(`withdraw ${w.reference}: ${w.reason}`), { kind: "confirmed", reference: w.reference, url: "u", publishedAt: "2026-10-16T11:00:00.000Z", contentHash: "", simulated: false }),
+    lookup: async () => ({ kind: "absent" as const }),
+  };
+  const founder: Actorish = { actor: { id: "founder", state: "active", mfa: true, grants: [{ role: "founder", institution: "*", clearance: "confidential" }] }, official: { id: "founder" } };
+
+  it("a founder withdraws a published or archived record; the portal is asked once; the reason is kept", async () => {
+    asked.length = 0;
+    const id = await createDraft(uow(), founder, { register: "dispatches", institution: "treasury", classification: "public", content: content() });
+    for (const a of ["submit", "take_for_review", "approve", "authorise_publication"] as const) await go(founder, id, a);
+    const { outboxId } = await go(founder, id, "publish");
+    await deliver(uow(), portalLike, outboxId!);
+    await go(founder, id, "archive");
+    // Archiving does not take it off the public record.
+    expect((await rec(id)).publication?.withdrawnAt).toBeUndefined();
+    await expect(go(founder, id, "withdraw_publication")).rejects.toThrow(/Give a reason/);
+    const w = await go(founder, id, "withdraw_publication", "Published in error during testing.");
+    expect((await rec(id)).state).toBe("public_withdrawn");
+    expect((await deliver(uow(), portalLike, w.outboxId!)).state).toBe("confirmed");
+    expect((await rec(id)).publication).toMatchObject({ withdrawnAt: "2026-10-16T11:00:00.000Z", withdrawalReason: "Published in error during testing." });
+    expect(asked).toEqual(["publish AGV-DSP-2026-0001", "withdraw AGV-DSP-2026-0001: Published in error during testing."]);
+    // Nothing more can be withdrawn, and a repeat delivery is a no-op.
+    expect((await deliver(uow(), portalLike, w.outboxId!)).state).toBe("confirmed");
+    expect(asked).toHaveLength(2);
+    expect((await verifyChain(store)).ok).toBe(true);
+  });
+
+  it("only founders may withdraw; a publishing officer may not", async () => {
+    const id = await createDraft(uow(), founder, { register: "dispatches", institution: "treasury", classification: "public", content: content() });
+    for (const a of ["submit", "take_for_review", "approve", "authorise_publication"] as const) await go(founder, id, a);
+    const { outboxId } = await go(founder, id, "publish");
+    await deliver(uow(), portalLike, outboxId!);
+    await expect(go(publisher, id, "withdraw_publication", "No authority")).rejects.toThrow(/authority/);
+  });
+
+  it("a simulated publication is not on the public record and cannot be withdrawn", async () => {
+    const id = await createDraft(uow(), founder, { register: "dispatches", institution: "treasury", classification: "public", content: content() });
+    for (const a of ["submit", "take_for_review", "approve", "authorise_publication"] as const) await go(founder, id, a);
+    const { outboxId } = await go(founder, id, "publish");
+    await deliver(uow(), new DevelopmentGateway("https://www.aletheiagov.org"), outboxId!);
+    await expect(go(founder, id, "withdraw_publication", "test")).rejects.toThrow(/not on aletheiagov.org/);
   });
 });

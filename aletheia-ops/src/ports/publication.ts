@@ -20,6 +20,9 @@ export type PublicationPayload = {
   contentHash: string;
 };
 
+/** Taking a record off the public record (ADR 0010). */
+export type WithdrawalPayload = { register: Register; reference: string; workbenchRecordId: string; reason: string };
+
 export type PublicationOutcome =
   | { kind: "confirmed"; reference: string; url: string; publishedAt: string; contentHash: string; simulated: boolean }
   | { kind: "rejected"; reason: string }
@@ -29,6 +32,7 @@ export type PublicationOutcome =
 export interface PublicationGateway {
   readonly simulated: boolean;
   publish(payload: PublicationPayload, idempotencyKey: string): Promise<PublicationOutcome>;
+  withdraw(withdrawal: WithdrawalPayload, idempotencyKey: string): Promise<PublicationOutcome>;
   /** The authoritative state of an earlier request, by its idempotency key. */
   lookup(idempotencyKey: string): Promise<PublicationOutcome | { kind: "absent" }>;
 }

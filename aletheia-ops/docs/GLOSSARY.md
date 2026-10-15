@@ -21,7 +21,8 @@ identically in the interface, the API, the audit register and the publication ma
 | Publication failed | The portal refused the publication. The reason is on the record; it can be corrected and retried. |
 | Correction in progress | A corrected version of a published record is going through review. The published version stays public meanwhile. |
 | Withdrawn | Withdrawn before publication, with a reason. |
-| Archived | Closed and kept for the record. |
+| Archived | Closed and kept for the record. If it was published, it stays on aletheiagov.org. |
+| Withdrawn from the public record | Taken off aletheiagov.org with a reason. The page stays at its address with a withdrawal notice; the reference is never reused. |
 
 ## Classification
 

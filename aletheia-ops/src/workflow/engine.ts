@@ -55,6 +55,7 @@ const GUARD: Record<Guard, GuardCheck> = {
   disclosure_authorised: (f) => (f.disclosureAuthorised ? null : "Publication of the appointee's personal details has not been authorised."),
   reason_given: (_f, a) => (a.reason && a.reason.trim().length >= 3 ? null : "Give a reason. It is recorded with the decision and shown to the author."),
   system_only: (_f, a) => (a.actor === "system" ? null : "This step is recorded by the system when the portal answers."),
+  is_on_public_record: (f) => (f.onPublicRecord ? null : "This record is not on aletheiagov.org."),
 };
 
 /** Separation of duties (brief §22). Founders act on their own authority over these (ADR 0009). */

@@ -73,3 +73,13 @@ describe("payload validation", () => {
     expect(() => validate({ ...payload, body: [{ type: "html", html: "<script>" }] })).toThrow(/invalid payload/);
   });
 });
+
+describe("withdrawal validation", () => {
+  it("needs a register, a reference, the publishing record's id and a reason", async () => {
+    const { validateWithdrawal } = await import("@/server/publication/publish");
+    const ok = { register: "dispatches", reference: "AGV-DSP-2026-0001", workbenchRecordId: payload.workbenchRecordId, reason: "Published in error." };
+    expect(validateWithdrawal(ok).reason).toBe("Published in error.");
+    expect(() => validateWithdrawal({ ...ok, reason: "  " })).toThrow(Rejected);
+    expect(() => validateWithdrawal({ ...ok, reference: "not-a-reference" })).toThrow(/invalid withdrawal/);
+  });
+});

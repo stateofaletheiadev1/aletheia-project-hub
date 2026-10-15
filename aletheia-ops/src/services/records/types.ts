@@ -5,9 +5,9 @@
 import type { Content } from "@/domain/content";
 import type { Classification, Priority, PublicationState, RecordState } from "@/domain/glossary";
 import type { Register } from "@/domain/registers";
-import type { PublicationPayload } from "@/ports/publication";
+import type { PublicationPayload, WithdrawalPayload } from "@/ports/publication";
 
-export type { PublicationPayload };
+export type { PublicationPayload, WithdrawalPayload };
 
 export type RecordDoc = {
   id: string;
@@ -33,7 +33,7 @@ export type RecordDoc = {
   /** Who recorded adoption (decisions) or verification (appointments) of the current version. */
   endorsedBy: string | null;
   attachmentsUnscanned: number;
-  publication: { reference: string; url: string; publishedAt: string; contentHash: string; simulated: boolean } | null;
+  publication: { reference: string; url: string; publishedAt: string; contentHash: string; simulated: boolean; withdrawnAt?: string; withdrawalReason?: string } | null;
   createdAt: string;
   updatedAt: string;
   updatedBy: string;
@@ -72,7 +72,10 @@ export type OutboxDoc = {
   recordId: string;
   /** Reused on every retry, so the portal can never publish twice (brief §31.4). */
   idempotencyKey: string;
+  /** "publish" (default) or "withdraw" (ADR 0010). */
+  kind?: "publish" | "withdraw";
   payload: PublicationPayload;
+  withdrawal?: WithdrawalPayload;
   state: PublicationState;
   attempts: number;
   createdAt: string;

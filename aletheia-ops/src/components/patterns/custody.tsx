@@ -197,7 +197,7 @@ export function DiffText({ parts }: { parts: DiffPart[] }) {
 
 // ---------------------------------------------------------------- publication receipt
 
-export type Receipt = { reference: string; url: string; publishedAt: string; contentHash: string; simulated?: boolean };
+export type Receipt = { reference: string; url: string; publishedAt: string; contentHash: string; simulated?: boolean; withdrawnAt?: string; withdrawalReason?: string };
 
 /** The publication receipt, kept on the record (brief §12.1: never only a toast). */
 export function PublicationReceipt({ r, timeZone }: { r: Receipt; timeZone?: string }) {
@@ -213,6 +213,15 @@ export function PublicationReceipt({ r, timeZone }: { r: Receipt; timeZone?: str
         <dd className="tnum break-all text-ink" title="SHA-256">
           {r.contentHash}
         </dd>
+        {r.withdrawnAt ? (
+          <>
+            <dt className="text-ink-2">Withdrawn</dt>
+            <dd className="font-semibold text-status-danger">
+              {formatDateTime(new Date(r.withdrawnAt), timeZone)}
+              {r.withdrawalReason ? <span className="block font-normal text-ink-2">{r.withdrawalReason}</span> : null}
+            </dd>
+          </>
+        ) : null}
         <dt className="text-ink-2">Public page</dt>
         <dd className="min-w-0">
           {r.simulated ? (
