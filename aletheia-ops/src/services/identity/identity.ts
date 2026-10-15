@@ -136,6 +136,17 @@ function checkPerson(name: string, email: string): void {
 // ---------------------------------------------------------------- bootstrap
 
 /**
+ * What a founder holds: administration of people and access, and authorship in every institution
+ * (ADR 0008), so founders can put information on the record themselves. Approval and release
+ * remain with other officials: nobody approves a version they wrote.
+ */
+export const FOUNDER_GRANTS: Grant[] = [
+  { role: "system_administrator", institution: "*", clearance: "internal" },
+  { role: "government_administrator", institution: "*", clearance: "internal" },
+  { role: "author", institution: "*", clearance: "internal" },
+];
+
+/**
  * Creates the founding administrators, once, before any official exists. At least two are
  * required so the two-person rule can work from the start. Their administrator roles are
  * granted directly: the only grants in the system without a second administrator, recorded
@@ -153,14 +164,11 @@ export async function bootstrapAdministrators(deps: IdentityDeps, admins: { name
     const o = newOfficial(deps, {
       ...a,
       invitedBy: null,
-      grants: [
-        { role: "system_administrator", institution: "*", clearance: "internal" },
-        { role: "government_administrator", institution: "*", clearance: "internal" },
-      ],
+      grants: FOUNDER_GRANTS,
     });
     const inv = newInvitation(deps, o.id, null);
     ops.push({ op: "insert", collection: OFFICIALS, document: o }, { op: "insert", collection: INVITATIONS, document: inv.doc });
-    events.push({ actorId: null, action: "official.bootstrap", target: { type: "official", id: o.id }, details: { roles: "system_administrator, government_administrator" } });
+    events.push({ actorId: null, action: "official.bootstrap", target: { type: "official", id: o.id }, details: { roles: FOUNDER_GRANTS.map((g) => g.role).join(", ") } });
     out.push({ name: o.name, token: inv.token });
   }
   await commitAudited(deps, ops, events);
