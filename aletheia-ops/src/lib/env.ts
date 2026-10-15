@@ -28,8 +28,14 @@ const schema = z.object({
   PORTAL_BASE_URL: z.url().default("https://www.aletheiagov.org"),
   PORTAL_HMAC_KEY_ID: optional,
   PORTAL_HMAC_SECRET: optional.pipe(z.union([z.string().min(32, "PORTAL_HMAC_SECRET must be at least 32 characters"), z.undefined()])),
-  /** "off" switches authenticator codes off for a trial (ADR 0007). Refused in production. */
-  AUTH_MFA: z.enum(["required", "off"]).default("required"),
+  /**
+   * "optional": password sign-up; two-step sign-in is each official's choice (ADR 0007).
+   * "required": every account must have an authenticator. "off" is read as "optional".
+   */
+  AUTH_MFA: z
+    .enum(["required", "optional", "off"])
+    .default("required")
+    .transform((v) => (v === "off" ? "optional" : v)),
   CRON_SECRET: optional.pipe(z.union([z.string().min(32, "CRON_SECRET must be at least 32 characters"), z.undefined()])),
 });
 

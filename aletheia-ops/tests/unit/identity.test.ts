@@ -8,6 +8,9 @@ import {
   bootstrapAdministrators,
   confirmSignInEnrolment,
   finishWithoutCode,
+  beginTwoStep,
+  confirmTwoStep,
+  disableTwoStep,
   signInEnrolment,
   choosePassword,
   confirmAuthenticator,
@@ -268,7 +271,7 @@ describe("audit chain (E2E 16)", () => {
 
 describe("authenticator codes switched off for a trial (ADR 0007)", () => {
   it("accepting an invitation and signing in need a password only; the official has full authority", async () => {
-    const off = { ...deps, mfa: "off" as const };
+    const off = { ...deps, mfa: "optional" as const };
     const [a, b] = await bootstrapAdministrators(off, [
       { name: "Ada Founder", email: "ada@example.org" },
       { name: "Ben Founder", email: "ben@example.org" },
@@ -309,9 +312,38 @@ describe("an invitation half-finished when codes were switched off", () => {
     ]);
     expect((await choosePassword(deps, a!.token, PASSWORD)).kind).toBe("enrol");
     await expect(finishWithoutCode(deps, a!.token, "t")).rejects.toBeInstanceOf(Refused);
-    const off = { ...deps, mfa: "off" as const };
+    const off = { ...deps, mfa: "optional" as const };
     const { sessionToken } = await finishWithoutCode(off, a!.token, "t");
     expect((await resolveSession(off, sessionToken))?.official.state).toBe("active");
     expect((await signInWithPassword(off, "ada@example.org", PASSWORD, "t")).kind).toBe("signed_in");
+  });
+});
+
+describe("two-step sign-in as each official's choice (ADR 0007)", () => {
+  it("an official turns it on in their account; from then on a code is asked for; they can turn it off", async () => {
+    const opt = { ...deps, mfa: "optional" as const };
+    const [a, b] = await bootstrapAdministrators(opt, [
+      { name: "Ada Founder", email: "ada@example.org" },
+      { name: "Ben Founder", email: "ben@example.org" },
+    ]);
+    await choosePassword(opt, b!.token, PASSWORD);
+    const r = await choosePassword(opt, a!.token, PASSWORD);
+    const s = (await resolveSession(opt, r.kind === "signed_in" ? r.sessionToken : ""))!;
+    const { secret } = await beginTwoStep(opt, s);
+    await expect(confirmTwoStep(opt, s, "000000", "t")).rejects.toBeInstanceOf(Refused);
+    const fresh = (await resolveSession(opt, r.kind === "signed_in" ? r.sessionToken : ""))!;
+    const { sessionToken } = await confirmTwoStep(opt, fresh, currentCode(secret, clock.getTime()), "t");
+    // Other sessions end; the new one is valid.
+    expect(await resolveSession(opt, r.kind === "signed_in" ? r.sessionToken : "")).toBeNull();
+    const on = (await resolveSession(opt, sessionToken))!;
+    tick(31_000);
+    expect((await signInWithPassword(opt, "ada@example.org", PASSWORD, "t")).kind).toBe("code");
+    // Ben, who did not turn it on, still signs in with a password only.
+    expect((await signInWithPassword(opt, "ben@example.org", PASSWORD, "t")).kind).toBe("signed_in");
+    await expect(disableTwoStep(opt, on, "wrong password entirely")).rejects.toBeInstanceOf(Refused);
+    await disableTwoStep(opt, (await resolveSession(opt, sessionToken))!, PASSWORD);
+    expect((await signInWithPassword(opt, "ada@example.org", PASSWORD, "t")).kind).toBe("signed_in");
+    // When codes are required, it cannot be turned off.
+    await expect(disableTwoStep(deps, on, PASSWORD)).rejects.toThrow(/required/);
   });
 });

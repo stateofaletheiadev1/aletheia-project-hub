@@ -26,9 +26,9 @@ export default async function InvitationPage({ params }: { params: Promise<{ tok
     );
   }
 
-  if (invitation.passwordSet && env().AUTH_MFA === "off") {
+  if (invitation.passwordSet && env().AUTH_MFA === "optional") {
     return (
-      <AuthShell title={`Welcome, ${invitation.name}`} lede="Your password is saved. Authenticator codes are switched off for now, so there is nothing more to set up.">
+      <AuthShell title={`Welcome, ${invitation.name}`} lede="Your password is saved. You can turn on two-step sign-in later, in Your account.">
         <FinishStep token={token} />
       </AuthShell>
     );
@@ -65,7 +65,7 @@ export default async function InvitationPage({ params }: { params: Promise<{ tok
       title={`Welcome, ${invitation.name}`}
       lede={
         <>
-          You have been invited to Aletheia Government Operations as <span className="font-semibold text-ink">{invitation.email}</span>.{env().AUTH_MFA === "off" ? " Choose a password to finish." : " Step 1 of 2."} This invitation expires on{" "}
+          You have been invited to Aletheia Government Operations as <span className="font-semibold text-ink">{invitation.email}</span>.{env().AUTH_MFA === "optional" ? " Choose a password to finish." : " Step 1 of 2."} This invitation expires on{" "}
           {formatDateTime(new Date(invitation.expiresAt))}.
         </>
       }

@@ -25,3 +25,11 @@ temporary departure for a trial with the founders.
 
 Until codes are required again, a stolen password is enough to sign in as that official. Lockout
 after 10 failures and per-address limits still apply.
+
+## Revision, 16 October 2026: optional, not off
+
+The owner clarified: sign-up with a password only, and each official may turn on two-step sign-in
+from their account. `AUTH_MFA=optional` (the old value `off` is read the same way): an official
+who has turned it on is always asked for a code; one who has not signs in with a password. They
+can turn it off again with their password while it is optional. `required` still forces it on for
+everyone, and production refuses `optional`.

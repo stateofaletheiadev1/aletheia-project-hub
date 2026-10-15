@@ -27,13 +27,14 @@ import {
 export type IdentityDeps = UnitOfWork & {
   keys: { data: Buffer; index: Buffer };
   /**
-   * "off" switches authenticator codes off for a trial (ADR 0007): sign-in is password only, and
-   * nobody is asked to enrol. A production environment refuses it (lib/env.ts). Default: required.
+   * "optional" (ADR 0007): sign-up and sign-in need a password; each official may turn on
+   * two-step sign-in in their account, after which a code is always asked for. "required": every
+   * official must have an authenticator. A production environment refuses "optional".
    */
-  mfa?: "required" | "off";
+  mfa?: "required" | "optional";
 };
 
-const mfaOff = (deps: { mfa?: "required" | "off" }) => deps.mfa === "off";
+const mfaOff = (deps: { mfa?: "required" | "optional" }) => deps.mfa === "optional";
 
 /** A refusal the official may read. Never says which of email, password or code was wrong. */
 export class Refused extends Error {
@@ -375,7 +376,7 @@ export async function signInWithPassword(deps: IdentityDeps, email: string, pass
     throw new Refused(SIGN_IN_REFUSED);
   }
   const now = deps.now();
-  if (mfaOff(deps)) {
+  if (mfaOff(deps) && !official.totpSealed) {
     const full = sessionDoc(official, "full", now, device);
     await commitAudited(
       deps,
@@ -749,4 +750,72 @@ export async function listDecidedChanges(deps: IdentityDeps, actor: Actor, days 
     const inst = p.change.grant.institution === "*" ? undefined : p.change.grant.institution;
     return can(actor, "role.propose", { institution: inst }) || can(actor, "role.confirm", { institution: inst });
   });
+}
+
+// ---------------------------------------------------------------- two-step sign-in, by choice
+
+/** Starts setting up an authenticator from the account page. Returns the secret to show as a QR code. */
+export async function beginTwoStep(deps: IdentityDeps, signedIn: SignedIn): Promise<{ secret: string; uri: string }> {
+  const o = signedIn.official;
+  if (o.totpSealed) throw new Refused("Two-step sign-in is already on for your account.");
+  if (o.totpPendingSealed) {
+    const secret = open(deps.keys.data, o.totpPendingSealed, `official:${o.id}:totp-pending`);
+    return { secret, uri: totpUri(secret, emailOf(deps, o)) };
+  }
+  const secret = newTotpSecret();
+  await deps.store.commit([
+    { op: "update", collection: OFFICIALS, id: o._id, expectedRev: o._rev, update: { $set: { totpPendingSealed: seal(deps.keys.data, secret, `official:${o.id}:totp-pending`) } } },
+  ]);
+  return { secret, uri: totpUri(secret, emailOf(deps, o)) };
+}
+
+/** Confirms the authenticator with a code. Ends other sessions and starts a new one. */
+export async function confirmTwoStep(deps: IdentityDeps, signedIn: SignedIn, code: string, device: string): Promise<{ sessionToken: string }> {
+  const o = signedIn.official;
+  if (!o.totpPendingSealed) throw new Refused("Start again: choose Set up an authenticator.");
+  const secret = open(deps.keys.data, o.totpPendingSealed, `official:${o.id}:totp-pending`);
+  const now = deps.now();
+  const step = verifyTotp(secret, code, null, now.getTime());
+  if (step === null) throw new Refused("That code was not accepted. Enter the six digits your authenticator app shows now.");
+  const bumped = { ...o, sessionVersion: o.sessionVersion + 1 };
+  const s = sessionDoc(bumped, "full", now, device);
+  await commitAudited(
+    deps,
+    [
+      {
+        op: "update",
+        collection: OFFICIALS,
+        id: o._id,
+        expectedRev: o._rev,
+        update: { $set: { totpSealed: seal(deps.keys.data, secret, `official:${o.id}:totp`), totpLastStep: step, sessionVersion: bumped.sessionVersion }, $unset: ["totpPendingSealed"] },
+      },
+      { op: "insert", collection: SESSIONS, document: s.doc },
+    ],
+    [{ actorId: o.id, action: "auth.mfa_enrol", target: { type: "official", id: o.id } }],
+  );
+  return { sessionToken: s.token };
+}
+
+/** Turns two-step sign-in off again, with the password. Only while it is optional. */
+export async function disableTwoStep(deps: IdentityDeps, signedIn: SignedIn, password: string): Promise<void> {
+  if (!mfaOff(deps)) throw new Refused("Two-step sign-in is required for every account and cannot be turned off.");
+  const o = signedIn.official;
+  if (!o.totpSealed) return;
+  if (!o.passwordHash || !(await verifyPassword(o.passwordHash, password))) {
+    await recordFailure(deps, o, "auth.mfa_disable");
+    throw new Refused("Your password was not accepted.");
+  }
+  await commitAudited(
+    deps,
+    [{ op: "update", collection: OFFICIALS, id: o._id, expectedRev: o._rev, update: { $set: { totpSealed: null, totpLastStep: null } } }],
+    [{ actorId: o.id, action: "auth.mfa_disable", target: { type: "official", id: o.id } }],
+  );
+}
+
+/** The authenticator being set up, if the official has started (read only). */
+export function pendingTwoStep(deps: IdentityDeps, signedIn: SignedIn): { secret: string; uri: string } | null {
+  const o = signedIn.official;
+  if (!o.totpPendingSealed || o.totpSealed) return null;
+  const secret = open(deps.keys.data, o.totpPendingSealed, `official:${o.id}:totp-pending`);
+  return { secret, uri: totpUri(secret, emailOf(deps, o)) };
 }

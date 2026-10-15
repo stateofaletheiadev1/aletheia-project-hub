@@ -170,3 +170,18 @@ attachments and scanning, free-standing tasks and reassignment, notifications, V
   enrol one (QR) at the next sign-in.
 - Verified: 187 unit tests (including off mode, switching back, half-finished invitations);
   both browser tests in required mode; live pages for both founders' invitations checked.
+
+## 16 October 2026: two-step sign-in by choice; guidance for administrators
+
+- `AUTH_MFA=optional` on the live site: password sign-up; "Two-step sign-in" in Your account sets
+  up an authenticator (QR), after which every sign-in asks for a code; it can be turned off with
+  the password. ADR 0007 revised.
+- The owner could not see how to create records: founders are administrators, and administrators
+  manage people, not records. Registers now state how a record moves through them and, when the
+  official cannot create one, why and how to get the Author role. The Overview shows a "Getting
+  started" guide to administrators until records exist, and now lists real work (queue, records in
+  progress, publications, refused publications).
+- Known limit: with exactly two administrators, a privileged role (approving, publishing) for
+  either founder cannot be confirmed, because neither may confirm a change to their own access and
+  the proposer cannot confirm. A third administrator, or other officials, resolve it.
+- Verified: 190 unit tests; both browser tests; deployed.

@@ -15,6 +15,8 @@ export type Official = {
   passwordHash: string | null;
   totpSealed: string | null;
   totpLastStep: number | null;
+  /** An authenticator being set up from the account page, not yet confirmed with a code. */
+  totpPendingSealed?: string;
   failedAttempts: number;
   lockedUntil: string | null;
   /** Bumped to end every session at once (suspension, password change, sign out everywhere). */

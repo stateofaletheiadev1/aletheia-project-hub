@@ -30,7 +30,8 @@ describe("environment", () => {
 
   it("refuses to start production with authenticator codes off", () => {
     expect(() => parseEnv({ ...production, AUTH_MFA: "off" })).toThrow(/AUTH_MFA must be 'required'/);
-    expect(parseEnv({ AUTH_MFA: "off", APP_ENV: "staging" }).AUTH_MFA).toBe("off");
+    expect(parseEnv({ AUTH_MFA: "off", APP_ENV: "staging" }).AUTH_MFA).toBe("optional");
+    expect(parseEnv({ AUTH_MFA: "optional", APP_ENV: "staging" }).AUTH_MFA).toBe("optional");
   });
 
   it("names every missing production secret", () => {

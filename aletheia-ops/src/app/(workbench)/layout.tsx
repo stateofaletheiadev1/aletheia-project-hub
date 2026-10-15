@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { AppFrame } from "@/components/frame/AppFrame";
 import { navigationFor } from "@/components/frame/navigation";
 import { primaryTitle } from "@/domain/labels";
@@ -24,9 +25,13 @@ export default async function WorkbenchLayout({ children }: { children: React.Re
       simulatedPublication={e.PUBLICATION_MODE === "development"}
       footerNote={`Data as of ${formatTime(new Date(), official.timezone)}`}
       notice={
-        e.AUTH_MFA === "off" ? (
+        e.AUTH_MFA === "optional" && !official.totpSealed ? (
           <p role="status" className="border-b border-status-returned bg-status-returned-tint px-5 py-2 text-ui font-semibold text-status-returned">
-            Authenticator codes are switched off for this trial: sign-in is by password only. They will be required before real officials are enrolled.
+            You sign in with a password only. For a second layer of protection, turn on two-step sign-in in{" "}
+            <Link href="/account#two-step" className="underline underline-offset-2">
+              Your account
+            </Link>
+            .
           </p>
         ) : undefined
       }

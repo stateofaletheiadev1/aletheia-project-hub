@@ -4,7 +4,7 @@ import { FilterBar } from "@/components/patterns/FilterBar";
 import { Pagination } from "@/components/patterns/Pagination";
 import { RegisterTable, type Column } from "@/components/patterns/RegisterTable";
 import { ButtonLink } from "@/components/ui/Button";
-import { EmptyRegister, PageHeader, SectionMark } from "@/components/ui/feedback";
+import { EmptyRegister, InlineAlert, PageHeader, SectionMark } from "@/components/ui/feedback";
 import { Reference } from "@/components/ui/Reference";
 import { ClassificationTag, StatusTag } from "@/components/ui/tags";
 import { Timestamp } from "@/components/ui/Timestamp";
@@ -12,7 +12,8 @@ import { CLASSIFICATION, CLASSIFICATIONS, RECORD_STATE, RECORD_STATES, type Clas
 import { INSTITUTION_SEED } from "@/domain/institutions";
 import { institutionName } from "@/domain/labels";
 import { isRegister, placeholderReference, REGISTER, REGISTERS } from "@/domain/registers";
-import { institutionsWhere } from "@/policy/roles";
+import { can, institutionsWhere } from "@/policy/roles";
+import { DEFINITIONS } from "@/workflow/definitions";
 import type { Doc } from "@/ports/store";
 import { namesOf } from "@/services/identity/identity";
 import { listRecords } from "@/services/records/records";
@@ -77,7 +78,15 @@ export default async function RegisterPage({ params, searchParams }: { params: P
         overline={<SectionMark n={`R${n}`}>The record</SectionMark>}
         title={info.label}
         lede={info.description}
-        meta={<p className="text-meta text-ink-2">Publication rule: {info.publicationRule}</p>}
+        meta={
+          <div className="grid gap-1.5">
+            <p className="text-meta text-ink-2">Publication rule: {info.publicationRule}</p>
+            <p className="text-meta text-ink-2">
+              <span className="font-semibold text-ink">How a {info.noun} moves: </span>
+              {DEFINITIONS[register].stages.map((s) => RECORD_STATE[s].label).join(" → ")}. At any review stage it can be returned to its author with reasons, or rejected.
+            </p>
+          </div>
+        }
         actions={creates === "*" || creates.length ? <ButtonLink href={`/records/${register}/new`} variant="primary">{`New ${info.noun}`}</ButtonLink> : undefined}
       />
       <FilterBar
@@ -91,6 +100,12 @@ export default async function RegisterPage({ params, searchParams }: { params: P
         ]}
         total={{ shown: rows.length, of: total }}
       />
+      {creates !== "*" && creates.length === 0 ? (
+        <InlineAlert title={`You cannot start a ${info.noun}`}>
+          New records are started by officials with the <span className="font-semibold">Author</span> role in an institution, then reviewed, approved and released by others. Administrators
+          manage people and access, not records. {can(actor, "official.invite") ? "Give yourself or others the Author role by asking another administrator under Officials and access; nobody can change their own access." : "Ask an administrator for the Author role."}
+        </InlineAlert>
+      ) : null}
       {rows.length === 0 ? (
         <EmptyRegister placeholder={placeholderReference(info.referenceType)} title={filter.q || filter.institution || filter.state || filter.classification ? "No records match these filters." : `No ${info.label.toLowerCase()} yet.`}>
           <p>{info.emptyText}</p>

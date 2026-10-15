@@ -7,7 +7,10 @@ import { grantLabel } from "@/domain/labels";
 import { listSessions } from "@/services/identity/identity";
 import { requireDeps } from "@/server/runtime";
 import { requireOfficial } from "@/server/session";
-import { endSessionAction, passwordAction, preferencesAction } from "./actions";
+import { beginTwoStepAction, disableTwoStepAction, endSessionAction, passwordAction, preferencesAction } from "./actions";
+import { InlineAlert } from "@/components/ui/feedback";
+import { Button } from "@/components/ui/Button";
+import { env } from "@/lib/env";
 
 export const metadata: Metadata = { title: "Your account" };
 
@@ -22,10 +25,12 @@ const TIMEZONES = [
   ["UTC", "Coordinated Universal Time"],
 ] as const;
 
-export default async function AccountPage() {
+export default async function AccountPage({ searchParams }: { searchParams: Promise<{ "two-step"?: string }> }) {
   const signedIn = await requireOfficial();
   const { official, session } = signedIn;
   const sessions = await listSessions(await requireDeps(), official.id);
+  const justOn = (await searchParams)["two-step"] === "on";
+  const optional = env().AUTH_MFA === "optional";
   return (
     <div className="mx-auto grid max-w-5xl gap-12">
       <PageHeader overline={<SectionMark n="A1">Account</SectionMark>} title={official.name} lede="Your access, your preferences and where you are signed in." />
@@ -67,6 +72,46 @@ export default async function AccountPage() {
             </Field>
           </div>
         </ActionForm>
+      </section>
+
+      <section aria-labelledby="two-step-heading" id="two-step">
+        <h2 id="two-step-heading" className="mb-4 border-b border-rule-strong pb-2 text-h3 text-ink">
+          Two-step sign-in
+        </h2>
+        {justOn ? (
+          <InlineAlert tone="success" title="Two-step sign-in is on" className="mb-4">
+            From now on you sign in with your password and the code from your authenticator app. You have been signed out everywhere else.
+          </InlineAlert>
+        ) : null}
+        {official.totpSealed ? (
+          <div className="grid gap-4">
+            <p className="text-ui text-ink">
+              <span className="font-semibold text-status-approved">On.</span> Every sign-in asks for your password and a six-digit code from your authenticator app.
+            </p>
+            {optional ? (
+              <details>
+                <summary className="cursor-pointer text-meta font-semibold text-status-danger">Turn two-step sign-in off</summary>
+                <ActionForm action={disableTwoStepAction} submit="Turn it off" variant="danger" size="sm" className="mt-3 max-w-md">
+                  <Field id="mfa-password" label="Your password" hint="To confirm it is you.">
+                    <TextInput id="mfa-password" name="password" type="password" autoComplete="current-password" required />
+                  </Field>
+                </ActionForm>
+              </details>
+            ) : null}
+          </div>
+        ) : (
+          <div className="grid gap-4">
+            <p className="text-ui text-ink measure">
+              <span className="font-semibold">Off.</span> You sign in with your password only. Turn this on to also need a code from an authenticator app on your phone (Microsoft Authenticator,
+              Google Authenticator, 1Password or Bitwarden), so a stolen password is not enough.
+            </p>
+            <form action={beginTwoStepAction}>
+              <Button type="submit" variant="primary">
+                Set up an authenticator
+              </Button>
+            </form>
+          </div>
+        )}
       </section>
 
       <section aria-labelledby="password">
