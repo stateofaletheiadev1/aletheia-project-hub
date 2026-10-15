@@ -143,3 +143,18 @@ Verified (commands run): `npx vitest run` 183 tests pass; `tsc` and `eslint` cle
 
 Not yet: the portal's publication endpoint and gateway (E2E 12–14 against a real portal),
 attachments and scanning, free-standing tasks and reassignment, notifications, Vercel and DNS.
+
+## 16 October 2026: first deployment (staging)
+
+- Vercel project `aletheia-ops` (team stateofaletheiadev1), deployed with `vercel deploy --prod`.
+  Public address: https://aletheia-ops-pi.vercel.app. Settings as encrypted Vercel secrets, read
+  from the git-ignored `.env.production.local`, never printed.
+- Labelled **Staging** (`APP_ENV=staging`) with simulated publication and its banner, because the
+  portal publication endpoint does not exist yet and a production setting refuses to start without
+  it. `/design` now needs sign-in outside development. `.vercelignore` keeps local data, secrets
+  and test artefacts out of uploads.
+- Verified on the live address: sign-in form (database connected), redirects when signed out,
+  `/design` closed, CSP with nonce, HSTS, frame denial; invitation page opens.
+- Founding administrators created on the live database: Emeka Iwuagwu and Su (owner's choice).
+  Their single-use links were given to the owner, not recorded here.
+- `ops.aletheiagov.org`: DNS for aletheiagov.org is at Spaceship; one CNAME is needed (owner).

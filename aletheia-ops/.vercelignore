@@ -1,0 +1,11 @@
+# Never uploaded to Vercel: local data, secrets, build output and test artefacts.
+.data
+.env
+.env*.local
+.next
+node_modules
+test-results
+playwright-report
+tests/e2e/.state.json
+docs/design/screenshots
+*.local.md
