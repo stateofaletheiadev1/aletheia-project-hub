@@ -2,7 +2,7 @@
 // different administrator confirms. Nobody proposes or confirms a change to their own access,
 // and a proposer can never confirm their own proposal.
 
-import { can, PRIVILEGED_ROLES, type Actor, type Grant, type Role } from "./roles";
+import { can, isFounder, PRIVILEGED_ROLES, type Actor, type Grant, type Role } from "./roles";
 
 export type AccessChange =
   | { kind: "grant"; target: string; grant: Grant }
@@ -15,8 +15,12 @@ export type Allowed = { ok: true };
 /** Administrator roles may only be granted or removed by government-wide administrators. */
 const ADMIN_ROLES: readonly Role[] = ["system_administrator", "government_administrator", "institutional_administrator"];
 
-/** Changes that need a second administrator. Ordinary role grants take effect on one signature. */
-export function needsSecondAdministrator(change: AccessChange): boolean {
+/**
+ * Changes that need a second administrator. Ordinary role grants take effect on one signature, and
+ * a founder's changes take effect at once (ADR 0009).
+ */
+export function needsSecondAdministrator(change: AccessChange, proposer?: Actor): boolean {
+  if (proposer && isFounder(proposer)) return false;
   if (change.kind === "workflow_policy") return true;
   return PRIVILEGED_ROLES.includes(change.grant.role);
 }
@@ -37,7 +41,8 @@ export function mayPropose(actor: Actor, change: AccessChange): Allowed | Refusa
   if ((ADMIN_ROLES.includes(change.grant.role) || change.grant.institution === "*") && !can(actor, "role.propose")) {
     return { ok: false, reason: "Only a government-wide administrator can grant or remove administrator roles or government-wide access." };
   }
-  if (change.grant.role === "system_administrator" && !actor.grants.some((g) => g.role === "system_administrator")) {
+  if (change.grant.role === "founder" && !isFounder(actor)) return { ok: false, reason: "Only a founder can make another official a founder." };
+  if (change.grant.role === "system_administrator" && !actor.grants.some((g) => g.role === "system_administrator" || g.role === "founder")) {
     return { ok: false, reason: "Only a system administrator can propose another system administrator." };
   }
   return { ok: true };

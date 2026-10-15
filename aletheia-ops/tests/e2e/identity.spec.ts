@@ -48,16 +48,13 @@ test("an invited administrator joins, invites an official, signs out and back in
   await page.locator("#clearance-1").selectOption("public");
   await page.getByLabel("Reason").fill("Founding author and publishing officer for the Treasury");
   await page.getByRole("button", { name: "Create the invitation" }).click();
-  await expect(page.getByText("One privileged role waits for a second administrator")).toBeVisible();
+  // A founder's grants take effect at once (ADR 0009).
+  await expect(page.getByText("Invitation created.")).toBeVisible();
   const link = (await page.locator(".ref").first().innerText()).trim();
-
-  // E2E 20: the proposer cannot confirm their own proposal.
-  await page.getByRole("link", { name: "Back to officials and access" }).click();
-  await expect(page.getByText("You proposed this. Another administrator must decide it.").first()).toBeVisible();
 
   await nav(page, "Audit register");
   await expect(page.getByText(/Integrity verified as of/)).toBeVisible();
-  await expect(page.getByText("Privileged role change proposed: Søren Østergaard-Ekwueme").first()).toBeVisible();
+  await expect(page.getByText("Official invited: Søren Østergaard-Ekwueme").first()).toBeVisible();
 
   // Sign out; the workbench is closed again.
   await page.locator("header summary").click();
@@ -73,15 +70,8 @@ test("an invited administrator joins, invites an official, signs out and back in
   await expect(page.locator("p[role=alert]")).toContainText("Those details were not accepted");
   await signIn(page, me);
 
-  // A second administrator confirms; the official joins with both roles.
-  const other = await browser.newContext({ viewport: { width: 1280, height: 860 } });
-  const ben = await other.newPage();
-  await signIn(ben, s.people.adminB!, true);
-  await nav(ben, "Officials and access");
-  await ben.getByRole("button", { name: "Confirm the change" }).first().click();
-  await expect(ben.getByRole("region", { name: "Decided in the last seven days" }).getByText(/Confirmed by Ben Founder .* proposed by Cleo Founder/)).toBeVisible();
-  await other.close();
-
+  // The official joins with both roles. (The two-person rule between ordinary administrators is
+  // covered by the unit tests.)
   const third = await browser.newContext({ viewport: { width: 1280, height: 860 } });
   const soren = await third.newPage();
   await acceptInvitation(soren, link);

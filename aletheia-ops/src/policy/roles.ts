@@ -5,6 +5,7 @@
 import { CLASSIFICATION_RANK, type Classification } from "@/domain/glossary";
 
 export const ROLES = [
+  "founder",
   "system_administrator",
   "government_administrator",
   "institutional_administrator",
@@ -79,6 +80,11 @@ export const PERMISSION_LABEL: Record<Permission, string> = {
 };
 
 export const ROLE_INFO: Record<Role, { label: string; summary: string; grants: readonly Permission[] }> = {
+  founder: {
+    label: "Founder",
+    summary: "Holds every power in every institution: writes, reviews, approves, releases, and grants roles without a second administrator (ADR 0009).",
+    grants: PERMISSIONS,
+  },
   system_administrator: {
     label: "System administrator",
     summary: "Runs the system: officials, roles, policies and integrations. Does not handle records.",
@@ -138,6 +144,7 @@ export const ROLE_INFO: Record<Role, { label: string; summary: string; grants: r
 
 /** Roles whose grant or removal needs a second administrator (brief §18.5). */
 export const PRIVILEGED_ROLES: readonly Role[] = [
+  "founder",
   "system_administrator",
   "government_administrator",
   "institutional_administrator",
@@ -206,6 +213,14 @@ export function clearanceIn(actor: Actor | null | undefined, institution: string
 export function canSee(actor: Actor | null | undefined, record: { institution: string; classification: Classification }): boolean {
   const c = clearanceIn(actor, record.institution);
   return c !== null && CLASSIFICATION_RANK[c] >= CLASSIFICATION_RANK[record.classification];
+}
+
+/**
+ * Founders act on their own authority (ADR 0009): the separation-of-duties rules and the
+ * two-person rule bind other officials, not them. Every such act is marked in the audit register.
+ */
+export function isFounder(actor: Actor | null | undefined): boolean {
+  return Boolean(actor && actor.state === "active" && actor.mfa && actor.grants.some((g) => g.role === "founder" && g.institution === "*"));
 }
 
 export function isRole(value: string): value is Role {

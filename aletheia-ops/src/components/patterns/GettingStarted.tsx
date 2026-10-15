@@ -5,7 +5,8 @@ import { SectionMark } from "../ui/feedback";
 // there are records. Administrators manage people and access; records are written, reviewed,
 // approved and released by officials with those roles (brief §18.5, §25).
 
-export function GettingStarted({ officials }: { officials: number }) {
+export function GettingStarted({ officials, founder }: { officials: number; founder: boolean }) {
+  if (founder) return <FounderStart />;
   const steps = [
     {
       title: "Invite the people who will do the work",
@@ -49,6 +50,58 @@ export function GettingStarted({ officials }: { officials: number }) {
             <p className="text-ui font-normal text-ink-2">{s.body}</p>
           </li>
         ))}
+      </ol>
+    </section>
+  );
+}
+
+/** For founders (ADR 0009): every step is theirs to take; others share the work. */
+function FounderStart() {
+  return (
+    <section aria-labelledby="getting-started" className="mx-auto mb-10 max-w-7xl border border-rule bg-sheet p-6">
+      <SectionMark n="00">Getting started</SectionMark>
+      <h2 id="getting-started" className="mt-2 text-h2 text-ink">
+        As a founder, every step is yours to take
+      </h2>
+      <ol className="mt-5 grid gap-5 md:grid-cols-3 md:gap-8">
+        <li className="grid content-start gap-1.5 border-t border-rule pt-4">
+          <span className="tnum text-h3 text-ink-3">01</span>
+          <p className="text-ui font-semibold text-ink">Write</p>
+          <p className="text-ui font-normal text-ink-2">
+            Open a register (
+            <Link href="/records/documents" className="link">
+              Documents
+            </Link>
+            ,{" "}
+            <Link href="/records/decisions" className="link">
+              Decisions
+            </Link>
+            ,{" "}
+            <Link href="/records/dispatches" className="link">
+              Dispatches
+            </Link>
+            …) and choose New. Classify it Public if it is for the public record.
+          </p>
+        </li>
+        <li className="grid content-start gap-1.5 border-t border-rule pt-4">
+          <span className="tnum text-h3 text-ink-3">02</span>
+          <p className="text-ui font-semibold text-ink">Take it through, or let others</p>
+          <p className="text-ui font-normal text-ink-2">
+            You can submit, review, approve, authorise and publish it yourself. Each step you take over a rule that binds other officials is marked in the audit register as taken on a
+            founder&rsquo;s authority.
+          </p>
+        </li>
+        <li className="grid content-start gap-1.5 border-t border-rule pt-4">
+          <span className="tnum text-h3 text-ink-3">03</span>
+          <p className="text-ui font-semibold text-ink">Bring in officials</p>
+          <p className="text-ui font-normal text-ink-2">
+            Under{" "}
+            <Link href="/officials/invite" className="link font-semibold">
+              Officials and access
+            </Link>
+            , invite people with the roles they hold. Your grants take effect at once; they work within their roles, and the usual separation of duties applies to them.
+          </p>
+        </li>
       </ol>
     </section>
   );

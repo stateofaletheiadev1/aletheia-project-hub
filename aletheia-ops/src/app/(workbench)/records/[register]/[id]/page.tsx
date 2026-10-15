@@ -11,7 +11,7 @@ import { Timestamp } from "@/components/ui/Timestamp";
 import { institutionName } from "@/domain/labels";
 import { isRegister, placeholderReference, REGISTER } from "@/domain/registers";
 import { can } from "@/policy/roles";
-import { namesOf } from "@/services/identity/identity";
+import { foundersAmong, namesOf } from "@/services/identity/identity";
 import { approvalsOf, getRecord, offersFor, recordFacts, transitionsOf, versionsOf } from "@/services/records/records";
 import { definitionById } from "@/workflow/definitions";
 import { publicationEligibility } from "@/workflow/engine";
@@ -53,7 +53,8 @@ export default async function RecordPage({ params }: { params: Promise<{ registe
   if (!r || r.register !== register) notFound();
   const def = definitionById(r.workflowId)!;
   const [transitions, versions, approvals, offers, facts] = await Promise.all([transitionsOf(d, r.id), versionsOf(d, r.id), approvalsOf(d, r.id), offersFor(d, actor, r), recordFacts(d, r)]);
-  const names = await namesOf(d, [r.authorId, ...transitions.map((t) => t.actorId ?? ""), ...approvals.map((a) => a.officialId)]);
+  const people = [r.authorId, ...transitions.map((t) => t.actorId ?? ""), ...approvals.map((a) => a.officialId)];
+  const [names, founders] = await Promise.all([namesOf(d, people), foundersAmong(d, people)]);
   const tz = official.timezone;
   const info = REGISTER[register];
   const shown = EDITABLE.includes(r.state) ? r.draft : (versions[0]?.content ?? r.draft);
@@ -74,7 +75,7 @@ export default async function RecordPage({ params }: { params: Promise<{ registe
     .reverse()
     .map((t) => ({
       name: names.get(t.actorId!) ?? "An official",
-      role: t.action === "approve" && register === "finance" ? "Finance officer" : (STEP_ROLE[t.action] ?? "Officer"),
+      role: founders.has(t.actorId!) ? "Founder" : t.action === "approve" && register === "finance" ? "Finance officer" : (STEP_ROLE[t.action] ?? "Officer"),
       institution: institutionName(r.institution),
       decision: SIGNED[t.action]!,
       at: t.at,

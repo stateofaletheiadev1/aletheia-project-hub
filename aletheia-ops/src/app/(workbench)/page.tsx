@@ -5,7 +5,7 @@ import { INSTITUTION_STATE } from "@/domain/glossary";
 import { INSTITUTION_SEED } from "@/domain/institutions";
 import { institutionName, primaryTitle } from "@/domain/labels";
 import { placeholderReference, REGISTER } from "@/domain/registers";
-import { can } from "@/policy/roles";
+import { can, isFounder } from "@/policy/roles";
 import { listOfficials, listPendingChanges, namesOf } from "@/services/identity/identity";
 import { listRecords, queueFor } from "@/services/records/records";
 import { definitionById } from "@/workflow/definitions";
@@ -87,7 +87,7 @@ export default async function Overview({ searchParams }: { searchParams: Promise
           Your account is active. Every step you take here is recorded in the audit register under your name.
         </InlineAlert>
       ) : null}
-      {showGuide ? <GettingStarted officials={officials} /> : null}
+      {showGuide ? <GettingStarted officials={officials} founder={isFounder(actor)} /> : null}
       <Briefing
         official={{ name: official.name, role: title.role }}
         institution={institution ? { name: institution.name, status: INSTITUTION_STATE[institution.status].label } : null}

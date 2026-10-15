@@ -135,16 +135,8 @@ function checkPerson(name: string, email: string): void {
 
 // ---------------------------------------------------------------- bootstrap
 
-/**
- * What a founder holds: administration of people and access, and authorship in every institution
- * (ADR 0008), so founders can put information on the record themselves. Approval and release
- * remain with other officials: nobody approves a version they wrote.
- */
-export const FOUNDER_GRANTS: Grant[] = [
-  { role: "system_administrator", institution: "*", clearance: "internal" },
-  { role: "government_administrator", institution: "*", clearance: "internal" },
-  { role: "author", institution: "*", clearance: "internal" },
-];
+/** What a founder holds: every power, in every institution, at every classification (ADR 0009). */
+export const FOUNDER_GRANTS: Grant[] = [{ role: "founder", institution: "*", clearance: "confidential" }];
 
 /**
  * Creates the founding administrators, once, before any official exists. At least two are
@@ -198,7 +190,7 @@ export async function inviteOfficial(deps: IdentityDeps, actor: Actor, input: In
     const change: AccessChange = { kind: "grant", target: draft.id, grant: g };
     const allowed = mayPropose(actor, change);
     if (!allowed.ok) throw new Refused(allowed.reason);
-    if (needsSecondAdministrator(change)) pending.push(pendingChange(deps, actor, change, input.reason));
+    if (needsSecondAdministrator(change, actor)) pending.push(pendingChange(deps, actor, change, input.reason));
     else immediate.push(g);
   }
   const official: Official = { ...draft, grants: immediate };
@@ -689,7 +681,7 @@ export async function proposeAccessChange(deps: IdentityDeps, actor: Actor, chan
   const target = await officialById(deps.store, change.target);
   if (!target || !seesOfficial(actor, target)) throw new Refused("No such official.");
   if (target.state === "revoked") throw new Refused("This official's access has been revoked.");
-  if (!needsSecondAdministrator(change)) {
+  if (!needsSecondAdministrator(change, actor)) {
     await commitAudited(
       deps,
       [{ op: "update", collection: OFFICIALS, id: target._id, expectedRev: target._rev, update: { $set: { grants: applyChange(target, change), sessionVersion: target.sessionVersion + 1 } } }],
@@ -826,4 +818,12 @@ export function pendingTwoStep(deps: IdentityDeps, signedIn: SignedIn): { secret
   if (!o.totpPendingSealed || o.totpSealed) return null;
   const secret = open(deps.keys.data, o.totpPendingSealed, `official:${o.id}:totp-pending`);
   return { secret, uri: totpUri(secret, emailOf(deps, o)) };
+}
+
+/** Which of these officials are founders, for showing the capacity in which they signed. */
+export async function foundersAmong(deps: { store: DocumentStore }, ids: string[]): Promise<Set<string>> {
+  const unique = [...new Set(ids.filter(Boolean))];
+  if (!unique.length) return new Set();
+  const page = await deps.store.find<Official>(OFFICIALS, { id: { $in: unique } }, { limit: unique.length });
+  return new Set(page.documents.filter((o) => o.grants.some((g) => g.role === "founder")).map((o) => o.id));
 }

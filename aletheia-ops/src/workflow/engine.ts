@@ -3,7 +3,7 @@
 // on the server for every transition; the interface calls `availableActions` only to decide
 // what to offer, and the server decides again.
 
-import { can, type Actor } from "@/policy/roles";
+import { can, isFounder, type Actor } from "@/policy/roles";
 import type { Action, Attempt, Decision, Guard, RecordFacts, Transition, WorkflowDefinition } from "./types";
 
 type GuardCheck = (facts: RecordFacts, attempt: Attempt, def: WorkflowDefinition) => string | null;
@@ -57,6 +57,9 @@ const GUARD: Record<Guard, GuardCheck> = {
   system_only: (_f, a) => (a.actor === "system" ? null : "This step is recorded by the system when the portal answers."),
 };
 
+/** Separation of duties (brief §22). Founders act on their own authority over these (ADR 0009). */
+export const SOD_GUARDS: readonly Guard[] = ["actor_is_author", "actor_did_not_author_version", "actor_has_not_approved_version", "actor_did_not_approve_version", "actor_is_second_officer"];
+
 /** Guards that select between two transitions for one action; their failures are not reasons. */
 const SELECTORS: readonly Guard[] = ["approvals_complete", "approvals_outstanding"];
 
@@ -79,8 +82,11 @@ export function decide(def: WorkflowDefinition, facts: RecordFacts, attempt: Att
 
   let fewest: string[] | null = null;
   for (const t of fromHere.filter((x) => permitted(x, facts, attempt.actor))) {
-    const failures = t.guards.map((g) => [g, GUARD[g](facts, attempt, def)] as const).filter(([, msg]) => msg !== null);
-    if (failures.length === 0) return { ok: true, transition: t, from: facts.state, to: t.to, effects: t.effects };
+    const founder = attempt.actor !== "system" && isFounder(attempt.actor);
+    const all = t.guards.map((g) => [g, GUARD[g](facts, attempt, def)] as const).filter(([, msg]) => msg !== null);
+    const overrides = founder ? all.filter(([g]) => SOD_GUARDS.includes(g)).map(([g]) => g) : [];
+    const failures = all.filter(([g]) => !overrides.includes(g));
+    if (failures.length === 0) return { ok: true, transition: t, from: facts.state, to: t.to, effects: t.effects, overrides };
     const reasons = failures.filter(([g]) => !SELECTORS.includes(g)).map(([, msg]) => msg as string);
     if (reasons.length > 0 && (fewest === null || reasons.length < fewest.length)) fewest = reasons;
   }

@@ -311,6 +311,16 @@ export async function step(uow: UnitOfWork, who: Actorish | "system", id: string
   };
   ops.unshift({ op: "update", collection: RECORDS, id: r._id, expectedRev: r._rev, update: { $set: set } });
   ops.push({ op: "insert", collection: TRANSITIONS, document: transition as unknown as Record<string, unknown> });
+  if (decision.overrides.length) {
+    events.push({
+      actorId,
+      action: "record.founder_authority",
+      target: { type: "record", id: r.id },
+      institution: r.institution,
+      reason: "Taken on a founder's authority, over rules that bind other officials (ADR 0009).",
+      details: { step: action, rules: decision.overrides.join(", ") },
+    });
+  }
   events.unshift({
     actorId,
     action: `record.${action}`,

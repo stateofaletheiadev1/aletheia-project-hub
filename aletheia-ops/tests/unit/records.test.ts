@@ -216,3 +216,39 @@ describe("visibility (E2E 15)", () => {
     expect(await store.count("audit_events")).toBe(before + 1);
   });
 });
+
+describe("a founder's authority (ADR 0009)", () => {
+  it("a founder writes, reviews, approves, authorises and publishes their own record; each override is audited", async () => {
+    const founder: Actorish = { actor: { id: "founder", state: "active", mfa: true, grants: [{ role: "founder", institution: "*", clearance: "confidential" }] }, official: { id: "founder" } };
+    const id = await createDraft(uow(), founder, { register: "decisions", institution: "founding-government", classification: "public", content: content() });
+    await go(founder, id, "submit");
+    await go(founder, id, "take_for_review");
+    await go(founder, id, "adopt");
+    await go(founder, id, "approve");
+    await go(founder, id, "authorise_publication");
+    const { outboxId } = await go(founder, id, "publish");
+    await deliver(uow(), new DevelopmentGateway("https://www.aletheiagov.org"), outboxId!);
+    expect((await rec(id)).state).toBe("published");
+    const overrides = (await store.find<{ details: { step: string } }>("audit_events", { action: "record.founder_authority" }, { sort: { seq: 1 }, limit: 20 })).documents.map((e) => e.details.step);
+    // For decisions, whoever approved may not normally release: that is set aside too.
+    expect(overrides).toEqual(["take_for_review", "adopt", "approve", "authorise_publication", "publish"]);
+    expect((await verifyChain(store)).ok).toBe(true);
+  });
+
+  it("other officials are still bound: an author cannot approve their own version", async () => {
+    const both = who("author", ["author", "approving_officer"]);
+    const id = await createDraft(uow(), both, { register: "dispatches", institution: "treasury", classification: "public", content: content() });
+    await go(both, id, "submit");
+    await go(reviewer, id, "take_for_review");
+    await expect(go(both, id, "approve")).rejects.toThrow(/someone else/);
+  });
+
+  it("rules that are not about who acts still apply to founders: only Public records are published", async () => {
+    const founder: Actorish = { actor: { id: "founder", state: "active", mfa: true, grants: [{ role: "founder", institution: "*", clearance: "confidential" }] }, official: { id: "founder" } };
+    const id = await createDraft(uow(), founder, { register: "documents", institution: "treasury", classification: "internal", content: content() });
+    await go(founder, id, "submit");
+    await go(founder, id, "take_for_review");
+    await go(founder, id, "approve");
+    await expect(go(founder, id, "authorise_publication")).rejects.toThrow(/classified internal/);
+  });
+});

@@ -1,6 +1,6 @@
 # ADR 0008: Founders may author records
 
-- Status: Accepted (owner, 16 October 2026)
+- Status: Superseded by ADR 0009 (16 October 2026)
 - Date: 2026-10-16
 
 ## Context

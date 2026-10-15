@@ -11,6 +11,7 @@ permission. Roles marked † need a second administrator to grant or remove (two
 
 | Role | Summary |
 |---|---|
+| Founder † | Holds every power in every institution: writes, reviews, approves, releases, and grants roles without a second administrator (ADR 0009). |
 | System administrator † | Runs the system: officials, roles, policies and integrations. Does not handle records. |
 | Government administrator † | Administers institutions and officials across the government. |
 | Institutional administrator † | Administers one institution: its officials and the assignment of its work. |
@@ -25,34 +26,34 @@ permission. Roles marked † need a second administrator to grant or remove (two
 
 ## Permissions by role
 
-| Permission | System administrator | Government administrator | Institutional administrator | Departmental officer | Author | Reviewer | Approving officer | Publishing officer | Finance officer | Appointments verifier | Auditor |
-|---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
-| Read records (`record.read`) |  | ● | ● | ● | ● | ● | ● | ● | ● | ● | ● |
-| Create drafts (`record.create`) |  |  |  |  | ● |  |  |  |  |  |  |
-| Edit own drafts and revisions (`record.edit`) |  |  |  |  | ● |  |  |  |  |  |  |
-| Submit for review (`record.submit`) |  |  |  |  | ● |  |  |  |  |  |  |
-| Review, request revision, reject (`record.review`) |  |  |  |  |  | ● | ● |  | ● |  |  |
-| Approve (`record.approve`) |  |  |  |  |  |  | ● |  |  |  |  |
-| Record adoption of a decision (`record.adopt`) |  |  |  |  |  |  | ● |  |  |  |  |
-| Verify an appointment (`record.verify`) |  |  |  |  |  |  |  |  |  | ● |  |
-| Withdraw before publication (`record.withdraw`) |  |  |  |  | ● |  | ● |  |  |  |  |
-| Archive (`record.archive`) |  |  | ● |  |  |  |  |  |  |  |  |
-| Comment (`record.comment`) |  |  |  | ● | ● | ● | ● | ● | ● | ● |  |
-| Approve finance records (`finance.approve`) |  |  |  |  |  |  |  |  | ● |  |  |
-| Authorise publication (`publication.authorise`) |  |  |  |  |  |  |  | ● |  |  |  |
-| Publish to the public record (`publication.publish`) |  |  |  |  |  |  |  | ● |  |  |  |
-| Assign and reassign work (`task.assign`) |  | ● | ● |  |  |  |  |  |  |  |  |
-| Manage institutions and positions (`institution.manage`) |  | ● |  |  |  |  |  |  |  |  |  |
-| See officials and their access (`official.read`) | ● | ● | ● |  |  |  |  |  |  |  | ● |
-| Invite officials (`official.invite`) | ● | ● | ● |  |  |  |  |  |  |  |  |
-| Suspend, reinstate or revoke officials (`official.manage`) | ● | ● |  |  |  |  |  |  |  |  |  |
-| Propose a role grant or removal (`role.propose`) | ● | ● | ● |  |  |  |  |  |  |  |  |
-| Confirm another administrator's role change (`role.confirm`) | ● | ● | ● |  |  |  |  |  |  |  |  |
-| Propose a workflow policy change (`policy.propose`) | ● |  |  |  |  |  |  |  |  |  |  |
-| Confirm another administrator's policy change (`policy.confirm`) | ● |  |  |  |  |  |  |  |  |  |  |
-| Read the audit register (`audit.read`) | ● | ● |  |  |  |  |  |  |  |  | ● |
-| Read the publication log (`publication_log.read`) | ● | ● |  |  |  |  |  | ● |  |  | ● |
-| See integration health (`integration.read`) | ● |  |  |  |  |  |  |  |  |  | ● |
+| Permission | Founder | System administrator | Government administrator | Institutional administrator | Departmental officer | Author | Reviewer | Approving officer | Publishing officer | Finance officer | Appointments verifier | Auditor |
+|---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+| Read records (`record.read`) | ● |  | ● | ● | ● | ● | ● | ● | ● | ● | ● | ● |
+| Create drafts (`record.create`) | ● |  |  |  |  | ● |  |  |  |  |  |  |
+| Edit own drafts and revisions (`record.edit`) | ● |  |  |  |  | ● |  |  |  |  |  |  |
+| Submit for review (`record.submit`) | ● |  |  |  |  | ● |  |  |  |  |  |  |
+| Review, request revision, reject (`record.review`) | ● |  |  |  |  |  | ● | ● |  | ● |  |  |
+| Approve (`record.approve`) | ● |  |  |  |  |  |  | ● |  |  |  |  |
+| Record adoption of a decision (`record.adopt`) | ● |  |  |  |  |  |  | ● |  |  |  |  |
+| Verify an appointment (`record.verify`) | ● |  |  |  |  |  |  |  |  |  | ● |  |
+| Withdraw before publication (`record.withdraw`) | ● |  |  |  |  | ● |  | ● |  |  |  |  |
+| Archive (`record.archive`) | ● |  |  | ● |  |  |  |  |  |  |  |  |
+| Comment (`record.comment`) | ● |  |  |  | ● | ● | ● | ● | ● | ● | ● |  |
+| Approve finance records (`finance.approve`) | ● |  |  |  |  |  |  |  |  | ● |  |  |
+| Authorise publication (`publication.authorise`) | ● |  |  |  |  |  |  |  | ● |  |  |  |
+| Publish to the public record (`publication.publish`) | ● |  |  |  |  |  |  |  | ● |  |  |  |
+| Assign and reassign work (`task.assign`) | ● |  | ● | ● |  |  |  |  |  |  |  |  |
+| Manage institutions and positions (`institution.manage`) | ● |  | ● |  |  |  |  |  |  |  |  |  |
+| See officials and their access (`official.read`) | ● | ● | ● | ● |  |  |  |  |  |  |  | ● |
+| Invite officials (`official.invite`) | ● | ● | ● | ● |  |  |  |  |  |  |  |  |
+| Suspend, reinstate or revoke officials (`official.manage`) | ● | ● | ● |  |  |  |  |  |  |  |  |  |
+| Propose a role grant or removal (`role.propose`) | ● | ● | ● | ● |  |  |  |  |  |  |  |  |
+| Confirm another administrator's role change (`role.confirm`) | ● | ● | ● | ● |  |  |  |  |  |  |  |  |
+| Propose a workflow policy change (`policy.propose`) | ● | ● |  |  |  |  |  |  |  |  |  |  |
+| Confirm another administrator's policy change (`policy.confirm`) | ● | ● |  |  |  |  |  |  |  |  |  |  |
+| Read the audit register (`audit.read`) | ● | ● | ● |  |  |  |  |  |  |  |  | ● |
+| Read the publication log (`publication_log.read`) | ● | ● | ● |  |  |  |  |  | ● |  |  | ● |
+| See integration health (`integration.read`) | ● | ● |  |  |  |  |  |  |  |  |  | ● |
 
 ## Workflow steps and the permission each needs
 

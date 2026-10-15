@@ -129,5 +129,5 @@ export type Attempt = {
 };
 
 export type Decision =
-  | { ok: true; transition: Transition; from: RecordState; to: RecordState; effects: readonly Effect[] }
+  | { ok: true; transition: Transition; from: RecordState; to: RecordState; effects: readonly Effect[]; overrides: readonly Guard[] }
   | { ok: false; code: "unknown_action" | "wrong_state" | "forbidden" | "guard"; reasons: string[] };

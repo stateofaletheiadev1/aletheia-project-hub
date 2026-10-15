@@ -204,9 +204,19 @@ describe("access control (E2E 19, 20)", () => {
     await expect(setOfficialState(deps, a.actor, a.official.id, "suspended", "self")).rejects.toThrow(/own account/);
   });
 
-  it("a privileged role needs a second administrator; the proposer cannot confirm it", async () => {
-    const { a, b } = await founders();
-    const inv = await inviteOfficial(deps, a.actor, {
+  it("a founder's grants apply at once; between ordinary administrators a privileged role needs a second one (ADR 0009)", async () => {
+    const { a } = await founders();
+    // A founder grants a privileged role directly.
+    const direct = await inviteOfficial(deps, a.actor, { name: "Kwame Asante-Mensah", email: "kwame@example.org", grants: [{ role: "publishing_officer", institution: "treasury", clearance: "public" }], reason: "Publisher" });
+    expect(direct.pending).toBe(0);
+    // Two ordinary government administrators, appointed by the founder.
+    const gx = await inviteOfficial(deps, a.actor, { name: "Xena Admin", email: "xena@example.org", grants: [{ role: "government_administrator", institution: "*", clearance: "internal" }], reason: "Administrator" });
+    const gy = await inviteOfficial(deps, a.actor, { name: "Yves Admin", email: "yves@example.org", grants: [{ role: "government_administrator", institution: "*", clearance: "internal" }], reason: "Administrator" });
+    const x = (await resolveSession(deps, await accept(gx.token)))!;
+    const y = (await resolveSession(deps, await accept(gy.token)))!;
+    // Ordinary administrators cannot make a founder.
+    await expect(proposeAccessChange(deps, x.actor, { kind: "grant", target: y.official.id, grant: { role: "founder", institution: "*", clearance: "confidential" } }, "test")).rejects.toThrow(/Only a founder/);
+    const inv = await inviteOfficial(deps, x.actor, {
       name: "Søren Østergaard-Ekwueme",
       email: "soren@example.org",
       grants: [
@@ -220,8 +230,8 @@ describe("access control (E2E 19, 20)", () => {
     let s = (await resolveSession(deps, t))!;
     expect(s.official.grants.map((g) => g.role)).toEqual(["reviewer"]);
     const change = (await store.findOne<{ id: string }>("pending_changes", { status: "pending" }))!;
-    await expect(decideAccessChange(deps, a.actor, change.id, "confirm", "")).rejects.toThrow(/different administrator/);
-    await decideAccessChange(deps, b.actor, change.id, "confirm", "Agreed at the founding meeting");
+    await expect(decideAccessChange(deps, x.actor, change.id, "confirm", "")).rejects.toThrow(/different administrator/);
+    await decideAccessChange(deps, y.actor, change.id, "confirm", "Agreed at the founding meeting");
     // A privilege change rotates sessions: the old session ends, a new sign-in has the role.
     expect(await resolveSession(deps, t)).toBeNull();
     s = (await resolveSession(deps, await signIn("soren@example.org")))!;

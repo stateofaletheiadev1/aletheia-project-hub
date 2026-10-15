@@ -185,3 +185,12 @@ attachments and scanning, free-standing tasks and reassignment, notifications, V
   either founder cannot be confirmed, because neither may confirm a change to their own access and
   the proposer cannot confirm. A third administrator, or other officials, resolve it.
 - Verified: 190 unit tests; both browser tests; deployed.
+
+## 16 October 2026: founders hold every power (ADR 0009)
+
+- New `founder` role with every permission; separation of duties and the two-person rule do not
+  bind founders; every such act is audited as taken on a founder's authority. Live founders (Emeka,
+  Su) moved to it. Countersignatures show "Founder"; the audit register now labels record steps.
+- Verified: 194 unit tests (a founder takes a decision from draft to publication alone, with five
+  audited overrides; others still bound; founders still cannot publish non-Public records); both
+  browser tests; deployed.
