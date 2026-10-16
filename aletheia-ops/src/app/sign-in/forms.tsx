@@ -38,7 +38,7 @@ export function CodeForm({ next, enrol = false }: { next: string; enrol?: boolea
     <form action={action} className="grid gap-5" noValidate>
       <Problem text={state.error} />
       <input type="hidden" name="next" value={next} />
-      <Field id="code" label="Six-digit code" hint={enrol ? "The code the app shows now for Aletheia Operations." : "From the authenticator app you set up when you joined."}>
+      <Field id="code" label="Six-digit code" hint={enrol ? "The code the app shows now for Aletheia Operations." : "From the authenticator app you set up for two-step sign-in."}>
         <TextInput id="code" name="code" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9 ]*" maxLength={7} required autoFocus className="tnum tracking-widest" />
       </Field>
       <Button type="submit" variant="primary" pending={pending} pendingLabel="Checking…">

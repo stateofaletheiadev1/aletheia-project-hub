@@ -13,7 +13,7 @@ export default async function SignInPage({ searchParams }: { searchParams: Promi
     return (
       <AuthShell title="Accounts are not open yet">
         <p className="text-ui font-normal text-ink-2">
-          Access is by invitation from an administrator, with a password and an authenticator app. This installation is not yet connected to its database, so nobody can sign in.
+          Access is by invitation from an administrator, with a password (and, if you choose, two-step sign-in with an authenticator app). This installation is not yet connected to its database, so nobody can sign in.
         </p>
       </AuthShell>
     );

@@ -4,7 +4,7 @@ import { expect, type Page } from "@playwright/test";
 import { Secret, TOTP } from "otpauth";
 
 export type Person = { name: string; email: string; password: string; totp: string };
-export type State = { database: string; people: Record<string, Person>; adminInvitation: string };
+export type State = { database: string; people: Record<string, Person>; portalStaff: { email: string; name: string; password: string }; adminInvitation: string };
 
 export function state(): State {
   return JSON.parse(readFileSync(path.join(__dirname, ".state.json"), "utf8")) as State;

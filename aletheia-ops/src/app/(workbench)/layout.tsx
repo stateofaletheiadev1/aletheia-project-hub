@@ -27,7 +27,7 @@ export default async function WorkbenchLayout({ children }: { children: React.Re
       notice={
         e.AUTH_MFA === "optional" && !official.totpSealed ? (
           <p role="status" className="border-b border-status-returned bg-status-returned-tint px-5 py-2 text-ui font-semibold text-status-returned">
-            You sign in with a password only. For a second layer of protection, turn on two-step sign-in in{" "}
+            You sign in with a password only. You can turn on two-step sign-in at any time, for a second layer of protection, in{" "}
             <Link href="/account#two-step" className="underline underline-offset-2">
               Your account
             </Link>

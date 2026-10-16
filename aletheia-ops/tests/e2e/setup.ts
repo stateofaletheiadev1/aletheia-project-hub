@@ -5,6 +5,7 @@
 //
 //   node --import ./scripts/lib/register.mjs tests/e2e/setup.ts      (npm run e2e does this)
 
+import { execFileSync } from "node:child_process";
 import { randomBytes, randomUUID } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
@@ -84,7 +85,8 @@ const govRoot = `aletheiadb://root:${secret}@127.0.0.1:7791/${govDb}?tls=false`;
     await db.collection(c).createIndex("slug", { unique: true });
     await db.collection(c).createIndex("reference", { unique: true });
   }
-  for (const c of ["publications", "audit_events", "counters", "interest_registrations", "attachments", "subject_keys"]) await db.ensureCollection(c);
+  for (const c of ["publications", "audit_events", "counters", "interest_registrations", "attachments", "subject_keys", "staff_users"]) await db.ensureCollection(c);
+  await db.collection("staff_users").createIndex("emailIndex", { unique: true });
   await db.collection("publications").createIndex("idempotencyKey", { unique: true });
   await db.collection("counters").createIndex("name", { unique: true });
   await db.collection("interest_registrations").createIndex("subject", { unique: true });
@@ -118,8 +120,17 @@ writeFileSync(
     `PUBLICATION_HMAC_KEYS=e2e:${hmac}`,
     // Lets the test portal take applications (encrypted with this throwaway key).
     `DATA_ENCRYPTION_MASTER_KEY=${randomBytes(32).toString("base64")}`,
+    // Lets the test portal's staff area sign people in (two-step sign-in test).
+    `AUTH_SECRET=${randomBytes(32).toString("base64url")}`,
     "",
   ].join("\n"),
 );
-writeFileSync(path.join(import.meta.dirname, ".state.json"), JSON.stringify({ database, people, adminInvitation: `http://localhost:3310/invitation/${c!.token}` }, null, 2));
+// One staff account on the test portal, made by the portal's own bootstrap script.
+const portalStaff = { email: "officer@e2e.example", name: "Ola Officer", password: "temporary harbour pass" };
+execFileSync(process.execPath, [`--env-file=${path.join(root, ".env.e2e-portal.local")}`, "scripts/admin-bootstrap.mjs", portalStaff.email, portalStaff.name], {
+  cwd: path.resolve(root, "../aletheia-gov"),
+  env: { ...process.env, BOOTSTRAP_PASSWORD: portalStaff.password },
+  stdio: "inherit",
+});
+writeFileSync(path.join(import.meta.dirname, ".state.json"), JSON.stringify({ database, people, portalStaff, adminInvitation: `http://localhost:3310/invitation/${c!.token}` }, null, 2));
 console.log(`E2E data ready in database ${database}: ${Object.keys(people).length} officials, one unused administrator invitation.`);

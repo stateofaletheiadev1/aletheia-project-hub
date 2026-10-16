@@ -33,7 +33,7 @@ export default async function OfficialPage({ params }: { params: Promise<{ id: s
         lede={o.email}
         meta={
           <p className="text-meta text-ink-2">
-            {ACCOUNT_STATE[o.state].label} · {o.mfa ? "Authenticator set up" : "No authenticator yet"} · Invited <Timestamp at={o.createdAt} mode="date" timeZone={tz} />
+            {ACCOUNT_STATE[o.state].label} · {o.mfa ? "Two-step sign-in on" : "Two-step sign-in off (their choice)"} · Invited <Timestamp at={o.createdAt} mode="date" timeZone={tz} />
             {o.lastSignInAt ? (
               <>
                 {" "}
@@ -140,7 +140,7 @@ export default async function OfficialPage({ params }: { params: Promise<{ id: s
                 <Field
                   id="state-reason"
                   label="Reason"
-                  hint={o.state === "active" ? "Suspension ends every session at once. It can be reversed." : o.state === "suspended" ? "They can sign in again with their own password and authenticator." : "The invitation stops working."}
+                  hint={o.state === "active" ? "Suspension ends every session at once. It can be reversed." : o.state === "suspended" ? "They can sign in again as before, with their own password (and code, if they turned on two-step sign-in)." : "The invitation stops working."}
                 >
                   <TextInput id="state-reason" name="reason" required />
                 </Field>

@@ -263,3 +263,18 @@ attachments and scanning, free-standing tasks and reassignment, notifications, V
   staff area shows them at once.
 - Verified: workbench 218 unit tests, portal 93; three browser tests, the jobs test now ending with
   the founder finding the applicant by position, downloading the CV, and setting Shortlisted.
+
+## 16 October 2026: two-step sign-in, optional and at will, on every system
+
+- Owner's instruction: tell officials everywhere that two-step sign-in can be turned on at will.
+- aletheiagov.org staff area had none ("not enabled yet"). Built it, as in the workbench (ADR 0007):
+  off by default; turned on in Account and security by scanning a QR code and confirming a code;
+  then every sign-in asks for the password and a code (used once only; failures count towards the
+  account lock); turned off again with the password. The secret is encrypted under the person's
+  key. Banner, account page and My office say it is optional and can be turned on or off at any time.
+- Workbench wording aligned: invitation, account, banner, officials list and detail, sign-in, glossary.
+- stateofaletheia.org officer console: "Two-Step Sign-In (optional)", same wording. The Citizen
+  Portal uses passkeys (sign-in without a password), not a second step; unchanged.
+- Verified: workbench 218 unit tests, portal 98; four browser tests, the new one turning two-step
+  sign-in on in the test portal's staff area, signing in with a code (a wrong code refused),
+  turning it off, and signing in with the password alone.

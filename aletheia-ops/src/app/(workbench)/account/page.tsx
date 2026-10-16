@@ -86,7 +86,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
         {official.totpSealed ? (
           <div className="grid gap-4">
             <p className="text-ui text-ink">
-              <span className="font-semibold text-status-approved">On.</span> Every sign-in asks for your password and a six-digit code from your authenticator app.
+              <span className="font-semibold text-status-approved">On.</span> Every sign-in asks for your password and a six-digit code from your authenticator app. You can turn it off at any time.
             </p>
             {optional ? (
               <details>
@@ -102,12 +102,13 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
         ) : (
           <div className="grid gap-4">
             <p className="text-ui text-ink measure">
-              <span className="font-semibold">Off.</span> You sign in with your password only. Turn this on to also need a code from an authenticator app on your phone (Microsoft Authenticator,
-              Google Authenticator, 1Password or Bitwarden), so a stolen password is not enough.
+              <span className="font-semibold">Off.</span> You sign in with your password only. It is your choice: you can turn on two-step sign-in at any time, so that a code from an
+              authenticator app on your phone (Microsoft Authenticator, Google Authenticator, 1Password or Bitwarden) is also needed and a stolen password is not enough. You can turn
+              it off again whenever you wish.
             </p>
             <form action={beginTwoStepAction}>
               <Button type="submit" variant="primary">
-                Set up an authenticator
+                Turn on two-step sign-in
               </Button>
             </form>
           </div>

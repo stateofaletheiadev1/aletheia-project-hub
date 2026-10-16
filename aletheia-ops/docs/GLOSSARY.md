@@ -55,7 +55,7 @@ identically in the interface, the API, the audit register and the publication ma
 | Term | Meaning |
 |---|---|
 | Invited | An invitation has been issued and not yet accepted. |
-| Active | Can sign in with password and authenticator. |
+| Active | Can sign in with a password, and an authenticator code if two-step sign-in is turned on. |
 | Suspended | Cannot sign in. Sessions ended. Can be reinstated. |
 | Revoked | Access ended permanently. The account remains in the record for audit. |
 

@@ -6,6 +6,7 @@ import { hashPassword, verifyPassword } from "@/server/auth/password";
 import type { Role } from "@/server/authorization/policies";
 import { blindIndex, decryptFields, encryptFields, type Sealed } from "@/server/crypto/envelope";
 import { existingSubjectKey, masterKey, subjectKeyFor } from "@/server/crypto/subject-keys";
+import { newTotpSecret, verifyTotp } from "@/server/auth/totp";
 
 // Workbench accounts. Personnel data is confidential (brief §8.4): name and email are
 // encrypted under the person's key; sign-in finds the account by a blind index of the email.
@@ -30,10 +31,15 @@ export type StaffUser = {
   createdAt: string;
   createdBy: string;
   lastSignInAt: string | null;
+  /** Optional two-step sign-in: the authenticator secret, encrypted under the person's key. */
+  totp?: Sealed | null;
+  /** A secret being set up, not yet confirmed with a code. */
+  totpPending?: Sealed | null;
+  totpLastStep?: number | null;
 };
 
 type Stored = StaffUser & { _id: string; _rev: number };
-export type UserView = { id: string; name: string; email: string; roles: Role[]; disabled: boolean; mustChangePassword: boolean; lastSignInAt: string | null; createdAt: string };
+export type UserView = { id: string; name: string; email: string; roles: Role[]; disabled: boolean; mustChangePassword: boolean; twoStep: boolean; lastSignInAt: string | null; createdAt: string };
 
 function context(): { db: AletheiaDB; master: Buffer } {
   const db = database();
@@ -48,7 +54,7 @@ const emailIndex = (master: Buffer, email: string) => blindIndex(master, "staff-
 async function view(db: AletheiaDB, master: Buffer, u: Stored): Promise<UserView> {
   const key = await existingSubjectKey(db, master, u.subject);
   const pii = key ? decryptFields<{ name: string; email: string }>(key, u.pii, COLLECTION) : { name: "(erased)", email: "" };
-  return { id: u._id, name: pii.name, email: pii.email, roles: u.roles, disabled: u.disabled, mustChangePassword: u.mustChangePassword, lastSignInAt: u.lastSignInAt, createdAt: u.createdAt };
+  return { id: u._id, name: pii.name, email: pii.email, roles: u.roles, disabled: u.disabled, mustChangePassword: u.mustChangePassword, twoStep: Boolean(u.totp), lastSignInAt: u.lastSignInAt, createdAt: u.createdAt };
 }
 
 export async function getUser(id: string): Promise<Stored | null> {
@@ -169,3 +175,64 @@ export async function revokeSession(id: string, sid: string): Promise<void> {
 }
 
 export const newSessionId = () => randomUUID();
+
+// ------------------------------------------------------------- optional two-step sign-in
+// Off until the person turns it on in Account and security; they may turn it off again at any
+// time with their password. The secret is encrypted under the person's own key.
+
+const TOTP_CONTEXT = `${COLLECTION}:totp`;
+
+async function personKey(u: Stored): Promise<Buffer> {
+  const { db, master } = context();
+  const key = await existingSubjectKey(db, master, u.subject);
+  if (!key) throw new Error("the account's key is missing");
+  return key;
+}
+
+/** Starts setting up an authenticator: a new secret, kept pending until a code confirms it. */
+export async function beginTwoStep(id: string): Promise<string> {
+  const u = await getUser(id);
+  if (!u) throw new Error("no such user");
+  const secret = newTotpSecret();
+  const sealed = encryptFields(await personKey(u), { secret }, TOTP_CONTEXT);
+  await mutate(id, () => ({ totpPending: sealed }));
+  return secret;
+}
+
+/** The secret being set up, if any (to redraw the QR code). */
+export async function pendingTwoStep(id: string): Promise<string | null> {
+  const u = await getUser(id);
+  if (!u?.totpPending) return null;
+  return decryptFields<{ secret: string }>(await personKey(u), u.totpPending, TOTP_CONTEXT).secret;
+}
+
+/** Confirms the pending secret with a code from the app. Signs out every other session. */
+export async function confirmTwoStep(id: string, code: string): Promise<boolean> {
+  const u = await getUser(id);
+  if (!u?.totpPending) return false;
+  const { secret } = decryptFields<{ secret: string }>(await personKey(u), u.totpPending, TOTP_CONTEXT);
+  const step = verifyTotp(secret, code, null);
+  if (step === null) return false;
+  await mutate(id, (x) => ({ totp: x.totpPending, totpPending: null, totpLastStep: step, sessionVersion: x.sessionVersion + 1 }));
+  return true;
+}
+
+export async function disableTwoStep(id: string): Promise<void> {
+  await mutate(id, () => ({ totp: null, totpPending: null, totpLastStep: null }));
+}
+
+/** Checks a sign-in code; a used code cannot be used again. Repeated failures lock the account like wrong passwords. */
+export async function checkTwoStepCode(id: string, code: string): Promise<boolean> {
+  const u = await getUser(id);
+  if (!u?.totp || u.disabled) return false;
+  if (u.lockedUntil && new Date(u.lockedUntil) > new Date()) return false;
+  const { secret } = decryptFields<{ secret: string }>(await personKey(u), u.totp, TOTP_CONTEXT);
+  const step = verifyTotp(secret, code, u.totpLastStep ?? null);
+  if (step === null) {
+    const failed = u.failedSignIns + 1;
+    await mutate(id, () => ({ failedSignIns: failed >= LOCK_AFTER ? 0 : failed, lockedUntil: failed >= LOCK_AFTER ? new Date(Date.now() + LOCK_MINUTES * 60_000).toISOString() : null })).catch(() => undefined);
+    return false;
+  }
+  await mutate(id, () => ({ totpLastStep: step, failedSignIns: 0, lastSignInAt: new Date().toISOString() }));
+  return true;
+}

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { env } from "@/lib/env";
 import { notFound } from "next/navigation";
 import { PageHeader, SectionMark } from "@/components/ui/feedback";
 import { CLASSIFICATION, CLASSIFICATIONS } from "@/domain/glossary";
@@ -19,7 +20,11 @@ export default async function InvitePage() {
       <PageHeader
         overline={<SectionMark n="I2">Officials and access</SectionMark>}
         title="Invite an official"
-        lede="The official receives a single-use link, chooses a password and sets up an authenticator app. Nobody else ever sees their password."
+        lede={
+          env().AUTH_MFA === "required"
+            ? "The official receives a single-use link, chooses a password and sets up an authenticator app. Nobody else ever sees their password."
+            : "The official receives a single-use link and chooses a password. Nobody else ever sees it. They can turn on two-step sign-in at any time, in Your account."
+        }
       />
       <InviteForm
         roles={ROLES.map((r) => ({ value: r, label: ROLE_INFO[r].label, privileged: PRIVILEGED_ROLES.includes(r) }))}

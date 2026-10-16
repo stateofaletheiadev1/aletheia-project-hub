@@ -53,9 +53,19 @@ export default async function WorkbenchLayout({ children }: { children: React.Re
 
       <div className="min-w-0">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--rule-ledger)] bg-parchment-100 px-6 py-2.5 text-[0.8125rem] text-ink-700 lg:px-10">
-          <p>
-            <span className="font-semibold text-[#8a5a00]">Two-factor sign-in is not enabled yet.</span> It is planned before the workbench is used with real records.
-          </p>
+          {user.twoStep ? (
+            <p>
+              <span className="font-semibold text-[#2f6b3f]">Two-step sign-in is on</span> for your account.
+            </p>
+          ) : (
+            <p>
+              You sign in with a password only. You can turn on two-step sign-in at any time in{" "}
+              <Link href="/workbench/account#two-step" className="link-ledger">
+                Account and security
+              </Link>
+              .
+            </p>
+          )}
           <div className="flex items-center gap-4">
             <Link href="/" className="link-ledger">
               Public site

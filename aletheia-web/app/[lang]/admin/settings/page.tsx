@@ -119,7 +119,7 @@ export default function AdminSettingsConsolePage() {
           <div className="p-5 rounded-sm bg-[#111827] border border-gold/15 space-y-3">
             <h3 className="text-xs font-bold text-parchment uppercase tracking-wider flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-gold" />
-              <span>Authenticator Code (optional)</span>
+              <span>Two-Step Sign-In (optional)</span>
             </h3>
             {officer?.twoStep ? (
               <form
@@ -129,14 +129,14 @@ export default function AdminSettingsConsolePage() {
                     await api(`/api/admin/me/totp`, { method: 'DELETE', body: { passphrase: offPass } });
                     setOffPass('');
                     await reload(OFFICER_ME);
-                    return 'Authenticator code switched off. You sign in with your username and password.';
+                    return 'Two-step sign-in is off. You sign in with your username and password. You can turn it on again at any time.';
                   });
                 }}
                 className="space-y-3"
               >
-                <p className="text-emerald-400">On: sign-in asks for your password and the 6-digit code from your app.</p>
+                <p className="text-emerald-400">On: sign-in asks for your password and the 6-digit code from your app. You can turn it off at any time.</p>
                 <input type="password" required aria-label="Password to switch off" placeholder="Your password" value={offPass} onChange={(e) => setOffPass(e.target.value)} className={field} />
-                <button type="submit" disabled={busy} className="px-4 py-2 border border-red-500/40 text-red-300 rounded-sm text-xs disabled:opacity-50">Switch off</button>
+                <button type="submit" disabled={busy} className="px-4 py-2 border border-red-500/40 text-red-300 rounded-sm text-xs disabled:opacity-50">Turn off</button>
               </form>
             ) : setup ? (
               <form
@@ -147,7 +147,7 @@ export default function AdminSettingsConsolePage() {
                     setSetup(null);
                     setCode('');
                     await reload(OFFICER_ME);
-                    return 'Authenticator code switched on. Next time you sign in, it will be asked for.';
+                    return 'Two-step sign-in is on. Next time you sign in, the code will be asked for. You can turn it off at any time.';
                   });
                 }}
                 className="space-y-3 break-all"
@@ -157,18 +157,18 @@ export default function AdminSettingsConsolePage() {
                 <p className="text-parchment/40">{setup.uri}</p>
                 <p className="text-parchment/70">2. Type the 6-digit code it shows:</p>
                 <input required inputMode="numeric" aria-label="6-digit code" placeholder="000000" value={code} onChange={(e) => setCode(e.target.value)} className={field} />
-                <button type="submit" disabled={busy} className="px-4 py-2 bg-gold text-navy font-bold rounded-sm text-xs disabled:opacity-50">Confirm and switch on</button>
+                <button type="submit" disabled={busy} className="px-4 py-2 bg-gold text-navy font-bold rounded-sm text-xs disabled:opacity-50">Confirm and turn on</button>
               </form>
             ) : (
               <>
-                <p className="text-parchment/60">Off: you sign in with your username and password only. Switching the code on protects the console if your password is ever stolen.</p>
+                <p className="text-parchment/60">Off: you sign in with your username and password only. It is your choice: you can turn on two-step sign-in at any time, so a code from an authenticator app is also needed and a stolen password is not enough. You can turn it off again whenever you wish.</p>
                 <button
                   type="button"
                   disabled={busy}
                   onClick={() => run(async () => { setSetup(await api<{ secret: string; uri: string }>('/api/admin/me/totp', { body: {} })); return 'Add the key to your authenticator app, then confirm with a code.'; })}
                   className="px-4 py-2 bg-gold text-navy font-bold rounded-sm text-xs disabled:opacity-50"
                 >
-                  Switch on
+                  Turn on
                 </button>
               </>
             )}

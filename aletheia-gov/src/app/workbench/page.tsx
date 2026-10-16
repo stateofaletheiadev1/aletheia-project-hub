@@ -62,9 +62,13 @@ export default async function MyOffice({ searchParams }: { searchParams: Promise
         ]
       : []),
     {
-      done: false,
-      title: "Two-factor sign-in",
-      text: "Not enabled yet. It will be added before the workbench is used with real records.",
+      done: user.twoStep,
+      title: user.twoStep ? "Two-step sign-in is on" : "Two-step sign-in (optional)",
+      text: user.twoStep
+        ? "Every sign-in asks for your password and a code from your app. You can turn it off at any time in Account and security."
+        : "Off for now. You can turn it on at any time, so a stolen password is not enough to sign in as you, and turn it off again whenever you wish.",
+      href: "/workbench/account#two-step",
+      cta: user.twoStep ? "Account and security" : "Turn it on",
     },
   ];
 

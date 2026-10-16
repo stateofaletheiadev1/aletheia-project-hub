@@ -73,6 +73,6 @@ export async function disableTwoStepAction(_prev: ActionResult, form: FormData):
   const signedIn = await requireOfficial();
   return guarded(async () => {
     await disableTwoStep(await requireDeps(), signedIn, String(form.get("password") ?? ""));
-    return "Two-step sign-in is off. You will sign in with your password only.";
+    return "Two-step sign-in is off. You sign in with your password only. You can turn it on again at any time.";
   });
 }

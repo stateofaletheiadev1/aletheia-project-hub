@@ -1,14 +1,16 @@
 import { WorkbenchHeading } from "@/components/workbench/WorkbenchHeading";
-import { signOutAll } from "@/features/auth/actions";
+import { signOutAll, startTwoStepSetup } from "@/features/auth/actions";
 import { PasswordForm } from "@/features/auth/PasswordForm";
+import { TurnOffTwoStepForm } from "@/features/auth/TwoStepForms";
 import { requireUser } from "@/server/auth/current-user";
 import { ROLE_LABEL } from "@/server/authorization/policies";
 
 export const metadata = { title: "Account and security" };
 
 
-export default async function Account() {
+export default async function Account(props: PageProps<"/workbench/account">) {
   const user = await requireUser({ allowPasswordChange: true });
+  const justOn = (await props.searchParams)["two-step"] === "on";
   const startedAt = new Date(user.session.iat * 1000);
 
   return (
@@ -46,8 +48,37 @@ export default async function Account() {
             </button>
           </form>
 
-          <h2 className="t-h3 mt-12">Two-factor sign-in</h2>
-          <p className="mt-2 text-[0.875rem] text-ink-600">Not enabled yet. An authenticator-app code will be added to sign-in before the workbench is used with real records.</p>
+          <h2 id="two-step" className="t-h3 mt-12">
+            Two-step sign-in
+          </h2>
+          {justOn ? (
+            <p role="status" className="mt-3 border-l-2 border-[#2f6b3f] bg-[#eaf4ec] px-4 py-3 text-[0.9375rem] text-[#1f4d2b]">
+              <strong className="font-semibold">Two-step sign-in is on.</strong> From now on you sign in with your password and the code from your app. Every other session was signed out.
+            </p>
+          ) : null}
+          {user.twoStep ? (
+            <>
+              <p className="mt-2 text-[0.875rem] text-ink-600">
+                <span className="font-semibold text-[#2f6b3f]">On.</span> Every sign-in asks for your password and a six-digit code from your authenticator app. You can turn it off at any time.
+              </p>
+              <details className="mt-3">
+                <summary className="cursor-pointer text-[0.875rem] font-semibold text-[#9b2c2c]">Turn two-step sign-in off</summary>
+                <TurnOffTwoStepForm />
+              </details>
+            </>
+          ) : (
+            <>
+              <p className="mt-2 text-[0.875rem] text-ink-600">
+                <span className="font-semibold">Off.</span> You sign in with your password only. It is your choice: you can turn on two-step sign-in at any time, so that a code from an
+                authenticator app on your phone is also needed and a stolen password is not enough. You can turn it off again whenever you wish.
+              </p>
+              <form action={startTwoStepSetup} className="mt-4">
+                <button type="submit" className="min-h-10 bg-navy-800 px-5 text-[0.875rem] font-semibold text-parchment-50 hover:bg-navy-900">
+                  Turn on two-step sign-in
+                </button>
+              </form>
+            </>
+          )}
         </section>
       </div>
     </>

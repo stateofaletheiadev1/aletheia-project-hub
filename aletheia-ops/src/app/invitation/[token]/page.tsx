@@ -28,7 +28,7 @@ export default async function InvitationPage({ params }: { params: Promise<{ tok
 
   if (invitation.passwordSet && env().AUTH_MFA === "optional") {
     return (
-      <AuthShell title={`Welcome, ${invitation.name}`} lede="Your password is saved. You can turn on two-step sign-in later, in Your account.">
+      <AuthShell title={`Welcome, ${invitation.name}`} lede="Your password is saved. You can turn on two-step sign-in at any time, in Your account, and turn it off again whenever you wish.">
         <FinishStep token={token} />
       </AuthShell>
     );

@@ -99,7 +99,7 @@ export const ACCOUNT_STATES = ["invited", "active", "suspended", "revoked"] as c
 export type AccountState = (typeof ACCOUNT_STATES)[number];
 export const ACCOUNT_STATE: Record<AccountState, Term> = {
   invited: { label: "Invited", meaning: "An invitation has been issued and not yet accepted." },
-  active: { label: "Active", meaning: "Can sign in with password and authenticator." },
+  active: { label: "Active", meaning: "Can sign in with a password, and an authenticator code if two-step sign-in is turned on." },
   suspended: { label: "Suspended", meaning: "Cannot sign in. Sessions ended. Can be reinstated." },
   revoked: { label: "Revoked", meaning: "Access ended permanently. The account remains in the record for audit." },
 };

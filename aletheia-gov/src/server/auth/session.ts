@@ -70,3 +70,35 @@ export async function openSession(token: string | undefined): Promise<SessionCla
 export function cookieOptions(maxAgeSeconds: number) {
   return { httpOnly: true, secure: true, sameSite: "strict" as const, path: "/", maxAge: maxAgeSeconds };
 }
+
+// Between the password and the authenticator code (optional two-step sign-in): a short-lived,
+// encrypted cookie that names the account and nothing more. It grants no access by itself.
+
+export const TWO_STEP_COOKIE = "__Host-agv_workbench_step";
+export const TWO_STEP_SECONDS = 5 * 60;
+
+let stepKey: Uint8Array | undefined;
+function twoStepKey(): Uint8Array {
+  if (stepKey) return stepKey;
+  const secret = env().AUTH_SECRET;
+  if (!secret) throw new Error("AUTH_SECRET is not set: the workbench is disabled");
+  stepKey = new Uint8Array(hkdfSync("sha256", secret, Buffer.alloc(0), "aletheiagov workbench two-step v1", 32));
+  return stepKey;
+}
+
+export async function sealTwoStep(c: { uid: string; sv: number; next: string }): Promise<string> {
+  const t = now();
+  return new EncryptJWT({ uid: c.uid, sv: c.sv, next: c.next }).setProtectedHeader({ alg: "dir", enc: "A256GCM" }).setIssuedAt(t).setExpirationTime(t + TWO_STEP_SECONDS).encrypt(twoStepKey());
+}
+
+export async function openTwoStep(token: string | undefined): Promise<{ uid: string; sv: number; next: string } | null> {
+  if (!token || token.length > 4096 || !sessionsConfigured()) return null;
+  try {
+    const { payload } = await jwtDecrypt(token, twoStepKey(), { keyManagementAlgorithms: ["dir"], contentEncryptionAlgorithms: ["A256GCM"] });
+    const p = payload as { uid?: unknown; sv?: unknown; next?: unknown };
+    if (typeof p.uid !== "string" || typeof p.sv !== "number" || typeof p.next !== "string") return null;
+    return { uid: p.uid, sv: p.sv, next: p.next };
+  } catch {
+    return null;
+  }
+}

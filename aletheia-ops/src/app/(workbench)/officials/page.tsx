@@ -168,7 +168,7 @@ export default async function OfficialsPage() {
                 </td>
                 <td className="px-3 py-3 align-top">
                   <span className={cx("text-meta font-semibold", STATE_STYLE[o.state])}>{ACCOUNT_STATE[o.state].label}</span>
-                  {o.state === "active" && !o.mfa ? <p className={cx("text-meta", mfaRequired ? "text-status-danger" : "text-ink-3")}>No authenticator{mfaRequired ? "" : " yet"}</p> : null}
+                  {o.state === "active" && !o.mfa ? <p className={cx("text-meta", mfaRequired ? "text-status-danger" : "text-ink-3")}>{mfaRequired ? "No authenticator" : "Two-step sign-in off"}</p> : null}
                 </td>
                 <td className="hidden py-3 pl-3 text-right align-top text-meta text-ink-2 lg:table-cell">
                   {o.lastSignInAt ? <Timestamp at={o.lastSignInAt} timeZone={official.timezone} /> : <span className="text-ink-3">Never</span>}
