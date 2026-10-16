@@ -1,4 +1,5 @@
 <script lang="ts">
+  import BackLink from "$lib/components/BackLink.svelte";
   import Hash from "$lib/components/Hash.svelte";
   import TxRow from "$lib/components/TxRow.svelte";
   import Icon from "$lib/components/Icon.svelte";
@@ -16,6 +17,8 @@
 </script>
 
 <svelte:head><title>Address {address.slice(0, 12)}… · Aletheia Explorer</title></svelte:head>
+
+<BackLink href="/transactions" label="All transactions" />
 
 <section class="head container">
   <p class="eyebrow">Address</p>
@@ -67,7 +70,7 @@
 
 <style>
   .head {
-    padding-top: 2.75rem;
+    padding-top: 0.9rem;
     padding-bottom: 1.75rem;
   }
   .eyebrow {

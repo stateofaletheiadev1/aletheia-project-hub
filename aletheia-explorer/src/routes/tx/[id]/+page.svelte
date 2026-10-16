@@ -1,4 +1,5 @@
 <script lang="ts">
+  import BackLink from "$lib/components/BackLink.svelte";
   import Amount from "$lib/components/Amount.svelte";
   import Ident from "$lib/components/Ident.svelte";
   import Blazon from "$lib/components/Blazon.svelte";
@@ -34,6 +35,8 @@
 </script>
 
 <svelte:head><title>Transaction {tx.txId.slice(0, 14)}… · Aletheia Explorer</title></svelte:head>
+
+<BackLink href="/transactions" label="All transactions" />
 
 <section class="head container">
   <p class="eyebrow">Ledger · transaction</p>
@@ -179,7 +182,7 @@
 
 <style>
   .head {
-    padding-top: 2.75rem;
+    padding-top: 0.9rem;
     padding-bottom: 1.25rem;
   }
   .eyebrow {

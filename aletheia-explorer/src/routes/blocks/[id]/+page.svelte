@@ -1,4 +1,5 @@
 <script lang="ts">
+  import BackLink from "$lib/components/BackLink.svelte";
   import Seal from "$lib/components/Seal.svelte";
   import Ident from "$lib/components/Ident.svelte";
   import Blazon from "$lib/components/Blazon.svelte";
@@ -36,6 +37,8 @@
 
 <svelte:head><title>Block #{grouped(block.height)} · Aletheia Explorer</title></svelte:head>
 <svelte:window onkeydown={onKey} />
+
+<BackLink href="/blocks" label="All blocks" />
 
 <section class="head container">
   <div>
@@ -193,7 +196,7 @@
     align-items: flex-end;
     justify-content: space-between;
     gap: 2rem;
-    padding-top: 2.75rem;
+    padding-top: 0.9rem;
     padding-bottom: 1.25rem;
   }
   .lede {
