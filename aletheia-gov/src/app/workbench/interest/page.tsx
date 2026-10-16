@@ -2,6 +2,7 @@ import Link from "next/link";
 import { StatusPill, WorkbenchHeading } from "@/components/workbench/WorkbenchHeading";
 import { POSITION_SLUGS, POSITION_TYPES, positionName } from "@/content/positions";
 import { ANY_INSTITUTION, INTEREST_INSTITUTIONS, institutionName } from "@/features/interest/schema";
+import { APPLICATION_STATUSES, APPLICATION_STATUS_LABEL } from "@/lib/application-status";
 import { formatDateShort } from "@/lib/dates";
 import { requirePermission } from "@/server/auth/current-user";
 import { audit } from "@/server/services/audit";
@@ -16,7 +17,7 @@ export default async function InterestList(props: PageProps<"/workbench/interest
   const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";
   const institution = [ANY_INSTITUTION, ...INTEREST_INSTITUTIONS.map((i) => i.slug)].includes(one(q.institution)) ? one(q.institution) : "";
   const positionType = (POSITION_SLUGS as string[]).includes(one(q.type)) ? one(q.type) : "";
-  const status = ["new", "contacted", "archived"].includes(one(q.status)) ? one(q.status) : "";
+  const status = (APPLICATION_STATUSES as readonly string[]).includes(one(q.status)) ? one(q.status) : "";
   const page = Math.max(1, Math.min(400, Number(one(q.page)) || 1));
 
   const { rows, total, hasMore } = await listRegistrations({ institution, positionType, status, page, pageSize: PAGE_SIZE });
@@ -59,9 +60,11 @@ export default async function InterestList(props: PageProps<"/workbench/interest
           Status
           <select name="status" defaultValue={status} className={select}>
             <option value="">Any status</option>
-            <option value="new">New</option>
-            <option value="contacted">Contacted</option>
-            <option value="archived">Archived</option>
+            {APPLICATION_STATUSES.map((s) => (
+              <option key={s} value={s}>
+                {APPLICATION_STATUS_LABEL[s]}
+              </option>
+            ))}
           </select>
         </label>
         <button type="submit" className="min-h-10 border border-navy-800 px-4 text-[0.875rem] font-semibold text-navy-800 hover:bg-navy-800 hover:text-parchment-50">

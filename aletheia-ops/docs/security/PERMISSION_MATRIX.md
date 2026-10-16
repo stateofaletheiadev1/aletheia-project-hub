@@ -55,6 +55,8 @@ permission. Roles marked † need a second administrator to grant or remove (two
 | Read the audit register (`audit.read`) | ● | ● | ● |  |  |  |  |  |  |  |  | ● |
 | Read the publication log (`publication_log.read`) | ● | ● | ● |  |  |  |  |  | ● |  |  | ● |
 | See integration health (`integration.read`) | ● | ● |  |  |  |  |  |  |  |  |  | ● |
+| Read applications and CVs (held on aletheiagov.org) (`application.read`) | ● |  | ● |  |  |  |  |  |  |  |  |  |
+| Change an application's status (`application.update`) | ● |  | ● |  |  |  |  |  |  |  |  |  |
 
 ## Workflow steps and the permission each needs
 

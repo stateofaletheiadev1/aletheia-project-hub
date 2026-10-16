@@ -53,5 +53,28 @@ test("a founder posts a position and a person applies for it", async ({ browser 
   await site.locator('form button[type="submit"]').click();
   await expect(site.getByText("Thank you. Your interest is recorded.")).toBeVisible();
   await expect(site.getByText(/AGV-EOI-2026-\d{4}/)).toBeVisible();
+  const application = ((await site.getByText(/AGV-EOI-2026-\d{4}/).first().innerText()).match(/AGV-EOI-2026-\d{4}/) ?? [""])[0];
+
+  // The workbench reads the application from the portal (ADR 0011), filtered by the position.
+  await nav(founder, "Applications");
+  await founder.getByLabel("Position applied for").fill(reference);
+  await founder.getByRole("button", { name: "Apply filters" }).click();
+  await expect(founder.getByText("Showing 1 of 1 application")).toBeVisible();
+  await founder.getByRole("link", { name: application }).first().click();
+  await expect(founder.getByRole("heading", { name: "Ada Seasteader" })).toBeVisible();
+  await expect(founder.getByText("Received; not changed since")).toBeVisible();
+
+  // The CV comes through the workbench, from the portal.
+  const cv = await founder.request.get(await founder.getByRole("link", { name: "Download PDF" }).getAttribute("href").then((h) => `http://localhost:3310${h}`));
+  expect(cv.status()).toBe(200);
+  expect((await cv.body()).subarray(0, 5).toString()).toBe("%PDF-");
+
+  // A status set here is the portal's status: the page is drawn from the portal again on reload.
+  await founder.getByLabel("Shortlisted").check();
+  await founder.getByRole("button", { name: "Save status" }).click();
+  await expect(founder.getByText("Status set to Shortlisted, on aletheiagov.org as well.")).toBeVisible();
+  await founder.reload();
+  await expect(founder.getByText(/Ada Founder · in the workbench/)).toBeVisible();
+  await expect(founder.getByLabel("Shortlisted")).toBeChecked();
   await founderCtx.close();
 });

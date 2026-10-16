@@ -1,39 +1,34 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { ConflictError } from "@aletheia/aletheiadb";
 import { z } from "zod";
-import { database } from "@/server/aletheiadb/client";
 import { requirePermission } from "@/server/auth/current-user";
 import { canManageUser, isRole, type Role } from "@/server/authorization/policies";
 import { audit } from "@/server/services/audit";
-import { registrations, type InterestStatus } from "@/server/services/interest";
+import { APPLICATION_STATUS_LABEL, isApplicationStatus } from "@/lib/application-status";
+import { changeStatus, StatusConflict } from "@/server/services/applications";
 import { countAdministrators, createUser, getUser, setDisabled, setPassword, setRoles } from "@/server/services/users";
 
 export type ActionState = { error?: string; done?: string };
 
 // ------------------------------------------------------------- registrations of interest
 
-const STATUSES: InterestStatus[] = ["new", "contacted", "archived"];
-
+// The same change the operations workbench makes through /api/applications: one status,
+// wherever it is set.
 export async function setInterestStatus(_prev: ActionState, form: FormData): Promise<ActionState> {
   const user = await requirePermission("interest.update");
   const reference = String(form.get("reference") ?? "");
-  const status = String(form.get("status") ?? "") as InterestStatus;
+  const status = String(form.get("status") ?? "");
   const rev = Number(form.get("rev"));
-  if (!STATUSES.includes(status) || !Number.isInteger(rev)) return { error: "Choose a valid status." };
-  const db = database()!;
-  const reg = await registrations(db).findOne({ reference });
-  if (!reg) return { error: "This registration no longer exists." };
+  if (!isApplicationStatus(status) || !Number.isInteger(rev)) return { error: "Choose a valid status." };
   try {
-    await registrations(db).updateOne(reg._id, rev, { $set: { status, updatedAt: new Date().toISOString() } });
+    await changeStatus(reference, status, rev, { id: user.id, name: user.name, via: "portal" });
   } catch (e) {
-    if (e instanceof ConflictError) return { error: "Someone else changed this registration since you opened it. Reload the page and try again." };
+    if (e instanceof StatusConflict) return { error: e.message };
     throw e;
   }
-  await audit({ actorId: user.id, action: "interest.status", target: { type: "interest", id: reference }, outcome: "success", details: { from: reg.status, to: status } });
   revalidatePath(`/workbench/interest/${reference}`);
-  return { done: `Status set to ${status}.` };
+  return { done: `Status set to ${APPLICATION_STATUS_LABEL[status]}.` };
 }
 
 // ------------------------------------------------------------- users (administrators)

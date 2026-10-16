@@ -6,6 +6,7 @@ import { CvPreview } from "@/components/workbench/CvPreview";
 import { StatusPill, WorkbenchHeading } from "@/components/workbench/WorkbenchHeading";
 import { institutionName } from "@/features/interest/schema";
 import { setInterestStatus } from "@/features/workbench/actions";
+import { APPLICATION_STATUSES, APPLICATION_STATUS_LABEL } from "@/lib/application-status";
 import { formatDateLong } from "@/lib/dates";
 import { requirePermission } from "@/server/auth/current-user";
 import { can } from "@/server/authorization/policies";
@@ -123,6 +124,20 @@ export default async function RegistrationDetail(props: PageProps<"/workbench/in
               <span className="text-ink-500">Not provided</span>
             ),
           )}
+          {row(
+            "Status history",
+            r.statusHistory.length ? (
+              <ol className="space-y-1">
+                {r.statusHistory.map((h, i) => (
+                  <li key={i}>
+                    {APPLICATION_STATUS_LABEL[h.status]} <span className="text-ink-500">· {h.byName} · {h.via === "ops" ? "operations workbench" : "this staff area"} · {formatDateLong(h.at)}</span>
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <span className="text-ink-500">Received; not changed since</span>
+            ),
+          )}
           {row("Last updated", formatDateLong(r.updatedAt))}
           {row("Deleted after", `${formatDateLong(r.retainUntil)} (retention policy)`)}
         </dl>
@@ -135,10 +150,10 @@ export default async function RegistrationDetail(props: PageProps<"/workbench/in
               <input type="hidden" name="rev" value={r._rev} />
               <fieldset className="mt-3 space-y-2">
                 <legend className="sr-only">Status</legend>
-                {(["new", "contacted", "archived"] as const).map((s) => (
-                  <label key={s} className="flex items-center gap-3 text-[0.9375rem] capitalize">
+                {APPLICATION_STATUSES.map((s) => (
+                  <label key={s} className="flex items-center gap-3 text-[0.9375rem]">
                     <input type="radio" name="status" value={s} defaultChecked={r.status === s} className="h-4 w-4 accent-[#15294A]" />
-                    {s}
+                    {APPLICATION_STATUS_LABEL[s]}
                   </label>
                 ))}
               </fieldset>

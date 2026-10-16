@@ -48,6 +48,8 @@ export const PERMISSIONS = [
   "audit.read",
   "publication_log.read",
   "integration.read",
+  "application.read",
+  "application.update",
 ] as const;
 export type Permission = (typeof PERMISSIONS)[number];
 
@@ -79,6 +81,8 @@ export const PERMISSION_LABEL: Record<Permission, string> = {
   "audit.read": "Read the audit register",
   "publication_log.read": "Read the publication log",
   "integration.read": "See integration health",
+  "application.read": "Read applications and CVs (held on aletheiagov.org)",
+  "application.update": "Change an application's status",
 };
 
 export const ROLE_INFO: Record<Role, { label: string; summary: string; grants: readonly Permission[] }> = {
@@ -95,7 +99,7 @@ export const ROLE_INFO: Record<Role, { label: string; summary: string; grants: r
   government_administrator: {
     label: "Government administrator",
     summary: "Administers institutions and officials across the government.",
-    grants: ["record.read", "institution.manage", "official.read", "official.invite", "official.manage", "role.propose", "role.confirm", "task.assign", "audit.read", "publication_log.read"],
+    grants: ["record.read", "institution.manage", "official.read", "official.invite", "official.manage", "role.propose", "role.confirm", "task.assign", "audit.read", "publication_log.read", "application.read", "application.update"],
   },
   institutional_administrator: {
     label: "Institutional administrator",

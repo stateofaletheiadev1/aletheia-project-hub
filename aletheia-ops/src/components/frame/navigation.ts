@@ -19,6 +19,7 @@ export function navigationFor(actor: Actor, counts: Record<string, number> = {})
 
   const work: NavItem[] = [withCount("/", "Overview"), withCount("/queue", "My queue")];
   if (anywhere(actor, "record.read")) work.push(withCount("/institution", "Assigned to my institution"));
+  if (can(actor, "application.read")) work.push(withCount("/applications", "Applications"));
   groups.push({ label: "Work", items: work });
 
   if (anywhere(actor, "record.read")) {

@@ -250,3 +250,16 @@ attachments and scanning, free-standing tasks and reassignment, notifications, V
   promised an applicant portal and a two-reviewer rubric that do not exist).
 - Verified: workbench 204 unit tests, portal 93; three browser tests, including a founder posting
   a volunteer position on the test portal and an applicant applying with a CV.
+
+## 16 October 2026: applications in both places, one status (ADR 0011)
+
+- Owner's choices: founders and government administrators see applications in the workbench; the
+  statuses are hiring steps.
+- Portal: hiring-step statuses with a status history (who, when, from which site) in the staff
+  area; signed routes under `/api/applications` for the workbench (list, detail, status with
+  revision check, CV), every call audited against the official.
+- Workbench: "Applications" in the Work menu, a list filtered by status or position reference, the
+  application with its CV and history, and a status form. Changes go to the portal, so the portal's
+  staff area shows them at once.
+- Verified: workbench 218 unit tests, portal 93; three browser tests, the jobs test now ending with
+  the founder finding the applicant by position, downloading the CV, and setting Shortlisted.

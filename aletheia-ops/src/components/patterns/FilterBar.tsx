@@ -13,14 +13,18 @@ export function FilterBar({
   values,
   query,
   queryLabel = "Search this register",
+  queryPlaceholder = "Reference or title",
   total,
+  noun = ["record", "records"],
 }: {
   action: string;
   filters: FilterDef[];
   values: Record<string, string | undefined>;
   query?: string;
   queryLabel?: string;
+  queryPlaceholder?: string;
   total?: { shown: number; of: number };
+  noun?: [string, string];
 }) {
   const active = filters.filter((f) => values[f.name]).length + (query ? 1 : 0);
   return (
@@ -32,7 +36,7 @@ export function FilterBar({
             type="search"
             name="q"
             defaultValue={query}
-            placeholder="Reference or title"
+            placeholder={queryPlaceholder}
             className="h-9 rounded-sm border border-rule-control bg-sheet px-3 text-ui text-ink placeholder:text-ink-3 hover:border-ink-2 focus-visible:border-authority"
           />
         </label>
@@ -63,7 +67,7 @@ export function FilterBar({
       <div className="flex min-h-5 flex-wrap items-center justify-between gap-3 text-meta text-ink-2">
         {total ? (
           <p className="tnum" aria-live="polite">
-            {total.of === 0 ? "No records" : `Showing ${total.shown} of ${total.of} ${total.of === 1 ? "record" : "records"}`}
+            {total.of === 0 ? `No ${noun[1]}` : `Showing ${total.shown} of ${total.of} ${total.of === 1 ? noun[0] : noun[1]}`}
           </p>
         ) : (
           <span />

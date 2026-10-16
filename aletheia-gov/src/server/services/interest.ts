@@ -1,6 +1,7 @@
 import "server-only";
 import { ConflictError, type AletheiaDB } from "@aletheia/aletheiadb";
 import { ANY_INSTITUTION, type InterestInput } from "@/features/interest/schema";
+import type { ApplicationStatus } from "@/lib/application-status";
 import { database } from "@/server/aletheiadb/client";
 import { blindIndex, decryptFields, encryptFields, type Sealed } from "@/server/crypto/envelope";
 import { existingSubjectKey, masterKey, shredSubjectKey, subjectKeyFor } from "@/server/crypto/subject-keys";
@@ -17,7 +18,9 @@ const COLLECTION = "interest_registrations";
 const RETENTION_MONTHS = 12;
 const MAX_CVS = 3;
 
-export type InterestStatus = "new" | "contacted" | "archived";
+/** The hiring steps (lib/application-status.ts); shared with the operations workbench. */
+export type InterestStatus = ApplicationStatus;
+export type StatusChange = { status: InterestStatus; at: string; by: string; byName: string; via: "portal" | "ops" };
 export type Pii = { fullName: string; email: string; notes: { text: string; at: string }[] };
 
 export type Registration = {
@@ -32,6 +35,8 @@ export type Registration = {
   pii: Sealed;
   cvs: AttachmentMeta[];
   status: InterestStatus;
+  /** Every status change, oldest first, with who made it and from which site. */
+  statusHistory?: StatusChange[];
   visibility: "confidential";
   source: "website";
   submittedAt: string;

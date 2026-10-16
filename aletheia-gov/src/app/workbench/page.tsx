@@ -41,8 +41,8 @@ export default async function MyOffice({ searchParams }: { searchParams: Promise
             done: counts.fresh === 0,
             title: counts.fresh ? `Review ${counts.fresh} new registration${counts.fresh === 1 ? "" : "s"} of interest` : "Registrations of interest are reviewed",
             text: counts.fresh
-              ? "Open each one, read the details and CV, then mark it Contacted once someone has been in touch, or Archived."
-              : `Nothing new. ${counts.contacted} marked contacted so far.`,
+              ? "Open each one, read the details and CV, then move it through the hiring steps: Contacted, Shortlisted, Offered, Appointed, or Not progressed."
+              : `Nothing new. ${counts.inProgress} in progress.`,
             href: "/workbench/interest?status=new",
             cta: "Review new registrations",
           },

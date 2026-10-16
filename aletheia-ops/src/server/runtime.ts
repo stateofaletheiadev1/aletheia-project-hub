@@ -4,7 +4,9 @@ import { headers } from "next/headers";
 import { AletheiaDBStore } from "@/adapters/aletheiadb/aletheiadb-store";
 import { DevelopmentGateway } from "@/adapters/publication/development-gateway";
 import { PortalGateway } from "@/adapters/publication/portal-gateway";
+import { PortalApplications } from "@/adapters/applications/portal-applications";
 import { env } from "@/lib/env";
+import type { ApplicationsGateway } from "@/ports/applications";
 import type { PublicationGateway } from "@/ports/publication";
 import type { DocumentStore } from "@/ports/store";
 import type { IdentityDeps } from "@/services/identity/identity";
@@ -68,4 +70,14 @@ let dev: DevelopmentGateway | undefined;
 function devGateway(base: string) {
   dev ??= new DevelopmentGateway(base);
   return dev;
+}
+
+/**
+ * Applications on aletheiagov.org (ADR 0011), through the same signed connection as publication.
+ * Null without the portal keys (for example in development with simulated publication).
+ */
+export function applications(): ApplicationsGateway | null {
+  const e = env();
+  if (!e.PORTAL_HMAC_KEY_ID || !e.PORTAL_HMAC_SECRET) return null;
+  return new PortalApplications({ base: e.PORTAL_BASE_URL, keyId: e.PORTAL_HMAC_KEY_ID, secret: e.PORTAL_HMAC_SECRET });
 }

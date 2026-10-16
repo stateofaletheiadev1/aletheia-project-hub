@@ -55,6 +55,8 @@ const LABEL: Record<string, string> = {
   "withdrawal.confirmed": "Withdrawn from aletheiagov.org",
   "withdrawal.refused": "Withdrawal refused by the portal",
   "withdrawal.unclear": "Withdrawal answer unclear; to reconcile",
+  "application.status": "Application status changed (on aletheiagov.org)",
+  "application.cv_download": "Applicant's CV downloaded",
 };
 
 export type AuditRow = { seq: number; at: string; label: string; actorName: string; outcome: AuditEvent["outcome"]; reason?: string };

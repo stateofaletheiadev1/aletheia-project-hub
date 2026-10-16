@@ -10,6 +10,14 @@ import type { PublicationGateway, PublicationOutcome, PublicationPayload, Withdr
 
 type Fetch = typeof fetch;
 
+/** The signature every request to the portal carries (also used by the applications adapter). */
+export function portalAuthorization(keyId: string, secret: string, method: string, path: string, body: string, now = Date.now()): string {
+  const ts = Math.floor(now / 1000);
+  const bodyHash = createHash("sha256").update(body).digest("hex");
+  const sig = createHmac("sha256", secret).update(`${method}\n${path}\n${ts}\n${bodyHash}`).digest("hex");
+  return `AGV-HMAC keyId=${keyId}, ts=${ts}, sig=${sig}`;
+}
+
 export class PortalGateway implements PublicationGateway {
   readonly simulated = false;
   private readonly base: string;
@@ -27,10 +35,7 @@ export class PortalGateway implements PublicationGateway {
   }
 
   private authorization(method: string, path: string, body: string): string {
-    const ts = Math.floor(Date.now() / 1000);
-    const bodyHash = createHash("sha256").update(body).digest("hex");
-    const sig = createHmac("sha256", this.secret).update(`${method}\n${path}\n${ts}\n${bodyHash}`).digest("hex");
-    return `AGV-HMAC keyId=${this.keyId}, ts=${ts}, sig=${sig}`;
+    return portalAuthorization(this.keyId, this.secret, method, path, body);
   }
 
   private async call(method: "GET" | "POST", path: string, body: string, extra: Record<string, string> = {}): Promise<{ status: number; json: Record<string, unknown> } | { failed: string }> {
