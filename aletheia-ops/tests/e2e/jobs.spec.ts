@@ -32,12 +32,26 @@ test("a founder posts a position and a person applies for it", async ({ browser 
   const reference = (await founder.locator("dd.ref").first().innerText()).trim();
   expect(reference).toMatch(/^AGV-OPP-2026-\d{4}$/);
 
+  // A correction: the closing date moves; the same reference is republished as version 2.
+  const recordUrl = founder.url();
+  await takeStep(founder, "Start a correction", "Closing date extended");
+  await founder.goto(`${recordUrl.replace(/\/edit.*$/, "").replace(/\?.*$/, "")}/edit`);
+  await founder.getByLabel("Closing date").fill("2099-12-30");
+  await founder.getByRole("button", { name: "Save draft" }).click();
+  await expect(founder.getByText(/^Saved /)).toBeVisible();
+  await founder.reload();
+  await expect(founder.getByLabel("Closing date")).toHaveValue("2099-12-30");
+  await founder.goto(recordUrl.replace(/\/edit.*$/, "").replace(/\?.*$/, ""));
+  for (const step of ["Submit for review", "Take for review", "Approve opportunity", "Authorise publication", "Publish to the public record"]) await takeStep(founder, step);
+  await expect(founder.getByText("Publication receipt")).toBeVisible();
+  expect((await founder.locator("dd.ref").first().innerText()).trim()).toBe(reference);
+
   // The public page: kind, closing date, and Apply.
   const site = await browser.newPage();
   await site.goto(`http://localhost:3220/opportunities/${reference.toLowerCase()}`);
   await expect(site.getByRole("heading", { name: "Founding coordinator, seasteading working group" })).toBeVisible();
   await expect(site.getByText("Volunteer roles")).toBeVisible();
-  await expect(site.getByText("30 November 2099").first()).toBeVisible();
+  await expect(site.getByText("30 December 2099").first()).toBeVisible();
   await site.getByRole("link", { name: "Apply for this position" }).click();
 
   // The application form knows the position.

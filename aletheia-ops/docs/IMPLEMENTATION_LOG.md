@@ -294,3 +294,8 @@ attachments and scanning, free-standing tasks and reassignment, notifications, V
   publication). Each confirmed by a publication receipt from aletheiagov.org; each public page,
   Apply button and pre-filled application form checked live. No Technology and Infrastructure
   Lead position was created.
+- Same day, on the founder's instruction: closing dates of all five moved to 30 December 2026
+  through the correction workflow (scripts/correct-closing-dates.mjs, founder's own session).
+  Each republished under the same reference as version 2; aletheiagov.org confirmed and shows the
+  new date. The jobs browser test now covers a correction (closing date moved, republished as
+  version 2 under the same reference, shown on the portal).
