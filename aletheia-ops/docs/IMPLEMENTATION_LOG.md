@@ -278,3 +278,19 @@ attachments and scanning, free-standing tasks and reassignment, notifications, V
 - Verified: workbench 218 unit tests, portal 98; four browser tests, the new one turning two-step
   sign-in on in the test portal's staff area, signing in with a code (a wrong code refused),
   turning it off, and signing in with the password alone.
+
+## 16 October 2026: first recruitment round published
+
+- Five opportunities, issued by the Founding Government, entered and published through the live
+  workbench in the founder's own session (scripts/publish-round.mjs drives the screens after the
+  founder signs in; it never handles credentials and writes nothing directly to any database).
+  Texts: docs/recruitment/2026-round-1.mjs. Results: docs/recruitment/2026-round-1.result.json.
+- AGV-OPP-2026-0001 Monetary and Financial Systems Adviser (advisory)
+- AGV-OPP-2026-0002 Constitutional and Maritime Law Research Adviser (advisory)
+- AGV-OPP-2026-0003 Economic Development and Investment Research Adviser (advisory)
+- AGV-OPP-2026-0004 Cybersecurity and Digital Governance Adviser (advisory)
+- AGV-OPP-2026-0005 Founding Partnerships and Recruitment Coordinator (volunteer)
+- All unpaid, remote, three-month initial term, closing 15 November 2026 (30 days after
+  publication). Each confirmed by a publication receipt from aletheiagov.org; each public page,
+  Apply button and pre-filled application form checked live. No Technology and Infrastructure
+  Lead position was created.

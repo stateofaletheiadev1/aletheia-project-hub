@@ -1,0 +1,66 @@
+{
+  "ranAt": "2026-10-16T14:39:12.356Z",
+  "closingDate": "2026-11-15",
+  "results": [
+    {
+      "key": "A",
+      "title": "Monetary and Financial Systems Adviser",
+      "expected": "AGV-OPP-2026-0001",
+      "closingDate": "2026-11-15",
+      "workbenchUrl": "https://ops.aletheiagov.org/records/opportunities/62091391-70c0-4529-935f-c7dabb7b325c/edit?created=1",
+      "status": "Published",
+      "reference": "AGV-OPP-2026-0001",
+      "publicUrl": "https://www.aletheiagov.org/opportunities/agv-opp-2026-0001",
+      "applyUrl": "https://www.aletheiagov.org/register-interest?opportunity=AGV-OPP-2026-0001",
+      "publishedSeenAt": "2026-10-16T14:38:23.557Z"
+    },
+    {
+      "key": "B",
+      "title": "Constitutional and Maritime Law Research Adviser",
+      "expected": "AGV-OPP-2026-0002",
+      "closingDate": "2026-11-15",
+      "workbenchUrl": "https://ops.aletheiagov.org/records/opportunities/3058f89e-9b7b-4459-9a3a-e99b8b8c5726/edit?created=1",
+      "status": "Published",
+      "reference": "AGV-OPP-2026-0002",
+      "publicUrl": "https://www.aletheiagov.org/opportunities/agv-opp-2026-0002",
+      "applyUrl": "https://www.aletheiagov.org/register-interest?opportunity=AGV-OPP-2026-0002",
+      "publishedSeenAt": "2026-10-16T14:38:36.586Z"
+    },
+    {
+      "key": "C",
+      "title": "Economic Development and Investment Research Adviser",
+      "expected": "AGV-OPP-2026-0003",
+      "closingDate": "2026-11-15",
+      "workbenchUrl": "https://ops.aletheiagov.org/records/opportunities/71195fa6-d595-41cb-a021-ca155d7ad828/edit?created=1",
+      "status": "Published",
+      "reference": "AGV-OPP-2026-0003",
+      "publicUrl": "https://www.aletheiagov.org/opportunities/agv-opp-2026-0003",
+      "applyUrl": "https://www.aletheiagov.org/register-interest?opportunity=AGV-OPP-2026-0003",
+      "publishedSeenAt": "2026-10-16T14:38:48.623Z"
+    },
+    {
+      "key": "D",
+      "title": "Cybersecurity and Digital Governance Adviser",
+      "expected": "AGV-OPP-2026-0004",
+      "closingDate": "2026-11-15",
+      "workbenchUrl": "https://ops.aletheiagov.org/records/opportunities/4d863b1d-c53b-4fea-9b99-afea16764217/edit?created=1",
+      "status": "Published",
+      "reference": "AGV-OPP-2026-0004",
+      "publicUrl": "https://www.aletheiagov.org/opportunities/agv-opp-2026-0004",
+      "applyUrl": "https://www.aletheiagov.org/register-interest?opportunity=AGV-OPP-2026-0004",
+      "publishedSeenAt": "2026-10-16T14:39:00.728Z"
+    },
+    {
+      "key": "E",
+      "title": "Founding Partnerships and Recruitment Coordinator",
+      "expected": "AGV-OPP-2026-0005",
+      "closingDate": "2026-11-15",
+      "workbenchUrl": "https://ops.aletheiagov.org/records/opportunities/10753f2e-162b-4873-a34a-087a9b500c7d/edit?created=1",
+      "status": "Published",
+      "reference": "AGV-OPP-2026-0005",
+      "publicUrl": "https://www.aletheiagov.org/opportunities/agv-opp-2026-0005",
+      "applyUrl": "https://www.aletheiagov.org/register-interest?opportunity=AGV-OPP-2026-0005",
+      "publishedSeenAt": "2026-10-16T14:39:12.356Z"
+    }
+  ]
+}
