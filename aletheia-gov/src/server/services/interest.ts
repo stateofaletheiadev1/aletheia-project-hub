@@ -25,6 +25,8 @@ export type Registration = {
   subject: string;
   /** Kinds of position (content/positions.ts). Missing on early records: read as ["founding"]. */
   positionTypes?: string[];
+  /** Published opportunities applied for, by reference, oldest first. */
+  opportunities?: { reference: string; appliedAt: string }[];
   institutions: string[];
   expertise: string[];
   pii: Sealed;
@@ -87,6 +89,7 @@ export async function registerInterest(
               reference,
               subject,
               positionTypes: input.positionTypes,
+              ...(input.opportunity ? { opportunities: [{ reference: input.opportunity, appliedAt: now }] } : {}),
               institutions: input.institutions,
               expertise: [input.expertise],
               pii: encryptFields(key, { fullName: input.fullName, email: input.email, notes: note } satisfies Pii, COLLECTION),
@@ -115,6 +118,9 @@ export async function registerInterest(
         await regs.updateOne(existing._id, existing._rev, {
           $set: {
             positionTypes: [...new Set([...positionTypesOf(existing), ...input.positionTypes])],
+            ...(input.opportunity && !(existing.opportunities ?? []).some((o) => o.reference === input.opportunity)
+              ? { opportunities: [...(existing.opportunities ?? []), { reference: input.opportunity, appliedAt: now }] }
+              : {}),
             institutions: [...new Set([...existing.institutions, ...input.institutions])],
             expertise: [...new Set([...existing.expertise, input.expertise])],
             pii: encryptFields(key, { ...pii, notes: [...pii.notes, ...note] }, COLLECTION),

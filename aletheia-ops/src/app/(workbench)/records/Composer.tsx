@@ -5,7 +5,7 @@ import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 import { RecordBody } from "@/components/patterns/RecordBody";
 import { Button } from "@/components/ui/Button";
 import { Choice, Field, Select, TextInput, Textarea } from "@/components/ui/form";
-import { parseBody, parseFacts } from "@/domain/content";
+import { parseBody, parseFacts, POSITION_TYPES } from "@/domain/content";
 import { formatTime } from "@/lib/time";
 import { createAction, saveAction, type ComposerState } from "./actions";
 
@@ -34,7 +34,18 @@ export function Composer({
   rev?: number;
   institutions: Option[];
   classifications: Option[];
-  initial: { title: string; summary: string; body: string; facts: string; classification: string; institution?: string; sourceDocument?: string; disclosureAuthorised?: boolean };
+  initial: {
+    title: string;
+    summary: string;
+    body: string;
+    facts: string;
+    classification: string;
+    institution?: string;
+    sourceDocument?: string;
+    disclosureAuthorised?: boolean;
+    positionType?: string;
+    closingDate?: string;
+  };
   timeZone: string;
   backHref: string;
 }) {
@@ -172,6 +183,23 @@ export function Composer({
           <Field id="sourceDocument" label="Source document" hint="The reference of the document this record is traced to. Required before submission.">
             <TextInput id="sourceDocument" name="sourceDocument" value={values.sourceDocument ?? ""} onChange={set("sourceDocument")} placeholder="AGV-DOC-2026-0001" className="tnum" />
           </Field>
+        ) : null}
+        {register === "opportunities" ? (
+          <>
+            <Field id="positionType" label="Kind of position" hint="Shown on aletheiagov.org and used to file applications.">
+              <Select id="positionType" name="positionType" value={values.positionType ?? ""} onChange={set("positionType")}>
+                <option value="">Choose…</option>
+                {POSITION_TYPES.map((p) => (
+                  <option key={p.slug} value={p.slug}>
+                    {p.name}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+            <Field id="closingDate" label="Closing date" hint="The last day applications are taken. After it, the Apply button closes.">
+              <TextInput id="closingDate" name="closingDate" type="date" value={values.closingDate ?? ""} onChange={set("closingDate")} />
+            </Field>
+          </>
         ) : null}
         {register === "appointments" ? (
           <Choice

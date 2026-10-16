@@ -15,6 +15,17 @@ export const BlockSchema = z.discriminatedUnion("type", [
 export type Block = z.infer<typeof BlockSchema>;
 
 export const FactSchema = z.object({ label: z.string(), value: z.string() });
+
+/** Kinds of position, as on aletheiagov.org (aletheia-gov/src/content/positions.ts). */
+export const POSITION_TYPES = [
+  { slug: "founding", name: "Founding role" },
+  { slug: "permanent", name: "Permanent position" },
+  { slug: "fixed-term", name: "Fixed-term or contract role" },
+  { slug: "advisory", name: "Advisory, board or expert role" },
+  { slug: "volunteer", name: "Volunteer role" },
+] as const;
+export type PositionType = (typeof POSITION_TYPES)[number]["slug"];
+export const POSITION_SLUGS = POSITION_TYPES.map((p) => p.slug) as [PositionType, ...PositionType[]];
 export type Fact = z.infer<typeof FactSchema>;
 
 /** What an author writes. Hashed and frozen into a version on submission. */
@@ -27,6 +38,9 @@ export const ContentSchema = z.object({
   sourceDocument: z.string().optional(),
   /** Appointments: the appointee has agreed to publication of the details given. */
   disclosureAuthorised: z.boolean().optional(),
+  /** Opportunities: the kind of position, and the last day applications are taken (YYYY-MM-DD). */
+  positionType: z.enum(POSITION_SLUGS).optional(),
+  closingDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
 });
 export type Content = z.infer<typeof ContentSchema>;
 
@@ -80,7 +94,7 @@ export function bodyParagraphs(blocks: Block[]): string[] {
   return blocks.map((b) => (b.type === "heading" ? `## ${b.text}` : b.type === "list" ? b.items.map((i) => `- ${i}`).join(" ") : b.type === "quote" ? `> ${b.text}` : b.text));
 }
 
-export type ContentProblem = { field: "title" | "summary" | "body" | "facts" | "sourceDocument"; message: string };
+export type ContentProblem = { field: "title" | "summary" | "body" | "facts" | "sourceDocument" | "positionType" | "closingDate"; message: string };
 
 /** What must be true before a version can be submitted for review. */
 export function contentProblems(c: Content, register: string): ContentProblem[] {
@@ -92,6 +106,10 @@ export function contentProblems(c: Content, register: string): ContentProblem[] 
   if (c.facts.some((f) => !f.label || !f.value)) p.push({ field: "facts", message: "Write each fact as “Label: value”." });
   if (register === "finance" && c.sourceDocument && !/^AGV-[A-Z]{3}-\d{4}-\d{4,}$/.test(c.sourceDocument)) {
     p.push({ field: "sourceDocument", message: "Give the source document as a reference, such as AGV-DOC-2026-0001." });
+  }
+  if (register === "opportunities") {
+    if (!c.positionType) p.push({ field: "positionType", message: "Choose the kind of position." });
+    if (!c.closingDate || Number.isNaN(Date.parse(`${c.closingDate}T00:00:00Z`))) p.push({ field: "closingDate", message: "Give the closing date for applications." });
   }
   return p;
 }

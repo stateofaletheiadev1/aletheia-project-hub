@@ -208,6 +208,7 @@ export function payloadFor(r: RecordDoc, version: VersionDoc, reference: string)
     body: version.content.body,
     facts: version.content.facts,
     institution: r.institution,
+    ...(r.register === "opportunities" ? { positionType: version.content.positionType, closingDate: version.content.closingDate } : {}),
   };
   return { ...base, contentHash: publicationHash(base) };
 }

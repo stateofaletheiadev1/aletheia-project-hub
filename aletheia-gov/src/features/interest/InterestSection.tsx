@@ -1,6 +1,6 @@
 import { SectionMark } from "@/components/editorial/SectionMark";
 import { interestConfigured } from "@/server/services/interest";
-import { InterestForm } from "./InterestForm";
+import { InterestForm, type ApplyingFor } from "./InterestForm";
 import { INSTITUTION_GROUPS, INTEREST_INSTITUTIONS } from "./schema";
 
 const GROUPS = INSTITUTION_GROUPS.map((g) => ({
@@ -10,7 +10,7 @@ const GROUPS = INSTITUTION_GROUPS.map((g) => ({
 
 // "Register your interest": the way to show interest in an institution before founding
 // roles are published. Shown only when storage and encryption are configured.
-export function InterestSection({ institution, mark = "R" }: { institution?: { slug: string; name: string }; mark?: string }) {
+export function InterestSection({ institution, mark = "R", applyingFor }: { institution?: { slug: string; name: string }; mark?: string; applyingFor?: ApplyingFor }) {
   const open = interestConfigured();
   return (
     <section aria-labelledby="interest-heading" className="ledger-pale chapter">
@@ -29,7 +29,7 @@ export function InterestSection({ institution, mark = "R" }: { institution?: { s
         </div>
         <div className="col-span-12 lg:col-span-7 lg:col-start-6">
           {open ? (
-            <InterestForm groups={GROUPS} preselected={institution?.slug} />
+            <InterestForm groups={GROUPS} preselected={institution?.slug ?? applyingFor?.institution} applyingFor={applyingFor} />
           ) : (
             <div className="border-t-2 border-navy-800 pt-6">
               <p className="t-h3">Registration of interest is not open yet.</p>

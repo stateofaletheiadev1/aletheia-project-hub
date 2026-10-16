@@ -12,6 +12,7 @@ export type RegistrationRow = {
   updatedAt: string;
   retainUntil: string;
   positionTypes: string[];
+  opportunities: { reference: string; appliedAt: string }[];
   institutions: string[];
   expertise: string[];
   status: InterestStatus;
@@ -59,6 +60,7 @@ function toRow(r: Awaited<ReturnType<ReturnType<typeof registrations>["findOne"]
     updatedAt: r.updatedAt,
     retainUntil: r.retainUntil,
     positionTypes: positionTypesOf(r),
+    opportunities: r.opportunities ?? [],
     institutions: r.institutions,
     expertise: r.expertise,
     status: r.status,

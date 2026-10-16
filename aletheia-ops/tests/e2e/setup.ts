@@ -84,8 +84,12 @@ const govRoot = `aletheiadb://root:${secret}@127.0.0.1:7791/${govDb}?tls=false`;
     await db.collection(c).createIndex("slug", { unique: true });
     await db.collection(c).createIndex("reference", { unique: true });
   }
-  for (const c of ["publications", "audit_events", "counters"]) await db.ensureCollection(c);
+  for (const c of ["publications", "audit_events", "counters", "interest_registrations", "attachments", "subject_keys"]) await db.ensureCollection(c);
   await db.collection("publications").createIndex("idempotencyKey", { unique: true });
+  await db.collection("counters").createIndex("name", { unique: true });
+  await db.collection("interest_registrations").createIndex("subject", { unique: true });
+  await db.collection("interest_registrations").createIndex("reference", { unique: true });
+  await db.collection("subject_keys").createIndex("subject", { unique: true });
 }
 const govUrl = await createAppKey(govRoot, govDb, `e2e-${govDb}`);
 const hmac = randomBytes(32).toString("base64url");
@@ -107,7 +111,15 @@ writeFileSync(
 );
 writeFileSync(
   path.join(root, ".env.e2e-portal.local"),
-  ["APP_ENV=local", "APP_BASE_URL=http://localhost:3220", `ALETHEIADB_URL=${govUrl}`, `PUBLICATION_HMAC_KEYS=e2e:${hmac}`, ""].join("\n"),
+  [
+    "APP_ENV=local",
+    "APP_BASE_URL=http://localhost:3220",
+    `ALETHEIADB_URL=${govUrl}`,
+    `PUBLICATION_HMAC_KEYS=e2e:${hmac}`,
+    // Lets the test portal take applications (encrypted with this throwaway key).
+    `DATA_ENCRYPTION_MASTER_KEY=${randomBytes(32).toString("base64")}`,
+    "",
+  ].join("\n"),
 );
 writeFileSync(path.join(import.meta.dirname, ".state.json"), JSON.stringify({ database, people, adminInvitation: `http://localhost:3310/invitation/${c!.token}` }, null, 2));
 console.log(`E2E data ready in database ${database}: ${Object.keys(people).length} officials, one unused administrator invitation.`);

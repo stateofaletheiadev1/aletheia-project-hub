@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { ConflictError, type AletheiaDB } from "@aletheia/aletheiadb";
 import { z } from "zod";
 import { getInstitution } from "@/content/institutions";
+import { POSITION_SLUGS } from "@/content/positions";
 import { COLLECTION, type RecordKind } from "@/server/records/public-records";
 import { publicationHash } from "./canonical";
 
@@ -41,6 +42,8 @@ export const PayloadSchema = z.object({
   body: z.array(Block).max(500),
   facts: z.array(z.object({ label: text(80), value: text(500) })).max(40),
   institution: z.string().regex(/^[a-z0-9-]{1,80}$/),
+  positionType: z.enum(POSITION_SLUGS).optional(),
+  closingDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   contentHash: z.string().regex(/^[0-9a-f]{64}$/),
 });
 export type Payload = z.infer<typeof PayloadSchema>;
@@ -104,6 +107,8 @@ export async function publish(db: AletheiaDB, p: Payload, idempotencyKey: string
     title: p.title,
     summary: p.summary || undefined,
     issuer: getInstitution(p.institution)?.name ?? p.institution,
+    positionType: p.positionType,
+    closingDate: p.closingDate,
     body: p.body,
     facts: p.facts,
     version: p.version,

@@ -101,7 +101,10 @@ export default async function InterestList(props: PageProps<"/workbench/interest
                     </Link>
                   </td>
                   <td className="py-3.5 pr-4 font-medium">{r.name}</td>
-                  <td className="max-w-[14rem] py-3.5 pr-4 text-ink-700">{r.positionTypes.map(positionName).join(", ")}</td>
+                  <td className="max-w-[14rem] py-3.5 pr-4 text-ink-700">
+                    {r.opportunities.length ? <span className="t-ref block text-gold-700">{r.opportunities.map((o) => o.reference).join(", ")}</span> : null}
+                    {r.positionTypes.map(positionName).join(", ")}
+                  </td>
                   <td className="max-w-[18rem] py-3.5 pr-4 text-ink-700">
                     {r.institutions.slice(0, 2).map(institutionName).join(", ")}
                     {r.institutions.length > 2 ? <span className="text-ink-500"> +{r.institutions.length - 2} more</span> : null}

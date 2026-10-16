@@ -11,8 +11,8 @@ export const metadata: Metadata = {
 
 const steps = [
   ["Published", "Each role is published with its reference, institution, responsibilities, qualifications and closing date. Compensation is stated only if approved; otherwise the role says so."],
-  ["Applied for", "Applications are made through the applicant portal and saved as you go. You can withdraw at any point before a decision."],
-  ["Reviewed by two", "Two reviewers score each application against a published rubric. A reviewer with a conflict of interest steps aside."],
+  ["Applied for", "Open a position and choose Apply for this position: give your details and attach your CV. Applications are taken until the closing date. To withdraw, write to the government."],
+  ["Reviewed", "Applications are read by the founding government's reviewers against the position's criteria. A reviewer with a conflict of interest steps aside."],
   ["Decided with reasons", "Every application receives a decision. An accepted application is referred to an appointing authority; it is not itself an appointment."],
   ["Appointed in public", "Appointments are issued as separate instruments and published in the register of appointments."],
 ] as const;
@@ -30,7 +30,7 @@ export default function OpportunitiesPage() {
       margin={[
         { label: "Reference format", value: <span className="t-ref">AGV-OPP-YYYY-NNNN</span> },
         { label: "Kinds of position", value: POSITION_TYPES.map((p) => p.name).join(" · ") },
-        { label: "Review", value: "Two reviewers, published rubric" },
+        { label: "How to apply", value: "Open a position and choose Apply" },
         { label: "Personal data", value: "Encrypted before storage; never published" },
       ]}
       emptyTitle="No positions are open at this time."
@@ -41,11 +41,12 @@ export default function OpportunitiesPage() {
           How recruitment works
         </h2>
         <p className="t-body mt-4 text-ink-600">
-          The same process applies to every kind of position. The applicant portal opens with the first published position. Until then, no applications are taken through this site or anywhere else; you can{" "}
+          The same process applies to every kind of position. To apply, open a position below and choose Apply for this position. Applications are taken only through this site. If nothing
+          fits yet, you can{" "}
           <Link className="link-ledger" href="/register-interest">
             register your interest
           </Link>{" "}
-          to be contacted when one opens.
+          to be contacted when a matching position opens.
         </p>
         <ol className="mt-10 border-t rule">
           {steps.map(([title, text], i) => (

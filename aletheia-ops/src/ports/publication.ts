@@ -17,6 +17,9 @@ export type PublicationPayload = {
   body: Content["body"];
   facts: Content["facts"];
   institution: string;
+  /** Opportunities only (covered by the content hash when present). */
+  positionType?: string;
+  closingDate?: string;
   contentHash: string;
 };
 

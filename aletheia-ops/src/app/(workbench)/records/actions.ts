@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { parseBody, parseFacts, type Content } from "@/domain/content";
+import { parseBody, parseFacts, POSITION_SLUGS, type Content } from "@/domain/content";
 import { CLASSIFICATIONS } from "@/domain/glossary";
 import { INSTITUTION_SEED } from "@/domain/institutions";
 import { REGISTERS } from "@/domain/registers";
@@ -27,6 +27,8 @@ const Fields = z.object({
   classification: z.enum(CLASSIFICATIONS),
   sourceDocument: z.string().max(40).optional(),
   disclosureAuthorised: z.string().optional(),
+  positionType: z.enum(POSITION_SLUGS).optional(),
+  closingDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
 });
 
 function contentFrom(form: FormData): { content: Content; classification: (typeof CLASSIFICATIONS)[number] } | null {
@@ -38,11 +40,15 @@ function contentFrom(form: FormData): { content: Content; classification: (typeo
     classification: form.get("classification"),
     sourceDocument: form.get("sourceDocument") || undefined,
     disclosureAuthorised: form.get("disclosureAuthorised") || undefined,
+    positionType: form.get("positionType") || undefined,
+    closingDate: form.get("closingDate") || undefined,
   });
   if (!f.success) return null;
   const c: Content = { title: f.data.title.trim(), summary: f.data.summary.trim(), body: parseBody(f.data.body), facts: parseFacts(f.data.facts) };
   if (f.data.sourceDocument?.trim()) c.sourceDocument = f.data.sourceDocument.trim().toUpperCase();
   if (f.data.disclosureAuthorised) c.disclosureAuthorised = true;
+  if (f.data.positionType) c.positionType = f.data.positionType;
+  if (f.data.closingDate) c.closingDate = f.data.closingDate;
   return { content: c, classification: f.data.classification };
 }
 

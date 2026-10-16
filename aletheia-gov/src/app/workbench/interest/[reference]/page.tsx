@@ -46,6 +46,21 @@ export default async function RegistrationDetail(props: PageProps<"/workbench/in
       <div className="grid gap-12 xl:grid-cols-[1fr_20rem]">
         <dl className="border-t border-[var(--rule-ledger)]">
           {row("Email", r.email ? <a className="link-ledger" href={`mailto:${r.email}`}>{r.email}</a> : "—")}
+          {r.opportunities.length
+            ? row(
+                "Applied for",
+                <ul className="space-y-1">
+                  {r.opportunities.map((o) => (
+                    <li key={o.reference}>
+                      <a className="link-ledger t-ref" href={`/opportunities/${o.reference.toLowerCase()}`}>
+                        {o.reference}
+                      </a>{" "}
+                      <span className="text-ink-500">on {formatDateLong(o.appliedAt)}</span>
+                    </li>
+                  ))}
+                </ul>,
+              )
+            : null}
           {row(
             "Kinds of position",
             <ul className="space-y-1">

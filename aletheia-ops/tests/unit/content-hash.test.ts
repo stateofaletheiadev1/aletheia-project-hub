@@ -22,3 +22,22 @@ describe("publication content hash", () => {
     expect(publicationHash(VECTOR)).toBe("efc3303cf11a1f442820dd3f969be6d2d7d823307890ed4eb2536f95983ddfed");
   });
 });
+
+describe("publication content hash for a job post", () => {
+  // Shared with the other repository's tests: kind of position and closing date are hashed.
+  it("matches the shared opportunity vector", () => {
+    const V = {
+      register: "opportunities",
+      reference: "AGV-OPP-2026-0001",
+      title: "Founding coordinator, seasteading working group",
+      summary: "",
+      body: [{ type: "paragraph", text: "Coordinate the working group." }],
+      facts: [],
+      version: 1,
+      positionType: "volunteer",
+      closingDate: "2026-11-30",
+    };
+    expect(publicationHash(V)).toBe("c7e4b88305cbd9f15a341616a3755c6249393d1fe3e0db74c33dfbc4c937130e");
+    expect(publicationHash({ ...V, closingDate: "2026-12-01" })).not.toBe("c7e4b88305cbd9f15a341616a3755c6249393d1fe3e0db74c33dfbc4c937130e");
+  });
+});

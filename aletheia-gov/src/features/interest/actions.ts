@@ -42,6 +42,7 @@ export async function submitInterest(_prev: InterestState, form: FormData): Prom
     expertise: form.get("expertise") ?? "",
     note: form.get("note") ?? "",
     consent: form.get("consent") ?? undefined,
+    opportunity: String(form.get("opportunity") ?? ""),
   });
   if (!parsed.success) {
     for (const issue of parsed.error.issues) {

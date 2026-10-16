@@ -51,6 +51,8 @@ const PublicRecordSchema = z.object({
   version: z.number().int().optional(),
   contentHash: z.string().regex(/^[0-9a-f]{64}$/).optional(),
   correctedAt: z.string().optional(),
+  /** Opportunities: the last day applications are taken (YYYY-MM-DD). */
+  closingDate: z.string().optional(),
   demo: z.boolean().optional(), // test records are never shown (toPublic)
 });
 
@@ -68,6 +70,7 @@ export type PublicRecord = {
   version?: number;
   contentHash?: string;
   correctedAt?: string;
+  closingDate?: string;
   /** Withdrawn from the public record: the page stays, with this notice in place of the text. */
   withdrawn?: { at: string; reason: string };
 };
@@ -102,6 +105,7 @@ function toPublic(doc: unknown): PublicRecord | null {
     version: r.version,
     contentHash: r.contentHash,
     correctedAt: r.correctedAt,
+    closingDate: r.closingDate,
     withdrawn: r.publication.state === "withdrawn" ? { at: r.publication.withdrawnAt ?? r.publication.publishedAt, reason: r.publication.withdrawalReason ?? "" } : undefined,
   };
 }

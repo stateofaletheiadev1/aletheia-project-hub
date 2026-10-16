@@ -13,6 +13,30 @@ export function versionHash(register: string, version: number, content: Content)
   return sha256hex(canonicalJson({ register, version, content }));
 }
 
-export function publicationHash(p: { register: string; reference: string; title: string; summary: string; body: unknown; facts: unknown; version: number }): string {
-  return sha256hex(canonicalJson({ register: p.register, reference: p.reference, title: p.title, summary: p.summary, body: p.body, facts: p.facts, version: p.version }));
+export function publicationHash(p: {
+  register: string;
+  reference: string;
+  title: string;
+  summary: string;
+  body: unknown;
+  facts: unknown;
+  version: number;
+  positionType?: string;
+  closingDate?: string;
+}): string {
+  // positionType and closingDate (opportunities) are left out of the JSON when absent, so hashes of
+  // other registers are unchanged.
+  return sha256hex(
+    canonicalJson({
+      register: p.register,
+      reference: p.reference,
+      title: p.title,
+      summary: p.summary,
+      body: p.body,
+      facts: p.facts,
+      version: p.version,
+      positionType: p.positionType,
+      closingDate: p.closingDate,
+    }),
+  );
 }

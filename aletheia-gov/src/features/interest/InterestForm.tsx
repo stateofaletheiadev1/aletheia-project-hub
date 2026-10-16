@@ -12,7 +12,9 @@ const field =
   "mt-2 block w-full border-0 border-b border-[var(--rule-ledger)] bg-transparent px-0 py-2.5 text-[1.0625rem] text-ink-900 placeholder:text-ink-500 focus:border-navy-800 focus:outline-none focus:ring-0 aria-[invalid=true]:border-[#9b2c2c]";
 const label = "t-meta text-[0.6875rem] text-ink-600";
 
-export function InterestForm({ groups, preselected }: { groups: Group[]; preselected?: string }) {
+export type ApplyingFor = { reference: string; title: string; positionType: string; institution?: string };
+
+export function InterestForm({ groups, preselected, applyingFor }: { groups: Group[]; preselected?: string; applyingFor?: ApplyingFor }) {
   const [state, action, pending] = useActionState<InterestState, FormData>(submitInterest, { status: "idle" });
   const startedAt = useRef<HTMLInputElement>(null);
   const token = useRef<HTMLInputElement>(null);
@@ -77,7 +79,7 @@ export function InterestForm({ groups, preselected }: { groups: Group[]; presele
   // After a failed submit React resets the form; refill it with what was typed.
   const v = state.status === "error" ? state.values : undefined;
   const ticked = (slug: string) => (v ? v.institutions.includes(slug) : slug === preselected);
-  const typeTicked = (slug: string) => (v ? v.positionTypes.includes(slug) : false);
+  const typeTicked = (slug: string) => (v ? v.positionTypes.includes(slug) : slug === applyingFor?.positionType);
   const err = (name: keyof typeof errors) =>
     errors[name] ? (
       <p id={`${name}-error`} className="mt-1.5 text-[0.875rem] font-medium text-[#9b2c2c]">
@@ -88,6 +90,14 @@ export function InterestForm({ groups, preselected }: { groups: Group[]; presele
 
   return (
     <form action={action} noValidate className="space-y-9">
+      {applyingFor ? (
+        <div className="border-l-2 border-gold-700 bg-parchment-50 px-5 py-4">
+          <p className="t-meta text-[0.6875rem] text-gold-700">Applying for</p>
+          <p className="mt-1 text-[1.0625rem] font-semibold text-ink-900">{applyingFor.title}</p>
+          <p className="t-ref mt-1 text-ink-600">{applyingFor.reference}</p>
+          <input type="hidden" name="opportunity" value={applyingFor.reference} />
+        </div>
+      ) : null}
       {state.status === "error" ? (
         <div ref={summary} tabIndex={-1} role="alert" className="border-l-2 border-[#9b2c2c] bg-parchment-50 px-5 py-4 outline-none">
           <p className="font-semibold text-[#9b2c2c]">{state.message}</p>

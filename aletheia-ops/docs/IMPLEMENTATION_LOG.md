@@ -236,3 +236,17 @@ attachments and scanning, free-standing tasks and reassignment, notifications, V
   outbox.
 - Verified: workbench 203 unit tests, portal 92; both browser tests, including a founder
   withdrawing a dispatch and the test portal showing the notice without the text.
+
+## 16 October 2026: job posts and applications
+
+- Owner's choice: build "Apply" before posting; read applications in the portal's staff area.
+- Workbench: opportunities carry a kind of position (the portal's five kinds) and a closing date,
+  both required before submission and covered by the content hash (omitted for other registers, so
+  their hashes are unchanged; a second shared vector is asserted on both sides).
+- Portal: opportunity pages show the kind and closing date and an "Apply for this position" button
+  (closed after the closing date, and absent once withdrawn). The application form opens with the
+  position named and its kind and institution ticked; the registration records the reference
+  applied for, shown in the staff area list and detail. Opportunities page wording corrected (it
+  promised an applicant portal and a two-reviewer rubric that do not exist).
+- Verified: workbench 204 unit tests, portal 93; three browser tests, including a founder posting
+  a volunteer position on the test portal and an applicant applying with a CV.

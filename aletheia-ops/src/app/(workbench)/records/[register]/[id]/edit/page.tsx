@@ -47,6 +47,8 @@ export default async function EditRecordPage({ params, searchParams }: { params:
           classification: r.classification,
           sourceDocument: r.draft.sourceDocument,
           disclosureAuthorised: r.draft.disclosureAuthorised,
+          positionType: r.draft.positionType,
+          closingDate: r.draft.closingDate,
         }}
         timeZone={official.timezone}
         backHref={`/records/${register}/${id}`}

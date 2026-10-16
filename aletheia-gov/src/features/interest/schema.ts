@@ -49,6 +49,12 @@ export const InterestInput = z.object({
   expertise: z.enum(EXPERTISE, { error: "Choose your main area of expertise" }),
   note: z.string().trim().max(1000, "Keep the note under 1000 characters").optional().default(""),
   consent: z.literal("on", { error: "Please confirm you agree to how your details are used" }),
+  /** The published opportunity being applied for, if any. */
+  opportunity: z
+    .string()
+    .regex(/^AGV-OPP-\d{4}-\d{4,}$/, { error: "That position is not recognised" })
+    .optional()
+    .or(z.literal("").transform(() => undefined)),
 });
 
 export type InterestInput = z.infer<typeof InterestInput>;
