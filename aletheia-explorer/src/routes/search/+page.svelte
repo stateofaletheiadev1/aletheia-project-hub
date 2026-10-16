@@ -1,7 +1,6 @@
 <script lang="ts">
   import Icon from "$lib/components/Icon.svelte";
   import SearchBox from "$lib/components/SearchBox.svelte";
-  import Star from "$lib/components/Star.svelte";
 
   let { data } = $props();
 </script>
@@ -10,7 +9,7 @@
 
 <section class="container wrap">
   <article class="panel card">
-    <p class="eyebrow"><Star size={11} hole="var(--surface)" /> Search</p>
+    <p class="eyebrow">Search</p>
     {#if data.query}
       <h1>Nothing to open for <span class="mono">{data.query}</span></h1>
     {:else}
@@ -39,7 +38,6 @@
   .eyebrow {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
     margin-bottom: 0.8rem;
     font-size: var(--fs-2xs);
     font-weight: 800;

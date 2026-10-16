@@ -1,7 +1,6 @@
 <script lang="ts">
   import CodeBlock from "$lib/components/CodeBlock.svelte";
   import Icon from "$lib/components/Icon.svelte";
-  import Star from "$lib/components/Star.svelte";
   import { EXAMPLES, SAMPLE_ADDRESS, SAMPLE_BLOCK, SAMPLE_HEIGHT, SAMPLE_TX } from "$lib/docs/examples";
   import { PUBLIC } from "$lib/network";
 
@@ -87,7 +86,7 @@ Finalized        #${SAMPLE_HEIGHT.toLocaleString("en")}   ${SAMPLE_BLOCK}`;
 </svelte:head>
 
 <section class="hero container">
-  <p class="eyebrow"><Star size={11} hole="var(--bg)" /> Protocol resources</p>
+  <p class="eyebrow">Protocol resources</p>
   <h1>Developer Docs</h1>
   <p class="lede">
     Everything needed to read Aletheia StableChain and to send transactions to it: the public RPC, its REST and JSON-RPC
@@ -330,7 +329,6 @@ Finalized        #${SAMPLE_HEIGHT.toLocaleString("en")}   ${SAMPLE_BLOCK}`;
   .eyebrow {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
     margin-bottom: 0.8rem;
     font-size: var(--fs-2xs);
     font-weight: 800;

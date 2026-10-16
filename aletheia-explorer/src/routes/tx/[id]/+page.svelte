@@ -1,4 +1,7 @@
 <script lang="ts">
+  import Amount from "$lib/components/Amount.svelte";
+  import Ident from "$lib/components/Ident.svelte";
+  import Blazon from "$lib/components/Blazon.svelte";
   import Badge from "$lib/components/Badge.svelte";
   import CopyButton from "$lib/components/CopyButton.svelte";
   import Icon from "$lib/components/Icon.svelte";
@@ -20,8 +23,6 @@
   const total = $derived(legs.length > 0 ? legs.reduce((sum, leg) => sum + BigInt(leg.amount), 0n).toString() : null);
   const asset = $derived(legs[0]?.asset ?? null);
   const value = $derived(total !== null && asset !== null ? amountText(total, asset) : null);
-  const fee = $derived(amountText(tx.receipt?.feeCharged ?? "0", tx.fee.asset));
-  const maxFee = $derived(amountText(tx.fee.maxFee, tx.fee.asset));
   const euUsed = $derived(tx.receipt?.euUsed ?? 0);
   const euShare = $derived(tx.fee.euLimit > 0 ? (100 * euUsed) / tx.fee.euLimit : 0);
   const head = $derived(Math.max(data.head, live.stats?.height ?? 0));
@@ -35,7 +36,7 @@
 <svelte:head><title>Transaction {tx.txId.slice(0, 14)}… · Aletheia Explorer</title></svelte:head>
 
 <section class="head container">
-  <p class="eyebrow"><Star size={11} hole="var(--bg)" /> Ledger · transaction</p>
+  <p class="eyebrow">Ledger · transaction</p>
   <h1>Transaction Details</h1>
 </section>
 
@@ -52,7 +53,7 @@
     <article class="panel card">
       <Overview>
         <Row label="Transaction Hash" hint="The transaction's identifier: a hash of its signed body, on this network.">
-          <span class="line"><span class="mono">{tx.txId}</span> <CopyButton value={tx.txId} label="Copy transaction ID" /></span>
+          <span class="line"><Ident value={tx.txId} full /> <CopyButton value={tx.txId} label="Copy transaction ID" /></span>
         </Row>
         <Row label="Status" hint="Whether the transaction did what it asked. A failed one still pays its fee.">
           {#if ok}<Badge tone="ok"><Icon name="check" size={12} stroke={2.4} /> Success</Badge>
@@ -72,9 +73,9 @@
           <Row label="Transaction Action" hint="What the transaction did, in one line.">
             <span class="line action">
               <span class="method">{typeLabel(tx.type)}</span>
-              <strong class="num">{value.text} {asset}</strong>
+              <strong><Amount units={total ?? "0"} asset={asset ?? ""} /></strong>
               to
-              {#if legs[0]}<a class="link mono" href="/address/{encodeURIComponent(legs[0].recipient)}">{legs[0].recipient.slice(0, 14)}…</a>{/if}
+              {#if legs[0]}<a class="link party" href="/address/{encodeURIComponent(legs[0].recipient)}"><Blazon address={legs[0].recipient} size={14} /><Ident value={legs[0].recipient} head={4} tail={4} /></a>{/if}
               {#if legs.length > 1}<span class="faint">and {legs.length - 1} more</span>{/if}
             </span>
           </Row>
@@ -82,24 +83,23 @@
         {/if}
         <Row label="From" hint="The account that signed and sent the transaction.">
           <span class="line">
-            <a class="link mono" href="/address/{encodeURIComponent(tx.sender)}">{tx.sender}</a>
+            <a class="link party" href="/address/{encodeURIComponent(tx.sender)}"><Blazon address={tx.sender} size={16} /><Ident value={tx.sender} full /></a>
             <CopyButton value={tx.sender} label="Copy address" />
           </span>
         </Row>
         <Row label="To" hint="The account that received the value.">
           {#if legs.length === 1 && legs[0]}
             <span class="line">
-              <a class="link mono" href="/address/{encodeURIComponent(legs[0].recipient)}">{legs[0].recipient}</a>
+              <a class="link party" href="/address/{encodeURIComponent(legs[0].recipient)}"><Blazon address={legs[0].recipient} size={16} /><Ident value={legs[0].recipient} full /></a>
               <CopyButton value={legs[0].recipient} label="Copy address" />
             </span>
           {:else if legs.length > 1}
             <ol class="legs">
               {#each legs as leg, i (i)}
-                {@const v = amountText(leg.amount, leg.asset)}
                 <li>
                   <span class="num idx">{i + 1}</span>
-                  <a class="link mono" href="/address/{encodeURIComponent(leg.recipient)}">{leg.recipient}</a>
-                  <span class="num">{v.text} {leg.asset}</span>
+                  <a class="link party" href="/address/{encodeURIComponent(leg.recipient)}"><Blazon address={leg.recipient} size={16} /><Ident value={leg.recipient} full /></a>
+                  <Amount units={leg.amount} asset={leg.asset} />
                 </li>
               {/each}
             </ol>
@@ -109,11 +109,11 @@
         </Row>
         <hr />
         <Row label="Value" hint="The amount moved, exact to the last unit.">
-          {#if value}<span class="value num" title="{value.exact} {asset}">{value.text} <span class="asset">{asset}</span></span>
+          {#if value && asset}<span class="value"><Amount units={total ?? "0"} {asset} /></span>
           {:else}<span class="faint">0</span>{/if}
         </Row>
         <Row label="Transaction Fee" hint="Execution units used × the fee asset's EU price; paid even if the transaction fails.">
-          <span class="num" title="{fee.exact} {tx.fee.asset}">{fee.text} <span class="asset">{tx.fee.asset}</span></span>
+          <Amount units={tx.receipt?.feeCharged ?? "0"} asset={tx.fee.asset} />
         </Row>
         <Row label="EU Limit & Usage by Txn" hint="Execution units the sender allowed, and how many the transaction used.">
           <span class="line num">
@@ -122,7 +122,7 @@
           </span>
         </Row>
         <Row label="Max Fee" hint="The most the sender agreed to pay.">
-          <span class="num">{maxFee.text} {tx.fee.asset}</span>
+          <Amount units={tx.fee.maxFee} asset={tx.fee.asset} />
         </Row>
 
         {#if more}
@@ -137,7 +137,7 @@
           </Row>
           {#if receipt}
             <Row label="Write Set Hash" hint="Commitment to every state change the transaction made.">
-              <span class="line"><span class="mono faint">{receipt.writeSetHash}</span> <CopyButton value={receipt.writeSetHash} /></span>
+              <span class="line"><span class="faint"><Ident value={receipt.writeSetHash} full /></span> <CopyButton value={receipt.writeSetHash} /></span>
             </Row>
           {/if}
         {/if}
@@ -155,7 +155,7 @@
         <div class="log">
           <span class="log-idx num">{i}</span>
           <Overview>
-            <Row label="Address"><span class="line"><a class="link mono" href="/address/{encodeURIComponent(event.emitter)}">{event.emitter}</a></span></Row>
+            <Row label="Address"><span class="line"><a class="link party" href="/address/{encodeURIComponent(event.emitter)}"><Blazon address={event.emitter} size={16} /><Ident value={event.emitter} full /></a></span></Row>
             <Row label="Name">
               {#if known}<span class="event-name">{known.label}</span> <span class="faint mono">{known.schema}</span>{:else}<span class="faint">Unknown event</span>{/if}
             </Row>
@@ -163,7 +163,7 @@
               <ol class="topics">
                 <li><span class="tag num">0</span><span class="mono faint">{event.eventType}</span></li>
                 {#each event.topics as topic, t (t)}
-                  <li><span class="tag num">{t + 1}</span><span class="mono faint">{topic}</span></li>
+                  <li><span class="tag num">{t + 1}</span><span class="faint"><Ident value={topic} full /></span></li>
                 {/each}
               </ol>
             </Row>
@@ -185,7 +185,6 @@
   .eyebrow {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
     margin-bottom: 0.8rem;
     font-size: var(--fs-2xs);
     font-weight: 800;
@@ -242,11 +241,6 @@
   .value {
     font-size: var(--fs-md);
     font-weight: 800;
-  }
-  .asset {
-    font-size: var(--fs-xs);
-    font-weight: 800;
-    color: var(--gold);
   }
   .sep {
     color: var(--text-faint);

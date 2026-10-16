@@ -4,7 +4,6 @@
   import StatTile from "$lib/components/StatTile.svelte";
   import BlockRow from "$lib/components/BlockRow.svelte";
   import TxRow from "$lib/components/TxRow.svelte";
-  import Star from "$lib/components/Star.svelte";
   import { useLive } from "$lib/context";
   import { compactUnits, grouped } from "$lib/format/display";
 
@@ -20,10 +19,8 @@
 </svelte:head>
 
 <section class="hero container">
-  <!-- The flag's star, very faint, behind the title: felt more than seen. -->
-  <div class="watermark" aria-hidden="true"><Star size={420} hole="transparent" /></div>
   <div class="title">
-    <p class="eyebrow"><Star size={11} hole="var(--bg)" /> Sovereign Covenant State of Aletheia · StableChain</p>
+    <p class="eyebrow">Sovereign Covenant State of Aletheia · StableChain</p>
     <h1>Consensus & Ledger Dashboard</h1>
     <p class="lede">Real-time finalized block stream and network health of Aletheia StableChain.</p>
   </div>
@@ -56,7 +53,7 @@
 <section class="streams container">
   <article class="stream panel" aria-labelledby="blocks-title">
     <header>
-      <h2 id="blocks-title"><Star size={14} hole="var(--surface)" />Live Blocks Stream</h2>
+      <h2 id="blocks-title">Live Blocks Stream</h2>
       <span class="chip num">{blockTime}</span>
     </header>
     <div class="list">
@@ -71,7 +68,7 @@
 
   <article class="stream panel" aria-labelledby="txs-title">
     <header>
-      <h2 id="txs-title"><Star size={14} hole="var(--surface)" />Live Transactions Stream</h2>
+      <h2 id="txs-title">Live Transactions Stream</h2>
       <span class="chip">AEY · ALnT transfers</span>
     </header>
     <div class="list">
@@ -95,33 +92,25 @@
     padding-top: 3rem;
     padding-bottom: 2.25rem;
   }
-  .watermark {
-    position: absolute;
-    top: -5.5rem;
-    right: -3rem;
-    opacity: 0.07;
-    pointer-events: none;
-    z-index: -1;
-  }
   .title {
     position: relative;
   }
   .eyebrow {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
     margin-bottom: 0.9rem;
     font-size: var(--fs-2xs);
     font-weight: 800;
-    letter-spacing: 0.16em;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--brand-gold-bright);
   }
   h1 {
     font-size: var(--fs-2xl);
     font-weight: 800;
-    letter-spacing: -0.035em;
-    line-height: 1.1;
+    letter-spacing: -0.04em;
+    line-height: 1.08;
+    text-wrap: balance;
   }
   .lede {
     margin-top: 0.6rem;
@@ -160,9 +149,9 @@
     align-items: center;
     justify-content: space-between;
     gap: 0.6rem 1rem;
-    padding: 0.25rem 0.25rem 1rem;
+    padding: 0.25rem 0.25rem 1.1rem;
     margin-bottom: 1rem;
-    border-bottom: 1px solid rgb(196 154 78 / 0.28);
+    border-bottom: 1px solid var(--rule-gold);
   }
   h2 {
     display: flex;
@@ -170,15 +159,15 @@
     gap: 0.6rem;
     font-size: var(--fs-md);
     font-weight: 800;
-    letter-spacing: -0.015em;
+    letter-spacing: -0.02em;
   }
   .chip {
-    padding: 0.25rem 0.65rem;
+    padding: 0.22rem 0.6rem;
     font-size: var(--fs-xs);
     font-weight: 700;
-    color: var(--brand-cream);
-    background: var(--brand-navy);
-    border: 1px solid rgb(196 154 78 / 0.5);
+    color: var(--text-soft);
+    background: rgb(15 31 58 / 0.45);
+    border: 1px solid rgb(196 154 78 / 0.38);
     border-radius: 0.5rem;
     white-space: nowrap;
   }
@@ -228,9 +217,6 @@
     }
     h1 {
       font-size: var(--fs-xl);
-    }
-    .watermark {
-      display: none;
     }
   }
   @media (max-width: 30rem) {

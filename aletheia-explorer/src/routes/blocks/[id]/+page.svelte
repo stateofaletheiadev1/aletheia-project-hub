@@ -1,4 +1,8 @@
 <script lang="ts">
+  import Seal from "$lib/components/Seal.svelte";
+  import Ident from "$lib/components/Ident.svelte";
+  import Blazon from "$lib/components/Blazon.svelte";
+  import Amount from "$lib/components/Amount.svelte";
   import { goto } from "$app/navigation";
   import Badge from "$lib/components/Badge.svelte";
   import CopyButton from "$lib/components/CopyButton.svelte";
@@ -8,7 +12,7 @@
   import Star from "$lib/components/Star.svelte";
   import Tabs from "$lib/components/Tabs.svelte";
   import { useLive } from "$lib/context";
-  import { age, amountText, dateTimeUtc, grouped, short, typeLabel } from "$lib/format/display";
+  import { age, amountText, dateTimeUtc, grouped, typeLabel } from "$lib/format/display";
 
   let { data } = $props();
   const live = useLive();
@@ -34,8 +38,15 @@
 <svelte:window onkeydown={onKey} />
 
 <section class="head container">
-  <p class="eyebrow"><Star size={11} hole="var(--bg)" /> Ledger · block</p>
-  <h1>Block <span class="num">#{grouped(block.height)}</span></h1>
+  <div>
+    <p class="eyebrow">Ledger · block</p>
+    <h1>Block <span class="num">#{grouped(block.height)}</span></h1>
+    <p class="lede">Final at {dateTimeUtc(block.protocolTimeMs)} · proposed by Validator {block.proposer}</p>
+  </div>
+  <figure class="seal" title="The seal of block #{grouped(block.height)}, engraved from its hash. Ornament, never proof.">
+    <Seal id={block.id} size={104} />
+    <figcaption>Block seal</figcaption>
+  </figure>
 </section>
 
 <section class="container">
@@ -83,30 +94,30 @@
           <span class="num">{grouped(block.euUsed)}</span>
         </Row>
         <Row label="Fees" hint="Fees paid by the block's transactions, to the fee pool.">
-          <span class="num">{amountText(fees, "ALnT").text} <span class="asset">ALnT</span></span>
+          <Amount units={fees} asset="ALnT" />
         </Row>
         <Row label="Protocol Version" hint="The rules this block was executed under.">Version {block.protocolVersion}</Row>
         {#if more}
           <hr />
           <Row label="Hash" hint="The block's identifier: a hash of its header.">
-            <span class="line"><span class="mono">{block.id}</span> <CopyButton value={block.id} label="Copy block ID" /></span>
+            <span class="line"><Ident value={block.id} full /> <CopyButton value={block.id} label="Copy block ID" /></span>
           </Row>
           <Row label="Parent Hash" hint="The block this one extends.">
             {#if block.height > 0}
-              <span class="line"><a class="link mono" href="/blocks/{block.height - 1}">{block.parent}</a> <CopyButton value={block.parent} /></span>
+              <span class="line"><a class="link" href="/blocks/{block.height - 1}"><Ident value={block.parent} full /></a> <CopyButton value={block.parent} /></span>
             {:else}<span class="faint">Genesis has no parent</span>{/if}
           </Row>
           <Row label="State Root" hint="Root of the Merkle tree of all state after this block.">
-            <span class="line"><span class="mono faint">{block.stateRoot}</span> <CopyButton value={block.stateRoot} /></span>
+            <span class="line"><span class="faint"><Ident value={block.stateRoot} full /></span> <CopyButton value={block.stateRoot} /></span>
           </Row>
           <Row label="Transactions Root" hint="Merkle root of the block's transactions.">
-            <span class="line"><span class="mono faint">{block.txRoot}</span> <CopyButton value={block.txRoot} /></span>
+            <span class="line"><span class="faint"><Ident value={block.txRoot} full /></span> <CopyButton value={block.txRoot} /></span>
           </Row>
           <Row label="Receipts Root" hint="Merkle root of the transactions' receipts.">
-            <span class="line"><span class="mono faint">{block.receiptRoot}</span> <CopyButton value={block.receiptRoot} /></span>
+            <span class="line"><span class="faint"><Ident value={block.receiptRoot} full /></span> <CopyButton value={block.receiptRoot} /></span>
           </Row>
           <Row label="Events Root" hint="Merkle root of every event the block emitted.">
-            <span class="line"><span class="mono faint">{block.eventRoot}</span> <CopyButton value={block.eventRoot} /></span>
+            <span class="line"><span class="faint"><Ident value={block.eventRoot} full /></span> <CopyButton value={block.eventRoot} /></span>
           </Row>
           <Row label="Finality Certificate" hint="The quorum certificate that made the block final.">
             {#if data.finality}
@@ -125,7 +136,7 @@
   {:else}
     <article class="panel register">
       <div class="bar">
-        <p class="total"><Star size={12} hole="var(--surface)" /> A total of {grouped(block.txCount)} {block.txCount === 1 ? "transaction" : "transactions"} found</p>
+        <p class="total">A total of {grouped(block.txCount)} {block.txCount === 1 ? "transaction" : "transactions"} found</p>
       </div>
       <div class="scan-wrap">
         <table class="scan">
@@ -143,25 +154,24 @@
           </thead>
           <tbody>
             {#each data.txs as tx, i (tx.txId)}
-              {@const v = tx.amount !== null && tx.asset !== null ? amountText(tx.amount, tx.asset) : null}
               {@const fee = amountText(tx.fee, tx.feeAsset)}
               <tr>
                 <td>
                   <span class="hash-cell">
                     {#if !tx.ok}<span class="failed" title="Failed"><Icon name="alert" size={13} /></span>{/if}
-                    <a class="cell-link mono" href="/tx/{encodeURIComponent(tx.txId)}" title={tx.txId}>{short(tx.txId, 12, 6)}</a>
+                    <a class="cell-link" href="/tx/{encodeURIComponent(tx.txId)}"><Ident value={tx.txId} /></a>
                     <CopyButton value={tx.txId} label="Copy transaction ID" />
                   </span>
                 </td>
                 <td><span class="method">{typeLabel(tx.type)}</span></td>
                 <td class="faint num">{i}</td>
-                <td><a class="cell-link mono" href="/address/{encodeURIComponent(tx.sender)}" title={tx.sender}>{short(tx.sender, 8, 5)}</a></td>
+                <td><a class="cell-link party" href="/address/{encodeURIComponent(tx.sender)}"><Blazon address={tx.sender} size={14} /><Ident value={tx.sender} head={4} tail={4} /></a></td>
                 <td class="arrow-col"><span class="arrow"><Icon name="arrowRight" size={12} stroke={2.2} /></span></td>
                 <td>
-                  {#if tx.recipient}<a class="cell-link mono" href="/address/{encodeURIComponent(tx.recipient)}" title={tx.recipient}>{short(tx.recipient, 8, 5)}</a>
+                  {#if tx.recipient}<a class="cell-link party" href="/address/{encodeURIComponent(tx.recipient)}"><Blazon address={tx.recipient} size={14} /><Ident value={tx.recipient} head={4} tail={4} /></a>
                   {:else}<span class="faint">—</span>{/if}
                 </td>
-                <td class="r num value">{#if v}<span title="{v.exact} {tx.asset}">{v.text}</span> <span class="asset">{tx.asset}</span>{:else}<span class="faint">0</span>{/if}</td>
+                <td class="r num value">{#if tx.amount !== null && tx.asset !== null}<Amount units={tx.amount} asset={tx.asset} />{:else}<span class="faint">0</span>{/if}</td>
                 <td class="r num faint">{fee.text} {tx.feeAsset}</td>
               </tr>
             {:else}
@@ -179,13 +189,40 @@
 
 <style>
   .head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 2rem;
     padding-top: 2.75rem;
     padding-bottom: 1.25rem;
+  }
+  .lede {
+    margin-top: 0.45rem;
+    font-size: var(--fs-sm);
+    color: var(--text-faint);
+  }
+  .seal {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    margin: 0;
+  }
+  .seal figcaption {
+    font-size: var(--fs-2xs);
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--brand-gold-bright);
+  }
+  @media (max-width: 36rem) {
+    .seal {
+      display: none;
+    }
   }
   .eyebrow {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
     margin-bottom: 0.8rem;
     font-size: var(--fs-2xs);
     font-weight: 800;
@@ -227,10 +264,6 @@
   .soft {
     color: var(--text-soft);
   }
-  .mono {
-    font-size: var(--fs-sm);
-    word-break: break-all;
-  }
   .link {
     color: var(--accent);
     transition: color var(--quick) var(--ease);
@@ -269,11 +302,6 @@
   }
   .pill:hover {
     color: var(--text);
-  }
-  .asset {
-    font-size: var(--fs-xs);
-    font-weight: 800;
-    color: var(--gold);
   }
   .more {
     display: inline-flex;

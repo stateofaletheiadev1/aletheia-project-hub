@@ -1,11 +1,12 @@
 <script lang="ts">
+  import Ident from "$lib/components/Ident.svelte";
   import PageHead from "$lib/components/PageHead.svelte";
   import ScanPager from "$lib/components/ScanPager.svelte";
   import StatTile from "$lib/components/StatTile.svelte";
   import Star from "$lib/components/Star.svelte";
   import CopyButton from "$lib/components/CopyButton.svelte";
   import { useLive } from "$lib/context";
-  import { age, grouped, short, stamp } from "$lib/format/display";
+  import { age, grouped, stamp } from "$lib/format/display";
 
   let { data } = $props();
   const live = useLive();
@@ -45,7 +46,6 @@
     <div class="bar">
       <div>
         <p class="total">
-          <Star size={12} hole="var(--surface)" />
           Block #{grouped(bottom)} to #{grouped(top)} <span class="faint">(Total of {grouped(head + 1)} blocks)</span>
         </p>
         <p class="sub">Every block listed is final: it can never be reverted.</p>
@@ -93,7 +93,7 @@
               <td class="r num">{grouped(block.euUsed)}</td>
               <td>
                 <span class="hash-cell">
-                  <a class="cell-link mono" href="/blocks/{block.height}" title={block.id}>{short(block.id, 12, 6)}</a>
+                  <a class="cell-link" href="/blocks/{block.height}"><Ident value={block.id} /></a>
                   <CopyButton value={block.id} label="Copy block ID" />
                 </span>
               </td>

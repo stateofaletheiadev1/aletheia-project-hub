@@ -1,6 +1,5 @@
 <script lang="ts">
   import Hash from "$lib/components/Hash.svelte";
-  import Star from "$lib/components/Star.svelte";
   import TxRow from "$lib/components/TxRow.svelte";
   import Icon from "$lib/components/Icon.svelte";
   import { useLive } from "$lib/context";
@@ -19,7 +18,7 @@
 <svelte:head><title>Address {address.slice(0, 12)}… · Aletheia Explorer</title></svelte:head>
 
 <section class="head container">
-  <p class="eyebrow"><Star size={11} hole="var(--bg)" /> Address</p>
+  <p class="eyebrow">Address</p>
   <h1>Account</h1>
   <div class="id"><Hash value={address} /></div>
   <p class="lede">
@@ -53,7 +52,7 @@
 <section class="container">
   <article class="panel activity">
     <header>
-      <h2><Star size={14} hole="var(--surface)" /> Recent activity</h2>
+      <h2>Recent activity</h2>
       <span class="note">Seen by this explorer in the latest blocks</span>
     </header>
     <div class="list">
@@ -74,7 +73,6 @@
   .eyebrow {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
     margin-bottom: 0.8rem;
     font-size: var(--fs-2xs);
     font-weight: 800;

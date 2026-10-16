@@ -58,9 +58,13 @@
   --radius-sm: 0.5rem;
   --radius: 0.875rem;
   --radius-lg: 1.25rem;
-  --hairline: 1px solid var(--line-soft);
-  --edge: inset 0 1px 0 rgb(255 255 255 / 0.07);
-  --lift: 0 1px 0 rgb(255 255 255 / 0.06) inset, 0 24px 48px -28px rgb(3 12 58 / 0.75);
+  --hairline: 1px solid rgb(255 255 255 / 0.1);
+  --edge: inset 0 1px 0 rgb(255 255 255 / 0.08);
+  /* Depth as paper has it: a lit top edge, a close contact shadow, a long soft one. */
+  --lift: inset 0 1px 0 rgb(255 255 255 / 0.09), 0 1px 2px rgb(5 18 80 / 0.35), 0 18px 40px -24px rgb(4 14 66 / 0.8);
+  --well: rgb(8 28 108 / 0.38); /* recessed areas inside a panel */
+  --rule: rgb(255 255 255 / 0.075); /* rows inside a panel */
+  --rule-gold: rgb(196 154 78 / 0.32);
   /* A fine gold line along the top edge of framed things, like the flag's fimbriation. */
   --gilt: linear-gradient(90deg, transparent, rgb(196 154 78 / 0.85) 18%, rgb(227 189 114 / 0.95) 50%, rgb(196 154 78 / 0.85) 82%, transparent);
 
@@ -93,11 +97,8 @@ body {
   font-optical-sizing: auto;
   font-feature-settings: "ss01", "cv11";
   color: var(--text);
-  background:
-    radial-gradient(70rem 32rem at 50% -8rem, rgb(110 160 255 / 0.28), transparent 70%),
-    radial-gradient(40rem 30rem at 100% 30%, rgb(30 80 230 / 0.35), transparent 70%),
-    var(--bg);
-  background-attachment: fixed;
+  /* One blue, deepening toward the header like ink settling on the page. No glows. */
+  background: linear-gradient(180deg, var(--bg-deep) 0, var(--bg) 26rem) no-repeat, var(--bg);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -139,10 +140,10 @@ input {
   padding-inline: var(--gutter);
 }
 
-/* A framed surface: blue glass with a hairline, lit from above, gilt along the top. */
+/* A framed surface: solid blue card with a hairline, lit along its top edge, gilt above. */
 .panel {
   position: relative;
-  background: linear-gradient(180deg, rgb(255 255 255 / 0.045), transparent 38%), var(--surface);
+  background: var(--surface);
   border: var(--hairline);
   border-radius: var(--radius-lg);
   box-shadow: var(--lift);
@@ -158,10 +159,22 @@ input {
   pointer-events: none;
 }
 
+/* The kicker above every page title: a short gold rule, then the words. The flag's star is
+   kept for finality and liveness alone. */
+.eyebrow::before {
+  content: "";
+  display: inline-block;
+  width: 1.4rem;
+  height: 1px;
+  margin-right: 0.65rem;
+  background: var(--brand-gold);
+  vertical-align: middle;
+}
+
 .label {
   font-size: var(--fs-2xs);
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-faint);
 }
@@ -206,8 +219,8 @@ input {
   text-align: left;
   white-space: nowrap;
   color: var(--text-soft);
-  background: rgb(12 39 134 / 0.45);
-  border-bottom: 1px solid rgb(196 154 78 / 0.35);
+  background: var(--well);
+  border-bottom: 1px solid var(--rule-gold);
 }
 .scan th:first-child {
   border-top-left-radius: var(--radius-sm);
@@ -218,14 +231,33 @@ input {
 .scan td {
   padding: 0.85rem 0.9rem;
   white-space: nowrap;
-  border-bottom: 1px solid rgb(255 255 255 / 0.07);
+  border-bottom: 1px solid var(--rule);
   vertical-align: middle;
 }
 .scan tbody tr {
   transition: background var(--quick) var(--ease);
 }
+.scan tbody tr:last-child td {
+  border-bottom: 0;
+}
 .scan tbody tr:hover {
-  background: rgb(255 255 255 / 0.045);
+  background: rgb(255 255 255 / 0.04);
+  box-shadow: inset 2px 0 0 var(--brand-gold);
+}
+/* An address in a register: its shield, then the identifier. */
+.party {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+/* A full identifier keeps its shield and copy button beside it, however it wraps. */
+.line:has(.ident.full) {
+  flex-wrap: nowrap;
+  align-items: flex-start;
+}
+.party:has(.ident.full) {
+  align-items: flex-start;
+  min-width: 0;
 }
 .scan .r {
   text-align: right;
@@ -255,9 +287,10 @@ input {
   text-align: center;
   font-size: var(--fs-2xs);
   font-weight: 700;
+  letter-spacing: 0.01em;
   color: var(--brand-cream);
-  background: var(--brand-navy);
-  border: 1px solid rgb(196 154 78 / 0.5);
+  background: rgb(15 31 58 / 0.55);
+  border: 1px solid rgb(196 154 78 / 0.42);
   border-radius: 0.375rem;
 }
 .th-toggle {

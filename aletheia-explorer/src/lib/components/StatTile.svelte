@@ -34,20 +34,19 @@
       border-color var(--calm) var(--ease);
   }
   .tile:hover {
-    transform: translateY(-2px);
-    border-color: rgb(196 154 78 / 0.55);
+    border-color: rgb(196 154 78 / 0.45);
   }
   /* A navy plate with a gold rim, as the arms frame their charges. */
   .plate {
     display: grid;
     place-items: center;
-    width: 2.875rem;
-    height: 2.875rem;
+    width: 2.75rem;
+    height: 2.75rem;
     flex: none;
-    border-radius: 0.75rem;
+    border-radius: 0.7rem;
     color: var(--brand-gold-bright);
-    background: linear-gradient(160deg, var(--brand-navy), var(--brand-navy-deep));
-    border: 1px solid rgb(196 154 78 / 0.6);
+    background: linear-gradient(170deg, var(--brand-navy), var(--brand-navy-deep));
+    border: 1px solid rgb(196 154 78 / 0.5);
     box-shadow:
       inset 0 1px 0 rgb(255 255 255 / 0.08),
       0 8px 18px -10px rgb(3 12 58 / 0.8);
@@ -61,11 +60,12 @@
   .value {
     display: flex;
     align-items: baseline;
-    gap: 0.4rem;
-    font-size: var(--fs-xl);
+    gap: 0.35rem;
+    margin-block: 0.1rem;
+    font-size: 1.75rem;
     font-weight: 800;
-    line-height: 1.15;
-    letter-spacing: -0.025em;
+    line-height: 1.1;
+    letter-spacing: -0.035em;
     white-space: nowrap;
   }
   .figure {

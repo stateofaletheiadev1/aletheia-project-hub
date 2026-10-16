@@ -39,7 +39,7 @@
 <section class="container">
   <article class="panel register">
     <div class="bar">
-      <p class="total"><Star size={12} hole="var(--surface)" /> {single ? "This network has one block producer" : `A total of ${grouped(n)} validators in epoch ${grouped(set.epoch)}`}</p>
+      <p class="total">{single ? "This network has one block producer" : `A total of ${grouped(n)} validators in epoch ${grouped(set.epoch)}`}</p>
       <p class="sub">Blocks proposed are counted over the latest {grouped(window)} blocks.</p>
     </div>
 

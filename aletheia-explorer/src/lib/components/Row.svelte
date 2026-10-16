@@ -37,10 +37,17 @@
     flex: none;
     font-size: 0.625rem;
     font-weight: 800;
-    color: var(--brand-gold-bright);
-    border: 1px solid rgb(196 154 78 / 0.6);
+    color: var(--text-faint);
+    border: 1px solid rgb(255 255 255 / 0.22);
     border-radius: 50%;
     cursor: help;
+    transition:
+      color var(--quick) var(--ease),
+      border-color var(--quick) var(--ease);
+  }
+  .hint:hover {
+    color: var(--brand-gold-bright);
+    border-color: rgb(196 154 78 / 0.7);
   }
   dd {
     margin: 0;

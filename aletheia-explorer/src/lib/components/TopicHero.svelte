@@ -1,7 +1,6 @@
 <script lang="ts">
   import type { IconName } from "./Icon.svelte";
   import Icon from "./Icon.svelte";
-  import Star from "./Star.svelte";
 
   // The opening of an explanatory page: eyebrow, title, lede, and three key facts.
   let {
@@ -14,7 +13,7 @@
 
 <section class="hero container">
   <div class="words">
-    <p class="eyebrow"><Star size={11} hole="var(--bg)" /> {eyebrow}</p>
+    <p class="eyebrow">{eyebrow}</p>
     <h1>{title}</h1>
     <p class="lede">{lede}</p>
   </div>
@@ -43,7 +42,6 @@
   .eyebrow {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
     margin-bottom: 0.8rem;
     font-size: var(--fs-2xs);
     font-weight: 800;

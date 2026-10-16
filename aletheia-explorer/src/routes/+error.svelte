@@ -1,7 +1,6 @@
 <script lang="ts">
   import { page } from "$app/state";
   import SearchBox from "$lib/components/SearchBox.svelte";
-  import Star from "$lib/components/Star.svelte";
   import { useLive } from "$lib/context";
   import { grouped } from "$lib/format/display";
 
@@ -17,7 +16,7 @@
 <section class="container wrap">
   <article class="panel card">
     <p class="code num">{status}</p>
-    <p class="eyebrow"><Star size={11} hole="var(--surface)" /> {status === 404 ? "Not in the ledger" : "Unavailable"}</p>
+    <p class="eyebrow">{status === 404 ? "Not in the ledger" : "Unavailable"}</p>
     <h1>{title}</h1>
     {#if page.error?.hint}<p class="hint">{page.error.hint}</p>{/if}
     {#if live?.stats}
@@ -51,7 +50,6 @@
   .eyebrow {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
     margin-bottom: 0.8rem;
     font-size: var(--fs-2xs);
     font-weight: 800;

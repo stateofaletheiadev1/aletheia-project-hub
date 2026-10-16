@@ -57,7 +57,7 @@
 </svelte:head>
 
 <section class="hero container">
-  <p class="eyebrow"><Star size={11} hole="var(--bg)" /> Protocol resources</p>
+  <p class="eyebrow">Protocol resources</p>
   <h1>Security Policy</h1>
   <p class="lede">
     Aletheia StableChain carries the legal tender of the Sovereign Covenant State. If you find a weakness in the chain, its
@@ -160,7 +160,6 @@
   .eyebrow {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
     margin-bottom: 0.8rem;
     font-size: var(--fs-2xs);
     font-weight: 800;

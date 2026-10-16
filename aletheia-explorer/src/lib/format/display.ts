@@ -6,11 +6,16 @@ const DECIMALS: Record<string, number> = { AEY: 18, ALnT: 3 };
 
 /** "38,673.05" for AEY (cents), "1,500.000" for ALnT; the exact value goes to `title`. */
 export function amountText(units: string, asset: string, locale = "en-GB"): { text: string; exact: string } {
+  const parts = amountParts(units, asset, locale);
+  return { text: parts.whole + parts.fraction, exact: parts.exact };
+}
+
+/** The same figure split for typesetting: whole units, then the fraction with its separator. */
+export function amountParts(units: string, asset: string, locale = "en-GB"): { whole: string; fraction: string; exact: string } {
   const decimals = DECIMALS[asset] ?? 0;
   const display = asset === "AEY" ? 2 : decimals;
   const parts = splitAmount(units, decimals, display, locale);
-  const text = parts.fraction === "" ? parts.whole : `${parts.whole}${parts.decimalSeparator}${parts.fraction}`;
-  return { text, exact: parts.exact };
+  return { whole: parts.whole, fraction: parts.fraction === "" ? "" : parts.decimalSeparator + parts.fraction, exact: parts.exact };
 }
 
 /** Large figures as "8.00 M" for tiles; exact value elsewhere. */

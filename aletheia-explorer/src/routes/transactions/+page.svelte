@@ -1,12 +1,14 @@
 <script lang="ts">
+  import Ident from "$lib/components/Ident.svelte";
+  import Blazon from "$lib/components/Blazon.svelte";
+  import Amount from "$lib/components/Amount.svelte";
   import PageHead from "$lib/components/PageHead.svelte";
   import ScanPager from "$lib/components/ScanPager.svelte";
   import StatTile from "$lib/components/StatTile.svelte";
-  import Star from "$lib/components/Star.svelte";
   import Icon from "$lib/components/Icon.svelte";
   import CopyButton from "$lib/components/CopyButton.svelte";
   import { useLive } from "$lib/context";
-  import { age, amountText, grouped, short, stamp, typeLabel } from "$lib/format/display";
+  import { age, amountText, grouped, stamp, typeLabel } from "$lib/format/display";
 
   let { data } = $props();
   const live = useLive();
@@ -24,7 +26,6 @@
   const success = $derived(recent.length === 0 ? "—" : `${Math.round((100 * recent.filter((t) => t.ok).length) / recent.length)}%`);
 
   let showDate = $state(false);
-  const value = (tx: (typeof txs)[number]) => (tx.amount !== null && tx.asset !== null ? amountText(tx.amount, tx.asset) : null);
 </script>
 
 <svelte:head><title>Transactions · Aletheia Explorer</title></svelte:head>
@@ -43,7 +44,6 @@
     <div class="bar">
       <div>
         <p class="total">
-          <Star size={12} hole="var(--surface)" />
           {#if data.live}More than {grouped(total)} transactions found{:else}Transactions in blocks {grouped(txs.at(-1)?.height ?? 0)} – {grouped(txs[0]?.height ?? 0)}{/if}
         </p>
         <p class="sub">(Showing the {data.live ? "latest" : ""} {grouped(txs.length)} records)</p>
@@ -77,13 +77,12 @@
         </thead>
         <tbody>
           {#each txs as tx (tx.txId)}
-            {@const v = value(tx)}
             {@const fee = amountText(tx.fee, tx.feeAsset)}
             <tr class:fresh={data.live && live.fresh.has(tx.txId)}>
               <td>
                 <span class="hash-cell">
                   {#if !tx.ok}<span class="failed" title="Failed"><Icon name="alert" size={13} /></span>{/if}
-                  <a class="cell-link mono" href="/tx/{encodeURIComponent(tx.txId)}" title={tx.txId}>{short(tx.txId, 12, 6)}</a>
+                  <a class="cell-link" href="/tx/{encodeURIComponent(tx.txId)}"><Ident value={tx.txId} /></a>
                   <CopyButton value={tx.txId} label="Copy transaction ID" />
                 </span>
               </td>
@@ -91,17 +90,17 @@
               <td><a class="cell-link num" href="/blocks/{tx.height}">{grouped(tx.height)}</a></td>
               <td class="faint num">{showDate ? stamp(tx.timeMs) : age(tx.timeMs, now)}</td>
               <td>
-                <a class="cell-link mono" href="/address/{encodeURIComponent(tx.sender)}" title={tx.sender}>{short(tx.sender, 8, 5)}</a>
+                <a class="cell-link party" href="/address/{encodeURIComponent(tx.sender)}"><Blazon address={tx.sender} size={14} /><Ident value={tx.sender} head={4} tail={4} /></a>
               </td>
               <td class="arrow-col"><span class="arrow" aria-label="to"><Icon name="arrowRight" size={12} stroke={2.2} /></span></td>
               <td>
                 {#if tx.recipient}
-                  <a class="cell-link mono" href="/address/{encodeURIComponent(tx.recipient)}" title={tx.recipient}>{short(tx.recipient, 8, 5)}</a>
+                  <a class="cell-link party" href="/address/{encodeURIComponent(tx.recipient)}"><Blazon address={tx.recipient} size={14} /><Ident value={tx.recipient} head={4} tail={4} /></a>
                   {#if tx.legs > 1}<span class="faint"> +{tx.legs - 1}</span>{/if}
                 {:else}<span class="faint">—</span>{/if}
               </td>
               <td class="r num value">
-                {#if v}<span title="{v.exact} {tx.asset}">{v.text}</span> <span class="asset">{tx.asset}</span>{:else}<span class="faint">0</span>{/if}
+                {#if tx.amount !== null && tx.asset !== null}<Amount units={tx.amount} asset={tx.asset} />{:else}<span class="faint">0</span>{/if}
               </td>
               <td class="r num faint" title="{fee.exact} {tx.feeAsset}">{fee.text} {tx.feeAsset}</td>
             </tr>
@@ -114,7 +113,7 @@
 
     <div class="foot">
       {#if data.reachedGenesis}
-        <span class="genesis"><Star size={11} hole="var(--surface)" /> The beginning of the ledger: the genesis block.</span>
+        <span class="genesis">The beginning of the ledger: the genesis block.</span>
       {:else}
         <span class="faint">Show 25 records per page</span>
       {/if}
@@ -193,11 +192,6 @@
   }
   .value {
     font-weight: 700;
-  }
-  .asset {
-    font-size: var(--fs-2xs);
-    font-weight: 800;
-    color: var(--gold);
   }
   .genesis {
     display: inline-flex;

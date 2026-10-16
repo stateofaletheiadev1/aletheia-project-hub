@@ -1,6 +1,5 @@
 <script lang="ts">
   import type { Snippet } from "svelte";
-  import Star from "./Star.svelte";
   import SearchBox from "./SearchBox.svelte";
 
   let { eyebrow, title, lede, aside }: { eyebrow: string; title: string; lede?: string; aside?: Snippet } = $props();
@@ -8,7 +7,7 @@
 
 <section class="head container">
   <div>
-    <p class="eyebrow"><Star size={11} hole="var(--bg)" /> {eyebrow}</p>
+    <p class="eyebrow">{eyebrow}</p>
     <h1>{title}</h1>
     {#if lede}<p class="lede">{lede}</p>{/if}
   </div>
@@ -27,7 +26,6 @@
   .eyebrow {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
     margin-bottom: 0.8rem;
     font-size: var(--fs-2xs);
     font-weight: 800;

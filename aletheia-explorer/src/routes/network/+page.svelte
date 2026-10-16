@@ -4,7 +4,6 @@
   import BarChart from "$lib/components/BarChart.svelte";
   import PageHead from "$lib/components/PageHead.svelte";
   import StatTile from "$lib/components/StatTile.svelte";
-  import Star from "$lib/components/Star.svelte";
   import { useLive } from "$lib/context";
   import { grouped } from "$lib/format/display";
   import type { Minute } from "$lib/server/follower";
@@ -79,7 +78,7 @@
 <section class="container grid">
   <article class="panel chart-panel wide">
     <header>
-      <h2><Star size={14} hole="var(--surface)" /> Transactions per minute</h2>
+      <h2>Transactions per minute</h2>
       <span class="meta">Last 60 minutes of protocol time · UTC</span>
     </header>
     <BarChart caption="Transactions settled in each minute" unit="transactions" bars={lastHour.map((m) => ({ label: hhmm(m.t), value: m.txs, title: `${hhmm(m.t)} UTC` }))} />
@@ -87,7 +86,7 @@
 
   <article class="panel chart-panel">
     <header>
-      <h2><Star size={14} hole="var(--surface)" /> Transactions per hour</h2>
+      <h2>Transactions per hour</h2>
       <span class="meta">Last 24 hours</span>
     </header>
     <BarChart caption="Transactions settled in each hour" unit="transactions" bars={byHour.map((h) => ({ label: hhmm(h.t), value: h.txs, title: `${hhmm(h.t)} UTC` }))} height={180} />
@@ -95,7 +94,7 @@
 
   <article class="panel chart-panel">
     <header>
-      <h2><Star size={14} hole="var(--surface)" /> Blocks per minute</h2>
+      <h2>Blocks per minute</h2>
       <span class="meta">120 is a full minute of 500 ms slots</span>
     </header>
     <BarChart caption="Blocks finalized in each minute" unit="blocks" bars={lastHour.map((m) => ({ label: hhmm(m.t), value: m.blocks, title: `${hhmm(m.t)} UTC` }))} height={180} />
@@ -103,7 +102,7 @@
 
   <article class="panel chart-panel wide">
     <header>
-      <h2><Star size={14} hole="var(--surface)" /> Execution units per minute</h2>
+      <h2>Execution units per minute</h2>
       <span class="meta">The work the chain did; a transfer uses 2,000 units</span>
     </header>
     <BarChart caption="Execution units used in each minute" unit="EU" bars={lastHour.map((m) => ({ label: hhmm(m.t), value: m.eu, title: `${hhmm(m.t)} UTC` }))} />
