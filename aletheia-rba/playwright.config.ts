@@ -8,7 +8,8 @@ export default defineConfig({
 	// Each worker runs a full browser; more than four starve the preview server on a laptop.
 	workers: process.env.CI ? 2 : 4,
 	forbidOnly: !!process.env.CI,
-	retries: process.env.CI ? 1 : 0,
+	// One retry: a test that passes on retry is reported as flaky, separately from failures.
+	retries: 1,
 	reporter: process.env.CI ? [['list'], ['html', { open: 'never' }]] : 'list',
 	use: {
 		baseURL: `http://127.0.0.1:${PORT}`,
