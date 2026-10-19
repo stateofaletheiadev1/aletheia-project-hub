@@ -1,9 +1,12 @@
 import adapter from '@sveltejs/adapter-static';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
+import { mdsvex } from 'mdsvex';
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
-	preprocess: vitePreprocess(),
+	// Markdown is used for publications and news; frontmatter is validated in src/lib/content.
+	extensions: ['.svelte', '.md'],
+	preprocess: [vitePreprocess(), mdsvex({ extensions: ['.md'] })],
 	compilerOptions: {
 		runes: true
 	},
