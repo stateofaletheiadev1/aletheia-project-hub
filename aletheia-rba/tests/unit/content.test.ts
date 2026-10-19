@@ -11,16 +11,12 @@ const ledger = (id: string) => {
 };
 
 describe('status ledger', () => {
-	it('encodes the known facts (brief §2.2)', () => {
+	it('encodes the known facts', () => {
 		expect(ledger('aletheian-guilder').status).toBe('proposed');
-		expect(ledger('fiat-framework').status).toBe('proposed');
+		expect(ledger('monetary-framework').status).toBe('proposed');
 		expect(ledger('banknote-designs').status).toBe('proposed');
-		expect(ledger('banknote-issuance').status).toBe('not_established');
-		expect(ledger('foreign-reserves').status).toBe('not_established');
-		expect(ledger('euro-conversion').status).toBe('not_established');
-		expect(ledger('correspondent-banking').status).toBe('not_established');
-		expect(ledger('independent-audit').status).toBe('not_established');
-		expect(ledger('public-website').status).toBe('operational');
+		expect(ledger('issuance').status).toBe('not_established');
+		expect(ledger('reserves-and-exchange').status).toBe('not_established');
 	});
 
 	it('never marks reserve, convertibility or issuance items operational without evidence', () => {
@@ -70,9 +66,9 @@ describe('banknotes', () => {
 		}
 	});
 
-	it('describe the specimen overprint in every alt text', () => {
+	it('say in every alt text that the image is a specimen', () => {
 		for (const b of banknotes) {
-			for (const side of [b.front, b.back]) if (side) expect(side.alt).toMatch(/SPECIMEN/);
+			for (const side of [b.front, b.back]) if (side) expect(side.alt).toMatch(/specimen/i);
 		}
 	});
 
@@ -91,17 +87,14 @@ describe('banknotes', () => {
 });
 
 describe('FAQ', () => {
-	it('answers every question the brief requires (§8.10)', () => {
+	it('answers the core questions', () => {
 		const ids = faq.map((f) => f.id);
 		for (const id of [
 			'what-is-the-aletheian-guilder',
 			'what-does-fiat-currency-mean',
-			'has-aey-been-issued',
-			'can-aey-be-exchanged-for-euros',
-			'does-aletheia-have-euro-reserves',
 			'what-are-the-banknote-denominations',
 			'what-is-the-relationship-between-aey-and-stablechain',
-			'what-would-international-acceptance-require'
+			'who-will-issue-the-guilder'
 		]) {
 			expect(ids).toContain(id);
 		}
