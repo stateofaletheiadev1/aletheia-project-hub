@@ -4,14 +4,12 @@ Every change below is a single-file edit. All content is validated when the site
 
 Run `pnpm verify` before publishing. It includes the forbidden-claims check.
 
-## Copy rules (brief §2.4)
+## Copy rules
 
-- Say what is intended, not what exists: "The Bank intends to…", "is proposed to…", "has not yet been established", "will be published when…".
-- Never invent policy targets, inflation targets, policy rates, issuance ceilings, money supply figures, exchange rates or reserve figures.
-- Where a policy is undecided, describe the **process** that will decide it (research, consultation, adoption, publication, review), never the outcome.
-- Aletheia holds no euro reserves; the Bank holds no foreign reserves; AEY has not been issued and cannot be converted. Copy must never suggest otherwise.
-- Name the institution "Reserve Bank of Aletheia" and the State "Sovereign Covenant State of Aletheia". Do not call Aletheia a startup, venture, technology company or republic.
-- No hype ("revolutionary", "web3" and the like).
+- **Say less.** One short, true sentence is better than a detailed list. Do not list what is missing, what has not been decided, or internal arrangements.
+- Describe intentions as intentions: "is proposed", "is intended", "will be published".
+- Never state figures, targets, rates or arrangements that do not exist.
+- Name the institution "Reserve Bank of Aletheia" and the State "Sovereign Covenant State of Aletheia". No hype.
 
 The claims linter (`pnpm lint:claims`) rejects the phrases listed in `scripts/claims-rules.ts`. If a sentence must use one to **negate** it (for example, an FAQ answer saying what AEY is not), add a reason on the same line: `// claims-lint-allow: negated FAQ answer`. For FAQ entries, also set `claimsAllow` so the rendered page carries the exemption into the built HTML.
 
@@ -21,12 +19,12 @@ File: `src/lib/content/status-ledger.ts`.
 
 ```ts
 {
-	id: 'foreign-reserves',
+	id: 'reserves-and-exchange',
 	area: 'reserves',
-	capability: 'Foreign and euro reserves',
+	capability: 'Reserves and exchange',
 	status: 'not_established', // proposed | adopted | in_implementation | operational | not_established
 	statusAsOf: '2026-10-19',  // the date the status was confirmed
-	explanation: 'Aletheia holds no euro reserves, and the Bank holds no foreign reserves.',
+	explanation: 'To be set out in published policy.', // one short line
 	link: '/reserves'
 }
 ```
@@ -72,7 +70,7 @@ Body in Markdown.
 
 ## Edit a banknote description
 
-File: `src/lib/content/banknotes.ts`. Describe only what is visible in the artwork. Alt text must be at least 20 characters and mention the SPECIMEN overprint. Security features stay `concept_only` until they are specified (`specified`) or exist on a printed note (`physically_implemented`), and only with a source.
+File: `src/lib/content/banknotes.ts`. Describe only what is visible in the artwork. Keep descriptions to one short line per side. Alt text must be at least 20 characters and say the image is a specimen.
 
 To change the artwork itself, replace the source files in `currency-proto/new curr/` and run `pnpm exec tsx scripts/specimen.ts`. Never place artwork without the overprint in `src/lib/assets/banknotes/`.
 
