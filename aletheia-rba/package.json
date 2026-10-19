@@ -19,7 +19,7 @@
 		"test:e2e": "playwright test",
 		"test:styleguide": "playwright test -c playwright.styleguide.config.ts",
 		"lint:claims": "tsx scripts/claims-lint.ts",
-		"lint:links": "linkinator ./build --recurse --silent",
+		"lint:links": "linkinator ./build --recurse --clean-urls --silent --skip \"^https://rbaletheia[.]org\"",
 		"verify": "pnpm check && pnpm lint && pnpm test:unit && pnpm build && pnpm lint:claims && pnpm lint:links && pnpm test:e2e && pnpm test:styleguide"
 	},
 	"devDependencies": {

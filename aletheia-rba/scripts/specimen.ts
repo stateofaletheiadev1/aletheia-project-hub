@@ -1,7 +1,6 @@
 /**
- * Builds the published banknote images: the State's revised artwork with a SPECIMEN overprint
- * baked into the pixels (decision Q4, docs/OPEN_QUESTIONS.md). The artwork carries design text
- * that is not true today, so no un-overprinted copy is ever published.
+ * Builds the published banknote images: the State's artwork with a SPECIMEN overprint baked into
+ * the pixels. Published banknote images always carry the overprint.
  *
  * Usage: tsx scripts/specimen.ts [source-dir]
  * Default source: ../currency-proto/new curr (files named "<d> AEY <Front|Back>.jpg").

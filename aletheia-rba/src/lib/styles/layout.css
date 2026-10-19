@@ -100,3 +100,29 @@
 	white-space: nowrap !important;
 	border: 0 !important;
 }
+
+/* Masthead geometry: a utility strip above the main bar from lg up. */
+:root {
+	--bar-h: 4rem;
+	--utility-h: 0rem;
+	--masthead-h: calc(var(--bar-h) + var(--utility-h));
+	scroll-padding-top: calc(var(--bar-h) + var(--space-5));
+}
+
+@media (min-width: 1024px) {
+	:root {
+		--bar-h: 4.5rem;
+		--utility-h: 2.25rem;
+	}
+}
+
+/* Progressive enhancement switches; html.no-js becomes html.js before first paint. */
+.no-js .js-only,
+.js .nojs-only {
+	display: none !important;
+}
+
+/* No page scroll behind an open modal; scrollbar-gutter keeps the layout still. */
+:root:has(dialog[open]) {
+	overflow: hidden;
+}

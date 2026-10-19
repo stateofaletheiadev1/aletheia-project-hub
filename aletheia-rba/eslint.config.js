@@ -26,6 +26,11 @@ export default ts.config(
 		}
 	},
 	{
+		// Playwright hooks take their fixtures as a destructured object, even when it is empty.
+		files: ['tests/e2e/**/*.ts', 'tests/styleguide/**/*.ts'],
+		rules: { 'no-empty-pattern': 'off' }
+	},
+	{
 		files: ['**/*.svelte', '**/*.svelte.ts', '**/*.svelte.js'],
 		languageOptions: {
 			parserOptions: {

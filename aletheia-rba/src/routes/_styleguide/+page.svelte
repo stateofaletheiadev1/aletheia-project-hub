@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { reveal } from '$lib/actions/reveal';
+	import BankSeal from '$lib/components/brand/BankSeal.svelte';
 	import Eyebrow from '$lib/components/editorial/Eyebrow.svelte';
 	import Figure from '$lib/components/editorial/Figure.svelte';
 	import Prose from '$lib/components/editorial/Prose.svelte';
@@ -82,7 +83,7 @@
 </svelte:head>
 
 <main id="main">
-	<section class="surface-navy section--tight">
+	<section class="surface-navy section--tight sg-head">
 		<Container>
 			<Eyebrow folio="§ 00">Development only</Eyebrow>
 			<Heading level={1} size="display">Styleguide</Heading>
@@ -90,6 +91,28 @@
 				Tokens, type, primitives and motion for rbaletheia.org. This page is not built for
 				production.
 			</Text>
+		</Container>
+	</section>
+
+	<section class="section--tight surface-parchment">
+		<Container>
+			<SectionHeader folio="§ 00.1" eyebrow="Brand" title="The Bank's seal and mark" />
+			<div class="brand-row">
+				<BankSeal size={280} title="Seal of the Reserve Bank of Aletheia" />
+				<BankSeal variant="mark" size={120} />
+				<BankSeal variant="mark" size={48} />
+				<BankSeal variant="mark" size={32} />
+			</div>
+		</Container>
+	</section>
+	<section class="section--tight surface-navy">
+		<Container>
+			<div class="brand-row">
+				<BankSeal size={280} />
+				<BankSeal variant="mark" size={120} />
+				<BankSeal variant="mark" size={48} />
+				<BankSeal variant="mark" size={32} />
+			</div>
 		</Container>
 	</section>
 
@@ -294,6 +317,17 @@
 </main>
 
 <style>
+	.brand-row {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--space-7);
+	}
+
+	.sg-head {
+		padding-top: calc(var(--masthead-h) + var(--space-6));
+	}
+
 	.swatches {
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
