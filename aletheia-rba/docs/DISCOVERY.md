@@ -6,18 +6,18 @@ This report records what was found, not what is assumed. Where something could n
 
 ## 1. Repository audit
 
-| Item | Finding |
-|---|---|
-| Project folder | `aletheia-rba/` did **not** exist. Greenfield. Created in this phase with `docs/` only; the SvelteKit scaffold is Phase 1. |
-| Parent directory | `aletheia-project-hub`, an existing Git monorepo on `main` (clean at start; HEAD `59f7b33`). Per brief §0.0.4, commits go into this repository, scoped to `aletheia-rba/`. Remotes: `origin` pushes to GitHub (`stateofaletheiadev1/aletheia-project-hub`) and GitLab (`emeka.iwuagwu/aletheia-project-hub`). |
+| Item                         | Finding                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Project folder               | `aletheia-rba/` did **not** exist. Greenfield. Created in this phase with `docs/` only; the SvelteKit scaffold is Phase 1.                                                                                                                                                                                                                                                                                               |
+| Parent directory             | `aletheia-project-hub`, an existing Git monorepo on `main` (clean at start; HEAD `59f7b33`). Per brief §0.0.4, commits go into this repository, scoped to `aletheia-rba/`. Remotes: `origin` pushes to GitHub (`stateofaletheiadev1/aletheia-project-hub`) and GitLab (`emeka.iwuagwu/aletheia-project-hub`).                                                                                                            |
 | Sibling projects (read-only) | `aletheia-web` (stateofaletheia.org; Next.js 16, Tailwind, npm), `aletheia-gov` (aletheiagov.org; Next.js 16.4, npm, `vercel.json`), `aletheia-ops` (Next.js 16.4, npm), `aletheia-explorer` (SvelteKit 2.70.3, Svelte 5.57.2, Vite 7.3.7, TypeScript 5.9.3, npm, `adapter-node`, `@fontsource-variable/manrope` 5.3.0), `aletheia-node` (StableChain, Rust), `aletheia-db` (Rust), `currency-proto` (banknote artwork). |
-| Installed tools | Node v24.11.1, npm, pnpm 11.1.3, Python 3.14. No ImageMagick. |
-| Package manager | No lockfile exists in `aletheia-rba/`, so per brief §3.1 the default is **pnpm**. Note: every sibling uses npm. See OPEN_QUESTIONS Q11. |
-| Styling in siblings | aletheia-web: Tailwind with the same national palette as the brief (navy `#15294A`, parchment `#F4EEDF`, gold `#C49A4E`, laurel `#2F6B4F`, gold-ink `#A87D34`). aletheia-explorer: vanilla CSS. The brief mandates vanilla CSS; nothing to inherit or override. |
-| Manrope | Used across all sibling sites. The explorer self-hosts `@fontsource-variable/manrope` 5.3.0, the same approach the brief specifies. |
-| Deployment of siblings | Vercel via the Vercel CLI (`vercel deploy --prod --yes` in the site folder); a git push alone does not deploy. Hosting for `rbaletheia.org` is not decided (OPEN_QUESTIONS Q1). |
-| CI in parent repo | `.gitlab-ci.yml` at the root (GitLab CI). There is no `.github/workflows/`. See OPEN_QUESTIONS Q12. |
-| Host disk | C: is 93% full (17 GB free of 236 GB). The `node_modules` footprint should be kept modest; pnpm's content-addressed store helps. |
+| Installed tools              | Node v24.11.1, npm, pnpm 11.1.3, Python 3.14. No ImageMagick.                                                                                                                                                                                                                                                                                                                                                            |
+| Package manager              | No lockfile exists in `aletheia-rba/`, so per brief §3.1 the default is **pnpm**. Note: every sibling uses npm. See OPEN_QUESTIONS Q11.                                                                                                                                                                                                                                                                                  |
+| Styling in siblings          | aletheia-web: Tailwind with the same national palette as the brief (navy `#15294A`, parchment `#F4EEDF`, gold `#C49A4E`, laurel `#2F6B4F`, gold-ink `#A87D34`). aletheia-explorer: vanilla CSS. The brief mandates vanilla CSS; nothing to inherit or override.                                                                                                                                                          |
+| Manrope                      | Used across all sibling sites. The explorer self-hosts `@fontsource-variable/manrope` 5.3.0, the same approach the brief specifies.                                                                                                                                                                                                                                                                                      |
+| Deployment of siblings       | Vercel via the Vercel CLI (`vercel deploy --prod --yes` in the site folder); a git push alone does not deploy. Hosting for `rbaletheia.org` is not decided (OPEN_QUESTIONS Q1).                                                                                                                                                                                                                                          |
+| CI in parent repo            | `.gitlab-ci.yml` at the root (GitLab CI). There is no `.github/workflows/`. See OPEN_QUESTIONS Q12.                                                                                                                                                                                                                                                                                                                      |
+| Host disk                    | C: is 93% full (17 GB free of 236 GB). The `node_modules` footprint should be kept modest; pnpm's content-addressed store helps.                                                                                                                                                                                                                                                                                         |
 
 ## 2. Reference site study
 
@@ -82,23 +82,23 @@ The brief's §2.2 truth model and the reference material disagree. The brief gov
    - **100 AEY front:** "ISSUED AT NOVALIS – NORTH SEA CROWN TERRITORY · MMXXV ANNO COVENANTI II" and a signature "M. E. Valerius, Covenant Secretary".
    - **5 AEY back** reads "500 ms FINALITY", and the **10 AEY back** carries a StableChain ledger motif. The **20 AEY back** shows an eagle seal and an eye-in-triangle emblem.
    - Not yet inspected: the 5, 10 and 20 fronts, and the 1 front, at full resolution.
-   Showing these images unmodified would put "100% reserve backed" on a site whose first rule is that Aletheia holds no reserves. The text is inside the image, so the claims linter cannot catch it. OPEN_QUESTIONS Q4.
+     Showing these images unmodified would put "100% reserve backed" on a site whose first rule is that Aletheia holds no reserves. The text is inside the image, so the claims linter cannot catch it. OPEN_QUESTIONS Q4.
 4. **stateofaletheia.org itself** makes claims that the brief's linter forbids ("1 AEY = 1.00 EUR", "100% Reserve Backed", "legal tender", "redeemable"). Out of scope to change here, but this site will link to it, and readers will compare the two. OPEN_QUESTIONS Q5.
 5. **"Republic".** stateofaletheia.org calls Aletheia "a maritime republic". The State's name is the Sovereign Covenant State of Aletheia. This site will use the full name and avoid "republic".
 
 ## 4. Truth model as encoded for launch (unless decisions above change it)
 
-| Subject | Status | Basis |
-|---|---|---|
-| AEY (Aletheian Guilder) | `proposed` | Brief §2.2; aletheiagov.org |
-| Fiat monetary framework | `proposed` | Brief §2.2; no adoption document found |
-| Banknote designs 1, 5, 10, 20, 100 AEY | `proposed` | Artwork exists in `currency-proto/` |
-| Banknote issuance | `not_established` | Brief §2.2; aletheiagov.org "No reserves, pegs, payment rails or banking relationships are operational" |
-| StableChain | `in_implementation` | aletheiagov.org "In development"; node software under construction in `aletheia-node/`. Its role for AEY: "the settlement ledger for the Aletheian Guilder" (aletheiagov.org), stated as intended. |
-| Euro and foreign reserves | `not_established` | Brief §2.2; aletheiagov.org |
-| Euro convertibility / redemption | `not_established` | Brief §2.2 |
-| Correspondent banking, licences, audits | `not_established` | Brief §2.2; aletheiagov.org |
-| Governance, leadership, founding date | not populated | No sourced appointments to the bank |
+| Subject                                 | Status              | Basis                                                                                                                                                                                              |
+| --------------------------------------- | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| AEY (Aletheian Guilder)                 | `proposed`          | Brief §2.2; aletheiagov.org                                                                                                                                                                        |
+| Fiat monetary framework                 | `proposed`          | Brief §2.2; no adoption document found                                                                                                                                                             |
+| Banknote designs 1, 5, 10, 20, 100 AEY  | `proposed`          | Artwork exists in `currency-proto/`                                                                                                                                                                |
+| Banknote issuance                       | `not_established`   | Brief §2.2; aletheiagov.org "No reserves, pegs, payment rails or banking relationships are operational"                                                                                            |
+| StableChain                             | `in_implementation` | aletheiagov.org "In development"; node software under construction in `aletheia-node/`. Its role for AEY: "the settlement ledger for the Aletheian Guilder" (aletheiagov.org), stated as intended. |
+| Euro and foreign reserves               | `not_established`   | Brief §2.2; aletheiagov.org                                                                                                                                                                        |
+| Euro convertibility / redemption        | `not_established`   | Brief §2.2                                                                                                                                                                                         |
+| Correspondent banking, licences, audits | `not_established`   | Brief §2.2; aletheiagov.org                                                                                                                                                                        |
+| Governance, leadership, founding date   | not populated       | No sourced appointments to the bank                                                                                                                                                                |
 
 ## 5. Gaps in the brief itself
 
