@@ -1,0 +1,10 @@
+node_modules/
+/build/
+/.svelte-kit/
+/test-results/
+/playwright-report/
+/.lighthouseci/
+.env
+.env.*
+!.env.example
+vite.config.ts.timestamp-*
