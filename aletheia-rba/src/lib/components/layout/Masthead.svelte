@@ -4,6 +4,7 @@
 	import { isGroup, PRIMARY_NAV, SITE, UTILITY_NAV } from '$lib/content/site';
 	import BankSeal from '../brand/BankSeal.svelte';
 	import Icon from '../primitives/Icon.svelte';
+	import LanguageSwitcher from './LanguageSwitcher.svelte';
 	import MobileNav from './MobileNav.svelte';
 
 	/**
@@ -68,6 +69,7 @@
 			<ul role="list" class="utility__list">
 				<li><a href="/currency" aria-current={current('/currency')}>Aletheian Guilder · AEY</a></li>
 			</ul>
+			<LanguageSwitcher />
 			<ul role="list" class="utility__list">
 				{#each UTILITY_NAV as link (link.href)}
 					<li><a href={link.href} aria-current={current(link.href)}>{link.label}</a></li>

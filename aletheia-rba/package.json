@@ -10,7 +10,7 @@
 	"packageManager": "pnpm@11.1.3",
 	"scripts": {
 		"dev": "vite dev",
-		"build": "vite build",
+		"build": "vite build && tsx scripts/search-index.ts",
 		"preview": "vite preview",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --fail-on-warnings",
 		"lint": "eslint . && prettier --check .",
@@ -19,7 +19,7 @@
 		"test:e2e": "playwright test",
 		"test:styleguide": "playwright test -c playwright.styleguide.config.ts",
 		"lint:claims": "tsx scripts/claims-lint.ts",
-		"lint:links": "linkinator ./build --recurse --clean-urls --silent --skip \"^https://rbaletheia[.]org\"",
+		"lint:links": "tsx scripts/check-links.ts",
 		"verify": "pnpm check && pnpm lint && pnpm test:unit && pnpm build && pnpm lint:claims && pnpm lint:links && pnpm test:e2e && pnpm test:styleguide"
 	},
 	"devDependencies": {

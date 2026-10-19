@@ -33,7 +33,14 @@ export const PRIMARY_NAV: NavItem[] = [
 		label: 'About the Bank',
 		children: [
 			{ href: '/about', label: 'About the Bank', description: 'Purpose, mandate and principles' },
-			{ href: '/explained', label: 'The Bank explained', description: 'Central banking in brief' }
+			{ href: '/about/governance', label: 'Governance', description: 'Board, committees and law' },
+			{
+				href: '/about/international',
+				label: 'International cooperation',
+				description: 'Working with other institutions'
+			},
+			{ href: '/explained', label: 'The Bank explained', description: 'Central banking in brief' },
+			{ href: '/about/careers', label: 'Careers', description: 'Working at the Bank' }
 		]
 	},
 	{ href: '/monetary-policy', label: 'Monetary Policy' },
@@ -53,6 +60,11 @@ export const PRIMARY_NAV: NavItem[] = [
 		label: 'The Guilder',
 		children: [
 			{ href: '/currency', label: 'Currency', description: 'The Aletheian Guilder' },
+			{
+				href: '/digital-guilder',
+				label: 'Digital Guilder',
+				description: 'The Guilder in digital form'
+			},
 			{ href: '/banknotes', label: 'Banknotes', description: 'The banknote series' },
 			{ href: '/issuance', label: 'Issuance', description: 'Issued on the record' }
 		]
@@ -62,12 +74,14 @@ export const PRIMARY_NAV: NavItem[] = [
 		label: 'News & Publications',
 		children: [
 			{ href: '/news', label: 'News', description: 'Announcements and notices' },
-			{ href: '/publications', label: 'Publications', description: 'Documents of the Bank' }
+			{ href: '/publications', label: 'Publications', description: 'Documents of the Bank' },
+			{ href: '/research', label: 'Research', description: 'The Bank’s research agenda' }
 		]
 	}
 ];
 
 export const UTILITY_NAV: NavLink[] = [
+	{ href: '/search', label: 'Search' },
 	{ href: '/faq', label: 'FAQ' },
 	{ href: '/fraud-warning', label: 'Fraud warning' },
 	{ href: '/contact', label: 'Contact' }
@@ -78,6 +92,8 @@ export const FOOTER_NAV: { heading: string; links: NavLink[] }[] = [
 		heading: 'The Bank',
 		links: [
 			{ href: '/about', label: 'About the Bank' },
+			{ href: '/about/governance', label: 'Governance' },
+			{ href: '/about/international', label: 'International cooperation' },
 			{ href: '/explained', label: 'The Bank explained' },
 			{ href: '/monetary-policy', label: 'Monetary policy' },
 			{ href: '/financial-stability', label: 'Financial stability' },
@@ -89,7 +105,9 @@ export const FOOTER_NAV: { heading: string; links: NavLink[] }[] = [
 		heading: 'The Guilder',
 		links: [
 			{ href: '/currency', label: 'The Aletheian Guilder' },
+			{ href: '/digital-guilder', label: 'Digital Guilder' },
 			{ href: '/banknotes', label: 'Banknotes' },
+			{ href: '/banknotes/reproduction', label: 'Using banknote images' },
 			{ href: '/issuance', label: 'Issuance' }
 		]
 	},
@@ -99,6 +117,9 @@ export const FOOTER_NAV: { heading: string; links: NavLink[] }[] = [
 			{ href: '/news', label: 'News' },
 			{ href: '/publications', label: 'Publications' },
 			{ href: '/statistics', label: 'Statistics' },
+			{ href: '/research', label: 'Research' },
+			{ href: '/about/careers', label: 'Careers' },
+			{ href: '/procurement', label: 'Procurement' },
 			{ href: '/faq', label: 'Questions and answers' },
 			{ href: '/fraud-warning', label: 'Fraud warning' },
 			{ href: '/contact', label: 'Contact' }
@@ -109,7 +130,10 @@ export const FOOTER_NAV: { heading: string; links: NavLink[] }[] = [
 export const LEGAL_NAV: NavLink[] = [
 	{ href: '/privacy', label: 'Privacy' },
 	{ href: '/terms', label: 'Copyright and disclaimer' },
-	{ href: '/accessibility', label: 'Accessibility' }
+	{ href: '/accessibility', label: 'Accessibility' },
+	{ href: '/access-to-information', label: 'Access to information' },
+	{ href: '/search', label: 'Search' },
+	{ href: '/sitemap', label: 'Sitemap' }
 ];
 
 export const CONTACT: Contact = {

@@ -81,3 +81,19 @@ File: `src/lib/content/faq.ts`. Each entry has an `id` (used as the page anchor,
 ## Contact details
 
 File: `src/lib/content/site.ts`, `CONTACT`. Leave `email` and `postal` as `null` until official channels exist; the contact page then shows that channels are being established.
+
+## Languages
+
+The site is published in English. The official languages of the State (Deutsch, Nederlands, Српски, Italiano) are listed in `src/lib/i18n/locales.ts` with `available: false`.
+
+To publish a language:
+
+1. Obtain an approved translation of the pages and content files.
+2. Add the translated pages under `src/routes/<code>/` (for example `/de/about`), mirroring the English routes.
+3. Set `available: true` for that language.
+
+The language switcher in the top bar appears automatically once two or more languages are available. Never publish machine translations without review.
+
+## Search
+
+Search is built from the published pages at every build (`scripts/search-index.ts`), so new pages are searchable without any extra step.

@@ -42,7 +42,7 @@ const config = {
 		},
 		prerender: {
 			// Not linked from any page, so named here for the crawler.
-			entries: ['*', '/sitemap.xml', '/robots.txt'],
+			entries: ['*', '/sitemap.xml', '/robots.txt', '/news.xml'],
 			handleHttpError: 'fail',
 			handleMissingId: 'fail',
 			// Detail routes for publications and news have no pages until a document is published.

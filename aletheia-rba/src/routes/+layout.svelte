@@ -4,6 +4,7 @@
 	import Footer from '$lib/components/layout/Footer.svelte';
 	import Masthead from '$lib/components/layout/Masthead.svelte';
 	import SkipLink from '$lib/components/layout/SkipLink.svelte';
+	import { news } from '$lib/content';
 	import '$lib/styles/global.css';
 
 	let { children }: { children: Snippet } = $props();
@@ -14,6 +15,9 @@
 	<link rel="icon" href="/rba-mark.svg" type="image/svg+xml" />
 	<link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
 	<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+	{#if news.length}
+		<link rel="alternate" type="application/rss+xml" title="News and notices" href="/news.xml" />
+	{/if}
 </svelte:head>
 
 <SkipLink />
