@@ -20,7 +20,9 @@ export default ts.config(
 		},
 		rules: {
 			// TypeScript checks undefined identifiers itself.
-			'no-undef': 'off'
+			'no-undef': 'off',
+			// The site is served from the domain root with no paths.base, so hrefs need no resolve().
+			'svelte/no-navigation-without-resolve': 'off'
 		}
 	},
 	{

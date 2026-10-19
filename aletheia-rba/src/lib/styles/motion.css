@@ -1,0 +1,65 @@
+/*
+ * Content is visible without JS and without motion. Elements are hidden before reveal only when
+ * JS is running (html.js) and the reader allows motion.
+ */
+[data-reveal] {
+	transition:
+		opacity var(--dur-3) var(--ease-out-quart),
+		transform var(--dur-3) var(--ease-out-quart);
+	transition-delay: calc(var(--i, 0) * var(--stagger));
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.js [data-reveal]:not(.is-revealed) {
+		opacity: 0;
+		transform: translateY(16px);
+	}
+
+	/* Line-drawn ornament: paths use pathLength="1" */
+	.js [data-draw] path {
+		stroke-dasharray: 1;
+		stroke-dashoffset: 1;
+		transition: stroke-dashoffset var(--dur-5) var(--ease-ceremonial);
+		transition-delay: calc(var(--layer, 0) * 140ms);
+	}
+
+	.js [data-draw].is-revealed path {
+		stroke-dashoffset: 0;
+	}
+}
+
+/* Hover: underline draws left to right, arrow nudges */
+.draw-underline {
+	text-decoration: none;
+	background-image: linear-gradient(currentColor, currentColor);
+	background-size: 0% 1px;
+	background-position: 0 100%;
+	background-repeat: no-repeat;
+	transition: background-size var(--dur-2) var(--ease-out-quart);
+	padding-bottom: 2px;
+}
+
+.draw-underline:hover,
+.draw-underline:focus-visible {
+	background-size: 100% 1px;
+}
+
+.nudge {
+	display: inline-block;
+	transition: transform var(--dur-2) var(--ease-out-quart);
+}
+
+a:hover .nudge,
+button:hover .nudge,
+a:focus-visible .nudge {
+	transform: translateX(3px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.nudge,
+	a:hover .nudge,
+	button:hover .nudge {
+		transform: none;
+		transition: none;
+	}
+}

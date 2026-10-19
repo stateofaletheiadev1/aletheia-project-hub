@@ -1,0 +1,102 @@
+.container {
+	width: 100%;
+	max-width: var(--page-max);
+	margin-inline: auto;
+	padding-inline: var(--gutter);
+}
+
+.section {
+	padding-block: var(--section-pad);
+}
+
+.section--tight {
+	padding-block: calc(var(--section-pad) * 0.6);
+}
+
+/* 12-column grid. Children use span-* classes; below md everything stacks. */
+.grid {
+	display: grid;
+	grid-template-columns: repeat(var(--columns), minmax(0, 1fr));
+	column-gap: var(--gutter);
+	row-gap: var(--space-6);
+}
+
+.grid > * {
+	grid-column: 1 / -1;
+}
+
+@media (min-width: 768px) {
+	.grid > .md\:span-4 {
+		grid-column: span 4;
+	}
+	.grid > .md\:span-5 {
+		grid-column: span 5;
+	}
+	.grid > .md\:span-6 {
+		grid-column: span 6;
+	}
+	.grid > .md\:span-7 {
+		grid-column: span 7;
+	}
+	.grid > .md\:span-8 {
+		grid-column: span 8;
+	}
+}
+
+@media (min-width: 1024px) {
+	.grid > .lg\:span-3 {
+		grid-column: span 3;
+	}
+	.grid > .lg\:span-4 {
+		grid-column: span 4;
+	}
+	.grid > .lg\:span-5 {
+		grid-column: span 5;
+	}
+	.grid > .lg\:span-6 {
+		grid-column: span 6;
+	}
+	.grid > .lg\:span-7 {
+		grid-column: span 7;
+	}
+	.grid > .lg\:span-8 {
+		grid-column: span 8;
+	}
+	.grid > .lg\:start-6 {
+		grid-column-start: 6;
+	}
+	.grid > .lg\:start-7 {
+		grid-column-start: 7;
+	}
+	.grid > .lg\:start-9 {
+		grid-column-start: 9;
+	}
+}
+
+.stack {
+	display: flex;
+	flex-direction: column;
+	gap: var(--stack-gap, var(--space-4));
+}
+
+/* Ledger: hairline-ruled rows instead of cards */
+.ledger {
+	border-top: var(--hairline) solid var(--line-strong);
+}
+
+.ledger > * {
+	border-bottom: var(--hairline) solid var(--line);
+	padding-block: var(--space-5);
+}
+
+.visually-hidden {
+	position: absolute !important;
+	width: 1px !important;
+	height: 1px !important;
+	padding: 0 !important;
+	margin: -1px !important;
+	overflow: hidden !important;
+	clip: rect(0, 0, 0, 0) !important;
+	white-space: nowrap !important;
+	border: 0 !important;
+}

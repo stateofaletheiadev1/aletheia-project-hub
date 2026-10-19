@@ -1,0 +1,43 @@
+@media print {
+	:root {
+		--fg: #000;
+		--fg-muted: #333;
+		--bg: #fff;
+	}
+
+	body,
+	.surface-navy,
+	.surface-parchment {
+		background: #fff !important;
+		color: #000 !important;
+	}
+
+	[data-print-hide],
+	nav,
+	dialog,
+	.skip-link {
+		display: none !important;
+	}
+
+	[data-reveal] {
+		opacity: 1 !important;
+		transform: none !important;
+	}
+
+	a[href^='http']::after {
+		content: ' (' attr(href) ')';
+		font-size: 0.85em;
+		word-break: break-all;
+	}
+
+	h1,
+	h2,
+	h3 {
+		break-after: avoid;
+	}
+
+	table,
+	figure {
+		break-inside: avoid;
+	}
+}

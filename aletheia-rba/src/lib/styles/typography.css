@@ -1,0 +1,188 @@
+/* Manrope, Latin and Latin Extended subsets only (SIL OFL 1.1, see assets/fonts/OFL.txt). */
+@font-face {
+	font-family: 'Manrope';
+	font-style: normal;
+	font-display: swap;
+	font-weight: 200 800;
+	src: url('../assets/fonts/manrope-latin-wght-normal.woff2') format('woff2');
+	unicode-range:
+		U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+		U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+	font-family: 'Manrope';
+	font-style: normal;
+	font-display: swap;
+	font-weight: 200 800;
+	src: url('../assets/fonts/manrope-latin-ext-wght-normal.woff2') format('woff2');
+	unicode-range:
+		U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+		U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F,
+		U+A720-A7FF;
+}
+
+/* Arial scaled to Manrope's metrics (2000 upm, ascender 2132, descender 600) so the swap does not shift layout. */
+@font-face {
+	font-family: 'Manrope Fallback';
+	src: local('Arial'), local('Helvetica Neue'), local('Helvetica');
+	size-adjust: 103.19%;
+	ascent-override: 103.31%;
+	descent-override: 29.07%;
+	line-gap-override: 0%;
+}
+
+body {
+	font-family: var(--font-sans);
+	font-size: var(--fs-body);
+	line-height: var(--lh-body);
+	font-weight: 400;
+	color: var(--fg);
+	background-color: var(--surface-page);
+	font-feature-settings: 'kern';
+	text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	font-weight: 500;
+	line-height: var(--lh-heading);
+	letter-spacing: var(--track-heading);
+	text-wrap: balance;
+}
+
+p,
+li,
+dd,
+figcaption,
+blockquote {
+	text-wrap: pretty;
+}
+
+/* Visual sizes, independent of heading level */
+.t-display {
+	font-size: var(--fs-display);
+	font-weight: 300;
+	line-height: var(--lh-tight);
+	letter-spacing: var(--track-display);
+}
+
+.t-h1 {
+	font-size: var(--fs-h1);
+	font-weight: 350;
+	line-height: 1.08;
+	letter-spacing: var(--track-display);
+}
+
+.t-h2 {
+	font-size: var(--fs-h2);
+	font-weight: 400;
+	line-height: var(--lh-heading);
+	letter-spacing: var(--track-heading);
+}
+
+.t-h3 {
+	font-size: var(--fs-h3);
+	font-weight: 500;
+	line-height: 1.25;
+	letter-spacing: -0.01em;
+}
+
+.t-h4 {
+	font-size: var(--fs-h4);
+	font-weight: 650;
+	line-height: 1.35;
+	letter-spacing: 0;
+}
+
+.t-lead {
+	font-size: var(--fs-lead);
+	line-height: 1.5;
+	font-weight: 400;
+	color: var(--fg);
+}
+
+.t-body {
+	font-size: var(--fs-body);
+	line-height: var(--lh-body);
+}
+
+.t-meta {
+	font-size: var(--fs-meta);
+	font-weight: 600;
+	letter-spacing: var(--track-meta);
+	text-transform: uppercase;
+	line-height: 1.4;
+	font-variant-numeric: tabular-nums lining-nums;
+}
+
+.t-fine {
+	font-size: var(--fs-fine);
+	line-height: 1.5;
+	color: var(--fg-muted);
+}
+
+.t-muted {
+	color: var(--fg-muted);
+}
+
+.t-accent {
+	color: var(--fg-accent);
+}
+
+/* Figures, tables, dates and denominations */
+.num,
+table,
+time,
+.t-figure {
+	font-variant-numeric: tabular-nums lining-nums;
+}
+
+.measure {
+	max-width: var(--measure);
+}
+
+/* Deliberate line breaks for large headings, from the md breakpoint up */
+br.bp-md {
+	display: none;
+}
+
+@media (min-width: 768px) {
+	br.bp-md {
+		display: inline;
+	}
+}
+
+/* Running text links */
+a {
+	color: inherit;
+	text-decoration-line: underline;
+	text-decoration-thickness: 1px;
+	text-underline-offset: 0.2em;
+	text-decoration-color: var(--line-strong);
+	transition: text-decoration-color var(--dur-1) var(--ease-out-quart);
+}
+
+a:hover {
+	text-decoration-color: currentColor;
+}
+
+:focus-visible {
+	outline: 2px solid var(--focus-ring);
+	outline-offset: 2px;
+	border-radius: var(--radius-control);
+}
+
+::selection {
+	background: color-mix(in oklab, var(--c-gold) 45%, transparent);
+	color: var(--c-ink);
+}
+
+strong,
+b {
+	font-weight: 650;
+}

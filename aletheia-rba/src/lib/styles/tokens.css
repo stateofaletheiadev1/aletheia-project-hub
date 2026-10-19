@@ -1,0 +1,145 @@
+/*
+ * Design tokens. Contrast pairs are checked by tests/unit/contrast.test.ts against this file.
+ */
+:root {
+	/* National palette */
+	--c-navy: #15294a; /* Covenant Navy */
+	--c-parchment: #f4eedf; /* Ledger Parchment */
+	--c-gold: #c49a4e; /* Seal Gold: on parchment, ornament only (2.25:1) */
+	--c-laurel: #2f6b4f; /* Laurel Green: never a "healthy" signal on financial items */
+
+	/* Derived */
+	--c-navy-900: #0d1a30;
+	--c-navy-700: #1e3760;
+	--c-navy-500: #3a5482;
+	--c-parchment-50: #fbf8f1;
+	--c-parchment-200: #e9e1cc;
+	--c-parchment-400: #cfc4a8;
+	--c-ink: #131a26; /* body text on parchment */
+	--c-ink-muted: #4a5262; /* secondary text on parchment */
+	--c-gold-ink: #7e6029; /* gold-toned text on parchment; the brief's #8a6a2e measured 4.34:1 */
+
+	/* Semantic, parchment surface by default */
+	--surface-page: var(--c-parchment);
+	--surface-raised: var(--c-parchment-50);
+	--surface-sunken: var(--c-parchment-200);
+	--surface-inverse: var(--c-navy);
+	--text-primary: var(--c-ink);
+	--text-inverse: var(--c-parchment);
+	--rule: color-mix(in oklab, var(--c-navy) 18%, transparent);
+	--rule-strong: color-mix(in oklab, var(--c-navy) 42%, transparent);
+	--rule-inverse: color-mix(in oklab, var(--c-parchment) 22%, transparent);
+	--accent: var(--c-gold);
+
+	/* Surface-scoped roles: .surface-navy redefines these */
+	--fg: var(--c-ink);
+	--fg-muted: var(--c-ink-muted);
+	--fg-accent: var(--c-gold-ink);
+	--bg: var(--c-parchment);
+	--line: var(--rule);
+	--line-strong: var(--rule-strong);
+	--ornament: var(--c-gold);
+	--focus-ring: var(--c-navy);
+
+	/* Type */
+	--font-sans:
+		'Manrope', 'Manrope Fallback', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+	--fs-display: clamp(2.75rem, 1.6rem + 5.2vw, 6.5rem);
+	--fs-h1: clamp(2.25rem, 1.6rem + 3vw, 4.25rem);
+	--fs-h2: clamp(1.75rem, 1.35rem + 1.8vw, 2.75rem);
+	--fs-h3: clamp(1.3rem, 1.15rem + 0.7vw, 1.7rem);
+	--fs-h4: 1.125rem;
+	--fs-lead: clamp(1.15rem, 1.05rem + 0.45vw, 1.4rem);
+	--fs-body: clamp(1rem, 0.97rem + 0.15vw, 1.0625rem);
+	--fs-meta: 0.8125rem;
+	--fs-fine: 0.75rem;
+	--lh-tight: 1.04;
+	--lh-heading: 1.15;
+	--lh-body: 1.6;
+	--measure: 66ch;
+	--track-display: -0.03em;
+	--track-heading: -0.02em;
+	--track-meta: 0.08em;
+
+	/* Space */
+	--space-1: 0.25rem;
+	--space-2: 0.5rem;
+	--space-3: 0.75rem;
+	--space-4: 1rem;
+	--space-5: 1.5rem;
+	--space-6: 2rem;
+	--space-7: 3rem;
+	--space-8: 4rem;
+	--space-9: 6rem;
+	--space-10: 8rem;
+	--space-11: 12rem;
+	--section-pad: clamp(4rem, 3rem + 6vw, 10rem);
+
+	/* Grid */
+	--page-max: 1440px;
+	--gutter: clamp(1rem, 0.5rem + 2vw, 2.5rem);
+	--columns: 12;
+
+	/* Shape */
+	--radius-0: 0;
+	--radius-control: 2px;
+	--hairline: 1px;
+
+	/* Motion */
+	--ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+	--ease-in-out-quint: cubic-bezier(0.83, 0, 0.17, 1);
+	--ease-ceremonial: cubic-bezier(0.65, 0, 0.35, 1);
+	--dur-1: 120ms;
+	--dur-2: 240ms;
+	--dur-3: 480ms;
+	--dur-4: 900ms;
+	--dur-5: 1600ms;
+	--stagger: 60ms;
+
+	/* Layers */
+	--z-masthead: 50;
+	--z-dialog: 100;
+}
+
+/* Navy is for institutional and ceremonial moments. Gold rings on navy, navy rings on parchment. */
+.surface-navy {
+	--fg: var(--c-parchment);
+	--fg-muted: var(--c-parchment-400);
+	--fg-accent: var(--c-gold);
+	--bg: var(--c-navy);
+	--line: var(--rule-inverse);
+	--line-strong: color-mix(in oklab, var(--c-parchment) 45%, transparent);
+	--ornament: var(--c-gold);
+	--focus-ring: var(--c-gold);
+	background-color: var(--bg);
+	color: var(--fg);
+}
+
+.surface-parchment {
+	--fg: var(--c-ink);
+	--fg-muted: var(--c-ink-muted);
+	--fg-accent: var(--c-gold-ink);
+	--bg: var(--c-parchment);
+	--line: var(--rule);
+	--line-strong: var(--rule-strong);
+	--ornament: var(--c-gold);
+	--focus-ring: var(--c-navy);
+	background-color: var(--bg);
+	color: var(--fg);
+}
+
+.surface-raised {
+	--bg: var(--c-parchment-50);
+	background-color: var(--bg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	:root {
+		--dur-1: 0.01ms;
+		--dur-2: 0.01ms;
+		--dur-3: 0.01ms;
+		--dur-4: 0.01ms;
+		--dur-5: 0.01ms;
+		--stagger: 0ms;
+	}
+}
