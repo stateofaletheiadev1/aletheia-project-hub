@@ -6,20 +6,22 @@ import { StarOfTruth } from '@/components/brand/Logo';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
 import type { PhotoKey } from '@/lib/imagery';
-import type { NationalStatus } from '@/lib/status';
+import type { AssetKey, ManualStatus } from '@/lib/status';
 
 interface PageHeroProps {
   eyebrow: string;
   title: ReactNode;
   lead: ReactNode;
   image: PhotoKey;
-  status?: NationalStatus;
+  status?: ManualStatus;
+  /** A national asset; its status comes from the status register. */
+  asset?: AssetKey;
   imagePosition?: string;
   children?: ReactNode;
 }
 
 /** Standard cinematic hero for public pages: photograph, eyebrow, headline, lead, actions. */
-export function PageHero({ eyebrow, title, lead, image, status, imagePosition, children }: PageHeroProps) {
+export function PageHero({ eyebrow, title, lead, image, status, asset, imagePosition, children }: PageHeroProps) {
   const { tx } = useI18n();
   return (
     <section className="guilloche-hero relative overflow-hidden text-parchment border-b border-gold/30">
@@ -33,7 +35,7 @@ export function PageHero({ eyebrow, title, lead, image, status, imagePosition, c
               <StarOfTruth size={14} />
               <span className="text-[11.5px] font-bold tracking-[0.13em] uppercase text-gold">{tx(eyebrow)}</span>
             </div>
-            {tx(status && <StatusBadge status={status} size="sm" />)}
+            {asset ? <StatusBadge asset={asset} size="sm" /> : status ? <StatusBadge status={status} size="sm" /> : null}
           </div>
 
           <h1 className="heading-hero animate-fade-in-up delay-100">{tx(title)}</h1>

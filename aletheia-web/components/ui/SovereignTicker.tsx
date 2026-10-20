@@ -7,9 +7,9 @@ import { useChainStatus } from '@/components/stablechain/useChainStatus';
 import { STABLECHAIN } from '@/lib/stablechain';
 
 /**
- * The network strip above every page. It shows the chain as the website's server last saw
- * it (online RPC, else a local node in development, else the reference values) and says
- * which. No figure here is simulated.
+ * The testnet strip above every page. It shows the StableChain testnet as the website's
+ * server last saw it (online RPC, else a local node in development, else the reference
+ * values) and says which. No figure here is simulated.
  */
 export function SovereignTicker() {
   const { t, intl } = useI18n();
@@ -28,7 +28,7 @@ export function SovereignTicker() {
               {live && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-300 opacity-75" />}
               <span className={`relative inline-flex rounded-full h-2 w-2 ${live ? 'bg-emerald-300' : 'bg-[#C49A4E]'}`} />
             </span>
-            <span className="font-bold tracking-[0.1em] text-[10.5px] uppercase">{t("SOVEREIGN NETWORK PULSE")}</span>
+            <span className="font-bold tracking-[0.1em] text-[10.5px] uppercase">{t("StableChain Testnet")}</span>
           </div>
           <span className="hidden sm:inline text-white/20">|</span>
           <span className="hidden sm:inline text-[#F4EEDF]/60">
@@ -37,10 +37,8 @@ export function SovereignTicker() {
                 {t('Block height')}{' '}<span className="text-[#C49A4E] font-semibold">{live.height.toLocaleString(intl)}</span>
                 {live.network !== 'mainnet' && <span className="text-[#F4EEDF]/45">{' · '}<span translate="no" data-i18n-skip="">{live.network}</span></span>}
               </>
-            ) : (
-              <span className="text-[#F4EEDF]/70">{t('Aletheia StableChain Mainnet')}</span>
-            )}
-            <span className="text-[#F4EEDF]/40">{' · '}{sourceLabel}</span>
+            ) : null}
+            <span className="text-[#F4EEDF]/40">{live ? ' · ' : ''}{sourceLabel}</span>
           </span>
         </div>
 
@@ -53,7 +51,7 @@ export function SovereignTicker() {
 
           <div className="hidden md:flex items-center gap-1.5 text-[#F4EEDF]/75">
             <Lock className="w-3 h-3 text-[#C49A4E]/80" />
-            <span>{t("Currency:")}{' '}<a href="https://rbaletheia.org" target="_blank" rel="noopener noreferrer" className="text-[#C49A4E] font-bold hover:underline">{t("AEY · Reserve Bank of Aletheia")}</a></span>
+            <span>{t("Proposed currency:")}{' '}<a href="https://rbaletheia.org" target="_blank" rel="noopener noreferrer" className="text-[#C49A4E] font-bold hover:underline">{t("AEY · Reserve Bank of Aletheia")}</a></span>
           </div>
 
           <div className="hidden lg:flex items-center gap-1.5 text-[#F4EEDF]/75">
@@ -68,7 +66,7 @@ export function SovereignTicker() {
             href="/stablechain"
             className="flex items-center gap-1 text-[#C49A4E] hover:text-[#E4C689] transition-colors underline underline-offset-2 decoration-[#C49A4E]/40"
           >
-            <span>{t("Live Proofs")}</span>
+            <span>{t("About StableChain")}</span>
             <span className="text-[9px]">→</span>
           </Link>
         </div>

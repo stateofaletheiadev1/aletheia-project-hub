@@ -1,4 +1,5 @@
 import { STABLECHAIN } from '@/lib/stablechain';
+import type { AssetKey, ManualStatus } from '@/lib/status';
 
 export interface NavItem {
   label: string;
@@ -11,7 +12,9 @@ export interface NavItem {
       title: string;
       href: string;
       desc: string;
-      status?: 'Operational' | 'Under Development' | 'Planned' | 'Proposed' | 'Vision';
+      /** A national asset: the badge comes from the status register. */
+      asset?: AssetKey;
+      status?: ManualStatus;
     }[];
   }[];
 }
@@ -26,16 +29,25 @@ export const MAIN_NAVIGATION: NavItem[] = [
         items: [
           { title: 'Discover Aletheia', href: '/aletheia', desc: 'The founding idea, maritime heritage, and national symbols' },
           { title: 'National Vision', href: '/vision', desc: 'The long-term civic compact and European standards' },
-          { title: 'National Symbols', href: '/identity', desc: 'Coat of arms, the Star of Truth, flags, and the ICAO passport' },
-          { title: 'Public Transparency', href: '/transparency', desc: 'Audited accounts, registry verification, and public records', status: 'Operational' },
+          { title: 'National Symbols', href: '/identity', desc: 'Coat of arms, the Star of Truth, flags and the travel-document design' },
+          { title: 'Status & Disclaimers', href: '/transparency', desc: 'The status register, disclaimers and the public record', asset: 'platform' },
+        ],
+      },
+      {
+        group: 'The Founding Project',
+        items: [
+          { title: 'Founding Team', href: '/about', desc: 'Who is building Aletheia, and how to reach them' },
+          { title: 'Roadmap', href: '/roadmap', desc: 'An honest path, phase by phase, to a founding treaty' },
+          { title: 'Founding Thesis', href: '/thesis', desc: 'Legal structure, governance, economics and diplomacy' },
+          { title: 'For Host Nations', href: '/host-nations', desc: 'A partnership offer to governments, by treaty' },
         ],
       },
       {
         group: 'Communications',
         items: [
-          { title: 'Official Gazette & News', href: '/news', desc: 'Decrees, appointments, roadmap updates, and statements' },
-          { title: 'Public Documents', href: '/documents', desc: 'The Covenant, Acts, reports, and APS protocol standards' },
-          { title: 'Contact & Representation', href: '/contact', desc: 'Diplomatic missions, press inquiries, and public registry' },
+          { title: 'Gazette & News', href: '/news', desc: 'Founding-phase records, design studies and statements' },
+          { title: 'Public Documents', href: '/documents', desc: 'The draft Covenant, proposed Acts and APS protocol standards' },
+          { title: 'Contact', href: '/contact', desc: 'Press enquiries, partnerships and general contact' },
           { title: 'Questions & Answers', href: '/faq', desc: 'Plain answers on membership, money, data, and status' },
         ],
       },
@@ -43,8 +55,8 @@ export const MAIN_NAVIGATION: NavItem[] = [
         group: 'Society & Public Services',
         items: [
           { title: 'Life in Aletheia', href: '/society', desc: 'Languages, culture, the civic calendar, and maritime heritage' },
-          { title: 'Health & Social Care', href: '/healthcare', desc: 'Universal covenant healthcare and patient-held records', status: 'Planned' },
-          { title: 'Education & Research', href: '/education', desc: 'Bilingual schools, the National University, and research grants', status: 'Planned' },
+          { title: 'Health & Social Care', href: '/healthcare', desc: 'The proposed covenant healthcare model', status: 'Planned' },
+          { title: 'Education & Research', href: '/education', desc: 'Proposed schools, a National University and research grants', status: 'Planned' },
         ],
       },
     ],
@@ -56,21 +68,21 @@ export const MAIN_NAVIGATION: NavItem[] = [
       {
         group: 'Constitutional Organs',
         items: [
-          { title: 'The Constitution', href: '/constitution', desc: 'The Covenant of Aletheia: searchable articles, permalinks and diffs' },
-          { title: 'The Covenant Assembly', href: '/government#assembly', desc: '61-member legislative parliament elected by PR', status: 'Planned' },
-          { title: 'Council of the States', href: '/government#council', desc: '15-member territorial review chamber representing the 5 states', status: 'Planned' },
-          { title: 'The Chancellor & Cabinet', href: '/government#cabinet', desc: 'Executive leadership capped at nine ministries' },
-          { title: 'The Judiciary & High Court', href: '/government#judiciary', desc: 'Constitutional, civil, and automated dispute resolution', status: 'Planned' },
+          { title: 'The Constitution', href: '/constitution', desc: 'The draft Covenant: searchable articles, permalinks and diffs', asset: 'constitution' },
+          { title: 'The Covenant Assembly', href: '/government#assembly', desc: 'A proposed 61-member parliament elected by PR', asset: 'institutions' },
+          { title: 'Council of the States', href: '/government#council', desc: 'A proposed 15-member territorial review chamber', asset: 'institutions' },
+          { title: 'The Chancellor & Cabinet', href: '/government#cabinet', desc: 'A proposed executive capped at nine ministries', asset: 'institutions' },
+          { title: 'The Judiciary & High Court', href: '/government#judiciary', desc: 'Proposed constitutional, civil and dispute-resolution courts', asset: 'institutions' },
         ],
       },
       {
         group: 'The Nine Ministries',
         items: [
-          { title: 'Treasury & Finance', href: '/treasury', desc: 'Covenant Endowment, public balance sheet, bond issuance' },
-          { title: 'Digital State & Registries', href: '/technology', desc: 'StableChain state validators, identity, e-residency' },
-          { title: 'Security & Civil Defence', href: '/security', desc: 'Civilian governance of ADSS and cyber resilience' },
-          { title: 'Foreign Affairs & Justice', href: '/government/ministry-of-foreign-affairs', desc: 'Bilateral covenants, passports, dispute systems' },
-          { title: 'All Ministries Directory', href: '/government', desc: 'Complete ministerial directory and statutory mandates' },
+          { title: 'Treasury & Finance', href: '/treasury', desc: 'The Covenant Endowment design and public balance-sheet model' },
+          { title: 'Digital State & Registries', href: '/technology', desc: 'StableChain testnet, digital identity design and registries' },
+          { title: 'Resilience & Civil Protection', href: '/security', desc: 'Planned civil oversight of resilience and cyber protection' },
+          { title: 'Foreign Affairs & Justice', href: '/government/ministry-of-foreign-affairs', desc: 'Host-state relations, treaties and the travel-document design' },
+          { title: 'All Ministries Directory', href: '/government', desc: 'The proposed ministries and their mandates' },
         ],
       },
     ],
@@ -78,22 +90,22 @@ export const MAIN_NAVIGATION: NavItem[] = [
   {
     label: 'Citizenship',
     href: '/citizenship',
-    description: 'Membership by covenant: rights, obligations, and naturalisation path',
+    description: 'Membership by covenant: proposed rights, obligations and naturalisation',
     children: [
       {
         group: 'Membership by Covenant',
         items: [
-          { title: 'Citizenship Standards', href: '/citizenship', desc: 'Rights, obligations, and the five pathways to citizenship' },
-          { title: 'Apply for Citizenship', href: '/citizenship/apply', desc: 'Eligibility checker for naturalisation and the investor route', status: 'Under Development' },
-          { title: 'The Aletheian Passport', href: '/passport', desc: 'ICAO Doc 9303 eMRTD in Covenant Burgundy' },
+          { title: 'Citizenship Standards', href: '/citizenship', desc: 'Proposed rights, obligations and the paths to citizenship', asset: 'citizenship' },
+          { title: 'Become a Founding Member', href: '/founding-members', desc: 'Register interest. Free; nothing is sold' },
+          { title: 'Travel Document Design', href: '/design/travel-document', desc: 'A design concept, not a travel document', status: 'Proposed' },
         ],
       },
       {
         group: 'The National Register',
         items: [
-          { title: 'Registry & Revenue', href: '/registry', desc: 'Citizens, e-residents, and funds raised to build the Sovereign Covenant State' },
-          { title: 'E-Residency', href: '/e-residency', desc: 'Digital state access for global founders' },
-          { title: 'Immigration & Residence', href: '/immigration', desc: 'Visas and residence permits — the path to naturalisation' },
+          { title: 'The Founding Register', href: '/registry', desc: 'How the register is designed, and the public record' },
+          { title: 'E-Residency', href: '/e-residency', desc: 'Proposed digital access for global founders', asset: 'eResidency' },
+          { title: 'Immigration & Residence', href: '/immigration', desc: 'Proposed residence permits, within a future territory', asset: 'residence' },
         ],
       },
     ],
@@ -101,33 +113,35 @@ export const MAIN_NAVIGATION: NavItem[] = [
   {
     label: 'E-Residency',
     href: '/e-residency',
-    description: 'Digital state access for global entrepreneurs and remote companies',
+    description: 'Proposed digital access for global entrepreneurs and remote companies',
   },
   {
     label: 'Immigration',
     href: '/immigration',
-    description: 'Visas, residence permits, and paperless border administration',
+    description: 'Proposed visas and residence permits, within a future territory',
   },
   {
     label: 'Development',
     href: '/development',
     children: [
       {
-        group: 'Territories & Urban Masterplan',
+        group: 'Territory & Design Studies',
         items: [
-          { title: 'Antioch (Federal District)', href: '/development#antioch', desc: 'The concentric capital city and hexagonal ledger center', status: 'Planned' },
-          { title: 'St. Barbara State', href: '/development#barbara', desc: 'Aerospace, defence, and secure maritime installations', status: 'Planned' },
-          { title: 'Augustine State', href: '/development#augustine', desc: 'Medicine, universities, research, and civic life', status: 'Planned' },
-          { title: 'Benedict State', href: '/development#benedict', desc: 'Energy, clean manufacturing, agriculture, and desalinisation', status: 'Planned' },
-          { title: 'St. Brendan State', href: '/development#brendan', desc: 'Deepwater container port, maritime trade, and ferry hub', status: 'Planned' },
+          { title: 'Territory by Treaty', href: '/development#treaty', desc: 'A first territory to be secured by treaty with a host state', asset: 'territory' },
+          { title: 'Antioch (Federal District)', href: '/development#antioch', desc: 'Design study for a concentric capital city', asset: 'antioch' },
+          { title: 'St. Barbara State', href: '/development#barbara', desc: 'Aerospace, engineering and civil-protection functions', asset: 'antioch' },
+          { title: 'Augustine State', href: '/development#augustine', desc: 'Medicine, universities, research, and civic life', asset: 'antioch' },
+          { title: 'Benedict State', href: '/development#benedict', desc: 'Energy, clean manufacturing, agriculture, and desalination', asset: 'antioch' },
+          { title: 'St. Brendan State', href: '/development#brendan', desc: 'Deepwater port, maritime trade, and ferry hub', asset: 'antioch' },
         ],
       },
       {
         group: 'Infrastructure & Engineering',
         items: [
-          { title: 'Interactive Development Map', href: '/development#map', desc: 'GIS-ready spatial plan and territorial zones', status: 'Under Development' },
-          { title: 'Sovereign Energy Grid', href: '/energy', desc: 'Offshore wind, nuclear small modular reactors, and hydrogen' },
-          { title: 'Maritime Platforms & Ports', href: '/infrastructure', desc: 'Oceanic engineering and resilient North Sea civil structures' },
+          { title: 'Development Map', href: '/development#map', desc: 'A design-study map; location to be set by treaty', status: 'Vision' },
+          { title: 'Clean Energy', href: '/energy', desc: 'Offshore wind, small modular reactors and hydrogen: design studies', status: 'Vision' },
+          { title: 'Ports & Coastal Works', href: '/infrastructure', desc: 'Port and coastal engineering design studies', asset: 'maritime' },
+          { title: 'For Host Nations', href: '/host-nations', desc: 'How a host state and Aletheia would build together' },
         ],
       },
     ],
@@ -139,42 +153,42 @@ export const MAIN_NAVIGATION: NavItem[] = [
       {
         group: 'Monetary Architecture',
         items: [
-          { title: 'Treasury & Endowment', href: '/treasury', desc: 'Tax-free revenue model, public receipts, and sovereign reserves' },
-          { title: 'Reserve Bank of Aletheia', href: '/central-bank', desc: 'The State’s monetary institution and issuer of the AEY' },
-          { title: 'The Aletheian Guilder (AEY)', href: '/aey', desc: 'The national currency, in banknotes and on StableChain' },
-          { title: 'AEY Paper Currency', href: '/aey/paper-currency', desc: 'The engraved banknote series, 1 to 100 AEY', status: 'Planned' },
-          { title: 'Aletheia StableChain', href: '/stablechain', desc: 'Cryptographic ledger infrastructure (500 ms slots, fixed fee schedule)', status: 'Under Development' },
-          { title: 'StableChain Block Explorer', href: STABLECHAIN.explorer, desc: 'Every block, transaction and account, read from finalized state', status: 'Under Development' },
+          { title: 'Treasury & Endowment', href: '/treasury', desc: 'Proposed revenue model and public receipts' },
+          { title: 'Reserve Bank of Aletheia', href: '/central-bank', desc: 'The proposed monetary institution', asset: 'reserveBank' },
+          { title: 'The Aletheian Guilder (AEY)', href: '/aey', desc: 'The proposed national currency. Not issued to the public', asset: 'aey' },
+          { title: 'AEY Paper Currency', href: '/aey/paper-currency', desc: 'Banknote design concepts, 1 to 100 AEY', status: 'Proposed' },
+          { title: 'Aletheia StableChain', href: '/stablechain', desc: 'Testnet ledger infrastructure (500 ms slots, fixed fee schedule)', asset: 'stablechain' },
+          { title: 'StableChain Testnet Explorer', href: STABLECHAIN.explorer, desc: 'Blocks, transactions and accounts on the testnet', asset: 'stablechain' },
         ],
       },
       {
         group: 'Enterprise & Capital',
         items: [
-          { title: 'Business Platform', href: '/business', desc: '15-minute digital incorporation and commercial licensing' },
-          { title: 'Sovereign Investment', href: '/invest', desc: 'Sovereign development bonds, infrastructure funds, and partnerships' },
+          { title: 'Business Platform', href: '/business', desc: 'Proposed digital incorporation and licensing', status: 'Planned' },
+          { title: 'Investment & Partnerships', href: '/invest', desc: 'How future partners and investors could take part. Nothing is offered' },
         ],
       },
     ],
   },
   {
-    label: 'Security & ADSS',
+    label: 'Resilience',
     href: '/adss',
     children: [
       {
-        group: 'Unified Defence & Security',
+        group: 'Civil Protection & Resilience',
         items: [
-          { title: 'ADSS Directorate Overview', href: '/adss', desc: 'Single unified service with civilian oversight' },
-          { title: 'Navy & Coast Guard', href: '/adss#navy', desc: 'Territorial water sovereignty, search and rescue, sector patrols' },
-          { title: 'Police Directorate', href: '/adss#police', desc: 'Civilian community policing and lawful order (distinct from military)' },
-          { title: 'Immigration Directorate', href: '/adss#immigration', desc: 'Border administration, biometric verification, compliance' },
+          { title: 'Resilience Overview', href: '/adss', desc: 'Planned civil-protection functions under civilian oversight', status: 'Planned' },
+          { title: 'Coastguard & Rescue', href: '/adss#navy', desc: 'Planned search and rescue and coastal safety', status: 'Planned' },
+          { title: 'Police Directorate', href: '/adss#police', desc: 'Planned civilian policing, separate from any other service', asset: 'police' },
+          { title: 'Immigration Directorate', href: '/adss#immigration', desc: 'Planned border administration and residence permits', asset: 'immigration' },
         ],
       },
       {
-        group: 'Critical National Resilience',
+        group: 'Digital & Civil Resilience',
         items: [
-          { title: 'Aletheian Cybersecurity Dept.', href: '/adss/cybersecurity', desc: 'Mandatory national cyber defence, validator protection, CERT/CSIRT', status: 'Operational' },
-          { title: 'Emergency & Civil Protection', href: '/adss#emergency', desc: 'Disaster mitigation, maritime rescue, emergency networks' },
-          { title: 'Intelligence Oversight', href: '/adss#intelligence', desc: 'Strategic situational awareness strictly bounded by privacy statute' },
+          { title: 'Aletheian Cybersecurity Dept.', href: '/adss/cybersecurity', desc: 'A planned department to protect digital infrastructure', asset: 'cyber' },
+          { title: 'Emergency & Civil Protection', href: '/adss#emergency', desc: 'Planned disaster response and maritime rescue', status: 'Planned' },
+          { title: 'Independent Oversight', href: '/adss#intelligence', desc: 'Proposed oversight of every security function, bounded by privacy law', status: 'Proposed' },
         ],
       },
     ],

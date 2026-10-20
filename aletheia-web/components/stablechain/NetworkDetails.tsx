@@ -63,7 +63,7 @@ export function NetworkDetails() {
         </div>
         <div className={row}>
           <span className={label}>{t('Network')}</span>
-          <span className={value}>{live && live.network !== 'mainnet' ? (<><span translate="no" data-i18n-skip="">{live.network}</span>{` · ${t('local node')}`}</>) : t('Aletheia StableChain Mainnet')}</span>
+          <span className={value}>{live && live.network !== 'mainnet' ? (<><span translate="no" data-i18n-skip="">{live.network}</span>{` · ${t('local node')}`}</>) : t('StableChain testnet · mainnet not launched')}</span>
         </div>
         <div className={row}>
           <span className={label}>{t('Chain ID')}</span>
@@ -93,11 +93,11 @@ export function NetworkDetails() {
         <h4 className="text-[11px] font-bold tracking-[0.2em] uppercase text-gold/80 mb-2">{t('Native assets')}</h4>
         <div className={row}>
           <span className={label}>AEY</span>
-          <span className={value}>{t('Aletheian Guilder · 18 decimals · issued by the Reserve Bank of Aletheia')}</span>
+          <span className={value}>{t('Aletheian Guilder · 18 decimals · proposed; not issued to the public')}</span>
         </div>
         <div className={row}>
           <span className={label}>ALnT</span>
-          <span className={value}>{t('Aletheia Talent · 3 decimals · utility and staking asset; pays fees')}</span>
+          <span className={value}>{t('Aletheia Talent · 3 decimals · testnet utility asset; not offered or sold')}</span>
         </div>
         <div className={row}>
           <span className={label}>{t('Transaction fee')}</span>

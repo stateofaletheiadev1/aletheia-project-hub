@@ -1,6 +1,7 @@
 'use client';
 
-import { ConsoleLink } from '@/components/layout/ConsoleLink';
+import { FoundingPhaseStatement } from '@/components/layout/FoundingPhaseNotice';
+
 import { useI18n } from '@/components/i18n/I18nProvider';
 import { LanguageLinks } from '@/components/i18n/LanguageSwitcher';
 import React from 'react';
@@ -24,28 +25,16 @@ export function Footer() {
 
   return (
     <footer className="bg-navy text-parchment border-t border-gold/40 mt-auto">
-      {/* Platform Status Legal Notice (Mandatory per §3.4) */}
+      {/* Founding-phase statement: permanent, on every public page */}
       <div className="bg-navy-deep border-b border-gold/20 py-3.5 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3 text-xs">
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-            <span className="inline-flex items-center gap-2 whitespace-nowrap font-semibold text-gold tracking-wider uppercase text-[11px]">
-              <span className="w-2 h-2 rounded-full bg-gold shrink-0" />
-              {t("Platform Status")}
-            </span>
-            <span className="text-parchment/80">{t("Aletheia is a maritime state in its founding phase. Every institution is labelled:")}</span>
-            <span className="flex flex-wrap items-center gap-1.5">
-              {(['Operational', 'Under Development', 'Planned'] as const).map((status) => (
-                <span
-                  key={status}
-                  className="whitespace-nowrap px-2 py-0.5 border border-gold/35 bg-gold/5 rounded-sm text-[10px] font-semibold uppercase tracking-wider text-gold"
-                >{tx(status)}</span>
-              ))}
-            </span>
-          </div>
-          <Link
-            href="/transparency"
-            className="text-gold underline underline-offset-2 hover:text-gold-tint shrink-0 whitespace-nowrap font-medium transition-colors"
-          >{t("Review Status & Disclaimers →")}</Link>
+        <div className="max-w-7xl mx-auto flex items-start gap-3 text-xs">
+          <span className="inline-flex items-center gap-2 whitespace-nowrap font-semibold text-gold tracking-wider uppercase text-[11px] shrink-0 pt-px">
+            <span className="w-2 h-2 rounded-full bg-gold shrink-0" />
+            {t("Status")}
+          </span>
+          <p className="text-parchment/80 leading-relaxed">
+            <FoundingPhaseStatement linkClassName="text-gold hover:text-gold-tint" />
+          </p>
         </div>
       </div>
 
@@ -68,7 +57,7 @@ export function Footer() {
               </div>
             </div>
 
-            <p className="text-xs text-parchment/70 leading-relaxed max-w-sm">{t("A sovereign, European-oriented maritime state founded upon immutable records, honest money, and the rule of covenant law.")}</p>
+            <p className="text-xs text-parchment/70 leading-relaxed max-w-sm">{t("A founding-phase project to build a European-oriented maritime nation, by treaty: founded upon open records, honest money, and the rule of covenant law.")}</p>
 
             <div className="pt-2 flex items-center gap-4">
               <div>
@@ -95,16 +84,16 @@ export function Footer() {
                 <Link href="/government" className="hover:text-gold transition-colors">{t("The Nine Ministries")}</Link>
               </li>
               <li>
-                <Link href="/government#assembly" className="hover:text-gold transition-colors">{t("Covenant Assembly (61 Seats)")}</Link>
+                <Link href="/government#assembly" className="hover:text-gold transition-colors">{t("Covenant Assembly (proposed)")}</Link>
               </li>
               <li>
                 <Link href="/government#judiciary" className="hover:text-gold transition-colors">{t("The High Court of Aletheia")}</Link>
               </li>
               <li>
-                <Link href="/documents" className="hover:text-gold transition-colors">{t("Official Gazette & Acts")}</Link>
+                <Link href="/documents" className="hover:text-gold transition-colors">{t("Gazette & Founding Documents")}</Link>
               </li>
               <li>
-                <Link href="/transparency" className="hover:text-gold transition-colors">{t("Public Ledger Audit")}</Link>
+                <Link href="/transparency" className="hover:text-gold transition-colors">{t("Status & Disclaimers")}</Link>
               </li>
               <li>
                 <a href="https://www.aletheiagov.org" target="_blank" rel="noopener noreferrer" className="hover:text-gold transition-colors">{t("Government Website (aletheiagov.org)")}</a>
@@ -123,16 +112,16 @@ export function Footer() {
                 <Link href="/citizenship" className="hover:text-gold transition-colors">{t("Citizenship & Covenant Oath")}</Link>
               </li>
               <li>
-                <Link href="/citizenship/apply" className="hover:text-gold transition-colors">{t("Apply for Citizenship")}</Link>
+                <Link href="/founding-members" className="hover:text-gold transition-colors">{t("Register interest as a Founding Member")}</Link>
               </li>
               <li>
-                <Link href="/registry" className="hover:text-gold transition-colors">{t("National Registry & Revenue")}</Link>
+                <Link href="/registry" className="hover:text-gold transition-colors">{t("The Founding Register")}</Link>
               </li>
               <li>
-                <Link href="/e-residency" className="hover:text-gold transition-colors">{t("E-Residency Programme")}</Link>
+                <Link href="/e-residency" className="hover:text-gold transition-colors">{t("E-Residency (proposed)")}</Link>
               </li>
               <li>
-                <Link href="/passport" className="hover:text-gold transition-colors">{t("The ICAO eMRTD Passport")}</Link>
+                <Link href="/design/travel-document" className="hover:text-gold transition-colors">{t("Travel Document Design")}</Link>
               </li>
               <li>
                 <Link href="/society" className="hover:text-gold transition-colors">{t("Life in Aletheia")}</Link>
@@ -150,37 +139,38 @@ export function Footer() {
                 <Link href="/aey" className="hover:text-gold transition-colors">{t("The Aletheian Guilder (AEY)")}</Link>
               </li>
               <li>
-                <Link href="/stablechain" className="hover:text-gold transition-colors">{t("StableChain Distributed Rail")}</Link>
+                <Link href="/stablechain" className="hover:text-gold transition-colors">{t("StableChain (testnet)")}</Link>
               </li>
               <li>
-                <a href={STABLECHAIN.explorer} target="_blank" rel="noopener noreferrer" className="hover:text-gold transition-colors">{t("StableChain Block Explorer")}</a>
+                <a href={STABLECHAIN.explorer} target="_blank" rel="noopener noreferrer" className="hover:text-gold transition-colors">{t("StableChain Testnet Explorer")}</a>
               </li>
             </ul>
           </div>
 
           {/* Column 3: Defense & Territory */}
           <div className="space-y-3">
-            <h4 className="text-xs font-semibold tracking-eyebrow uppercase text-gold border-b border-parchment/10 pb-1.5">{t("Territory & Security")}</h4>
+            <h4 className="text-xs font-semibold tracking-eyebrow uppercase text-gold border-b border-parchment/10 pb-1.5">{t("The Founding Project")}</h4>
             <ul className="space-y-2 text-xs text-parchment/80">
               <li>
-                <Link href="/development#antioch" className="hover:text-gold transition-colors">{t("Federal District Antioch")}</Link>
+                <Link href="/about" className="hover:text-gold transition-colors">{t("Founding Team")}</Link>
               </li>
               <li>
-                <Link href="/development" className="hover:text-gold transition-colors">{t("The Four Founding States")}</Link>
+                <Link href="/roadmap" className="hover:text-gold transition-colors">{t("Roadmap")}</Link>
               </li>
               <li>
-                <Link href="/adss" className="hover:text-gold transition-colors">{t("ADSS Defence & Security")}</Link>
+                <Link href="/thesis" className="hover:text-gold transition-colors">{t("Founding Thesis")}</Link>
+              </li>
+              <li>
+                <Link href="/host-nations" className="hover:text-gold transition-colors">{t("For Host Nations")}</Link>
+              </li>
+              <li>
+                <Link href="/development" className="hover:text-gold transition-colors">{t("Territory by Treaty")}</Link>
+              </li>
+              <li>
+                <Link href="/adss" className="hover:text-gold transition-colors">{t("Resilience & Civil Protection")}</Link>
               </li>
               <li>
                 <Link href="/adss/cybersecurity" className="hover:text-gold transition-colors">{t("Cybersecurity Department")}</Link>
-              </li>
-              <li>
-                <Link href="/adss#police" className="hover:text-gold transition-colors">{t("Civilian Police Directorate")}</Link>
-              </li>
-              <li>
-                <ConsoleLink href="/admin/login" className="hover:text-gold transition-colors flex items-center gap-1 text-gold font-medium">
-                  <span>{t("Officer Admin Clearance Access")}</span>
-                </ConsoleLink>
               </li>
             </ul>
           </div>
@@ -209,7 +199,7 @@ export function Footer() {
           </nav>
 
           <div className="flex flex-wrap items-center gap-4 text-[11px]">
-            <span>{t("Official Languages:")}</span>
+            <span>{t("Languages:")}</span>
             <LanguageLinks />
           </div>
         </div>

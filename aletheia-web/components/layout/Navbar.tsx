@@ -1,6 +1,6 @@
 'use client';
 
-import { ConsoleLink } from '@/components/layout/ConsoleLink';
+
 import { useI18n } from '@/components/i18n/I18nProvider';
 import { LanguageLinks, LanguageMenu } from '@/components/i18n/LanguageSwitcher';
 import React, { useState, useEffect, useRef } from 'react';
@@ -11,14 +11,15 @@ import { MAIN_NAVIGATION } from '@/lib/navigation';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { CommandPalette } from '@/components/layout/CommandPalette';
 import { SovereignTicker } from '@/components/ui/SovereignTicker';
+import { FoundingPhaseBanner } from '@/components/layout/FoundingPhaseNotice';
 import {
   Search,
   Menu,
   X,
   ChevronDown,
-  Shield,
+  
   ArrowRight,
-  UserCheck,
+  
 } from 'lucide-react';
 
 // ── Shortened nav labels so nothing wraps in the bar ──────────────────────────
@@ -30,37 +31,37 @@ const NAV_LABELS: Record<string, string> = {
   'Immigration':    'Immigration',
   'Development':    'Development',
   'Economy':        'Economy',
-  'Security & ADSS':'Security',
+  'Resilience':     'Resilience',
 };
 
 const EDITORIAL: Record<string, { title: string; desc: string; href: string; tag: string }> = {
   Aletheia: {
     title: 'National Blueprint 2026.3',
-    desc: 'Complete architectural specification of the Sovereign Covenant State.',
+    desc: 'The founding design of the Sovereign Covenant State: published for review.',
     href: '/aletheia',
-    tag: 'FOUNDATIONAL DECREE',
+    tag: 'FOUNDING DOCUMENT',
   },
   Government: {
-    title: '67 Constitutional Articles',
-    desc: 'Inspect the legal charter binding government, states, and citizens.',
+    title: 'The Draft Constitution',
+    desc: '67 proposed articles for government, the states and citizens.',
     href: '/constitution',
     tag: 'THE COVENANT',
   },
   Development: {
     title: 'Antioch Concentric Masterplan',
-    desc: 'Six radial avenues and hexagonal civic district designed for ledger finality.',
+    desc: 'A long-term design study. Scale and location are to be set by treaty.',
     href: '/development',
-    tag: 'URBAN ARCHITECTURE',
+    tag: 'VISION · DESIGN STUDY',
   },
   Economy: {
     title: 'The Aletheian Guilder (AEY)',
-    desc: 'The national currency, issued by the Reserve Bank of Aletheia.',
+    desc: 'The proposed national currency. Not issued to the public.',
     href: '/aey',
     tag: 'MONETARY FRAMEWORK',
   },
-  'Security & ADSS': {
+  Resilience: {
     title: 'Cybersecurity Department',
-    desc: 'Mandatory standalone agency protecting critical infrastructure & validators.',
+    desc: 'A planned department to protect digital infrastructure and validators.',
     href: '/adss/cybersecurity',
     tag: 'NATIONAL RESILIENCE',
   },
@@ -117,6 +118,8 @@ export function Navbar() {
 
   return (
     <>
+      <FoundingPhaseBanner />
+
       {/* ════════════════════════════════════════════════════════════
           SOVEREIGN RIBBON  — 28 px, dark, desktop-only
       ════════════════════════════════════════════════════════════ */}
@@ -143,18 +146,11 @@ export function Navbar() {
               <Search className="w-2.5 h-2.5" /> ⌘K
             </button>
             <span className="text-white/15">|</span>
-            <Link href="/transparency" className="hover:text-[#C49A4E] transition-colors">{t("Public Ledger Audit")}</Link>
+            <Link href="/transparency" className="hover:text-[#C49A4E] transition-colors">{t("Status & Disclaimers")}</Link>
             <span className="text-white/15">|</span>
 
             {/* language */}
             <LanguageMenu />
-
-            <span className="text-white/15">|</span>
-            <ConsoleLink
-              href="/admin/login"
-              className="flex items-center gap-1 text-[#C49A4E]/70 hover:text-[#C49A4E] transition-colors font-semibold"
-            >
-              <Shield className="w-2.5 h-2.5" />{' '}{t("Officer Portal")}</ConsoleLink>
           </div>
         </div>
       </div>
@@ -270,9 +266,7 @@ export function Navbar() {
                                         <span className="text-[13.5px] font-semibold text-[#15294A] group-hover/l:underline underline-offset-[3px] decoration-[#C49A4E] decoration-2 leading-tight">
                                           {tx(sub.title)}
                                         </span>
-                                        {tx(sub.status && (
-                                          <StatusBadge status={sub.status} size="sm" />
-                                        ))}
+                                        {sub.asset ? <StatusBadge asset={sub.asset} size="sm" /> : sub.status ? <StatusBadge status={sub.status} size="sm" /> : null}
                                       </div>
                                       <p className="text-[12px] text-[#15294A]/60 mt-0.5 line-clamp-1 leading-snug">
                                         {tx(sub.desc)}
@@ -323,20 +317,12 @@ export function Navbar() {
                 <Search className="w-4 h-4" />
               </button>
 
-              <div className="hidden 2xl:block w-px h-5 bg-[#15294A]/10 mx-1" />
-
               <Link
-                href="/portal/login"
-                title={t("Sign In")}
-                className="flex items-center gap-1.5 px-2.5 2xl:px-3.5 py-1.5 text-[13px] font-semibold text-[#15294A] bg-white border border-[#15294A]/20 rounded-[3px] hover:border-[#15294A]/45 transition-colors whitespace-nowrap"
-              >
-                <UserCheck className="w-3.5 h-3.5 text-[#C49A4E]" aria-hidden="true" /><span className="sr-only 2xl:not-sr-only">{t("Sign In")}</span></Link>
-
-              <Link
-                href="/e-residency"
+                href="/founding-members"
+                title={t("Register interest as a Founding Member")}
                 className="btn-sovereign-gold flex items-center gap-1.5 px-4 py-[7px] !text-[13.5px] whitespace-nowrap group"
               >
-                <span>{t("Apply")}</span>
+                <span>{t("Register interest")}<span className="sr-only">{' '}{t("as a Founding Member")}</span></span>
                 <ArrowRight className="w-3 h-3 text-[#0E1B31] group-hover:translate-x-0.5 transition-transform" />
               </Link>
             </div>
@@ -391,7 +377,7 @@ export function Navbar() {
                           className="flex items-center justify-between px-3 py-2 text-[13.5px] text-[#15294A]/70 hover:text-[#15294A] hover:bg-[#15294A]/[0.04] rounded-[3px] transition-colors"
                         >
                           {tx(sub.title)}
-                          {tx(sub.status && <StatusBadge status={sub.status} size="sm" />)}
+                          {sub.asset ? <StatusBadge asset={sub.asset} size="sm" /> : sub.status ? <StatusBadge status={sub.status} size="sm" /> : null}
                         </Link>
                       ))}
                     </div>
@@ -405,15 +391,10 @@ export function Navbar() {
             </div>
             <div className="border-t border-[#15294A]/[0.07] px-4 py-4 flex flex-col gap-2">
               <Link
-                href="/e-residency"
+                href="/founding-members"
                 onClick={() => setMobileOpen(false)}
                 className="w-full py-3 text-center text-[15px] font-bold text-white bg-[#15294A] rounded-[3px]"
-              >{t("Apply for E-Residency")}</Link>
-              <Link
-                href="/portal/login"
-                onClick={() => setMobileOpen(false)}
-                className="w-full py-3 text-center text-[15px] font-semibold text-[#15294A] border border-[#15294A]/25 rounded-[3px]"
-              >{t("Citizen Sign In")}</Link>
+              >{t("Register interest as a Founding Member")}</Link>
             </div>
           </div>
         ))}

@@ -4,23 +4,21 @@ import { useI18n } from '@/components/i18n/I18nProvider';
 import React from 'react';
 import Link from '@/components/i18n/Link';
 import { StarOfTruth } from '@/components/brand/Logo';
-import { StatusBadge } from '@/components/ui/StatusBadge';
-import {
-  Coins,
-  Building,
-  Lock,
-  ArrowRight,
-} from 'lucide-react';
+import { StatusBadge, StatusLegend } from '@/components/ui/StatusBadge';
+import { MontevideoTable, StatusRegisterTable } from '@/components/ui/StatusTables';
+import { AeyNotice } from '@/components/ui/AeyNotice';
+import { FOUNDING_PHASE_STATEMENT } from '@/components/layout/FoundingPhaseNotice';
+import { Coins, Building, Lock, ArrowRight } from 'lucide-react';
 import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
-import { EXAMPLE, shortId } from '@/lib/stablechain';
+import { STATUS_CONFIG, STATUS_ORDER } from '@/lib/status';
 
 export default function TransparencyPage() {
-  const { t } = useI18n();
+  const { t, tx } = useI18n();
 
   return (
     <div className="flex flex-col min-h-screen bg-parchment-canvas">
 
-      {/* ── HERO ── */}
+      {/* ── HERO: THE STATEMENT ── */}
       <section className="guilloche-hero relative text-parchment overflow-hidden pt-24 pb-20 lg:pt-32 lg:pb-28 border-b border-gold/30">
         <HeroBackdrop image="analytics" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -28,119 +26,96 @@ export default function TransparencyPage() {
             <div className="flex items-center gap-3">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 border border-gold/40 bg-navy-deep/80 rounded-sm backdrop-blur-sm">
                 <StarOfTruth size={14} />
-                <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-gold">{t("Public Transparency")}</span>
+                <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-gold">{t("Status & Disclaimers")}</span>
               </div>
-              <StatusBadge status="Operational" size="sm" />
+              <StatusBadge asset="platform" size="sm" />
             </div>
 
-            <h1 className="heading-hero">{t("Radical Institutional Transparency")}</h1>
+            <h1 className="heading-hero">{t("What Aletheia is, and is not, today")}</h1>
 
-            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("Under Article 12 of the Covenant, state secrecy regarding public expenditures, sovereign reserves, and procurement contracts is constitutionally prohibited. Every Guilder is auditable on the Aletheia StableChain.")}</p>
+            <p className="text-base sm:text-lg text-parchment/85 leading-[1.85] font-light">{t(FOUNDING_PHASE_STATEMENT)}</p>
           </div>
         </div>
       </section>
 
-      {/* ── LIVE AUDIT METRICS ── */}
-      <section className="bg-navy-deep border-b border-navy/30 text-parchment py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-            <div className="space-y-1">
-              <span className="text-2xl font-bold text-gold">100%</span>
-              <p className="text-xs text-parchment/70 uppercase tracking-wide">{t("Public Contract Inscription")}</p>
-            </div>
-            <div className="space-y-1">
-              <span className="text-2xl font-bold text-gold">{t("2.45B AEY")}</span>
-              <p className="text-xs text-parchment/70 uppercase tracking-wide">{t("Audited Sovereign Reserves")}</p>
-            </div>
-            <div className="space-y-1">
-              <span className="text-2xl font-bold text-gold">{t("500 ms")}</span>
-              <p className="text-xs text-parchment/70 uppercase tracking-wide">{t("Ledger Reconciliation")}</p>
-            </div>
-            <div className="space-y-1">
-              <span className="text-2xl font-bold text-gold">{t("Quarterly")}</span>
-              <p className="text-xs text-parchment/70 uppercase tracking-wide">{t("Independent Big-4 Audit")}</p>
-            </div>
-          </div>
+      {/* ── STATUS REGISTER ── */}
+      <section className="py-16 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full space-y-10">
+        <div className="max-w-3xl space-y-3">
+          <div className="eyebrow">{t("The Status Register")}</div>
+          <h2 className="text-3xl font-bold text-navy tracking-tight">{t("The status of every national asset")}</h2>
+          <p className="text-sm text-navy/70 leading-relaxed">{t("One register sets the status shown for each asset everywhere on this site. Only the digital platform and its public record are operational.")}</p>
+        </div>
+
+        <StatusRegisterTable />
+
+        <div className="space-y-4">
+          <h3 className="text-sm font-bold uppercase tracking-wider text-navy">{t("What each status means")}</h3>
+          <StatusLegend />
+          <dl className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            {STATUS_ORDER.map((s) => (
+              <div key={s} className="bg-white border border-navy/10 rounded-sm p-4 space-y-1">
+                <dt className="text-xs font-bold text-navy">{tx(s)}</dt>
+                <dd className="text-xs text-navy/65 leading-relaxed">{tx(STATUS_CONFIG[s].description)}</dd>
+              </div>
+            ))}
+          </dl>
         </div>
       </section>
 
-      {/* ── TRANSPARENCY PILLARS ── */}
-      <section className="py-16 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-          <div className="feature-card rounded-sm p-6 space-y-3 group">
-            <div className="w-10 h-10 rounded-sm bg-navy text-gold flex items-center justify-center">
-              <Coins className="w-5 h-5" />
-            </div>
-            <h3 className="text-base font-bold text-navy">{t("Open Treasury Ledger")}</h3>
-            <p className="text-xs text-navy/70 leading-relaxed">{t("Every disbursement made by any ministry or government agency is signed with verifiable cryptographic keys and viewable by any citizen or e-resident in real time.")}</p>
-          </div>
-
-          <div className="feature-card rounded-sm p-6 space-y-3 group">
-            <div className="w-10 h-10 rounded-sm bg-navy text-gold flex items-center justify-center">
-              <Building className="w-5 h-5" />
-            </div>
-            <h3 className="text-base font-bold text-navy">{t("Competitive Procurement")}</h3>
-            <p className="text-xs text-navy/70 leading-relaxed">{t("All infrastructure, defense, and maritime contracts above 50,000 AEY must be awarded through blind cryptographic auctions on the public procurement registry.")}</p>
-          </div>
-
-          <div className="feature-card rounded-sm p-6 space-y-3 group">
-            <div className="w-10 h-10 rounded-sm bg-navy text-gold flex items-center justify-center">
-              <Lock className="w-5 h-5" />
-            </div>
-            <h3 className="text-base font-bold text-navy">{t("Whistleblower Protection")}</h3>
-            <p className="text-xs text-navy/70 leading-relaxed">{t("Constitutional immunity and anonymous cryptographic submission channels are provided to any official reporting administrative malfeasance.")}</p>
-          </div>
-        </div>
-
-        {/* RECENT PUBLIC EXPENDITURES TABLE */}
-        <div className="bg-white border border-navy/15 rounded-sm p-6 shadow-sm space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-navy/10 pb-4">
-            <div>
-              <h3 className="text-lg font-bold text-navy">{t("Latest Reconciled Public Expenditures")}</h3>
-              <p className="text-xs text-navy/60">{t("Live feed from the Sovereign Treasury settlement contract.")}</p>
-            </div>
-            <Link
-              href="/treasury"
-              className="text-xs text-gold font-bold hover:underline flex items-center gap-1"
-            >{t("Full Balance Sheet")}{' '}<ArrowRight className="w-3.5 h-3.5" />
+      {/* ── MONTEVIDEO ── */}
+      <section className="py-16 lg:py-20 bg-parchment-light border-y border-navy/10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-10">
+          <div className="lg:col-span-5 space-y-3">
+            <div className="eyebrow">{t("The path to statehood")}</div>
+            <h2 className="text-3xl font-bold text-navy tracking-tight">{t("Measured against Montevideo")}</h2>
+            <p className="text-sm text-navy/70 leading-relaxed">{t("Aletheia measures itself honestly against the four Montevideo criteria:")}</p>
+            <Link href="/development#treaty" className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-navy hover:text-gold transition-colors group">
+              <span>{t("Territory by Treaty")}</span>
+              <ArrowRight className="w-3.5 h-3.5 text-gold group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
+          <div className="lg:col-span-7">
+            <MontevideoTable />
+          </div>
+        </div>
+      </section>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr className="bg-parchment-light text-navy/70 font-mono uppercase text-[10px] border-b border-navy/10">
-                  <th className="p-3">{t("Reference")}</th>
-                  <th className="p-3">{t("Disbursing Body")}</th>
-                  <th className="p-3">{t("Purpose")}</th>
-                  <th className="p-3">{t("Amount (AEY)")}</th>
-                  <th className="p-3">{t("Verification Hash")}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-navy/10 font-mono">
-                <tr>
-                  <td className="p-3 font-bold text-navy">{t("EXP-2026-891")}</td>
-                  <td className="p-3 text-navy/80">{t("Ministry of Territorial Dev.")}</td>
-                  <td className="p-3 font-sans text-navy/80">{t("St. Brendan Deepwater Seabed Core Analysis")}</td>
-                  <td className="p-3 font-bold text-navy">{t("145,000 AEY")}</td>
-                  <td className="p-3 text-[10px] text-navy/50" translate="no" data-i18n-skip="" title={EXAMPLE.tx[1]}>{shortId(EXAMPLE.tx[1])}</td>
-                </tr>
-                <tr>
-                  <td className="p-3 font-bold text-navy">{t("EXP-2026-890")}</td>
-                  <td className="p-3 text-navy/80">{t("ADSS Coast Guard")}</td>
-                  <td className="p-3 font-sans text-navy/80">{t("Autonomous Navigational Buoy Array Maintenance")}</td>
-                  <td className="p-3 font-bold text-navy">{t("42,500 AEY")}</td>
-                  <td className="p-3 text-[10px] text-navy/50" translate="no" data-i18n-skip="" title={EXAMPLE.tx[2]}>{shortId(EXAMPLE.tx[2])}</td>
-                </tr>
-                <tr>
-                  <td className="p-3 font-bold text-navy">{t("EXP-2026-889")}</td>
-                  <td className="p-3 text-navy/80">{t("National Registry Dept.")}</td>
-                  <td className="p-3 font-sans text-navy/80">{t("Polycarbonate e-Passport Blank Stock Procurement")}</td>
-                  <td className="p-3 font-bold text-navy">{t("88,200 AEY")}</td>
-                  <td className="p-3 text-[10px] text-navy/50" translate="no" data-i18n-skip="" title={EXAMPLE.tx[3]}>{shortId(EXAMPLE.tx[3])}</td>
-                </tr>
-              </tbody>
-            </table>
+      {/* ── CURRENCY & MEMBERSHIP ── */}
+      <section className="py-16 lg:py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full space-y-6">
+        <div className="max-w-3xl space-y-3">
+          <div className="eyebrow">{t("Currency, Documents & Membership")}</div>
+          <h2 className="text-3xl font-bold text-navy tracking-tight">{t("Nothing is sold")}</h2>
+          <p className="text-sm text-navy/70 leading-relaxed">{t("Aletheia does not sell citizenship, residency, passports or currency, and accepts no applications. Registering interest as a Founding Member is free.")}</p>
+        </div>
+        <AeyNotice />
+        <Link href="/founding-members" className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-navy hover:text-gold transition-colors group">
+          <span>{t("Register interest as a Founding Member")}</span>
+          <ArrowRight className="w-3.5 h-3.5 text-gold group-hover:translate-x-1 transition-transform" />
+        </Link>
+      </section>
+
+      {/* ── TRANSPARENCY BY DESIGN ── */}
+      <section className="py-16 lg:py-24 bg-parchment-light border-t border-navy/10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+          <div className="max-w-3xl space-y-3">
+            <div className="eyebrow">{t("Transparency by Design")}</div>
+            <h2 className="text-3xl font-bold text-navy tracking-tight">{t("How a future Aletheia would stay open")}</h2>
+            <p className="text-sm text-navy/70 leading-relaxed">{t("Article 12 of the draft Covenant proposes that public spending, reserves and procurement contracts may never be kept secret. These are design commitments for a future state, not current operations.")}</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              { icon: Coins, title: 'Open Treasury Ledger', desc: 'Every disbursement by a ministry or agency would be signed and visible to the public.' },
+              { icon: Building, title: 'Competitive Procurement', desc: 'Contracts above a published threshold would be awarded through sealed bids on a public procurement register.' },
+              { icon: Lock, title: 'Whistleblower Protection', desc: 'Constitutional protection and anonymous reporting channels would be open to any official reporting wrongdoing.' },
+            ].map(({ icon: Icon, title, desc }) => (
+              <div key={title} className="feature-card rounded-sm p-6 space-y-3 group">
+                <div className="w-10 h-10 rounded-sm bg-navy text-gold flex items-center justify-center">
+                  <Icon className="w-5 h-5" />
+                </div>
+                <h3 className="text-base font-bold text-navy">{tx(title)}</h3>
+                <p className="text-xs text-navy/70 leading-relaxed">{tx(desc)}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>

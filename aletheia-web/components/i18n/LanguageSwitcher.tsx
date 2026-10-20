@@ -35,9 +35,9 @@ export function LanguageMenu() {
         <Globe className="w-2.5 h-2.5" /> {locale} <ChevronDown className="w-2 h-2" />
       </button>
       {open && (
-        <ul role="listbox" aria-label={t('Official languages')} className="absolute right-0 top-full mt-1 w-48 bg-[#0E1B31] border border-[#C49A4E]/30 shadow-2xl z-50 animate-fade-in">
+        <ul role="listbox" aria-label={t('Languages')} className="absolute right-0 top-full mt-1 w-48 bg-[#0E1B31] border border-[#C49A4E]/30 shadow-2xl z-50 animate-fade-in">
           <li className="px-3 py-1.5 text-[9px] uppercase tracking-widest text-[#C49A4E]/50 border-b border-white/10">
-            {t('5 Official Languages')}
+            {t('5 Languages')}
           </li>
           {LOCALES.map((l) => (
             <li key={l} role="option" aria-selected={l === locale}>
@@ -71,7 +71,7 @@ export function LanguageLinks({ tone = 'dark', onSwitch }: { tone?: 'dark' | 'li
   const active = tone === 'dark' ? 'text-parchment font-semibold' : 'text-[#15294A] font-bold';
 
   return (
-    <nav aria-label={t('Official languages')} className="flex flex-wrap items-center gap-x-3 gap-y-1">
+    <nav aria-label={t('Languages')} className="flex flex-wrap items-center gap-x-3 gap-y-1">
       {LOCALES.map((l: Locale, i) => (
         <span key={l} className="flex items-center gap-3">
           {i > 0 && <span aria-hidden="true" className="opacity-40">•</span>}

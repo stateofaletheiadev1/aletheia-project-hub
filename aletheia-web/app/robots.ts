@@ -6,7 +6,8 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: ['/portal', '/admin', '/officer', '/login'],
+      // Private surfaces, with and without a language prefix.
+      disallow: ['/portal', '/admin', '/officer', '/login', '/*/portal', '/*/admin', '/*/officer', '/*/login', '/api/'],
     },
     sitemap: `${SITE_URL}/sitemap.xml`,
   };

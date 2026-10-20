@@ -5,49 +5,57 @@ import React, { useState, useEffect } from 'react';
 import Link from '@/components/i18n/Link';
 import { Search, X } from 'lucide-react';
 import { StatusBadge } from '@/components/ui/StatusBadge';
+import type { AssetKey, ManualStatus } from '@/lib/status';
 
 interface SearchItem {
   title: string;
-  category: 'Constitution' | 'Government' | 'Service' | 'Security' | 'Economy';
+  category: 'Constitution' | 'Government' | 'Service' | 'Resilience' | 'Economy' | 'Founding';
   href: string;
   desc: string;
-  status?: 'Operational' | 'Under Development' | 'Planned' | 'Proposed' | 'Vision';
+  asset?: AssetKey;
+  status?: ManualStatus;
 }
 
 const SEARCH_DATABASE: SearchItem[] = [
+  // The founding project
+  { title: 'Status & Disclaimers', category: 'Founding', href: '/transparency', desc: 'The status register and what Aletheia is, and is not, today.', asset: 'platform' },
+  { title: 'Register interest as a Founding Member', category: 'Founding', href: '/founding-members', desc: 'Free. Aletheia does not sell citizenship, residency, passports or currency.' },
+  { title: 'Founding Team', category: 'Founding', href: '/about', desc: 'Who is building Aletheia, and how to reach them.' },
+  { title: 'Roadmap', category: 'Founding', href: '/roadmap', desc: 'The path, phase by phase, to a founding treaty and a pilot zone.' },
+  { title: 'Founding Thesis', category: 'Founding', href: '/thesis', desc: 'Legal structure, governance, economics, host regions and diplomacy.' },
+  { title: 'For Host Nations', category: 'Founding', href: '/host-nations', desc: 'A partnership offer to governments, by treaty.' },
+  { title: 'Territory by Treaty', category: 'Founding', href: '/development#treaty', desc: 'A first territory secured by agreement with a host state.', asset: 'territory' },
+
   // Constitution
   { title: 'Article 1: Founding Promises & Provable State', category: 'Constitution', href: '/constitution#art-1', desc: 'Truth in records, honest money, and lean constitutional government.' },
-  { title: 'Article 8: Citizenship by Descent & Naturalisation', category: 'Constitution', href: '/constitution#art-8', desc: 'Eligibility, Covenant Oath, and rights of citizens.' },
-  { title: 'Article 11: E-Residency & Digital Identity', category: 'Constitution', href: '/constitution#art-11', desc: 'Remote commercial rights, digital identity, zero physical residency.' },
-  { title: 'Article 16: The Aletheian Guilder & Monetary Integrity', category: 'Constitution', href: '/constitution#art-16', desc: '500 ms slots, finality in about a second, monetary integrity.' },
-  { title: 'Article 46: ADSS & Unified Security Architecture', category: 'Constitution', href: '/constitution#art-46', desc: 'One force, civilian command, institutional distinction of police.' },
-  { title: 'Article 53: Aletheian Cybersecurity Department', category: 'Constitution', href: '/constitution#art-53', desc: 'Mandatory national cyber defence and validator infrastructure resilience.' },
-  
+  { title: 'Article 8: Citizenship by Descent & Naturalisation', category: 'Constitution', href: '/constitution#art-8', desc: 'Proposed eligibility, Covenant Oath, and rights of citizens.' },
+  { title: 'Article 11: E-Residency & Digital Identity', category: 'Constitution', href: '/constitution#art-11', desc: 'Proposed remote commercial rights and digital identity.' },
+  { title: 'Article 16: The Aletheian Guilder & Monetary Integrity', category: 'Constitution', href: '/constitution#art-16', desc: 'The proposed currency and the rules for its issue.' },
+  { title: 'Article 46: ADSS & Unified Security Architecture', category: 'Constitution', href: '/constitution#art-46', desc: 'Proposed civilian command and the separation of the police.' },
+  { title: 'Article 53: Aletheian Cybersecurity Department', category: 'Constitution', href: '/constitution#art-53', desc: 'A proposed department to protect digital infrastructure.' },
+
   // Government & Ministries
-  { title: 'Ministry of Treasury & Finance', category: 'Government', href: '/treasury', desc: 'Covenant Endowment Fund, bond issuance, tax-free revenue model.' },
-  { title: 'Ministry of Digital State & Registries', category: 'Government', href: '/technology', desc: 'State validators, identity verification, e-residency registry.' },
-  { title: 'Ministry of Security & Civil Defence', category: 'Government', href: '/security', desc: 'Civilian oversight of ADSS and emergency disaster response.' },
-  { title: 'The Covenant Assembly', category: 'Government', href: '/government#assembly', desc: '61 members elected by open-list PR every 4 years.' },
-  { title: 'Council of the States', category: 'Government', href: '/government#council', desc: '15 members representing Antioch and the 4 states.' },
-  { title: 'The High Court of Aletheia', category: 'Government', href: '/government#judiciary', desc: 'Supreme constitutional chamber and hybrid dispute arbitration.' },
+  { title: 'Ministry of Treasury & Finance', category: 'Government', href: '/treasury', desc: 'The proposed Covenant Endowment and revenue model.' },
+  { title: 'Ministry of Digital State & Registries', category: 'Government', href: '/technology', desc: 'StableChain testnet, identity design and registries.' },
+  { title: 'Ministry of Resilience & Civil Protection', category: 'Government', href: '/security', desc: 'Proposed civil oversight of resilience and emergency response.' },
+  { title: 'The Covenant Assembly', category: 'Government', href: '/government#assembly', desc: 'A proposed 61-member parliament elected by open-list PR.', asset: 'institutions' },
+  { title: 'Council of the States', category: 'Government', href: '/government#council', desc: 'A proposed 15-member territorial chamber.', asset: 'institutions' },
+  { title: 'The High Court of Aletheia', category: 'Government', href: '/government#judiciary', desc: 'A proposed constitutional court and dispute arbitration.', asset: 'institutions' },
 
   // Services
-  { title: 'Apply for E-Residency', category: 'Service', href: '/e-residency', desc: '15-minute digital incorporation and borderless business access.', status: 'Under Development' },
-  { title: 'ICAO Biometric Passport Specification', category: 'Service', href: '/passport', desc: 'Covenant Burgundy eMRTD booklet specification to Doc 9303.' },
-  { title: 'Immigration & Residence Application', category: 'Service', href: '/immigration', desc: '5-year renewable residency permits and status tracking.', status: 'Planned' },
-  { title: 'Public Transparency & Ledger Audit', category: 'Service', href: '/transparency', desc: 'Real-time Merkle balance sheet proofs and public receipts.', status: 'Operational' },
+  { title: 'E-Residency', category: 'Service', href: '/e-residency', desc: 'Proposed digital identity and company formation. No applications are accepted.', asset: 'eResidency' },
+  { title: 'Travel Document Design Concept', category: 'Service', href: '/design/travel-document', desc: 'A design concept. Not a travel document.', status: 'Proposed' },
+  { title: 'Immigration & Residence', category: 'Service', href: '/immigration', desc: 'Proposed residence permits, within a future territory.', asset: 'residence' },
 
-  // Security & ADSS
-  { title: 'Aletheian Cybersecurity Department', category: 'Security', href: '/adss/cybersecurity', desc: 'Critical infrastructure protection, threat intel, vulnerability disclosure.', status: 'Operational' },
-  { title: 'Civilian Police Directorate', category: 'Security', href: '/adss#police', desc: 'Community safety and lawful criminal investigation.', status: 'Planned' },
-  { title: 'Immigration Officer Workbench', category: 'Security', href: '/admin/immigration', desc: 'Secure administrative case management for immigration officers.' },
+  // Resilience
+  { title: 'Aletheian Cybersecurity Department', category: 'Resilience', href: '/adss/cybersecurity', desc: 'A planned department to protect digital infrastructure.', asset: 'cyber' },
+  { title: 'Civilian Police Directorate', category: 'Resilience', href: '/adss#police', desc: 'Planned community safety and lawful investigation.', asset: 'police' },
   // Society, public services & information
-  { title: 'Apply for Citizenship', category: 'Service', href: '/citizenship/apply', desc: 'Check eligibility for naturalisation or the Covenant Investor route.', status: 'Under Development' },
-  { title: 'National Registry & Revenue', category: 'Economy', href: '/registry', desc: 'Registrations by programme and funds raised to build the Sovereign Covenant State.' },
+  { title: 'The Founding Register', category: 'Economy', href: '/registry', desc: 'How the register is designed, and the public record.' },
   { title: 'Life in Aletheia', category: 'Service', href: '/society', desc: 'Languages, culture, civic calendar, and maritime heritage.' },
-  { title: 'Health & Social Care', category: 'Service', href: '/healthcare', desc: 'Universal covenant healthcare and the National Health Registry.', status: 'Planned' },
-  { title: 'Education & Research', category: 'Service', href: '/education', desc: 'Bilingual schools, the National University, scholarships.', status: 'Planned' },
-  { title: 'Official Gazette', category: 'Government', href: '/news', desc: 'Decrees, appointments, and engineering bulletins.', status: 'Operational' },
+  { title: 'Health & Social Care', category: 'Service', href: '/healthcare', desc: 'The proposed covenant healthcare model.', status: 'Planned' },
+  { title: 'Education & Research', category: 'Service', href: '/education', desc: 'Proposed schools, a National University and scholarships.', status: 'Planned' },
+  { title: 'Gazette', category: 'Government', href: '/news', desc: 'Founding-phase records and design studies. No legal force.' },
   { title: 'Frequently Asked Questions', category: 'Service', href: '/faq', desc: 'Plain answers on membership, money, data, and status.' },
   { title: 'Privacy Notice', category: 'Service', href: '/privacy', desc: 'How personal data is protected — never written to the ledger.' },
 ];
@@ -115,7 +123,7 @@ export function CommandPalette({ isOpen, onClose }: { isOpen: boolean; onClose: 
         {/* Search Results List */}
         <div className="max-h-[60vh] overflow-y-auto p-2 divide-y divide-navy/5">
           {tx(filtered.length === 0 ? (
-            <div className="p-8 text-center text-sm text-navy/60">{t("No official provisions or records found matching “")}{tx(query)}{t("”.")}</div>
+            <div className="p-8 text-center text-sm text-navy/60">{t("No pages or records found matching “")}{tx(query)}{t("”.")}</div>
           ) : (
             filtered.map((item) => (
               <Link
@@ -135,7 +143,7 @@ export function CommandPalette({ isOpen, onClose }: { isOpen: boolean; onClose: 
                       {tx(item.title)}
                     </h4>
                   </div>
-                  {tx(item.status && <StatusBadge status={item.status} size="sm" />)}
+                  {item.asset ? <StatusBadge asset={item.asset} size="sm" /> : item.status ? <StatusBadge status={item.status} size="sm" /> : null}
                 </div>
                 <p className="text-xs text-navy/70 line-clamp-1 mt-1 font-normal">
                   {tx(item.desc)}

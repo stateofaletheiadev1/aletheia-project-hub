@@ -33,15 +33,15 @@ export async function generateMetadata({ params }: LayoutProps<'/[lang]'>): Prom
   const name = t('The Sovereign Covenant State of Aletheia');
   return {
     title: {
-      default: `${name} — ${t('Official Digital Platform')}`,
+      default: `${name} — ${t('Founding-Phase Platform')}`,
       template: `%s · ${name}`,
     },
-    description: t('Official digital front door and civic operating platform of the Sovereign Covenant State of Aletheia. Veritas in Foedere.'),
+    description: t('The founding-phase platform of the Sovereign Covenant State of Aletheia, a treaty-first new-country project. Veritas in Foedere.'),
     metadataBase: new URL(SITE_URL),
-    keywords: ['Aletheia', 'Sovereign Covenant State', 'Digital State', 'Constitution', 'StableChain', 'E-Residency', 'Antioch', 'ADSS'],
+    keywords: ['Aletheia', 'Sovereign Covenant State', 'new country project', 'treaty-first', 'Constitution', 'StableChain', 'founding members'],
     openGraph: {
       title: name,
-      description: t('Building a new standard for life, technology, and civic infrastructure.'),
+      description: t('The founding-phase platform of the Sovereign Covenant State of Aletheia, a treaty-first new-country project. Veritas in Foedere.'),
       url: SITE_URL,
       siteName: 'The Sovereign Covenant State of Aletheia',
       images: [{ url: '/coat_of_arms.png', width: 1200, height: 630, alt: t('Arms of Aletheia') }],
