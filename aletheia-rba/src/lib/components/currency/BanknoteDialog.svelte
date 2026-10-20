@@ -37,8 +37,13 @@
 		note ? `${note.denomination} AEY, ${side}. Note ${index + 1} of ${notes.length}.` : ''
 	);
 
-	export function open(i: number, s: 'front' | 'back' = 'front') {
-		opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+	/**
+	 * `from` is the control that opened the viewer. Safari does not focus links on click, so the
+	 * active element cannot be relied on to know where focus should return.
+	 */
+	export function open(i: number, s: 'front' | 'back' = 'front', from?: HTMLElement) {
+		opener =
+			from ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null);
 		index = i;
 		side = s;
 		reset();

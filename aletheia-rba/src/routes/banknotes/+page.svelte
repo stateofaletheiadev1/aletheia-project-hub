@@ -52,7 +52,7 @@
 	function openViewer(e: MouseEvent, i: number, s: 'front' | 'back') {
 		// Without JS the link opens the full-size image instead.
 		e.preventDefault();
-		viewer?.open(i, s);
+		viewer?.open(i, s, e.currentTarget as HTMLElement);
 	}
 
 	const jsonLd = viewerNotes.flatMap((n) =>
