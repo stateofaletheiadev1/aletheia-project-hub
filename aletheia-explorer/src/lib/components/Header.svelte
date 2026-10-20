@@ -36,7 +36,7 @@
         <span class="word">Aletheia<span class="sub">Explorer</span></span>
       </a>
       <span class="flag" title="Sovereign Covenant State of Aletheia"><FlagNational width={27} label="" /></span>
-      <span class="network" title="Network">{(stats?.network ?? "devnet").toUpperCase()}</span>
+      <span class="network" title={`StableChain testnet: balances carry no real value. Node network: ${stats?.network ?? "devnet"}`}>TESTNET</span>
       <button type="button" class="setup" onclick={() => (setupOpen = !setupOpen)} aria-expanded={setupOpen} aria-label="Network setup" title="Network setup">
         <Icon name="network" size={15} />
         <span class="setup-words">Network Setup</span>
@@ -68,7 +68,7 @@
           </a>
         {/each}
         <button type="button" class="mobile-setup" onclick={() => ((menuOpen = false), (setupOpen = true))}>
-          <Icon name="network" size={15} /> Network Setup · {(stats?.network ?? "devnet").toUpperCase()}
+          <Icon name="network" size={15} /> Network Setup · TESTNET
         </button>
       </nav>
     </div>
