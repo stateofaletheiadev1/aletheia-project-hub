@@ -80,21 +80,43 @@
 			<article class="form">
 				<p class="t-meta form__label">Physical</p>
 				<h3 class="t-h3">Banknotes</h3>
-				<p>A series of five denominations, from 1 to 100 AEY.</p>
+				<p>
+					A series of five denominations, from 1 to 100 AEY, each with its own colour, portrait and
+					theme, drawn in the engraved tradition of banknote art.
+				</p>
 				<Link href="/banknotes" arrow>The banknote designs</Link>
 			</article>
 			<article class="form">
 				<p class="t-meta form__label">Digital</p>
 				<h3 class="t-h3">Aletheia StableChain</h3>
-				<p>The Guilder is intended to be carried in digital form on Aletheia StableChain.</p>
+				<p>
+					The Guilder is intended to be carried in digital form on Aletheia StableChain, with the
+					same value as the banknote and the same single issuer.
+				</p>
 			</article>
+		</div>
+	</div>
+</section>
+
+<section class="section surface-navy" aria-labelledby="name-title">
+	<div class="container split">
+		<SectionHeader folio="§ 06.2" eyebrow="The name" title="Guilder" id="name-title" />
+		<div class="text">
+			<p class="t-lead">
+				The guilder is one of Europe’s oldest names for money, long associated with trade across the
+				North Sea.
+			</p>
+			<p>
+				The Aletheian Guilder carries that name into a new nation. Its code is AEY. The plural is
+				guilders, and amounts are written with the code after the number: 20 AEY.
+			</p>
 		</div>
 	</div>
 </section>
 
 <section class="section surface-parchment" aria-labelledby="faq-title">
 	<div class="container split">
-		<SectionHeader folio="§ 06.2" eyebrow="Questions" title="About the Guilder" id="faq-title">
+		<SectionHeader folio="§ 06.3" eyebrow="Questions" title="About the Guilder" id="faq-title">
 			{#snippet intro()}
 				<p><a href="/faq">All questions and answers</a></p>
 			{/snippet}
@@ -210,6 +232,16 @@
 	.form p:not(.form__label) {
 		color: var(--fg-muted);
 		max-width: 48ch;
+	}
+
+	.text {
+		display: grid;
+		gap: var(--space-4);
+		max-width: var(--measure);
+	}
+
+	.text p:not(.t-lead) {
+		color: var(--fg-muted);
 	}
 
 	.split {

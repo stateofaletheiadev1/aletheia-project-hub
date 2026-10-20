@@ -9,19 +9,19 @@
 	const roles = [
 		{
 			title: 'Monitor',
-			body: 'Watch for risks that build up across banks, markets and payment systems.'
+			body: 'Watch for risks that build up across banks, markets and payment systems: excessive borrowing, rapid rises in asset prices, and weak links between institutions.'
 		},
 		{
 			title: 'Assess',
-			body: 'Judge how well the financial system could withstand a shock.'
+			body: 'Judge how well the financial system could withstand a shock, using analysis and stress scenarios.'
 		},
 		{
 			title: 'Report',
-			body: 'Publish its assessment regularly in a Financial Stability Review.'
+			body: 'Publish its assessment regularly in a Financial Stability Review, with the risks it sees and what it recommends.'
 		},
 		{
 			title: 'Respond',
-			body: 'Act with others to keep essential financial services running in a disruption.'
+			body: 'Act with others to keep essential financial services running in a disruption, from payments to access to cash.'
 		}
 	];
 </script>
@@ -52,9 +52,17 @@
 			title="Confidence, kept"
 			id="why-title"
 		/>
-		<PullStatement>
-			Money is only as useful as the system that moves it, holds it and lends it.
-		</PullStatement>
+		<div class="stack">
+			<PullStatement>
+				Money is only as useful as the system that moves it, holds it and lends it.
+			</PullStatement>
+			<p class="muted">
+				Financial crises are costly and slow to repair. They strike savers, borrowers and businesses
+				alike, and they fall hardest on those with the least. A central bank helps to prevent them
+				by watching the system as a whole, not only its individual parts, and by acting early when
+				risks build up.
+			</p>
+		</div>
 	</div>
 </section>
 
@@ -70,6 +78,28 @@
 				</li>
 			{/each}
 		</ol>
+	</div>
+</section>
+
+<section class="section surface-navy" aria-labelledby="small-title">
+	<div class="container split">
+		<SectionHeader
+			folio="§ 03.3"
+			eyebrow="Our setting"
+			title="A small, open economy"
+			id="small-title"
+		/>
+		<div class="stack">
+			<p class="t-lead">
+				Small nations depend on trade, and on financial links with the wider world.
+			</p>
+			<p class="muted">
+				That openness brings opportunity, and exposure to events abroad. The Bank’s work on
+				financial stability will pay particular attention to these links: to the sources of funding
+				in the economy, to the resilience of payment systems, and to the risks a maritime economy
+				faces from the sea and the weather.
+			</p>
+		</div>
 	</div>
 </section>
 
@@ -92,6 +122,17 @@
 			grid-template-columns: 5fr 7fr;
 			gap: var(--gutter);
 		}
+	}
+
+	.stack {
+		display: grid;
+		gap: var(--space-5);
+		align-content: start;
+	}
+
+	.muted {
+		color: var(--fg-muted);
+		max-width: var(--measure);
 	}
 
 	.roles {

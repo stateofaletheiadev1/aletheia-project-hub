@@ -10,11 +10,23 @@
 	const records: IssuanceRecord[] = [];
 
 	const lifecycle = [
-		{ step: 'Authorise', body: 'Each issue is decided under adopted rules.' },
-		{ step: 'Record', body: 'It is entered in the Bank’s accounts and register.' },
-		{ step: 'Publish', body: 'The register entry is published here.' },
-		{ step: 'Audit', body: 'The register is reviewed independently.' },
-		{ step: 'Withdraw', body: 'Retired notes are recorded as they are withdrawn.' }
+		{
+			step: 'Authorise',
+			body: 'Each issue is decided by the body the rules name, within the limits they set.'
+		},
+		{
+			step: 'Record',
+			body: 'It is entered in the Bank’s accounts and register before any note leaves the Bank.'
+		},
+		{
+			step: 'Publish',
+			body: 'The register entry is published here, with its date and source document.'
+		},
+		{ step: 'Audit', body: 'An independent auditor reconciles the register with the accounts.' },
+		{
+			step: 'Withdraw',
+			body: 'Worn notes are retired and destroyed under supervision, and recorded.'
+		}
 	];
 </script>
 
@@ -58,10 +70,25 @@
 	</div>
 </section>
 
+<section class="section surface-navy" aria-labelledby="forms-title">
+	<div class="container split">
+		<SectionHeader folio="§ 08.2" eyebrow="Two forms" title="Paper and digital" id="forms-title" />
+		<div class="text">
+			<p class="t-lead">One currency, one register.</p>
+			<p>
+				Banknotes and digital Guilders are the same money in two forms, issued under the same rules
+				and recorded in the same register. For banknotes, the register follows each series from
+				printing to destruction. For digital Guilders, every creation and cancellation is entered
+				both in the register and on the ledger, so that the two can be reconciled.
+			</p>
+		</div>
+	</div>
+</section>
+
 <section class="section surface-raised" aria-labelledby="register-title">
 	<div class="container">
 		<SectionHeader
-			folio="§ 08.2"
+			folio="§ 08.3"
 			eyebrow="Register"
 			title="The issuance register"
 			id="register-title"
@@ -78,6 +105,28 @@
 />
 
 <style>
+	.split {
+		display: grid;
+		gap: var(--space-5);
+	}
+
+	@media (min-width: 1024px) {
+		.split {
+			grid-template-columns: 5fr 7fr;
+			gap: var(--gutter);
+		}
+	}
+
+	.text {
+		display: grid;
+		gap: var(--space-4);
+		max-width: var(--measure);
+	}
+
+	.text p:not(.t-lead) {
+		color: var(--fg-muted);
+	}
+
 	.lifecycle {
 		display: grid;
 		gap: var(--space-6);

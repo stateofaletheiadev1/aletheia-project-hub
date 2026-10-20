@@ -7,32 +7,59 @@
 	import { SITE } from '$lib/content';
 
 	const articles = [
-		{ numeral: 'I', title: 'Candour', body: 'The Bank says what is, and what is intended.' },
+		{
+			numeral: 'I',
+			title: 'Candour',
+			body: 'The Bank says what is, and what is intended. Its statements are dated, and it corrects them openly when they change.'
+		},
 		{
 			numeral: 'II',
 			title: 'Rules before money',
-			body: 'Currency is issued only under adopted rules.'
+			body: 'Currency is issued only under rules that have been adopted and published. No exception is made for convenience.'
 		},
 		{
 			numeral: 'III',
 			title: 'Separation',
-			body: 'The body that issues money does not spend it.'
+			body: 'The body that issues money does not spend it. The Bank is kept apart from the Treasury, and does not finance the budget.'
 		},
-		{ numeral: 'IV', title: 'A public record', body: 'All issuance is recorded and reported.' },
+		{
+			numeral: 'IV',
+			title: 'A public record',
+			body: 'Every issue and withdrawal of currency is recorded in a register, and the register is published.'
+		},
 		{
 			numeral: 'V',
 			title: 'Independent review',
-			body: 'The Bank’s accounts are examined by others.'
+			body: 'The Bank’s accounts and register are examined by an independent auditor, whose reports are published in full.'
 		},
-		{ numeral: 'VI', title: 'Restraint', body: 'No undertaking without the means to keep it.' }
+		{
+			numeral: 'VI',
+			title: 'Restraint',
+			body: 'The Bank makes no undertaking it does not have the means to keep, and says so plainly.'
+		}
 	];
 
 	const mandate = [
-		['The Aletheian Guilder', 'To issue the Guilder and safeguard its integrity.'],
-		['Monetary policy', 'To set and publish the policy that governs the Guilder.'],
-		['Banknotes', 'To design and issue the State’s banknotes.'],
-		['Statistics', 'To publish monetary and financial statistics.'],
-		['Cooperation', 'To work with other monetary institutions.']
+		[
+			'The Aletheian Guilder',
+			'To issue the Guilder in banknotes and in digital form, and to safeguard its integrity against counterfeiting and misuse.'
+		],
+		[
+			'Monetary policy',
+			'To set the policy that governs the Guilder, with the aim of stable prices, and to explain each decision in public.'
+		],
+		[
+			'Banknotes',
+			'To design, commission, issue and withdraw the State’s banknotes, and to keep the series secure.'
+		],
+		[
+			'Statistics',
+			'To compile and publish monetary and financial statistics to international standards.'
+		],
+		[
+			'Cooperation',
+			'To work with other central banks and international institutions, and to represent Aletheia in monetary matters.'
+		]
 	];
 </script>
 
@@ -60,10 +87,18 @@
 <section class="section surface-parchment" aria-labelledby="purpose-title">
 	<div class="container two-col">
 		<SectionHeader folio="§ 01.1" eyebrow="Purpose" title="Why a reserve bank" id="purpose-title" />
-		<p class="t-lead measure">
-			A currency is only as sound as the institution that issues it. The Bank is intended to issue
-			the Aletheian Guilder under published rules, and to account for it in public.
-		</p>
+		<div class="prose-block">
+			<p class="t-lead">
+				A currency is only as sound as the institution that issues it. The Bank is intended to issue
+				the Aletheian Guilder under published rules, and to account for it in public.
+			</p>
+			<p>
+				Every modern nation entrusts its money to a central bank, because money must be managed for
+				the long term and for everyone, not for the needs of a single budget or a single moment. The
+				Reserve Bank of Aletheia is being established on the same footing: independent in its
+				decisions, accountable for its results, and open about its reasoning.
+			</p>
+		</div>
 	</div>
 </section>
 
@@ -112,6 +147,28 @@
 				</div>
 			{/each}
 		</dl>
+	</div>
+</section>
+
+<section class="section surface-navy" aria-labelledby="independence-title">
+	<div class="container two-col">
+		<SectionHeader
+			folio="§ 01.4"
+			eyebrow="Independence"
+			title="Independent and accountable"
+			id="independence-title"
+		/>
+		<div class="prose-block">
+			<p class="t-lead">
+				Independence lets the Bank take the long view. Accountability makes sure it uses that
+				freedom well.
+			</p>
+			<p>
+				The Bank is intended to decide monetary policy within its legal mandate, without instruction
+				on individual decisions. In return it explains every decision, publishes its accounts and
+				reports regularly to the institutions of the State.
+			</p>
+		</div>
 	</div>
 </section>
 
@@ -205,6 +262,16 @@
 			grid-template-columns: 14rem 1fr;
 			gap: var(--space-5);
 		}
+	}
+
+	.prose-block {
+		display: grid;
+		gap: var(--space-4);
+		max-width: var(--measure);
+	}
+
+	.prose-block p:not(.t-lead) {
+		color: var(--fg-muted);
 	}
 
 	.mandate dt {

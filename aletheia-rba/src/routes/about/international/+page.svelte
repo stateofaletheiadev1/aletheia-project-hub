@@ -9,15 +9,29 @@
 	</p>
 {/snippet}
 
+{#snippet learning()}
+	<p>
+		Many nations have built central banks in recent decades, among them small island states and
+		newly independent countries. Their experience, good and bad, is a resource the Bank intends to
+		use with care: what to adopt, what to adapt and what to avoid.
+	</p>
+{/snippet}
+
 {#snippet areas()}
 	<dl>
 		<div>
 			<dt>Central banks</dt>
-			<dd>Exchange of experience on policy, payments and banknotes.</dd>
+			<dd>
+				Exchange of experience on policy, payments and banknotes, and technical cooperation as the
+				Bank is built.
+			</dd>
 		</div>
 		<div>
 			<dt>International institutions</dt>
-			<dd>Participation in the standards and forums of the central banking community.</dd>
+			<dd>
+				Participation in the standards and forums of the central banking community, and adoption of
+				its principles.
+			</dd>
 		</div>
 		<div>
 			<dt>Statistics</dt>
@@ -40,6 +54,7 @@
 	seed={101}
 	sections={[
 		{ eyebrow: 'Aims', title: 'Working with others', body: aims },
+		{ eyebrow: 'Experience', title: 'Learning from others', body: learning },
 		{ eyebrow: 'Areas', title: 'Where we cooperate', body: areas }
 	]}
 	related={[

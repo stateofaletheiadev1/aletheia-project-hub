@@ -54,6 +54,25 @@
 			]
 		},
 		{
+			id: 'borrowing',
+			title: 'Borrowing wisely',
+			points: [
+				'Borrow only what you can repay from your regular income.',
+				'Compare the total cost of a loan, not just the monthly payment.',
+				'Read the terms before you sign, and ask about fees and penalties.',
+				'Keep a record of every payment you make.'
+			]
+		},
+		{
+			id: 'children',
+			title: 'Money for young people',
+			points: [
+				'Money is earned, spent, saved and shared.',
+				'Saving a little from every amount builds a habit for life.',
+				'Waiting before buying helps tell a want from a need.'
+			]
+		},
+		{
 			id: 'scams',
 			title: 'Spotting a scam',
 			points: [
@@ -92,7 +111,7 @@
 
 <section class="section surface-parchment" aria-labelledby="guides-title">
 	<div class="container">
-		<SectionHeader folio="§ 15.1" eyebrow="Guides" title="Six guides" id="guides-title" />
+		<SectionHeader folio="§ 15.1" eyebrow="Guides" title="Eight guides" id="guides-title" />
 		<div class="guides">
 			{#each guides as g, i (g.id)}
 				<article id={g.id} class="guide" data-reveal use:reveal={i % 3}>

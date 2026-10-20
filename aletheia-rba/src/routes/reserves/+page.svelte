@@ -34,12 +34,24 @@
 			title="Policy and reporting"
 			id="position-title"
 		/>
-		<DisclosureNotice label="Policy">
-			<p>
-				The Bank’s reserve and exchange policy will be published here, together with regular reserve
-				reports.
+		<div class="stack">
+			<p class="t-lead">
+				Reserves are the assets a central bank holds to meet the nation’s needs for foreign
+				currency, and to support confidence in its own.
 			</p>
-		</DisclosureNotice>
+			<p class="muted">
+				Where they are held, central banks manage reserves with three aims, in order: safety first,
+				then liquidity, so that they can be used when needed, and only then return. The Bank’s
+				policy on reserves and on the exchange rate of the Guilder will be set through the same
+				process as its monetary policy: research, consultation, adoption and publication.
+			</p>
+			<DisclosureNotice label="Policy">
+				<p>
+					The Bank’s reserve and exchange policy will be published here, together with regular
+					reserve reports.
+				</p>
+			</DisclosureNotice>
+		</div>
 	</div>
 </section>
 
@@ -58,6 +70,17 @@
 />
 
 <style>
+	.stack {
+		display: grid;
+		gap: var(--space-5);
+		align-content: start;
+	}
+
+	.muted {
+		color: var(--fg-muted);
+		max-width: var(--measure);
+	}
+
 	.split {
 		display: grid;
 		gap: var(--space-5);

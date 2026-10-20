@@ -10,6 +10,18 @@
 	</p>
 {/snippet}
 
+{#snippet use()}
+	<p>
+		A digital Guilder is intended to be used much as cash is today: to pay a shop, to send money to
+		family, or to receive wages, but instantly and at any hour.
+	</p>
+	<p>
+		It is a public form of money, issued by the central bank, alongside the payment services that
+		private providers offer. Privacy, security and resilience will be designed in from the start,
+		and set out before any issue.
+	</p>
+{/snippet}
+
 {#snippet principles()}
 	<dl>
 		<div>
@@ -37,10 +49,11 @@
 		{ href: '/digital-guilder', label: 'Digital Guilder' }
 	]}
 	eyebrow="Digital Guilder"
-	folio="§ 06.3"
+	folio="§ 06.4"
 	seed={109}
 	sections={[
 		{ eyebrow: 'What it is', title: 'Money in digital form', body: what },
+		{ eyebrow: 'In use', title: 'How it would be used', body: use },
 		{ eyebrow: 'Principles', title: 'Three rules', body: principles }
 	]}
 	related={[

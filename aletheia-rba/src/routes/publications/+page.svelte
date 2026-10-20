@@ -81,6 +81,15 @@
 		{#if publications.length === 0}
 			<EmptyState title="Forthcoming" seed={29}>
 				<p>Publications of the Bank will appear here.</p>
+				<ul class="kinds">
+					<li><strong>Monetary policy statements</strong>, with each decision and its reasons.</li>
+					<li><strong>The annual report</strong> and audited financial statements.</li>
+					<li>
+						<strong>Financial stability reviews</strong> on the health of the financial system.
+					</li>
+					<li><strong>Consultation papers</strong> on proposed policies, open for comment.</li>
+					<li><strong>Research papers</strong> and statistical releases.</li>
+				</ul>
 			</EmptyState>
 		{:else}
 			<form method="get" class="filters" aria-label="Filter publications">
@@ -146,6 +155,13 @@
 
 	.filters span {
 		color: var(--fg-muted);
+	}
+
+	.kinds {
+		display: grid;
+		gap: var(--space-2);
+		padding-left: 1.1em;
+		margin-top: var(--space-3);
 	}
 
 	select,

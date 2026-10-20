@@ -27,6 +27,21 @@
 			a: 'When prices are stable, money keeps its value, wages and savings hold up, and people can plan ahead. Keeping purchasing power steady is a central aim of monetary policy.'
 		},
 		{
+			id: 'how-money-is-created',
+			q: 'How is money created?',
+			a: 'Banknotes are issued by the central bank. Most money, however, is created when banks lend: a loan becomes a deposit in the borrower’s account. The central bank’s policy shapes how much lending, and so how much money, the economy produces.'
+		},
+		{
+			id: 'what-is-an-exchange-rate',
+			q: 'What is an exchange rate?',
+			a: 'The price of one currency in terms of another. Some countries let it be set by the market, others manage it closely. Each choice has consequences for prices, trade and reserves, and is a matter of published policy.'
+		},
+		{
+			id: 'why-independence',
+			q: 'Why are central banks independent?',
+			a: 'Decisions about money work best when they look years ahead. Independence protects them from short-term pressures, while accountability makes sure the bank explains itself and answers for the results.'
+		},
+		{
 			id: 'how-banknotes-are-protected',
 			q: 'How are banknotes protected?',
 			a: 'Modern notes combine features that are easy to check and hard to copy: fine engraved linework, watermarks, security threads, latent images and serial numbers.'
@@ -35,10 +50,14 @@
 
 	const glossary = [
 		['Central bank', 'The public institution responsible for a country’s money.'],
+		['Denomination', 'The face value of a banknote or coin, such as 20 AEY.'],
+		['Exchange rate', 'The price of one currency in terms of another.'],
 		['Fiat currency', 'Money issued under law, valued for the institutions behind it.'],
 		['Inflation', 'A general rise in prices, which reduces what money can buy.'],
 		['Issuance', 'The creation of new currency by the central bank.'],
 		['Monetary policy', 'The decisions a central bank takes to keep money’s value stable.'],
+		['Policy rate', 'The interest rate a central bank sets to steer borrowing and saving.'],
+		['Purchasing power', 'The amount of goods and services a unit of money can buy.'],
 		['Reserves', 'Assets a central bank holds, often in foreign currencies.'],
 		['Settlement', 'The final transfer of money that completes a payment.'],
 		['Specimen', 'A sample of a banknote design, marked so it cannot be used as money.']
@@ -67,7 +86,7 @@
 		<SectionHeader
 			folio="§ 01.6"
 			eyebrow="Explainers"
-			title="Five questions"
+			title="Eight questions"
 			id="explainers-title"
 		/>
 		<ol role="list" class="explainers">

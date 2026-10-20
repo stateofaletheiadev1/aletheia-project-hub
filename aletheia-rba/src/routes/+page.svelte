@@ -22,22 +22,62 @@
 	const columns = [
 		{
 			title: 'A fiat currency',
-			body: 'Money issued by a public institution under law, as most of the world’s currencies are.'
+			body: 'Money issued by a public institution under law, as most of the world’s currencies are. Its value rests on the rules and institutions behind it, and on the confidence of the people who use it.'
 		},
 		{
 			title: 'Issued by rule',
-			body: 'Issuance under published rules, recorded and reported in public.'
+			body: 'New money is created only under published rules, entered in a public register and reported on a regular calendar, so that anyone can follow what has been issued and why.'
 		},
 		{
 			title: 'Decided in public',
-			body: 'Policy prepared, consulted on and published before it is adopted.'
+			body: 'Policy is prepared with its evidence, put to consultation and published with its reasons before it is adopted, and reviewed on a set date afterwards.'
+		}
+	];
+
+	const learnLinks = [
+		{
+			href: '/learn#budget',
+			kind: 'Guide',
+			title: 'Making a budget',
+			body: 'Know what comes in and what goes out.'
+		},
+		{
+			href: '/learn#paying-safely',
+			kind: 'Guide',
+			title: 'Paying safely',
+			body: 'Protect your accounts and your codes.'
+		},
+		{
+			href: '/explained#what-is-a-central-bank',
+			kind: 'Explainer',
+			title: 'What is a central bank?',
+			body: 'The institution behind a nation’s money.'
+		},
+		{
+			href: '/explained#why-stable-prices-matter',
+			kind: 'Explainer',
+			title: 'Why stable prices matter',
+			body: 'How steady prices protect wages and savings.'
 		}
 	];
 
 	const mandate = [
-		['Issue', 'To issue and safeguard the Aletheian Guilder.'],
-		['Set policy', 'To set and publish monetary policy.'],
-		['Keep the record', 'To account in public for all it issues.']
+		[
+			'Issue',
+			'To issue the Aletheian Guilder in banknotes and in digital form, and to safeguard its integrity.'
+		],
+		[
+			'Set policy',
+			'To set monetary policy that keeps the Guilder’s value stable, and to explain each decision.'
+		],
+		[
+			'Build payments',
+			'To provide safe, final settlement and to foster payments that are fast and affordable.'
+		],
+		[
+			'Keep the record',
+			'To account in public for everything it issues, and to publish its accounts and statistics.'
+		]
 	];
 </script>
 
@@ -59,7 +99,8 @@
 			</h1>
 			<p class="t-lead hero__lead">
 				The monetary institution being established for the {SITE.state}, and the issuer of its
-				currency, the Aletheian Guilder.
+				currency, the Aletheian Guilder. Its purpose is simple: money that keeps its value, payments
+				that work, and a public record anyone can check.
 			</p>
 			<div class="hero__actions">
 				<ButtonLink href="/currency">The Aletheian Guilder</ButtonLink>
@@ -90,7 +131,12 @@
 				id="guilder-title"
 			>
 				{#snippet intro()}
-					<p>The banknote series of the Guilder, designed in five denominations.</p>
+					<p>
+						The banknote series of the Guilder is designed in five denominations, from 1 to 100 AEY.
+						Each note has its own colour and portrait, drawn in the engraved tradition of banknote
+						art, with themes taken from the character of the nation: faith and learning, discovery,
+						the public record and the sea.
+					</p>
 				{/snippet}
 			</SectionHeader>
 		</div>
@@ -140,7 +186,14 @@
 				eyebrow="The Bank"
 				title="Steward of the Guilder."
 				id="bank-title"
-			/>
+			>
+				{#snippet intro()}
+					<p>
+						A central bank serves the whole nation. The Reserve Bank of Aletheia is being built to
+						do that work with independence, discipline and openness.
+					</p>
+				{/snippet}
+			</SectionHeader>
 			<Link href="/about" arrow>About the Bank</Link>
 		</div>
 		<dl class="mandate">
@@ -154,10 +207,34 @@
 	</div>
 </section>
 
-<section class="section surface-parchment" aria-labelledby="pubs-title">
+<section class="section surface-parchment" aria-labelledby="learn-title">
+	<div class="container">
+		<SectionHeader folio="§ 04" eyebrow="Learn" title="Money, explained." id="learn-title">
+			{#snippet intro()}
+				<p>
+					Practical guides to budgeting, saving and paying safely, and short explanations of what a
+					central bank does.
+				</p>
+			{/snippet}
+		</SectionHeader>
+		<ul role="list" class="learn">
+			{#each learnLinks as l, i (l.href)}
+				<li data-reveal use:reveal={i}>
+					<a href={l.href}>
+						<span class="t-meta">{l.kind}</span>
+						<span class="learn__title">{l.title}</span>
+						<span class="learn__body">{l.body}</span>
+					</a>
+				</li>
+			{/each}
+		</ul>
+	</div>
+</section>
+
+<section class="section surface-raised" aria-labelledby="pubs-title">
 	<div class="container">
 		<SectionHeader
-			folio="§ 04"
+			folio="§ 05"
 			eyebrow="Publications"
 			title="The written record."
 			id="pubs-title"
@@ -387,6 +464,49 @@
 		margin: 0;
 		color: var(--fg-muted);
 		font-size: var(--fs-lead);
+	}
+
+	.learn {
+		display: grid;
+		gap: var(--space-5) var(--gutter);
+		margin: 0;
+	}
+
+	@media (min-width: 768px) {
+		.learn {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+	}
+
+	@media (min-width: 1280px) {
+		.learn {
+			grid-template-columns: repeat(4, minmax(0, 1fr));
+		}
+	}
+
+	.learn a {
+		display: grid;
+		gap: var(--space-2);
+		padding-top: var(--space-4);
+		border-top: 2px solid var(--fg);
+		text-decoration: none;
+	}
+
+	.learn .t-meta {
+		color: var(--fg-accent);
+	}
+
+	.learn__title {
+		font-size: var(--fs-h4);
+		font-weight: 650;
+	}
+
+	.learn a:hover .learn__title {
+		text-decoration: underline;
+	}
+
+	.learn__body {
+		color: var(--fg-muted);
 	}
 
 	.pubs {

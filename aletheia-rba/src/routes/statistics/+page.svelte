@@ -51,9 +51,30 @@
 	</div>
 </section>
 
+<section class="section surface-navy" aria-labelledby="standards-title">
+	<div class="container split">
+		<SectionHeader
+			folio="§ 09.2"
+			eyebrow="Standards"
+			title="Data you can rely on"
+			id="standards-title"
+		/>
+		<div class="text">
+			<p class="t-lead">
+				Good statistics are published on time, to known methods, for everyone at once.
+			</p>
+			<p>
+				The Bank intends to follow international standards for monetary and financial statistics, to
+				publish a release calendar in advance, to explain its methods, and to make each release
+				available to all users at the same moment.
+			</p>
+		</div>
+	</div>
+</section>
+
 <section class="section surface-raised" aria-labelledby="releases-title">
 	<div class="container">
-		<SectionHeader folio="§ 09.2" eyebrow="Releases" title="Release calendar" id="releases-title" />
+		<SectionHeader folio="§ 09.3" eyebrow="Releases" title="Release calendar" id="releases-title" />
 		<EmptyState title="Forthcoming" seed={79}>
 			<p>The release calendar will be published here.</p>
 		</EmptyState>
@@ -78,6 +99,16 @@
 			grid-template-columns: 5fr 7fr;
 			gap: var(--gutter);
 		}
+	}
+
+	.text {
+		display: grid;
+		gap: var(--space-4);
+		max-width: var(--measure);
+	}
+
+	.text p:not(.t-lead) {
+		color: var(--fg-muted);
 	}
 
 	.series {

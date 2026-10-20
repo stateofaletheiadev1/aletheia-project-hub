@@ -12,6 +12,15 @@
 	</p>
 {/snippet}
 
+{#snippet safeguards()}
+	<p class="t-lead">Innovation and safety go together.</p>
+	<p>
+		New services that hold or move the public’s money must protect it: clear terms, sound security,
+		honest marketing and a way to complain. The Bank intends to hold every provider to the same
+		standards, whatever the technology.
+	</p>
+{/snippet}
+
 {#snippet areas()}
 	<dl>
 		<div>
@@ -47,7 +56,8 @@
 	seed={191}
 	sections={[
 		{ eyebrow: 'Approach', title: 'Modern foundations', body: approach },
-		{ eyebrow: 'Areas', title: 'Where we look', body: areas }
+		{ eyebrow: 'Areas', title: 'Where we look', body: areas },
+		{ eyebrow: 'Safeguards', title: 'Safety first', body: safeguards }
 	]}
 	related={[
 		{ href: '/digital-guilder', label: 'Digital Guilder' },

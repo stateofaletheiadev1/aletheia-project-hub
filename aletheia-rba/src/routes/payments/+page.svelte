@@ -9,17 +9,17 @@
 		{
 			label: 'Settlement',
 			title: 'Final settlement in central bank money',
-			body: 'Payments between institutions are to settle across the Bank’s books, finally and irrevocably.'
+			body: 'Payments between institutions are to settle across the Bank’s books, finally and irrevocably. Settlement in central bank money removes the risk that one party fails before a payment completes.'
 		},
 		{
 			label: 'Infrastructure',
 			title: 'Aletheia StableChain',
-			body: 'The State’s settlement ledger, intended to carry the Guilder in digital form and to keep a public record.'
+			body: 'The State’s settlement ledger, intended to carry the Guilder in digital form and to keep a public record. It is designed for fast finality and an open, verifiable history.'
 		},
 		{
 			label: 'Oversight',
 			title: 'Standards for payment systems',
-			body: 'The Bank will publish the standards that systems handling the Guilder are expected to meet.'
+			body: 'The Bank will publish the standards that systems handling the Guilder are expected to meet, in line with the principles followed by central banks internationally.'
 		}
 	];
 </script>
@@ -78,6 +78,26 @@
 	</div>
 </section>
 
+<section class="section surface-raised" aria-labelledby="everyday-title">
+	<div class="container split">
+		<SectionHeader
+			folio="§ 04.3"
+			eyebrow="Everyday payments"
+			title="For people and businesses"
+			id="everyday-title"
+		/>
+		<div class="text">
+			<p class="t-lead">A good payment system is one that nobody has to think about.</p>
+			<p>
+				Wages arrive on time, bills are paid in seconds, and a shop can accept payment as easily
+				from a visitor as from a neighbour. The Bank intends to foster payments that are instant,
+				low in cost and open to every provider that meets its standards, with cash remaining
+				available for those who prefer it.
+			</p>
+		</div>
+	</div>
+</section>
+
 <RelatedLinks
 	links={[
 		{ href: '/financial-stability', label: 'Financial stability' },
@@ -87,6 +107,16 @@
 />
 
 <style>
+	.text {
+		display: grid;
+		gap: var(--space-4);
+		max-width: var(--measure);
+	}
+
+	.text p:not(.t-lead) {
+		color: var(--fg-muted);
+	}
+
 	.pillars {
 		display: grid;
 		gap: var(--space-6) var(--gutter);

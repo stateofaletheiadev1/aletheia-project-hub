@@ -7,18 +7,42 @@
 	import Seo from '$lib/components/seo/Seo.svelte';
 
 	const stages = [
-		{ name: 'Research', body: 'Proposals are prepared with their evidence.' },
-		{ name: 'Consultation', body: 'Proposals are published for comment.' },
-		{ name: 'Adoption', body: 'Policy is adopted by the competent body.' },
-		{ name: 'Publication', body: 'The adopted policy is published here.' },
-		{ name: 'Review', body: 'Each policy is reviewed on a set date.' }
+		{
+			name: 'Research',
+			body: 'Proposals are prepared with their evidence and the options considered.'
+		},
+		{
+			name: 'Consultation',
+			body: 'Proposals are published for public comment, with a period to respond.'
+		},
+		{
+			name: 'Adoption',
+			body: 'Policy is adopted by the competent body and the decision is recorded.'
+		},
+		{
+			name: 'Publication',
+			body: 'The adopted policy is published here, together with its reasons.'
+		},
+		{ name: 'Review', body: 'Each policy is reviewed on a set date, through the same process.' }
 	];
 
 	const principles = [
-		['Issuance follows rules', 'Currency is issued only under adopted rules.'],
-		['Issuance is recorded', 'Every issue is entered in a public register.'],
-		['The issuer does not spend', 'The Bank does not create money to finance the budget.'],
-		['Stability', 'Purchasing power is a central consideration of policy.']
+		[
+			'Issuance follows rules',
+			'Currency is issued only under adopted rules that say when, how much and on whose decision.'
+		],
+		[
+			'Issuance is recorded',
+			'Every issue is entered in a public register, so that the amount of money in existence is always known.'
+		],
+		[
+			'The issuer does not spend',
+			'The Bank does not create money to finance the State’s budget. Public spending is paid for by public revenue.'
+		],
+		[
+			'Stability',
+			'Keeping the Guilder’s purchasing power steady over time is the central consideration of policy.'
+		]
 	];
 </script>
 
@@ -101,6 +125,58 @@
 	</div>
 </section>
 
+<section class="section surface-raised" aria-labelledby="works-title">
+	<div class="container split">
+		<SectionHeader
+			folio="§ 02.4"
+			eyebrow="Explainer"
+			title="How monetary policy works"
+			id="works-title"
+		/>
+		<div class="body measure">
+			<p class="t-lead">
+				A central bank influences the cost and availability of money, and through them spending,
+				saving and prices.
+			</p>
+			<p>
+				When money is plentiful and cheap to borrow, households and businesses tend to spend and
+				invest more; when it is scarcer, they save more and spend less. Over time this affects how
+				fast prices rise. Monetary policy uses this connection to keep prices stable, adjusting with
+				care because its effects take time to show.
+			</p>
+			<p>
+				The instruments the Bank will use, and the measure by which it will judge its success, will
+				be set out in its monetary policy framework.
+			</p>
+		</div>
+	</div>
+</section>
+
+<section class="section surface-navy" aria-labelledby="comms-title">
+	<div class="container split">
+		<SectionHeader
+			folio="§ 02.5"
+			eyebrow="Communication"
+			title="Decisions, explained"
+			id="comms-title"
+		/>
+		<dl class="principles comms">
+			<div>
+				<dt class="t-h4">A published calendar</dt>
+				<dd>Policy decisions will be taken on dates announced in advance.</dd>
+			</div>
+			<div>
+				<dt class="t-h4">A statement with every decision</dt>
+				<dd>Each decision will be published with a statement of its reasons.</dd>
+			</div>
+			<div>
+				<dt class="t-h4">A regular report</dt>
+				<dd>A monetary policy report will set out the Bank’s assessment of the economy.</dd>
+			</div>
+		</dl>
+	</div>
+</section>
+
 <RelatedLinks
 	links={[
 		{ href: '/issuance', label: 'Issuance' },
@@ -146,6 +222,10 @@
 		gap: var(--space-2);
 		padding-block: var(--space-5);
 		border-bottom: var(--hairline) solid var(--line);
+	}
+
+	.comms {
+		grid-template-columns: 1fr !important;
 	}
 
 	.principles dd {

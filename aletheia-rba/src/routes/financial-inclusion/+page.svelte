@@ -12,6 +12,13 @@
 	</p>
 {/snippet}
 
+{#snippet measuring()}
+	<p>
+		Progress will be measured, not assumed. The Bank intends to survey how residents save, pay and
+		borrow, and to publish the results, so that policy can follow the evidence.
+	</p>
+{/snippet}
+
 {#snippet principles()}
 	<dl>
 		<div>
@@ -47,7 +54,8 @@
 	seed={181}
 	sections={[
 		{ eyebrow: 'Why', title: 'A system for everyone', body: why },
-		{ eyebrow: 'Principles', title: 'Four principles', body: principles }
+		{ eyebrow: 'Principles', title: 'Four principles', body: principles },
+		{ eyebrow: 'Evidence', title: 'Measuring progress', body: measuring }
 	]}
 	related={[
 		{ href: '/learn', label: 'Money and you' },

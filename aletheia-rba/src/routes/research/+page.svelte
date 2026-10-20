@@ -24,6 +24,15 @@
 	</dl>
 {/snippet}
 
+{#snippet approach()}
+	<p class="t-lead">Research keeps policy honest.</p>
+	<p>
+		The Bank’s research is intended to test its own assumptions, to learn from the experience of
+		other nations, and to build knowledge about an economy that has not been studied before. Work
+		will be published in full, including findings that challenge the Bank’s views.
+	</p>
+{/snippet}
+
 {#snippet papers()}
 	<EmptyState title="Forthcoming" headingLevel={3} seed={107}>
 		<p>Research papers will be published here and listed under Publications.</p>
@@ -42,6 +51,7 @@
 	lead="Evidence behind policy, published in full."
 	sections={[
 		{ eyebrow: 'Themes', title: 'Research agenda', body: themes },
+		{ eyebrow: 'Approach', title: 'Open research', body: approach },
 		{ eyebrow: 'Papers', title: 'Research papers', body: papers }
 	]}
 	related={[

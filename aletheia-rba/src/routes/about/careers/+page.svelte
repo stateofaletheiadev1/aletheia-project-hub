@@ -11,6 +11,23 @@
 	</p>
 {/snippet}
 
+{#snippet offer()}
+	<dl>
+		<div>
+			<dt>Purpose</dt>
+			<dd>Work that matters to every resident of a new nation.</dd>
+		</div>
+		<div>
+			<dt>Learning</dt>
+			<dd>Training and development, including, in time, placements with other institutions.</dd>
+		</div>
+		<div>
+			<dt>Standards</dt>
+			<dd>A workplace built on integrity, discretion and respect.</dd>
+		</div>
+	</dl>
+{/snippet}
+
 {#snippet vacancies()}
 	<EmptyState title="Forthcoming" headingLevel={3} seed={103}>
 		<p>Vacancies at the Bank will be published here.</p>
@@ -31,6 +48,7 @@
 	seed={103}
 	sections={[
 		{ eyebrow: 'Working here', title: 'Who we look for', body: work },
+		{ eyebrow: 'What we offer', title: 'Working at the Bank', body: offer },
 		{ eyebrow: 'Vacancies', title: 'Current vacancies', body: vacancies }
 	]}
 	related={[

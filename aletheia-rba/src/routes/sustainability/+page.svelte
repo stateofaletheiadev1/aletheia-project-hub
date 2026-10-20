@@ -12,6 +12,14 @@
 	</p>
 {/snippet}
 
+{#snippet resilience()}
+	<p>
+		Storms and disruption test financial systems as much as physical ones. The Bank’s planning for
+		resilience will cover how payments, cash and essential services continue when conditions at sea
+		or ashore are difficult.
+	</p>
+{/snippet}
+
 {#snippet work()}
 	<dl>
 		<div>
@@ -45,7 +53,8 @@
 	seed={193}
 	sections={[
 		{ eyebrow: 'The sea', title: 'A maritime nation', body: sea },
-		{ eyebrow: 'Our work', title: 'Three commitments', body: work }
+		{ eyebrow: 'Our work', title: 'Three commitments', body: work },
+		{ eyebrow: 'Resilience', title: 'When conditions are hard', body: resilience }
 	]}
 	related={[
 		{ href: '/financial-stability', label: 'Financial stability' },
