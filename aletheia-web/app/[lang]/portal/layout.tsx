@@ -5,6 +5,7 @@ import { getTranslator } from '@/lib/i18n/server';
 import { connection } from 'next/server';
 import { ServiceNotOpen } from '@/components/layout/ServiceNotOpen';
 import { databaseConfigured } from '@/lib/server/db';
+import { applicationsOpen } from '@/lib/features';
 
 export async function generateMetadata({ params }: LayoutProps<'/[lang]/portal'>): Promise<Metadata> {
   const { lang } = await params;
@@ -16,6 +17,8 @@ export async function generateMetadata({ params }: LayoutProps<'/[lang]/portal'>
 // route says that it is not open, instead of showing a sign-in that cannot work.
 export default async function PortalLayout({ children }: LayoutProps<'/[lang]/portal'>) {
   await connection();
+  // The portal collects applications and identity documents: closed in the founding phase.
+  if (!applicationsOpen()) return <ServiceNotOpen area="applications" />;
   if (!databaseConfigured()) return <ServiceNotOpen area="portal" />;
   return children;
 }

@@ -18,5 +18,6 @@
   "audit_events": [["day", false], ["category", false], ["actorId", false], ["subjectAccountId", false]],
   "outbox": [["state", false]],
   "settings": [["name", true]],
-  "counters": [["name", true]]
+  "counters": [["name", true]],
+  "founding_interest": [["emailIndex", true], ["subject", true]]
 }

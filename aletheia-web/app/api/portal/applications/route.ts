@@ -11,7 +11,7 @@ export const GET = route(async (req) => {
 export const POST = route(async (req) => {
   const { account } = await requireAccount(req);
   const b = await body(req);
-  const route_ = oneOf(b, 'route', ['e-residency', 'naturalisation', 'investor'] as const);
+  const route_ = oneOf(b, 'route', ['e-residency', 'naturalisation'] as const);
   const dob = str(b, 'dob', { max: 10, label: 'Date of birth' });
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dob) || Number.isNaN(Date.parse(dob)) || Date.parse(dob) > Date.now()) fail(400, 'Enter a valid date of birth.');
   const publicKey = str(b, 'publicKey', { max: 64, label: 'Public key' }).toLowerCase();
@@ -19,7 +19,7 @@ export const POST = route(async (req) => {
   if (b.acceptedCovenant !== true) fail(400, 'You must accept the Covenant declaration.');
   const app = await submitApplication(account, {
     route: route_,
-    investOption: route_ === 'investor' ? str(b, 'investOption', { max: 60, optional: true }) || null : null,
+    investOption: null,
     nationality: str(b, 'nationality', { max: 60, label: 'Nationality' }),
     dob,
     passportNumber: str(b, 'passportNumber', { max: 30, label: 'Passport number' }).toUpperCase(),

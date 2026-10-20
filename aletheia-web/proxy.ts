@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { DEFAULT_LOCALE, LOCALE_COOKIE, isLocale, type Locale } from '@/lib/i18n/config';
 import { CONSOLE_DOMAIN, CONSOLE_PREFIX, SITE_DOMAIN } from '@/lib/hosts';
+import { applicationsOpen } from '@/lib/features';
 
 /** Picks the best supported language from Accept-Language ("de-AT,de;q=0.9,en;q=0.8" → de). */
 function negotiate(header: string | null): Locale {
@@ -56,6 +57,10 @@ function hostSplit(request: NextRequest): NextResponse | null {
 }
 
 export function proxy(request: NextRequest) {
+  // The portal API takes applications and identity documents: closed in the founding phase.
+  if (request.nextUrl.pathname.startsWith('/api/portal/') && !applicationsOpen()) {
+    return NextResponse.json({ error: 'Applications are closed. Aletheia does not accept applications in its founding phase.' }, { status: 403 });
+  }
   const split = hostSplit(request);
   if (split) return split;
   const { pathname, search } = request.nextUrl;

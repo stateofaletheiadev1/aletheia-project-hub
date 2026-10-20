@@ -11,24 +11,33 @@ import { ArrowRight } from 'lucide-react';
  * Officer Administration). Nothing is simulated: no sign-in, no sample accounts, no figures.
  */
 const COPY = {
+  applications: {
+    eyebrow: 'Applications · Closed',
+    title: 'Aletheia does not accept applications.',
+    body: 'Aletheia is a new-country project in its founding phase. It does not accept applications for citizenship, residency or e-residency, and does not collect identity documents or payments. You can register interest as a Founding Member instead.',
+    links: [
+      { label: 'Register interest as a Founding Member', href: '/founding-members' },
+      { label: 'Status & Disclaimers', href: '/transparency' },
+      { label: 'Contact', href: '/contact' },
+    ],
+  },
   portal: {
     eyebrow: 'Citizen Portal · Not yet open',
     title: 'The Citizen Portal is not open yet.',
-    body: 'No citizen or e-resident accounts have been issued, and applications are not yet accepted online. The opening of the portal will be announced in the Official Gazette.',
+    body: 'No citizen or e-resident accounts have been issued, and applications are not accepted. Any opening of the portal will be announced in the Gazette.',
     links: [
-      { label: 'Citizenship', href: '/citizenship' },
-      { label: 'E-Residency', href: '/e-residency' },
-      { label: 'Official Gazette', href: '/news' },
+      { label: 'Founding Members', href: '/founding-members' },
+      { label: 'Gazette', href: '/news' },
       { label: 'Contact', href: '/contact' },
     ],
   },
   admin: {
     eyebrow: 'Officer Administration · Not yet open',
     title: 'Officer Administration is not open yet.',
-    body: 'The national registries hold no records yet, so there is nothing to administer. Officer accounts will be issued by the founding government when the registries open.',
+    body: 'The registries hold no records, so there is nothing to administer.',
     links: [
       { label: 'Government', href: '/government' },
-      { label: 'Official Gazette', href: '/news' },
+      { label: 'Gazette', href: '/news' },
       { label: 'Contact', href: '/contact' },
     ],
   },

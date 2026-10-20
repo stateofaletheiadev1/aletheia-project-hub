@@ -22,8 +22,8 @@ import {
 const RIGHTS = [
   'Right to vote in Covenant Assembly elections',
   'Right to hold elected or appointed public office',
-  'Right to an Aletheian biometric passport (ICAO-compliant)',
-  'Right to reside on Aletheian sovereign territory',
+  'Right to a travel document, once Aletheia may lawfully issue one',
+  'Right to reside in Aletheian territory, once agreed by treaty',
   'Right to access all civic services without fee',
   'Right to education and healthcare under the Covenant',
   'Freedom of expression, assembly, and conscience',
@@ -40,34 +40,16 @@ const OBLIGATIONS = [
 
 const PATHWAYS = [
   {
-    title: 'Founding Citizenship',
-    desc: 'Reserved for the initial cohort of founding members who participated in the constitutional drafting and national establishment process.',
-    status: 'Planned' as const,
-    detail: 'Application closed to new applicants. Reserved for founding cohort only.',
+    title: 'Citizenship by Birth',
+    desc: 'A child born to an Aletheian citizen would be a citizen by birth, and would swear the Covenant Oath on coming of age.',
+    status: 'Proposed' as const,
+    detail: 'Requires a founding treaty and a lawful register of citizens.',
   },
   {
     title: 'Naturalisation by Residence',
-    desc: 'After 5 years of lawful, continuous physical residence on Aletheian territory, residents may apply for full citizenship through the standard naturalisation process.',
-    status: 'Planned' as const,
-    detail: 'Available upon territorial establishment. Physical residence required.',
-  },
-  {
-    title: 'Covenant Investor Citizenship',
-    desc: 'Applicants who invest in building the Sovereign Covenant State — a 250,000 AEY National Development Contribution or 500,000 AEY in Covenant Development Bonds — may be granted citizenship without a residence period.',
-    status: 'Under Development' as const,
-    detail: 'Enhanced due diligence and the Covenant Oath required. See Apply for Citizenship.',
-  },
-  {
-    title: 'Naturalisation by Covenant',
-    desc: 'Exceptional individuals who provide outstanding service to Aletheian civic, scientific, or economic development may be granted citizenship by covenant award.',
-    status: 'Planned' as const,
-    detail: 'Awarded by the Chancellor with Covenant Assembly ratification.',
-  },
-  {
-    title: 'Citizenship by E-Residency Pathway',
-    desc: 'E-residents who meet residence and contribution requirements after territorial establishment may transition to full citizenship through a defined legal pathway.',
-    status: 'Vision' as const,
-    detail: 'Pathway designed but requires territorial establishment to activate.',
+    desc: 'After 5 years of lawful, continuous physical residence in an Aletheian territory, residents could apply for citizenship through naturalisation.',
+    status: 'Proposed' as const,
+    detail: 'Requires a territory agreed by treaty. Physical residence required.',
   },
 ];
 
@@ -101,32 +83,32 @@ export default function CitizenshipPage() {
             <div className="flex items-center gap-3">
               <div className="pill-sovereign gold-glow-sm">
                 <StarOfTruth size={12} />
-                <span>{t("Ministry of Interior & Civic Affairs")}</span>
+                <span>{t("Proposed Citizenship Standards")}</span>
               </div>
-              <StatusBadge status="Planned" size="sm" />
+              <StatusBadge asset="citizenship" size="sm" />
             </div>
 
             <div className="space-y-4">
               <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.04] text-parchment">{t("Membership by")}{' '}
                 <span className="text-gold-metallic">{t("covenant,")}</span>
                 <br />{t("not by accident of birth.")}</h1>
-              <p className="text-base sm:text-xl text-parchment/70 leading-relaxed font-light max-w-2xl">{t("Aletheian citizenship is a voluntary, bilateral covenant — a mutual commitment between the individual and the Sovereign Covenant State. Rights are constitutionally absolute. Obligations are transparent, proportionate, and free of personal income tax.")}</p>
+              <p className="text-base sm:text-xl text-parchment/70 leading-relaxed font-light max-w-2xl">{t("Aletheian citizenship is proposed as a voluntary, bilateral covenant between the individual and the Sovereign Covenant State. Citizenship will be conferred only by birth or naturalisation, under a founding treaty. It is never sold, and no applications are accepted.")}</p>
             </div>
 
             <div className="flex flex-wrap gap-4 pt-2">
-              <Link href="/citizenship/apply" className="btn-sovereign-gold px-8 py-3.5 rounded-sm flex items-center gap-2.5 group text-sm">
-                <span>{t("Apply for Citizenship")}</span>
+              <Link href="/founding-members" className="btn-sovereign-gold px-8 py-3.5 rounded-sm flex items-center gap-2.5 group text-sm">
+                <span>{t("Register interest as a Founding Member")}</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
-              <Link href="/e-residency" className="btn-sovereign-ghost px-8 py-3.5 rounded-sm text-sm">{t("Begin with E-Residency")}</Link>
+              <Link href="/development#treaty" className="btn-sovereign-ghost px-8 py-3.5 rounded-sm text-sm">{t("Territory by Treaty")}</Link>
             </div>
 
             {/* Key stat strip */}
             <div className="pt-6 border-t border-parchment/10 grid grid-cols-3 gap-8">
               {[
                 { num: '5', label: 'Official Languages' },
-                { num: '5', label: 'Citizenship Pathways' },
-                { num: '8', label: 'Guaranteed Rights' },
+                { num: '2', label: 'Paths: Birth & Naturalisation' },
+                { num: '8', label: 'Proposed Rights' },
               ].map((s) => (
                 <div key={s.label} className="space-y-1">
                   <div className="text-3xl font-extrabold text-gold tabular-nums">{tx(s.num)}</div>
@@ -147,7 +129,7 @@ export default function CitizenshipPage() {
                 <Shield className="w-4 h-4 text-gold" />
               </div>
               <p className="text-sm text-parchment/80 font-light">
-                <span className="font-bold text-parchment">{t("The Covenant Principle:")}</span>{' '}{t("All citizenship rights are justiciable and enforceable before the High Court of Aletheia. No emergency decree may suspend them.")}</p>
+                <span className="font-bold text-parchment">{t("The Covenant Principle:")}</span>{' '}{t("Under the draft Constitution, citizenship rights would be enforceable before the High Court of Aletheia, and no emergency decree could suspend them.")}</p>
             </div>
             <Link href="/constitution#art-7" className="text-[11px] font-bold uppercase tracking-wider text-gold hover:text-gold-tint transition-colors whitespace-nowrap flex items-center gap-1.5">{t("Constitution Art. 7–15")}{' '}<ArrowRight className="w-3 h-3" />
             </Link>
@@ -160,11 +142,11 @@ export default function CitizenshipPage() {
         <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-14 max-w-2xl">
             <span className="label-sovereign block mb-3">{t("Naturalisation Framework")}</span>
-            <h2 className="text-4xl sm:text-5xl font-bold tracking-tight text-navy leading-tight">{t("Five pathways to")}{' '}
-              <span className="text-gold-metallic">{t("full citizenship.")}</span>
+            <h2 className="text-4xl sm:text-5xl font-bold tracking-tight text-navy leading-tight">{t("Two paths to")}{' '}
+              <span className="text-gold-metallic">{t("citizenship.")}</span>
             </h2>
             <div className="rule-gold mt-5 max-w-xs" />
-            <p className="text-navy/60 mt-4 text-sm leading-relaxed">{t("All citizenship pathways are governed by the Nationality & Naturalisation Act, enacted pursuant to Constitution Article 8. No pathway circumvents the mandatory Covenant Oath.")}</p>
+            <p className="text-navy/60 mt-4 text-sm leading-relaxed">{t("Citizenship will be conferred only by birth or naturalisation, under a founding treaty, as set out in the proposed Nationality & Naturalisation Act. It can never be bought.")}</p>
           </div>
 
           <div className="grid md:grid-cols-2 gap-6">
@@ -216,7 +198,7 @@ export default function CitizenshipPage() {
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-parchment">{t("Constitutional Rights")}</h3>
-                  <p className="text-[11px] text-parchment/45 mt-0.5">{t("Enforceable before the High Court · Art. 7–15")}</p>
+                  <p className="text-[11px] text-parchment/45 mt-0.5">{t("Proposed in the draft Constitution · Art. 7–15")}</p>
                 </div>
               </div>
               <div className="space-y-3">
@@ -240,7 +222,7 @@ export default function CitizenshipPage() {
                   </div>
                   <div>
                     <h3 className="text-base font-bold text-parchment">{t("Civic Obligations")}</h3>
-                    <p className="text-[11px] text-parchment/45 mt-0.5">{t("Constitution Art. 16–20 · Enforceable by law")}</p>
+                    <p className="text-[11px] text-parchment/45 mt-0.5">{t("Draft Constitution Art. 16–20")}</p>
                   </div>
                 </div>
                 <div className="space-y-3">
@@ -263,7 +245,7 @@ export default function CitizenshipPage() {
                   </div>
                   <div>
                     <span className="label-sovereign block mb-1.5">{t("Zero Personal Income Tax")}</span>
-                    <p className="text-sm text-parchment/75 leading-relaxed">{t("Citizens pay a flat civic contribution schedule — not a personal income tax. The Sovereign Covenant State funds its operations through institutional fees, StableChain settlement revenue, and the Covenant Endowment Fund — not individual earnings.")}</p>
+                    <p className="text-sm text-parchment/75 leading-relaxed">{t("Proposed: citizens would pay a flat civic contribution, not a personal income tax. A future State would be funded by institutional fees, settlement revenue and the Covenant Endowment Fund, not by individual earnings.")}</p>
                   </div>
                 </div>
               </div>
@@ -280,25 +262,25 @@ export default function CitizenshipPage() {
               <StarOfTruth size={36} />
             </div>
             <div className="space-y-4">
-              <h2 className="text-4xl sm:text-5xl font-bold tracking-tight text-navy leading-tight">{t("Not ready for citizenship?")}{' '}
-                <span className="text-gold-metallic">{t("Start with E-Residency.")}</span>
+              <h2 className="text-4xl sm:text-5xl font-bold tracking-tight text-navy leading-tight">{t("Want to take part now?")}{' '}
+                <span className="text-gold-metallic">{t("Join the founding community.")}</span>
               </h2>
-              <p className="text-navy/65 leading-relaxed text-base max-w-xl mx-auto">{t("E-Residency gives you access to Aletheia's digital infrastructure — company formation, banking, and civic services — without the commitment of full citizenship. Many future citizens begin their Aletheian journey as e-residents.")}</p>
+              <p className="text-navy/65 leading-relaxed text-base max-w-xl mx-auto">{t("Registering interest as a Founding Member is free and confers no status. It tells us you would like to follow and support the founding of Aletheia.")}</p>
             </div>
             <div className="flex flex-wrap items-center justify-center gap-4">
               <Link
-                href="/e-residency"
+                href="/founding-members"
                 className="btn-sovereign-gold px-10 py-4 rounded-sm flex items-center gap-2.5 group text-sm"
               >
-                <span>{t("Explore E-Residency")}</span>
+                <span>{t("Register interest as a Founding Member")}</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
               <Link
-                href="/passport"
+                href="/design/travel-document"
                 className="inline-flex items-center gap-2 px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-navy border border-navy/20 rounded-sm hover:border-gold/50 hover:bg-navy/5 transition-all"
               >
                 <FileText className="w-3.5 h-3.5 text-gold" />
-                <span>{t("ICAO eMRTD Passport")}</span>
+                <span>{t("Travel Document Design Concept")}</span>
               </Link>
             </div>
           </div>

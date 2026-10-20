@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { StarOfTruth, HexagonCross } from '@/components/brand/Logo';
 import { NationalFlag } from '@/components/brand/Flags';
 import { StatusBadge } from '@/components/ui/StatusBadge';
+import { SpecimenWatermark } from '@/components/ui/SpecimenWatermark';
 import { ArrowRight, CheckCircle2 } from 'lucide-react';
 import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
 
@@ -23,14 +24,14 @@ export default function IdentityPage() {
             <div className="flex items-center gap-3">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 border border-gold/40 bg-navy-deep/80 rounded-sm backdrop-blur-sm">
                 <StarOfTruth size={14} />
-                <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-gold">{t("Chancery of State")}</span>
+                <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-gold">{t("National Symbols")}</span>
               </div>
-              <StatusBadge status="Operational" size="sm" />
+              <StatusBadge asset="platform" size="sm" />
             </div>
 
             <h1 className="heading-hero">{t("National Symbols & Heraldic Insignia")}</h1>
 
-            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("The official heraldry, vexillology, and state insignia of The Sovereign Covenant State of Aletheia. Established by the National Symbols Act and protected under international copyright and diplomatic protocols.")}</p>
+            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("The heraldry, flags and insignia designed for the Sovereign Covenant State of Aletheia, as set out in a proposed National Symbols Act. The designs are protected by copyright.")}</p>
           </div>
         </div>
       </section>
@@ -59,7 +60,7 @@ export default function IdentityPage() {
           <div className="lg:col-span-7 space-y-6">
             <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">{t("Heraldic Composition")}</span>
             <h2 className="text-2xl sm:text-3xl font-bold text-navy tracking-tight">{t("The Sovereign Shield & Quarters")}</h2>
-            <p className="text-sm text-navy/70 leading-relaxed">{t("Blazoned pursuant to Statute 2026-02, the arms unite European heraldic tradition with maritime and constitutional allegory.")}</p>
+            <p className="text-sm text-navy/70 leading-relaxed">{t("Blazoned in the proposed Statute 2026-02, the arms unite European heraldic tradition with maritime and constitutional allegory.")}</p>
 
             <div className="grid sm:grid-cols-2 gap-4 text-xs">
               <div className="p-4 bg-white border border-navy/10 rounded-sm space-y-1.5">
@@ -101,13 +102,13 @@ export default function IdentityPage() {
           
           <div className="lg:col-span-7 space-y-6">
             <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">{t("Vexillology & Standards")}</span>
-            <h2 className="text-2xl sm:text-3xl font-bold text-navy tracking-tight">{t("The Covenant Flag & Naval Ensign")}</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold text-navy tracking-tight">{t("The Covenant Flag & State Ensign")}</h2>
             <p className="text-sm text-navy/70 leading-relaxed">{t("The national flag displays the Star of Truth centered upon a field of Covenant Navy, bordered by bands of archival parchment. The proportions follow the classic maritime ratio of 2:3.")}</p>
 
             <div className="space-y-3 text-xs text-navy/75">
               <div className="flex items-center gap-3">
                 <div className="w-5 h-5 rounded-full bg-navy border border-gold/40 shrink-0" />
-                <span><strong>{t("Covenant Navy (#15294A):")}</strong>{' '}{t("The solemn depth of oceanic jurisdiction and eternal law.")}</span>
+                <span><strong>{t("Covenant Navy (#15294A):")}</strong>{' '}{t("The solemn depth of the ocean and of eternal law.")}</span>
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-5 h-5 rounded-full bg-gold border border-navy/30 shrink-0" />
@@ -137,44 +138,45 @@ export default function IdentityPage() {
           <div className="lg:col-span-5 flex justify-center">
             <div className="relative group">
               <div className="absolute -inset-4 bg-gradient-to-r from-covenant-burgundy/40 to-gold/20 rounded-2xl blur-xl opacity-60" />
-              <div className="relative">
+              <div className="relative overflow-hidden">
                 <Image
                   src="/passport_cover.png"
-                  alt={t("Aletheian Passport Booklet")}
+                  alt={t("Design concept for an Aletheian travel document")}
                   width={280}
                   height={391}
                   className="object-contain"
                   style={{ filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.5)) drop-shadow(0 6px 12px rgba(112,24,36,0.35))' }}
                 />
+                <SpecimenWatermark />
               </div>
             </div>
           </div>
 
           <div className="lg:col-span-7 space-y-6">
-            <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">{t("Diplomatic Travel Credentials")}</span>
-            <h2 className="text-2xl sm:text-3xl font-bold text-navy tracking-tight">{t("The Covenant Burgundy Passport")}</h2>
-            <p className="text-sm text-navy/70 leading-relaxed">{t("Issued in deep Covenant Burgundy leather with hot-stamped gold foil heraldry, the biometric travel document is the premier sovereign identity credential of Aletheian citizens.")}</p>
+            <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">{t("Design Concept")}</span>
+            <h2 className="text-2xl sm:text-3xl font-bold text-navy tracking-tight">{t("The Covenant Burgundy Travel Document")}</h2>
+            <p className="text-sm text-navy/70 leading-relaxed">{t("A design concept in deep Covenant Burgundy with gold-foil heraldry. It is not a travel document: Aletheia issues no passports or identity documents.")}</p>
 
             <ul className="space-y-3 text-xs text-navy/70">
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="w-4 h-4 text-laurel shrink-0 mt-0.5" />
-                <span><strong>{t("ICAO Doc 9303 Part 9:")}</strong>{' '}{t("Contactless cryptographic chip loaded with biometric facial and fingerprint records.")}</span>
+                <span><strong>{t("Electronic chip:")}</strong>{' '}{t("Designed with reference to international travel-document conventions.")}</span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="w-4 h-4 text-laurel shrink-0 mt-0.5" />
-                <span><strong>{t("Laser Polycarbonate:")}</strong>{' '}{t("Laser-engraved photo data page impervious to alteration or mechanical erasure.")}</span>
+                <span><strong>{t("Polycarbonate data page:")}</strong>{' '}{t("A laser-engraved page, designed to resist alteration.")}</span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="w-4 h-4 text-laurel shrink-0 mt-0.5" />
-                <span><strong>{t("Multilingual Typography:")}</strong>{' '}{t("Inscribed in English, German, Dutch, Serbian, and Italian.")}</span>
+                <span><strong>{t("Multilingual Typography:")}</strong>{' '}{t("Text in English, German, Dutch, Serbian and Italian.")}</span>
               </li>
             </ul>
 
             <div className="pt-2">
               <Link
-                href="/passport"
+                href="/design/travel-document"
                 className="px-6 py-3 bg-navy text-gold text-xs font-bold uppercase tracking-wider rounded-sm hover:bg-navy-deep transition-colors inline-flex items-center gap-2"
-              >{t("Explore Passport Specifications")}{' '}<ArrowRight className="w-3.5 h-3.5" />
+              >{t("View the Design Concept")}{' '}<ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
           </div>

@@ -2,7 +2,7 @@
 
 import { useI18n } from '@/components/i18n/I18nProvider';
 import React, { useState, useSyncExternalStore } from 'react';
-import { INVESTMENT_OPTIONS, formatAey } from '@/lib/citizenship';
+
 import { useToast } from '@/components/ui/Toast';
 import Link from '@/components/i18n/Link';
 import { PortalShell } from '@/components/layout/PortalShell';
@@ -44,21 +44,14 @@ export default function ApplicationWizardPage() {
   const docs = useApi<{ documents: PortalDocument[] }>('/api/portal/documents');
   const apps = useApi<{ applications: ApplicationSummary[] }>('/api/portal/applications');
   const submittedDocs = (docs.data?.documents ?? []).filter((d) => d.direction === 'submitted' && d.status !== 'Flagged');
-  // Which programme the applicant arrived for (?route=naturalisation|investor&option=...).
+  // Which programme the applicant arrived for (?route=naturalisation).
   const search = useSyncExternalStore(noopSubscribe, () => window.location.search, () => '');
   const params = new URLSearchParams(search);
-  const routeParam = params.get('route');
-  const route: 'e-residency' | 'naturalisation' | 'investor' =
-    routeParam === 'naturalisation' || routeParam === 'investor' ? routeParam : 'e-residency';
-  const investOption = route === 'investor' ? params.get('option') : null;
-  // Investor applicants default to the investor purpose until they choose otherwise.
-  const [purposeTouched, setPurposeTouched] = useState(false);
-  const purpose = !purposeTouched && route === 'investor' ? 'investor' : formData.purpose;
+  const route: 'e-residency' | 'naturalisation' = params.get('route') === 'naturalisation' ? 'naturalisation' : 'e-residency';
+  const purpose = formData.purpose;
 
-  const investment = INVESTMENT_OPTIONS.find((o) => o.id === investOption) ?? INVESTMENT_OPTIONS[0];
   const routeTitle =
-    route === 'investor' ? 'Citizenship — Covenant Investor route'
-    : route === 'naturalisation' ? 'Citizenship — Naturalisation by residence'
+    route === 'naturalisation' ? 'Citizenship — Naturalisation by residence'
     : 'Statutory e-residency & digital identity application under Sovereign Covenant State Charter';
 
   const stepProblem = (): string | null => {
@@ -117,7 +110,7 @@ export default function ApplicationWizardPage() {
     setError(null);
     try {
       const { application } = await api<{ application: { reference: string } }>('/api/portal/applications', {
-        body: { ...formData, purpose, route, investOption, publicKey: generatedKeyHash },
+        body: { ...formData, purpose, route, publicKey: generatedKeyHash },
       });
       setSubmitted({ reference: application.reference });
       await Promise.all([apps.reload(), reload(ME), reload('/api/portal/notifications'), reload('/api/portal/dashboard')]);
@@ -141,10 +134,7 @@ export default function ApplicationWizardPage() {
               </div>
               <h1 className="text-2xl font-bold tracking-tight text-parchment">{t("Application Wizard")}</h1>
               <p className="text-xs text-parchment/70 font-light">{tx(routeTitle)}</p>
-              {tx(route === 'investor' && (
-                <p className="mt-2 text-[11px] text-gold-tint">
-                  {tx(investment.title)} · {formatAey(investment.amount, intl)}{' '}{t("· enhanced due diligence applies")}</p>
-              ))}
+              
             </div>
 
             <Link
@@ -310,7 +300,7 @@ export default function ApplicationWizardPage() {
                     {[
                       { id: 'business', title: 'Corporate Enterprise / Company Founder', desc: 'Incorporate and operate an LLC / SARL or Joint Stock Corporation remotely.' },
                       { id: 'tech', title: 'Software Engineering & Scientific Research', desc: 'Contract with Aletheian research polytechnics and technology projects.' },
-                      { id: 'investor', title: 'Sovereign Capital & Bond Investor', desc: 'Participate in sovereign development debt tranches and port concessions.' },
+                      
                       { id: 'nomad', title: 'Digital Freelancer & Remote Consultant', desc: 'Invoice international clients tax-neutrally using an Aletheian business entity.' },
                     ].map((opt) => (
                       <label
@@ -326,7 +316,7 @@ export default function ApplicationWizardPage() {
                           name="purpose"
                           value={opt.id}
                           checked={purpose === opt.id}
-                          onChange={(e) => { setPurposeTouched(true); setFormData({ ...formData, purpose: e.target.value }); }}
+                          onChange={(e) => setFormData({ ...formData, purpose: e.target.value })}
                           className="mt-0.5"
                         />
                         <div>

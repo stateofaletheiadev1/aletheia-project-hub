@@ -2,18 +2,17 @@
 
 import { useI18n } from '@/components/i18n/I18nProvider';
 import React, { useState } from 'react';
-import { useToast } from '@/components/ui/Toast';
 import Link from '@/components/i18n/Link';
 import Image from 'next/image';
 import { StarOfTruth } from '@/components/brand/Logo';
 import { StatusBadge } from '@/components/ui/StatusBadge';
+import { ImageCaption } from '@/components/ui/ImageCaption';
 import {
   ShieldCheck,
   Plane,
   Clock,
   CheckCircle2,
   AlertTriangle,
-  ArrowRight,
 } from 'lucide-react';
 
 const VISA_TYPES = [
@@ -21,47 +20,46 @@ const VISA_TYPES = [
     id: 'eta',
     title: 'Electronic Travel Authorisation (A-ETA)',
     category: 'Short Stay (up to 90 days)',
-    status: 'Planned' as const,
-    fee: '25 AEY',
-    processingTime: 'Instant / < 10 mins',
-    desc: 'Automated digital clearance for tourism, diplomatic conferences, and business meetings in Aletheia.',
-    requirements: ['Valid ICAO biometric passport (6 months validity)', 'Return maritime or aerial ticket', 'Verified health insurance clearance'],
+    status: 'Proposed' as const,
+    fee: 'To be set by law',
+    processingTime: 'To be set by law',
+    desc: 'Proposed digital clearance for visits, conferences and business meetings in a future Aletheian territory.',
+    requirements: ['A valid passport', 'A return ticket', 'Health insurance'],
   },
   {
     id: 'res-tech',
     title: 'Innovation & Research Residence Permit',
     category: 'Long Stay (1 to 3 years)',
-    status: 'Planned' as const,
-    fee: '250 AEY',
-    processingTime: '14 Business Days',
-    desc: 'Issued to software engineers, maritime roboticists, academics, and biotech researchers working in Antioch or Augustine.',
-    requirements: ['Accredited contract or sponsor', 'Police clearance certificate', 'Biometric enrollment with ADSS'],
+    status: 'Proposed' as const,
+    fee: 'To be set by law',
+    processingTime: 'To be set by law',
+    desc: 'Proposed for engineers, researchers and academics working in a future Aletheian territory.',
+    requirements: ['Accredited contract or sponsor', 'Police clearance certificate', 'Biometric enrolment'],
   },
   {
     id: 'res-invest',
-    title: 'Sovereign Capital & Enterprise Permit',
+    title: 'Enterprise Residence Permit',
     category: 'Long Stay (Renewable)',
-    status: 'Planned' as const,
-    fee: '500 AEY',
-    processingTime: '21 Business Days',
-    desc: 'For founders establishing verified commercial operations, industrial facilities, or significant capital commitments in Aletheia.',
-    requirements: ['Incorporation on Aletheia Company Registry', 'Minimum capital commitment', 'Clean source of funds audit'],
+    status: 'Proposed' as const,
+    fee: 'To be set by law',
+    processingTime: 'To be set by law',
+    desc: 'For founders running real businesses within an Aletheian territory. Residence would never be granted for payment alone.',
+    requirements: ['A business operating within the territory', 'Police clearance certificate', 'Lawful source of funds'],
   },
   {
     id: 'perm-res',
     title: 'Permanent Covenant Residence',
     category: 'Indefinite Physical Settlement',
     status: 'Vision' as const,
-    fee: '750 AEY',
-    processingTime: '30 Business Days',
-    desc: 'Conveys indefinite right to physically reside, conduct business, and study. Direct prerequisite for naturalised citizenship.',
+    fee: 'To be set by law',
+    processingTime: 'To be set by law',
+    desc: 'Would convey the indefinite right to reside, work and study, and would be the step before naturalisation.',
     requirements: ['3 years lawful continuous physical residence', 'Civic Integration assessment', 'No serious criminal infractions'],
   },
 ];
 
 export default function ImmigrationPage() {
   const { t, tx } = useI18n();
-  const { notify } = useToast();
   const [selectedPurpose, setSelectedPurpose] = useState('all');
 
   return (
@@ -72,11 +70,12 @@ export default function ImmigrationPage() {
         <div className="absolute inset-0">
           <Image
             src="/images/autonomous_harbor.jpg"
-            alt={t("Aletheia Border Control")}
+            alt=""
             fill
             className="object-cover opacity-20 mix-blend-luminosity"
             priority
           />
+          <ImageCaption kind="design" position="bottom-right" />
         </div>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -84,19 +83,19 @@ export default function ImmigrationPage() {
             <div className="flex flex-wrap items-center gap-3">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 border border-gold/40 bg-navy-deep/80 rounded-sm backdrop-blur-sm">
                 <StarOfTruth size={14} />
-                <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-gold">{t("ADSS Immigration Directorate")}</span>
+                <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-gold">{t("Immigration & Residence · Proposed")}</span>
               </div>
-              <StatusBadge status="Planned" size="sm" />
+              <StatusBadge asset="residence" size="sm" />
             </div>
 
-            <h1 className="heading-hero">{t("Immigration & Border Administration")}</h1>
+            <h1 className="heading-hero">{t("Immigration & Residence")}</h1>
 
-            <p className="text-base sm:text-lg text-parchment/75 leading-relaxed font-light max-w-2xl">{t("Paperless, dignified, and algorithmically transparent border management. Aletheia welcomes global talent, innovators, and investors through clear statutory pathways governed by the rule of law.")}</p>
+            <p className="text-base sm:text-lg text-parchment/75 leading-relaxed font-light max-w-2xl">{t("A proposed system of visas and residence permits for a future Aletheian territory, secured by treaty. Nothing on this page is open: no visa or permit can be applied for, and none is issued.")}</p>
 
             <div className="p-4 bg-navy-deep/80 border border-gold/25 rounded-sm flex items-start gap-3 max-w-2xl">
               <AlertTriangle className="w-5 h-5 text-gold shrink-0 mt-0.5" />
               <div className="text-xs text-parchment/80 leading-relaxed">
-                <strong className="text-parchment block mb-0.5">{t("Crucial Legal Distinction: E-Residency vs. Physical Immigration")}</strong>{t("Aletheia E-Residency is a digital identity conferring access to corporate formation and fintech services. It confers")}{' '}<em>{t("no physical right to enter or reside")}</em>{' '}{t("in Aletheia. Physical entry requires a valid visa or residence permit.")}</div>
+                <strong className="text-parchment block mb-0.5">{t("Crucial Legal Distinction: E-Residency vs. Physical Immigration")}</strong>{t("E-residency, as proposed, would be a digital identity for company formation and online services. It would confer")}{' '}<em>{t("no physical right to enter or reside")}</em>{' '}{t("in Aletheia.")}</div>
             </div>
           </div>
         </div>
@@ -112,7 +111,7 @@ export default function ImmigrationPage() {
               </div>
               <div className="space-y-1">
                 <h4 className="text-sm font-bold text-parchment">{t("Automated e-Gates")}</h4>
-                <p className="text-xs text-parchment/60 leading-relaxed">{t("Fast-track paperless biometric entry at Antioch Airport and St. Brendan Maritime Terminal.")}</p>
+                <p className="text-xs text-parchment/60 leading-relaxed">{t("Proposed: paperless biometric entry at the ports of a future territory.")}</p>
               </div>
             </div>
 
@@ -122,7 +121,7 @@ export default function ImmigrationPage() {
               </div>
               <div className="space-y-1">
                 <h4 className="text-sm font-bold text-parchment">{t("Predictable Timelines")}</h4>
-                <p className="text-xs text-parchment/60 leading-relaxed">{t("Statutory deadlines enforce processing guarantees. No backlogs, discretionary stalls, or opaque rejections.")}</p>
+                <p className="text-xs text-parchment/60 leading-relaxed">{t("Proposed: statutory deadlines for every decision, with reasons given.")}</p>
               </div>
             </div>
 
@@ -132,7 +131,7 @@ export default function ImmigrationPage() {
               </div>
               <div className="space-y-1">
                 <h4 className="text-sm font-bold text-parchment">{t("Judicial Appeal Right")}</h4>
-                <p className="text-xs text-parchment/60 leading-relaxed">{t("All administrative visa determinations are subject to expedited judicial review by the Immigration Appeals Board.")}</p>
+                <p className="text-xs text-parchment/60 leading-relaxed">{t("Proposed: every visa decision open to review by an independent appeals board.")}</p>
               </div>
             </div>
           </div>
@@ -143,9 +142,9 @@ export default function ImmigrationPage() {
       <section className="py-16 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
           <div className="max-w-2xl space-y-2">
-            <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">{t("Statutory Categories")}</span>
-            <h2 className="text-2xl sm:text-3xl font-bold text-navy tracking-tight">{t("Visa & Residence Permit Schedule")}</h2>
-            <p className="text-xs sm:text-sm text-navy/70 leading-relaxed">{t("Explore visas and permits governed under the Immigration & Border Protection Act.")}</p>
+            <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">{t("Proposed Categories")}</span>
+            <h2 className="text-2xl sm:text-3xl font-bold text-navy tracking-tight">{t("Proposed Visas & Residence Permits")}</h2>
+            <p className="text-xs sm:text-sm text-navy/70 leading-relaxed">{t("Visas and permits proposed in a draft Immigration Act. None is available.")}</p>
           </div>
 
           <div className="flex items-center gap-2">
@@ -201,11 +200,11 @@ export default function ImmigrationPage() {
 
                 <div className="grid grid-cols-2 gap-3 py-3 border-y border-navy/10 text-xs">
                   <div>
-                    <span className="text-[10px] text-navy/50 uppercase block font-mono">{t("Government Fee")}</span>
+                    <span className="text-[10px] text-navy/50 uppercase block font-mono">{t("Fee")}</span>
                     <span className="font-bold text-navy">{tx(visa.fee)}</span>
                   </div>
                   <div>
-                    <span className="text-[10px] text-navy/50 uppercase block font-mono">{t("Statutory Turnaround")}</span>
+                    <span className="text-[10px] text-navy/50 uppercase block font-mono">{t("Processing Time")}</span>
                     <span className="font-bold text-navy">{tx(visa.processingTime)}</span>
                   </div>
                 </div>
@@ -224,12 +223,8 @@ export default function ImmigrationPage() {
               </div>
 
               <div className="pt-6 mt-6 border-t border-navy/10 flex items-center justify-between">
-                <span className="text-[11px] font-mono text-navy/50">{t("Immigration Code §")}{' '}{visa.id.toUpperCase()}</span>
-                <button
-                  onClick={() => notify(t('{visa}: applications not yet open', { visa: t(visa.title) }), 'Applications open upon activation of territorial border infrastructure. Register interest via the citizen portal.', 'info')}
-                  className="px-4 py-1.5 bg-navy text-gold text-xs font-bold uppercase tracking-wider rounded-sm hover:bg-navy-deep transition-colors inline-flex items-center gap-1"
-                >{t("Apply Online")}{' '}<ArrowRight className="w-3 h-3" />
-                </button>
+                <span className="text-[11px] font-mono text-navy/50">{t("Draft category")}{' '}{visa.id.toUpperCase()}</span>
+                <span className="text-[11px] font-semibold text-navy/60">{t("Not open for applications")}</span>
               </div>
             </div>
           ))}
@@ -242,18 +237,18 @@ export default function ImmigrationPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             <div className="lg:col-span-8 space-y-4">
               <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">{t("Long-Term Settlement")}</span>
-              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-parchment">{t("From Lawful Residence to Full Covenant Citizenship")}</h2>
-              <p className="text-xs sm:text-sm text-parchment/70 leading-relaxed max-w-2xl">{t("Permanent residents who have completed five continuous years of physical settlement and the Civic Integration Programme are entitled to petition for full sovereign citizenship and an Aletheian biometric passport.")}</p>
+              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-parchment">{t("From Lawful Residence to Citizenship")}</h2>
+              <p className="text-xs sm:text-sm text-parchment/70 leading-relaxed max-w-2xl">{t("As proposed, permanent residents with five continuous years of residence who complete civic integration could apply to naturalise. Citizenship will be conferred only by birth or naturalisation, under a founding treaty.")}</p>
             </div>
             <div className="lg:col-span-4 flex flex-col sm:flex-row lg:flex-col gap-3 justify-end">
               <Link
                 href="/citizenship"
                 className="px-6 py-3 bg-gold text-navy font-bold text-xs uppercase tracking-wider rounded-sm hover:bg-gold-tint text-center transition-all"
-              >{t("View Citizenship Pathways")}</Link>
+              >{t("Proposed Citizenship Standards")}</Link>
               <Link
-                href="/e-residency"
+                href="/founding-members"
                 className="px-6 py-3 border border-gold/30 text-parchment font-semibold text-xs uppercase tracking-wider rounded-sm hover:border-gold/60 text-center transition-colors"
-              >{t("Apply for E-Residency")}</Link>
+              >{t("Register interest as a Founding Member")}</Link>
             </div>
           </div>
         </div>
