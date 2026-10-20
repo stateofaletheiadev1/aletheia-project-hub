@@ -8,6 +8,11 @@
 	import '$lib/styles/global.css';
 
 	let { children }: { children: Snippet } = $props();
+
+	// Marks the page as interactive once hydrated (used by the browser tests).
+	$effect(() => {
+		document.documentElement.dataset.hydrated = '';
+	});
 </script>
 
 <svelte:head>

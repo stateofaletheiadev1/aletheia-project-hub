@@ -5,8 +5,9 @@ const PORT = 4173;
 export default defineConfig({
 	testDir: 'tests/e2e',
 	fullyParallel: true,
-	// Each worker runs a full browser; more than four starve the preview server on a laptop.
-	workers: process.env.CI ? 2 : 4,
+	// Each worker runs a full browser. On a Windows desktop more than two exhaust process
+	// resources (workers exit with STATUS_DLL_INIT_FAILED and page loads stall).
+	workers: 2,
 	forbidOnly: !!process.env.CI,
 	// One retry: a test that passes on retry is reported as flaky, separately from failures.
 	retries: 1,

@@ -52,15 +52,13 @@ for (const path of ROUTES) {
 	});
 }
 
-test('titles and descriptions are unique across routes', async ({ page }) => {
+test('titles and descriptions are unique across routes', async ({ request }) => {
 	const titles = new Set<string>();
 	const descriptions = new Set<string>();
 	for (const path of ROUTES) {
-		await page.goto(path);
-		titles.add(await page.title());
-		descriptions.add(
-			(await page.locator('meta[name="description"]').getAttribute('content')) ?? ''
-		);
+		const html = await (await request.get(path)).text();
+		titles.add(/<title>([^<]*)<\/title>/.exec(html)?.[1] ?? '');
+		descriptions.add(/<meta name="description" content="([^"]*)"/.exec(html)?.[1] ?? '');
 	}
 	expect(titles.size).toBe(ROUTES.length);
 	expect(descriptions.size).toBe(ROUTES.length);
@@ -77,12 +75,12 @@ test('an unknown address shows the designed 404 page', async ({ page }) => {
 	await expect(page.locator('h1')).toHaveText('There is no page at this address.');
 });
 
-test('Open Graph images and the logo exist in the build', async ({ page, request }) => {
+test('Open Graph images and the logo exist in the build', async ({ request }) => {
 	for (const path of ROUTES) {
-		await page.goto(path);
-		const og = await page.locator('meta[property="og:image"]').getAttribute('content');
-		expect(og).toMatch(/^https:\/\/rbaletheia\.org\/og\/[\w-]+\.png$/);
-		const local = new URL(og ?? '').pathname;
+		const html = await (await request.get(path)).text();
+		const og = /<meta property="og:image" content="([^"]*)"/.exec(html)?.[1] ?? '';
+		expect(og, path).toMatch(/^https:\/\/rbaletheia\.org\/og\/[\w-]+\.png$/);
+		const local = new URL(og).pathname;
 		expect((await request.get(local)).status(), local).toBe(200);
 	}
 	expect((await request.get('/logo.png')).status()).toBe(200);

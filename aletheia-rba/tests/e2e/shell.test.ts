@@ -1,4 +1,10 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
+
+/** Navigate and wait until the page's JavaScript is ready to handle input. */
+async function open(page: Page, path: string) {
+	await page.goto(path);
+	await page.waitForSelector('html[data-hydrated]');
+}
 
 const isMobile = (name: string) => name.includes('mobile');
 
@@ -7,7 +13,7 @@ test('the skip link is the first focusable element and moves focus to main', asy
 	browserName
 }) => {
 	test.skip(browserName === 'webkit', 'WebKit only tabs to links when Option is held');
-	await page.goto('/about');
+	await open(page, '/about');
 	await page.keyboard.press('Tab');
 	const skip = page.getByRole('link', { name: 'Skip to main content' });
 	await expect(skip).toBeFocused();
@@ -21,7 +27,7 @@ test.describe('desktop navigation', () => {
 	});
 
 	test('submenu is a disclosure: opens, closes on Escape and returns focus', async ({ page }) => {
-		await page.goto('/about');
+		await open(page, '/about');
 		const button = page.getByRole('button', { name: 'The Guilder' });
 		await expect(button).toHaveAttribute('aria-expanded', 'false');
 		await button.click();
@@ -34,7 +40,7 @@ test.describe('desktop navigation', () => {
 	});
 
 	test('submenu closes on an outside click and after navigating', async ({ page }) => {
-		await page.goto('/about');
+		await open(page, '/about');
 		const button = page.getByRole('button', { name: 'The Guilder' });
 		await button.click();
 		await page.locator('main h1').click();
@@ -49,7 +55,7 @@ test.describe('desktop navigation', () => {
 	});
 
 	test('the current page is marked', async ({ page }) => {
-		await page.goto('/monetary-policy');
+		await open(page, '/monetary-policy');
 		await expect(
 			page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Monetary Policy' })
 		).toHaveAttribute('aria-current', 'page');
@@ -64,7 +70,7 @@ test.describe('mobile navigation', () => {
 	test('opens as a modal dialog, traps focus, closes on Escape and restores focus', async ({
 		page
 	}) => {
-		await page.goto('/about');
+		await open(page, '/about');
 		const trigger = page.getByRole('button', { name: 'Menu' });
 		await trigger.click();
 		const dialog = page.locator('dialog#mobile-nav');
@@ -84,7 +90,7 @@ test.describe('mobile navigation', () => {
 	});
 
 	test('closes when a link is followed', async ({ page }) => {
-		await page.goto('/about');
+		await open(page, '/about');
 		await page.getByRole('button', { name: 'Menu' }).click();
 		await page.locator('dialog#mobile-nav').getByRole('link', { name: 'Statistics' }).click();
 		await expect(page).toHaveURL(/\/statistics$/);
@@ -92,7 +98,7 @@ test.describe('mobile navigation', () => {
 	});
 
 	test('touch targets are at least 44 px tall', async ({ page }) => {
-		await page.goto('/');
+		await open(page, '/');
 		await page.getByRole('button', { name: 'Menu' }).click();
 		const heights = await page
 			.locator('dialog#mobile-nav a, dialog#mobile-nav button')
@@ -103,7 +109,7 @@ test.describe('mobile navigation', () => {
 
 test.describe('banknotes', () => {
 	test('denomination selector is a radiogroup operated with arrow keys', async ({ page }) => {
-		await page.goto('/banknotes');
+		await open(page, '/banknotes');
 		const group = page.getByRole('radiogroup', { name: 'Denomination' });
 		const checked = group.getByRole('radio', { checked: true });
 		await expect(checked).toHaveText('100');
@@ -119,7 +125,7 @@ test.describe('banknotes', () => {
 	test('the viewer opens, changes note, turns over, closes on Escape and restores focus', async ({
 		page
 	}) => {
-		await page.goto('/banknotes');
+		await open(page, '/banknotes');
 		const opener = page.locator('#aey-5 .face__link').first();
 		await opener.scrollIntoViewIfNeeded();
 		await opener.click();
@@ -139,16 +145,19 @@ test.describe('banknotes', () => {
 	});
 
 	test('every image keeps its true aspect ratio', async ({ page }) => {
-		await page.goto('/banknotes');
+		await open(page, '/banknotes');
+		// Compare the rendered box with the intrinsic size declared on each image, so lazily
+		// loaded images below the fold need not have loaded.
 		const ratios = await page.locator('.face__link img').evaluateAll((imgs) =>
 			imgs.map((img) => {
-				const i = img as HTMLImageElement;
-				const box = i.getBoundingClientRect();
-				return { natural: i.naturalWidth / i.naturalHeight, shown: box.width / box.height };
+				const box = img.getBoundingClientRect();
+				const w = Number(img.getAttribute('width'));
+				const h = Number(img.getAttribute('height'));
+				return { declared: w / h, shown: box.width / box.height };
 			})
 		);
 		expect(ratios).toHaveLength(10);
-		for (const r of ratios) expect(Math.abs(r.natural - r.shown)).toBeLessThan(0.02);
+		for (const r of ratios) expect(Math.abs(r.declared - r.shown)).toBeLessThan(0.02);
 	});
 });
 
@@ -178,6 +187,6 @@ test.describe('without JavaScript', () => {
 
 test('with reduced motion, the hero is shown at once', async ({ page }) => {
 	await page.emulateMedia({ reducedMotion: 'reduce' });
-	await page.goto('/');
+	await open(page, '/');
 	await expect(page.locator('.hero__stage .note')).toHaveCSS('opacity', '1');
 });
