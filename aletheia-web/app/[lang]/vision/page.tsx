@@ -25,45 +25,45 @@ const VISION_PILLARS = [
     icon: Globe,
     title: 'European Democratic Alignment',
     subtitle: 'Continental Integration Standards',
-    desc: 'Adherence to the European Convention on Human Rights (ECHR), GDPR data protection standards, and OECD transparency guidelines while pioneering voluntary civic governance.',
+    desc: 'A commitment to the standards of the European Convention on Human Rights (ECHR), GDPR data protection and OECD transparency guidelines, alongside voluntary civic governance.',
   },
   {
     icon: Cpu,
     title: 'Algorithmic State Integrity',
     subtitle: 'Zero-Discretion Public Registries',
-    desc: 'Bureaucratic friction and corruption are engineered out through public ledgers, automated statutory deadlines, and cryptographically provable treasury accounts.',
+    desc: 'Designed to engineer out bureaucratic friction and corruption through public ledgers, automatic statutory deadlines and provable treasury accounts.',
   },
   {
     icon: Anchor,
     title: 'Maritime Autonomy & Resilience',
-    subtitle: 'Sovereign Oceanic Commonwealth',
-    desc: 'Exercising full jurisdiction under UNCLOS, pioneering modular floating civil structures, and providing vital search and rescue infrastructure in international sea lanes.',
+    subtitle: 'Land First, Sea After',
+    desc: 'Maritime districts developed within a territory agreed by treaty, under the host state’s consent and UNCLOS, with search and rescue for the waters around it.',
   },
 ];
 
 const MILESTONES = [
   {
-    year: '2026',
-    title: 'Constitutional Promulgation & Identity Infrastructure',
-    desc: 'Ratification of the Covenant of Aletheia, deployment of the StableChain private validation network, rollout of ICAO Doc 9303 biometric passport specifications, and E-Residency activation.',
-    status: 'Operational' as const,
-  },
-  {
-    year: '2027',
-    title: 'Maritime Territory & Port Groundbreaking',
-    desc: 'Commencement of marine civil works for the St. Brendan Port and Antioch Federal District; installation of autonomous renewable offshore wind arrays.',
+    year: 'Phase 0',
+    title: 'Founding Community & Digital Institutions',
+    desc: 'A founding community forming; this platform, the draft Constitution and the public record published; StableChain on testnet.',
     status: 'Under Development' as const,
   },
   {
-    year: '2028',
-    title: 'Parliamentary Elections & Resident Settlement',
-    desc: 'Inaugural elections for the 61-member Covenant Assembly, convening of the Council of the States, and initial residential occupancy in Antioch.',
+    year: 'Phases 1–2',
+    title: 'Thesis, Counsel & Host-State Discussions',
+    desc: 'The Founding Thesis published, legal counsel engaged, and confidential discussions with potential host states.',
     status: 'Planned' as const,
   },
   {
-    year: '2030',
-    title: 'Full European Treaty Integration & Economic Maturity',
-    desc: 'Bilateral trade compacts, full SEPA/AEY interbank clearing integration, and mature self-sustaining sovereign endowment operations.',
+    year: 'Phases 3–4',
+    title: 'Founding Treaty & Pilot Zone',
+    desc: 'A founding treaty with a host state; a pilot zone of modest size; licensed AEY issuance and the APN within it; the first residents.',
+    status: 'Planned' as const,
+  },
+  {
+    year: 'Vision',
+    title: 'Antioch & the Maritime Districts',
+    desc: 'The long-term national design: a concentric capital, a deepwater port and coastal districts, at a scale set by treaty.',
     status: 'Vision' as const,
   },
 ];
@@ -82,14 +82,14 @@ export default function VisionPage() {
             <div className="flex flex-wrap items-center gap-3">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 border border-gold/40 bg-navy-deep/80 rounded-sm backdrop-blur-sm">
                 <StarOfTruth size={14} />
-                <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-gold">{t("The 2050 Covenant")}</span>
+                <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-gold">{t("The Long-Term Vision")}</span>
               </div>
-              <StatusBadge status="Under Development" size="sm" />
+              <StatusBadge status="Vision" size="sm" />
             </div>
 
             <h1 className="heading-hero">{t("The National Vision of Aletheia")}</h1>
 
-            <p className="text-base sm:text-lg text-parchment/75 leading-relaxed font-light max-w-2xl">{t("Building a state where power is strictly bounded, law is incorruptible, and human dignity is paramount. A maritime sanctuary of free enterprise and European constitutional excellence for generations to come.")}</p>
+            <p className="text-base sm:text-lg text-parchment/75 leading-relaxed font-light max-w-2xl">{t("The state Aletheia hopes to become, by treaty: one where power is strictly bounded, law is incorruptible and human dignity is paramount. A maritime home for free enterprise and European constitutional excellence, for generations to come.")}</p>
 
             <div className="flex flex-wrap gap-4 pt-4">
               <Link
@@ -100,7 +100,7 @@ export default function VisionPage() {
               <Link
                 href="/development"
                 className="px-6 py-3 border border-gold/30 text-parchment font-semibold text-xs uppercase tracking-wider rounded-sm hover:border-gold/60 transition-colors"
-              >{t("Spatial Masterplan")}</Link>
+              >{t("Territory by Treaty")}</Link>
             </div>
           </div>
         </div>
@@ -111,7 +111,7 @@ export default function VisionPage() {
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
           <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">{t("Foundational Tenets")}</span>
           <h2 className="text-2xl sm:text-3xl font-bold text-navy tracking-tight">{t("Four Pillars of the Sovereign Compact")}</h2>
-          <p className="text-xs sm:text-sm text-navy/70 leading-relaxed">{t("The Covenant of Aletheia unites centuries of European constitutional wisdom with the technological possibilities of the modern era.")}</p>
+          <p className="text-xs sm:text-sm text-navy/70 leading-relaxed">{t("The draft Covenant of Aletheia unites centuries of European constitutional wisdom with the technological possibilities of the modern era.")}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -142,8 +142,8 @@ export default function VisionPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl mb-12 space-y-2">
             <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">{t("Strategic Milestones")}</span>
-            <h2 className="text-3xl font-bold tracking-tight text-parchment">{t("The Roadmap to Statehood")}</h2>
-            <p className="text-xs sm:text-sm text-parchment/65 leading-relaxed">{t("Transparent, measurable targets published pursuant to the National Development Act.")}</p>
+            <h2 className="text-3xl font-bold tracking-tight text-parchment">{t("The Path to Statehood")}</h2>
+            <p className="text-xs sm:text-sm text-parchment/65 leading-relaxed">{t("The phases of the roadmap, in order. Dates will be published when they can be stated honestly.")}</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -160,8 +160,7 @@ export default function VisionPage() {
                   <h4 className="text-sm font-bold text-parchment leading-snug">{tx(m.title)}</h4>
                   <p className="text-xs text-parchment/65 leading-relaxed">{tx(m.desc)}</p>
                 </div>
-                <div className="pt-4 border-t border-navy/40 text-[10px] font-mono text-parchment/40">{t("Target Phase · Covenant Act §")}{' '}{tx(m.year)}
-                </div>
+                <Link href="/roadmap" className="pt-4 border-t border-navy/40 text-[10px] font-mono text-gold/80 hover:text-gold">{t("Read the roadmap →")}</Link>
               </div>
             ))}
           </div>
@@ -172,16 +171,16 @@ export default function VisionPage() {
       <section className="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4 w-full">
         <StarOfTruth size={36} className="mx-auto" />
         <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-navy">{t("Help Shape the Future of Aletheia")}</h2>
-        <p className="text-xs sm:text-sm text-navy/70 max-w-xl mx-auto leading-relaxed">{t("From legal scholars and maritime engineers to global entrepreneurs, the Sovereign Covenant State is built by those who participate.")}</p>
+        <p className="text-xs sm:text-sm text-navy/70 max-w-xl mx-auto leading-relaxed">{t("From legal scholars and maritime engineers to global entrepreneurs, the Sovereign Covenant State will be built by those who take part.")}</p>
         <div className="flex justify-center gap-4 pt-2">
           <Link
-            href="/citizenship"
+            href="/founding-members"
             className="px-6 py-2.5 bg-gold text-navy font-bold text-xs uppercase tracking-wider rounded-sm hover:bg-gold-tint transition-all"
-          >{t("Citizenship Pathways")}</Link>
+          >{t("Register interest as a Founding Member")}</Link>
           <Link
-            href="/e-residency"
+            href="/roadmap"
             className="px-6 py-2.5 border border-navy/30 text-navy font-semibold text-xs uppercase tracking-wider rounded-sm hover:border-navy transition-colors"
-          >{t("Apply for E-Residency")}</Link>
+          >{t("Roadmap")}</Link>
         </div>
       </section>
 

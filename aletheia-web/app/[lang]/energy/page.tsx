@@ -26,14 +26,14 @@ export default function EnergyPage() {
             <div className="flex items-center gap-3">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 border border-gold/40 bg-navy-deep/80 rounded-sm backdrop-blur-sm">
                 <StarOfTruth size={14} />
-                <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-gold">{t("Sovereign Energy Grid")}</span>
+                <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-gold">{t("Clean Energy · Design Study")}</span>
               </div>
-              <StatusBadge status="Under Development" size="sm" />
+              <StatusBadge status="Vision" size="sm" />
             </div>
 
-            <h1 className="heading-hero">{t("Clean Energy Independence & Marine Grid")}</h1>
+            <h1 className="heading-hero">{t("Clean Energy: a Design Study")}</h1>
 
-            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("100% zero-emission power generation combining offshore floating wind, marine wave harvesting, and Small Modular Reactors (SMRs). Engineered for infinite energy resilience and green hydrogen export.")}</p>
+            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("A design study for zero-emission power combining offshore floating wind, wave energy and small modular reactors (SMRs), with green hydrogen. Nothing is built or contracted; any project would follow a founding treaty, with the host state.")}</p>
           </div>
         </div>
       </section>
@@ -44,19 +44,19 @@ export default function EnergyPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             <div className="space-y-1">
               <span className="text-2xl font-bold text-gold">100%</span>
-              <p className="text-xs text-parchment/70 uppercase tracking-wide">{t("Zero-Carbon Generation")}</p>
+              <p className="text-xs text-parchment/70 uppercase tracking-wide">{t("Design Target: Zero-Carbon")}</p>
             </div>
             <div className="space-y-1">
               <span className="text-2xl font-bold text-gold">{t("1.2 GW")}</span>
-              <p className="text-xs text-parchment/70 uppercase tracking-wide">{t("Phase 1 Target Capacity")}</p>
+              <p className="text-xs text-parchment/70 uppercase tracking-wide">{t("Design Target Capacity")}</p>
             </div>
             <div className="space-y-1">
               <span className="text-2xl font-bold text-gold">{t("400 kV")}</span>
-              <p className="text-xs text-parchment/70 uppercase tracking-wide">{t("European HVDC Subsea Link")}</p>
+              <p className="text-xs text-parchment/70 uppercase tracking-wide">{t("Design Study: HVDC Link")}</p>
             </div>
             <div className="space-y-1">
-              <span className="text-2xl font-bold text-gold">{t("0.04 AEY")}</span>
-              <p className="text-xs text-parchment/70 uppercase tracking-wide">{t("Wholesale Industrial kWh")}</p>
+              <span className="text-2xl font-bold text-gold">{t("By Treaty")}</span>
+              <p className="text-xs text-parchment/70 uppercase tracking-wide">{t("Location & Scale")}</p>
             </div>
           </div>
         </div>
@@ -67,32 +67,32 @@ export default function EnergyPage() {
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
           <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">{t("Energy Matrix")}</span>
           <h2 className="text-2xl sm:text-3xl font-bold text-navy tracking-tight">{t("The Quad-Pillar Clean Generation Stack")}</h2>
-          <p className="text-xs sm:text-sm text-navy/70 leading-relaxed">{t("By avoiding reliance on single-source renewables, Aletheia achieves guaranteed 99.999% baseload power availability.")}</p>
+          <p className="text-xs sm:text-sm text-navy/70 leading-relaxed">{t("By not relying on a single source, the design aims for highly reliable baseload power.")}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="feature-card rounded-sm p-6 space-y-3 group">
             <div className="icon-sovereign"><Wind className="w-5 h-5 text-gold" /></div>
             <h3 className="text-base font-bold text-navy">{t("Offshore Wind")}</h3>
-            <p className="text-xs text-navy/70 leading-relaxed">{t("Deepwater floating turbines moored in high-wind pelagic zones generating over 600 MW of primary electrical supply.")}</p>
+            <p className="text-xs text-navy/70 leading-relaxed">{t("Floating turbines moored in high-wind waters, sized in the study at around 600 MW.")}</p>
           </div>
 
           <div className="feature-card rounded-sm p-6 space-y-4 group">
             <Atom className="w-8 h-8 text-navy" />
             <h3 className="text-base font-bold text-navy">{t("Small Modular Reactors")}</h3>
-            <p className="text-xs text-navy/70 leading-relaxed">{t("Walk-away safe Generation IV SMRs located in Benedict State providing non-intermittent baseline power.")}</p>
+            <p className="text-xs text-navy/70 leading-relaxed">{t("Passively safe small modular reactors for steady baseload power, subject to the host state’s nuclear regulation.")}</p>
           </div>
 
           <div className="feature-card rounded-sm p-6 space-y-3 group">
             <Waves className="w-8 h-8 text-laurel" />
             <h3 className="text-base font-bold text-navy">{t("Wave Energy Converters")}</h3>
-            <p className="text-xs text-navy/70 leading-relaxed">{t("Submerged oscillating water columns integrated into harbor breakwaters converting oceanic surge into grid power.")}</p>
+            <p className="text-xs text-navy/70 leading-relaxed">{t("Oscillating water columns built into harbour breakwaters, turning wave surge into power.")}</p>
           </div>
 
           <div className="feature-card rounded-sm p-6 space-y-3 group">
             <div className="icon-sovereign"><Droplets className="w-5 h-5 text-gold" /></div>
             <h3 className="text-base font-bold text-navy">{t("Green Hydrogen")}</h3>
-            <p className="text-xs text-navy/70 leading-relaxed">{t("Electrolyzer facilities consuming peak surplus generation to produce liquid hydrogen for industrial and maritime transport.")}</p>
+            <p className="text-xs text-navy/70 leading-relaxed">{t("Electrolysers using surplus generation to produce hydrogen for industry and shipping.")}</p>
           </div>
         </div>
       </section>
@@ -101,17 +101,18 @@ export default function EnergyPage() {
       <section className="bg-navy text-parchment py-16 border-t border-gold/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
           <StarOfTruth size={36} className="mx-auto" />
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-parchment">{t("Sovereign Infrastructure Partnerships")}</h2>
-          <p className="text-xs sm:text-sm text-parchment/70 max-w-xl mx-auto leading-relaxed">{t("International energy developers and marine contractors are invited to review project specifications for upcoming Phase 1 procurement tranches.")}</p>
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-parchment">{t("Built with a Host Nation")}</h2>
+          <p className="text-xs sm:text-sm text-parchment/70 max-w-xl mx-auto leading-relaxed">{t("Energy works would be developed with, and for the benefit of, a host state. No procurement, concession or investment is open.")}</p>
           <div className="flex justify-center gap-4 pt-2">
             <Link
-              href="/invest"
+              href="/host-nations"
+
               className="px-6 py-2.5 bg-gold text-navy font-bold text-xs uppercase tracking-wider rounded-sm hover:bg-gold-tint transition-all"
-            >{t("Invest in Energy Bonds")}</Link>
+            >{t("For Host Nations")}</Link>
             <Link
               href="/development"
               className="px-6 py-2.5 border border-gold/30 text-parchment font-semibold text-xs uppercase tracking-wider rounded-sm hover:border-gold/60 transition-colors"
-            >{t("Spatial Development Plan")}</Link>
+            >{t("Territory by Treaty")}</Link>
           </div>
         </div>
       </section>

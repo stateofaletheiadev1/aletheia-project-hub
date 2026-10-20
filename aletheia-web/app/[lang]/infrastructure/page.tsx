@@ -6,6 +6,7 @@ import Link from '@/components/i18n/Link';
 import Image from 'next/image';
 import { StarOfTruth } from '@/components/brand/Logo';
 import { StatusBadge } from '@/components/ui/StatusBadge';
+import { ImageCaption } from '@/components/ui/ImageCaption';
 import { CheckCircle2, ArrowRight } from 'lucide-react';
 
 const INFRA_PROJECTS = [
@@ -13,37 +14,37 @@ const INFRA_PROJECTS = [
     id: 'port-brendan',
     title: 'St. Brendan Deepwater Autonomous Port',
     tag: 'Maritime Logistics & Trade',
-    status: 'Planned' as const,
-    lead: 'St. Brendan State Maritime Authority',
-    desc: 'An automated container transshipment terminal with 18m natural deepwater draft, capable of docking Ultra Large Container Vessels (ULCV) with 100% electrified gantry systems.',
-    specs: ['18.5m Natural Depth Draft', '2.5M TEU Annual Capacity', 'Automated Electric AGVs', 'Bonded Free-Port Zone'],
+    status: 'Vision' as const,
+    lead: 'Design study · Port Nicholas',
+    desc: 'A design study for an automated container terminal, sized for the largest container vessels and fully electrified. No site has been chosen and no works have begun.',
+    specs: ['Design target: deepwater berths', 'Design target: 2.5M TEU a year', 'Automated electric vehicles', 'Bonded free-port zone'],
   },
   {
     id: 'antioch-concentric',
     title: 'Antioch Concentric Capital Urban Plan',
     tag: 'Civic & Urban Architecture',
-    status: 'Planned' as const,
-    lead: 'Federal Capital Planning Commission',
-    desc: 'The circular masterplan of Antioch organizes administrative, legislative, residential, and academic zones in concentric rings with zero-emission subterranean transit.',
+    status: 'Vision' as const,
+    lead: 'Design study · Antioch',
+    desc: 'A design study for Antioch: administrative, legislative, residential and academic zones in concentric rings, with zero-emission underground transit.',
     specs: ['Hexagonal Central Assembly', 'Subterranean Maglev Loop', '100% Pedestrian Surface', 'LEED Platinum Standards'],
   },
   {
     id: 'marine-defences',
-    title: 'Pelagic Seawall & Storm Surge Barrier Array',
+    title: 'Seawall & Storm Surge Barrier',
     tag: 'Oceanic Civil Protection',
-    status: 'Under Development' as const,
-    lead: 'ADSS Civil Defence Directorate',
-    desc: 'Reinforced pre-stressed marine concrete caissons engineered to withstand 1-in-200-year North Sea oceanic storm surges and protect domestic platforms.',
-    specs: ['DNV-GL Maritime Certification', 'Integrated Kinetic Wave Turbines', 'Self-Healing Bio-Concrete', 'Automated Tidal Floodgates'],
+    status: 'Vision' as const,
+    lead: 'Design study · Civil protection',
+    desc: 'A design study for marine concrete caissons to withstand a 1-in-200-year storm surge, adapted to whatever coastline is agreed by treaty.',
+    specs: ['Designed to maritime classification rules', 'Integrated wave turbines', 'Self-healing bio-concrete', 'Automated tidal floodgates'],
   },
   {
     id: 'fiber-spine',
-    title: 'Transatlantic Subsea Fiber & Satellite Gateway',
+    title: 'Subsea Fibre & Satellite Gateway',
     tag: 'Digital Connectivity',
-    status: 'Planned' as const,
-    lead: 'Ministry of Digital State',
-    desc: 'Direct optical submarine cable landing stations connected to global internet exchanges in London, Amsterdam, and Frankfurt, backed by Ka-band satellite ground uplinks.',
-    specs: ['320 Tbps Total Bandwidth', 'Sub-5ms Latency to London/AMS', 'Tier-4 Bunkered Data Centers', 'Sovereign Telemetry Uplink'],
+    status: 'Vision' as const,
+    lead: 'Design study · Digital connectivity',
+    desc: 'A design study for submarine cable landing stations linked to major European internet exchanges, backed by satellite ground stations.',
+    specs: ['High-capacity subsea fibre', 'Low latency to European exchanges', 'Resilient data centres', 'Satellite backup'],
   },
 ];
 
@@ -57,11 +58,12 @@ export default function InfrastructurePage() {
         <div className="absolute inset-0">
           <Image
             src="/images/autonomous_harbor.jpg"
-            alt={t("Aletheia Strategic Infrastructure")}
+            alt=""
             fill
             className="object-cover opacity-20 mix-blend-luminosity"
             priority
           />
+          <ImageCaption kind="design" position="bottom-right" />
         </div>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -69,14 +71,14 @@ export default function InfrastructurePage() {
             <div className="flex items-center gap-3">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 border border-gold/40 bg-navy-deep/80 rounded-sm backdrop-blur-sm">
                 <StarOfTruth size={14} />
-                <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-gold">{t("Ministry of Territorial Development")}</span>
+                <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-gold">{t("Ports & Coastal Works")}</span>
               </div>
-              <StatusBadge status="Under Development" size="sm" />
+              <StatusBadge asset="maritime" size="sm" />
             </div>
 
-            <h1 className="heading-hero">{t("Strategic Infrastructure & Oceanic Engineering")}</h1>
+            <h1 className="heading-hero">{t("Ports & Coastal Works: Design Studies")}</h1>
 
-            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("Civil structures engineered for multi-century longevity. From deepwater automated ports to concentric urban architecture and subsea telecommunications gateways.")}</p>
+            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("Design studies for the long term: a deepwater port, a concentric capital, coastal protection and digital links. None is under construction. Each would be built only within a territory agreed by treaty, with the host state’s consent, beginning with a pilot zone.")}</p>
           </div>
         </div>
       </section>
@@ -84,9 +86,9 @@ export default function InfrastructurePage() {
       {/* ── INFRASTRUCTURE PROJECTS ── */}
       <section className="py-16 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
-          <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">{t("Capital Works")}</span>
-          <h2 className="text-2xl sm:text-3xl font-bold text-navy tracking-tight">{t("Major Strategic Public Works")}</h2>
-          <p className="text-xs sm:text-sm text-navy/70 leading-relaxed">{t("All civil construction adheres to rigorous Eurocode and maritime classification standards.")}</p>
+          <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">{t("Vision · Design Studies")}</span>
+          <h2 className="text-2xl sm:text-3xl font-bold text-navy tracking-tight">{t("Long-Term Public Works")}</h2>
+          <p className="text-xs sm:text-sm text-navy/70 leading-relaxed">{t("Any construction would follow Eurocode and maritime classification standards.")}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -107,7 +109,7 @@ export default function InfrastructurePage() {
                 <p className="text-xs text-navy/70 leading-relaxed">{tx(proj.desc)}</p>
 
                 <div className="pt-3 border-t border-navy/10 space-y-2">
-                  <span className="text-[11px] font-bold text-navy uppercase tracking-wider block">{t("Key Technical Specifications:")}</span>
+                  <span className="text-[11px] font-bold text-navy uppercase tracking-wider block">{t("Design Parameters:")}</span>
                   <div className="grid grid-cols-2 gap-2 text-xs text-navy/70">
                     {proj.specs.map((spec, idx) => (
                       <div key={idx} className="flex items-center gap-2">
@@ -122,9 +124,9 @@ export default function InfrastructurePage() {
               <div className="pt-4 border-t border-navy/10 flex items-center justify-between text-xs">
                 <span className="text-navy/50 font-mono text-[11px]">{tx(proj.lead)}</span>
                 <Link
-                  href="/development"
+                  href="/development#antioch"
                   className="text-navy font-bold hover:text-gold flex items-center gap-1 transition-colors"
-                >{t("View Blueprint")}{' '}<ArrowRight className="w-3 h-3" />
+                >{t("View the Design Study")}{' '}<ArrowRight className="w-3 h-3" />
                 </Link>
               </div>
             </div>
@@ -136,17 +138,17 @@ export default function InfrastructurePage() {
       <section className="bg-navy text-parchment py-16 border-t border-gold/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
           <StarOfTruth size={36} className="mx-auto" />
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-parchment">{t("Participate in Sovereign Construction")}</h2>
-          <p className="text-xs sm:text-sm text-parchment/70 max-w-xl mx-auto leading-relaxed">{t("Explore engineering procurement tenders, GIS spatial plans, and sovereign development bonds.")}</p>
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-parchment">{t("A Partnership with a Host State")}</h2>
+          <p className="text-xs sm:text-sm text-parchment/70 max-w-xl mx-auto leading-relaxed">{t("These works would be built with, and for the benefit of, a host nation. No tenders or investments are offered.")}</p>
           <div className="flex justify-center gap-4 pt-2">
             <Link
-              href="/development"
+              href="/development#treaty"
               className="px-6 py-2.5 bg-gold text-navy font-bold text-xs uppercase tracking-wider rounded-sm hover:bg-gold-tint transition-all"
-            >{t("Interactive Masterplan")}</Link>
+            >{t("Territory by Treaty")}</Link>
             <Link
-              href="/invest"
+              href="/host-nations"
               className="px-6 py-2.5 border border-gold/30 text-parchment font-semibold text-xs uppercase tracking-wider rounded-sm hover:border-gold/60 transition-colors"
-            >{t("Investment Opportunities")}</Link>
+            >{t("For Host Nations")}</Link>
           </div>
         </div>
       </section>

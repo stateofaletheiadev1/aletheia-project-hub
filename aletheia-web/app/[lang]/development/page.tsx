@@ -9,23 +9,26 @@ import { StatusBadge } from '@/components/ui/StatusBadge';
 import { PageHero } from '@/components/ui/PageHero';
 import { HexagonCross } from '@/components/brand/Logo';
 import { unsplash, type PhotoKey } from '@/lib/imagery';
-import type { NationalStatus } from '@/lib/status';
+import type { ManualStatus } from '@/lib/status';
+import { ImageCaption } from '@/components/ui/ImageCaption';
+import { MontevideoTable } from '@/components/ui/StatusTables';
+import { TreatyPrinciples } from '@/components/development/TreatyPrinciples';
 import { Anchor, ArrowRight, Building2, CheckCircle, Cpu, Fish, Globe, GraduationCap, Shield, Sprout, TreePine, Wheat, Zap } from 'lucide-react';
 
 const DISTRICTS = [
   { name: 'Civic Core', ring: 'Ring 0 — Central', desc: 'The Constitutional Plaza, Covenant Assembly Hall, High Court and Chancellery, arranged around the Star of Truth.', icon: Building2 },
   { name: 'Financial Quarter', ring: 'Ring 1 — Inner', desc: 'Treasury, the Reserve Bank of Aletheia, the StableChain validator cluster and licensed financial institutions.', icon: Cpu },
-  { name: 'Maritime & Port District', ring: 'Ring 2 — Coastal', desc: 'Coast Guard headquarters, customs and immigration facilities and the free-trade processing zone.', icon: Anchor },
+  { name: 'Maritime & Port District', ring: 'Ring 2 — Coastal', desc: 'A coastguard station, customs and immigration facilities and a free-trade processing zone.', icon: Anchor },
   { name: 'Energy & Industrial Zone', ring: 'Ring 3 — Perimeter', desc: 'Offshore wind substation, SMR facility, hydrogen production and desalination infrastructure.', icon: Zap },
   { name: 'Residential Cantons', ring: 'Rings 1–2 — Interspersed', desc: 'Four mixed-use cantons with mandatory green coverage, woven between civic and commercial zones.', icon: TreePine },
-  { name: 'International District', ring: 'Ring 2 — North Sector', desc: 'Embassy row, trade missions, the ICAO-compliant airport terminal and conference facilities.', icon: Globe },
+  { name: 'International District', ring: 'Ring 2 — North Sector', desc: 'Embassies, trade missions, an airport terminal and conference facilities.', icon: Globe },
 ];
 
 const PRINCIPLES = [
   { label: 'Six Radial Avenues', desc: 'Emanating from the Constitutional Plaza, each named after a founding covenant principle.' },
   { label: 'Hexagonal Block Grid', desc: 'Consistent with the Star of Truth motif — efficiency, symmetry and civic legibility.' },
   { label: 'Ledger-First Infrastructure', desc: 'Land titles, building permits and utility connections recorded immutably on StableChain.' },
-  { label: '40% Green Coverage', desc: 'A constitutional floor on residential and civic zones. No development without arboricultural offset.' },
+  { label: '40% Green Coverage', desc: 'A proposed constitutional floor on residential and civic zones, with no development without tree offsets.' },
   { label: 'Underground Utility Spine', desc: 'Power, water, fibre and waste routed below grade to protect the street-level civic realm.' },
   { label: 'Walkable 15-Minute City', desc: 'Every residence within a 15-minute walk of work, school, healthcare and transit.' },
 ];
@@ -50,13 +53,13 @@ const STATES: State[] = [
     name: 'St. Barbara State',
     capital: 'Port Michael',
     quarter: 'Quarter I · The Tower',
-    mandate: 'Aerospace, defence & cyber',
-    desc: 'The guardian state: aerospace engineering, secure maritime installations and the operations centre of the Aletheian Cybersecurity Department, under strict civilian command.',
+    mandate: 'Aerospace, resilience & cyber',
+    desc: 'The guardian state: aerospace engineering, planned civil-protection and resilience functions, and the operations centre of the Aletheian Cybersecurity Department, under strict civilian command.',
     image: 'circuitGlow',
     icon: Shield,
     accent: 'bg-navy',
-    focus: ['ADSS naval & coast guard base', 'National Cyber Operations Centre', 'Aerospace test range'],
-    link: { href: '/adss', label: 'Defence & Security Service' },
+    focus: ['Coastguard & rescue station', 'Cyber Operations Centre', 'Aerospace test range'],
+    link: { href: '/adss', label: 'Resilience & Civil Protection' },
   },
   {
     id: 'augustine',
@@ -81,8 +84,8 @@ const STATES: State[] = [
     image: 'offshoreWind',
     icon: Zap,
     accent: 'bg-gold',
-    focus: ['1.2 GW offshore wind array', 'SMR & green hydrogen hub', 'Desalination & clean manufacturing'],
-    link: { href: '/energy', label: 'Sovereign Energy Grid' },
+    focus: ['Offshore wind array', 'SMR & green hydrogen hub', 'Desalination & clean manufacturing'],
+    link: { href: '/energy', label: 'Clean Energy' },
   },
   {
     id: 'brendan',
@@ -90,21 +93,21 @@ const STATES: State[] = [
     capital: 'Port Nicholas',
     quarter: 'Quarter IV · Caravel on Waves',
     mandate: 'Ports, trade & logistics',
-    desc: 'The seafaring state: a deepwater container terminal, naval docks, North Sea ferry links and the free-trade logistics zone that connects Aletheia to the world.',
+    desc: 'The seafaring state: a deepwater container terminal, ferry links and a free-trade logistics zone that would connect Aletheia to the world.',
     image: 'containerShip',
     icon: Anchor,
     accent: 'bg-laurel',
-    focus: ['Deepwater container terminal', 'North Sea ferry & passenger hub', 'Free-trade logistics zone'],
-    link: { href: '/infrastructure', label: 'Maritime Infrastructure' },
+    focus: ['Deepwater container terminal', 'Ferry & passenger hub', 'Free-trade logistics zone'],
+    link: { href: '/infrastructure', label: 'Ports & Coastal Works' },
   },
 ];
 
-const ROADMAP: { year: string; title: string; status: NationalStatus }[] = [
-  { year: '2026', title: 'Constitution, registries & digital platform', status: 'Operational' },
-  { year: '2027', title: 'Geotechnical surveys & port concessions', status: 'Under Development' },
-  { year: '2028', title: 'Antioch civic core & St. Brendan terminal', status: 'Planned' },
-  { year: '2030', title: 'Offshore wind, university & medical campus', status: 'Planned' },
-  { year: '2035', title: 'Four founding states fully inhabited', status: 'Vision' },
+const ROADMAP: { year: string; title: string; status: ManualStatus }[] = [
+  { year: 'Phase 0', title: 'Founding community, digital institutions & StableChain testnet', status: 'Under Development' },
+  { year: 'Phase 1', title: 'Founding Thesis, legal counsel & host-state research', status: 'Planned' },
+  { year: 'Phase 2', title: 'Host-state discussions & seed funding', status: 'Planned' },
+  { year: 'Phase 3', title: 'Founding treaty & a pilot zone', status: 'Planned' },
+  { year: 'Vision', title: 'Antioch & the maritime districts', status: 'Vision' },
 ];
 
 export default function DevelopmentPage() {
@@ -113,26 +116,26 @@ export default function DevelopmentPage() {
   return (
     <div className="flex flex-col bg-parchment-canvas">
       <PageHero
-        eyebrow={t("Territorial Development")}
-        status="Planned"
+        eyebrow={t("Territory by Treaty")}
+        asset="territory"
         image="oceanAerial"
-        title={<>{t("A capital and four states,")}{' '}<span className="text-gold-metallic">{t("designed from first principles.")}</span></>}
-        lead={t("Antioch is planned as a concentric, hexagonal 15-minute city at the heart of four specialised maritime states — with every land title, permit and utility connection anchored to the public ledger.")}
+        title={<>{t("Territory by treaty,")}{' '}<span className="text-gold-metallic">{t("a capital by design.")}</span></>}
+        lead={t("Aletheia will not claim land. Its first territory will be secured by treaty with a host state, beginning with a pilot zone. Antioch and the four founding states are long-term design studies.")}
       >
-        <Link href="#map" className="btn-sovereign-gold px-7 py-3.5 rounded-sm text-sm flex items-center gap-2 group">{t("Explore the map")}{' '}<ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+        <Link href="#treaty" className="btn-sovereign-gold px-7 py-3.5 rounded-sm text-sm flex items-center gap-2 group">{t("Territory by Treaty")}{' '}<ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
         </Link>
-        <Link href="/economy#bonds" className="btn-sovereign-ghost px-7 py-3.5 rounded-sm text-sm">{t("Infrastructure bonds")}</Link>
+        <Link href="/host-nations" className="btn-sovereign-ghost px-7 py-3.5 rounded-sm text-sm">{t("For Host Nations")}</Link>
       </PageHero>
 
       {/* ── STATS ── */}
       <section className="bg-navy-deep border-b border-gold/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 md:grid-cols-5 md:divide-x divide-gold/15 gap-y-2">
           {[
-            { v: '6,500 km²', l: 'National territory', s: 'Planned land area' },
-            { v: '1 + 4', l: 'Districts & states', s: 'Antioch and four founding states' },
+            { v: 'By treaty', l: 'Territory', s: 'Beginning with a pilot zone' },
+            { v: '1 + 4', l: 'Districts & states', s: 'A long-term design study' },
             { v: '6', l: 'Radial avenues', s: 'From the Constitutional Plaza' },
-            { v: '40%', l: 'Green coverage', s: 'Constitutional floor' },
-            { v: 'On-ledger', l: 'Land registry', s: 'Every title provable' },
+            { v: '40%', l: 'Green coverage', s: 'Proposed constitutional floor' },
+            { v: 'On-ledger', l: 'Land registry', s: 'Proposed: every title provable' },
           ].map((m) => (
             <div key={m.l} className="py-7 px-4 text-center space-y-1">
               <div className="big-stat-value">{tx(m.v)}</div>
@@ -143,16 +146,40 @@ export default function DevelopmentPage() {
         </div>
       </section>
 
+      {/* ── TERRITORY BY TREATY ── */}
+      <section id="treaty" className="section-xl border-b border-navy/08">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+          <div className="max-w-3xl space-y-4">
+            <div className="eyebrow">{t("Territory by Treaty")}</div>
+            <h2 className="text-4xl font-bold tracking-tight text-navy leading-tight">{t("Aletheia will not claim land. It will be granted land, by agreement.")}</h2>
+            <p className="text-navy/65 leading-[1.85] font-light">{t("The Sovereign Covenant State follows a treaty-first path: its first territory will be secured through a long-term leasehold or shared-sovereignty arrangement with an existing, recognised state, negotiated openly and entered into by mutual consent. We do not pursue the high seas, disputed territory or unilateral declaration. A covenant nation must itself be founded by covenant.")}</p>
+          </div>
+          <TreatyPrinciples />
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <div className="lg:col-span-7 space-y-4">
+              <h3 className="text-2xl font-bold text-navy">{t("The path to statehood")}</h3>
+              <p className="text-sm text-navy/62 leading-relaxed">{t("Aletheia measures itself honestly against the four Montevideo criteria:")}</p>
+              <MontevideoTable />
+            </div>
+            <div className="lg:col-span-5 bg-navy-deep text-parchment rounded-sm border border-gold/25 p-7 space-y-4">
+              <h3 className="text-lg font-bold">{t("Everything below is a design study")}</h3>
+              <p className="text-sm text-parchment/72 leading-relaxed font-light">{t("Antioch and the four founding states describe Aletheia’s long-term national design. They are design studies for the future, not current holdings. Their scale and location will be set by treaty, beginning with a pilot zone of modest size.")}</p>
+              <Link href="/host-nations" className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gold hover:text-gold-tint transition-colors group">{t("For Host Nations")}{' '}<ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" /></Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ── MAP ── */}
       <section id="map" className="section-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-14 items-center">
           <div className="lg:col-span-5 space-y-6">
             <div className="flex items-center gap-3">
-              <div className="eyebrow">{t("Interactive Territorial Map")}</div>
-              <StatusBadge status="Proposed" size="sm" />
+              <div className="eyebrow">{t("Design-Study Map")}</div>
+              <StatusBadge asset="antioch" size="sm" />
             </div>
             <h2 className="text-4xl font-bold tracking-tight text-navy leading-tight">{t("Select a territory to explore its mandate.")}</h2>
-            <p className="text-navy/65 leading-[1.85] font-light">{t("The proposed national map: the Antioch Federal District at the centre, ringed by the four founding states, each carrying one quarter of the national arms and a distinct economic mandate. Arterial roads run from Covenant Square to every state capital.")}</p>
+            <p className="text-navy/65 leading-[1.85] font-light">{t("The design-study map: the Antioch Federal District at the centre, ringed by the four founding states, each carrying one quarter of the national arms and a distinct economic mandate. It shows no real place; location and scale will be set by treaty.")}</p>
             <ul className="space-y-2">
               {[{ id: 'antioch', name: 'Antioch Federal District', capital: 'Antioch' }, ...STATES].map((s) => (
                 <li key={s.id}>
@@ -178,7 +205,7 @@ export default function DevelopmentPage() {
             <figure className="bg-white rounded-sm border border-gold/30 shadow-elevated overflow-hidden">
               <figcaption className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-5 py-3.5 border-b border-navy/10">
                 <span className="text-sm font-bold text-navy tracking-tight">{t("The Sovereign Covenant State of Aletheia")}</span>
-                <span className="text-[11px] font-mono text-navy/55">{t("National map · Federal District and four states · grid in km from Covenant Square")}</span>
+                <span className="text-[11px] font-mono text-navy/55">{t("Design study · not a real location · grid in km from Covenant Square")}</span>
               </figcaption>
               <p className="sm:hidden px-5 pt-3 text-[11px] text-navy/55">{t("Swipe sideways to explore the full map.")}</p>
               <div className="overflow-x-auto">
@@ -198,11 +225,12 @@ export default function DevelopmentPage() {
             <figcaption className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-5 py-3.5 border-b border-navy/10">
               <span className="flex items-center gap-3">
                 <span className="text-sm font-bold text-navy tracking-tight">{t("Strategic Blueprint")}</span>
-                <StatusBadge status="Proposed" size="sm" />
+                <StatusBadge asset="antioch" size="sm" />
               </span>
-              <span className="text-[11px] font-mono text-navy/55">{t("Aerial concept of the island nation · illustrative, not to survey")}</span>
+              <span className="text-[11px] font-mono text-navy/55">{t("Aerial concept · design study, not a real place")}</span>
             </figcaption>
-            <a href="/images/national-blueprint.webp" target="_blank" rel="noopener" className="block">
+            <a href="/images/national-blueprint.webp" target="_blank" rel="noopener" className="block relative">
+              <ImageCaption kind="design" />
               <Image
                 src="/images/national-blueprint.webp"
                 alt={t("Aerial concept of the Sovereign Covenant State of Aletheia: the Antioch Federal District at the centre, ringed by St. Barbara, Augustine, St. Brendan and Benedict States")}
@@ -224,11 +252,11 @@ export default function DevelopmentPage() {
             <div className="lg:col-span-6 space-y-6">
               <div className="flex items-center gap-3">
                 <HexagonCross size={22} />
-                <div className="eyebrow" style={{ color: '#E4C689' }}>{t("Antioch · Federal District")}</div>
-                <StatusBadge status="Planned" size="sm" />
+                <div className="eyebrow" style={{ color: '#E4C689' }}>{t("Antioch · Vision · design study")}</div>
+                <StatusBadge asset="antioch" size="sm" />
               </div>
               <h2 className="text-4xl lg:text-5xl font-bold tracking-tight leading-[1.1]">{t("The concentric capital.")}</h2>
-              <p className="text-parchment/70 leading-[1.85] font-light">{t("Six radial avenues connect three concentric rings to a central hexagonal plaza housing the Covenant Assembly, the High Court and the state validator vaults. Every residence sits within a fifteen-minute walk of work, school and care.")}</p>
+              <p className="text-parchment/70 leading-[1.85] font-light">{t("In the design study, six radial avenues connect three concentric rings to a central hexagonal plaza for the Covenant Assembly, the High Court and the ledger's validators. Every residence would sit within a fifteen-minute walk of work, school and care.")}</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {PRINCIPLES.map((p) => (
                   <div key={p.label} className="p-4 bg-navy/50 border border-gold/15 rounded-sm hover:border-gold/40 transition-colors space-y-1">
@@ -240,6 +268,7 @@ export default function DevelopmentPage() {
             </div>
             <div className="lg:col-span-6 photo-card relative h-[520px] rounded-sm border border-gold/30 shadow-elevated">
               <Image src="/images/architecture_antioch.jpg" alt={t("Concept of Antioch's concentric civic architecture")} fill sizes="(min-width:1024px) 50vw, 100vw" className="object-cover" />
+              <ImageCaption kind="design" />
               <div className="absolute inset-0 bg-gradient-to-t from-navy-deep/80 via-transparent to-transparent" />
             </div>
           </div>
@@ -268,6 +297,7 @@ export default function DevelopmentPage() {
           <div className="max-w-2xl space-y-3">
             <div className="eyebrow">{t("The Four Founding States")}</div>
             <h2 className="text-4xl font-bold tracking-tight text-navy leading-tight">{t("Four quarters of the arms. Four mandates of the Sovereign Covenant State.")}</h2>
+            <p className="text-sm text-navy/60 leading-relaxed">{t("Design studies for the long term, not current holdings.")}</p>
           </div>
 
           {STATES.map((s, i) => {
@@ -276,6 +306,7 @@ export default function DevelopmentPage() {
               <article key={s.id} id={s.id} className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
                 <div className={`lg:col-span-7 photo-card relative h-[380px] lg:h-[460px] rounded-sm border border-gold/20 shadow-elevated ${i % 2 ? 'lg:order-2' : ''}`}>
                   <Image src={unsplash(s.image, 1400)} alt="" fill sizes="(min-width:1024px) 58vw, 100vw" className="object-cover" />
+                  <ImageCaption />
                   <div className="absolute inset-0 bg-gradient-to-t from-navy-deep/80 via-navy-deep/10 to-transparent" />
                   <div className="absolute bottom-6 left-6 text-parchment">
                     <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-gold-tint block">{tx(s.quarter)}</span>
@@ -286,7 +317,7 @@ export default function DevelopmentPage() {
                   <div className={`h-1 w-16 ${s.accent}`} />
                   <div className="flex items-center gap-3">
                     <div className="p-2.5 bg-navy text-gold rounded-sm"><Icon className="w-5 h-5" /></div>
-                    <StatusBadge status="Planned" size="sm" />
+                    <StatusBadge asset="antioch" size="sm" />
                   </div>
                   <div>
                     <h3 className="text-3xl font-bold text-navy tracking-tight">{tx(s.name)}</h3>
@@ -312,16 +343,17 @@ export default function DevelopmentPage() {
       <section id="agriculture" className="relative overflow-hidden text-parchment">
         <div className="absolute inset-0 animate-ken-burns" aria-hidden="true">
           <Image src={unsplash('windMeadow', 2000)} alt="" fill sizes="100vw" className="object-cover" />
+          <ImageCaption />
         </div>
         <div className="absolute inset-0 bg-gradient-to-r from-[#060C14]/95 via-[#0E1B31]/80 to-[#0E1B31]/30" />
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32 grid grid-cols-1 lg:grid-cols-2 gap-12">
           <div className="space-y-6">
             <div className="flex items-center gap-3">
               <div className="eyebrow" style={{ color: '#E4C689' }}>{t("Agriculture & Aquaculture")}</div>
-              <StatusBadge status="Proposed" size="sm" />
+              <StatusBadge status="Vision" size="sm" />
             </div>
             <h2 className="text-4xl lg:text-5xl font-bold tracking-tight leading-[1.1]">{t("Food security for a maritime nation.")}</h2>
-            <p className="text-parchment/72 leading-[1.85] font-light">{t("The Ministry of Agriculture & Environment plans a resilient food system for Benedict State: protected-climate agriculture powered by surplus wind, sustainable North Sea aquaculture, and desalinated irrigation.")}</p>
+            <p className="text-parchment/72 leading-[1.85] font-light">{t("A design study for a resilient food system in Benedict State: protected-climate agriculture powered by surplus wind, sustainable aquaculture, and desalinated irrigation.")}</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-4 content-center">
             {[
@@ -347,10 +379,10 @@ export default function DevelopmentPage() {
           </div>
           <ol className="relative grid grid-cols-1 md:grid-cols-5 gap-6">
             <div className="hidden md:block absolute top-[22px] left-0 right-0 h-px bg-gradient-to-r from-laurel via-gold to-navy/20" aria-hidden="true" />
-            {ROADMAP.map((r) => (
+            {ROADMAP.map((r, i) => (
               <li key={r.year} className="relative space-y-3" data-reveal>
                 <span className="relative z-10 inline-flex w-11 h-11 rounded-full bg-navy text-gold font-mono text-xs font-bold items-center justify-center border-2 border-parchment-light shadow-institutional">
-                  {r.year.slice(2)}
+                  {i}
                 </span>
                 <div className="space-y-2">
                   <span className="block font-mono text-sm font-bold text-gold-shadow">{tx(r.year)}</span>
@@ -366,10 +398,10 @@ export default function DevelopmentPage() {
       <section className="cta-banner py-20 relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
           <div className="space-y-3 max-w-2xl">
-            <h2 className="text-3xl font-bold text-parchment">{t("Invest in the infrastructure of the Sovereign Covenant State.")}</h2>
-            <p className="text-parchment/60 text-sm font-light">{t("Covenant Development Bonds fund the physical build-out of Antioch — denominated in AEY, fully on-ledger, with quarterly audited reporting.")}</p>
+            <h2 className="text-3xl font-bold text-parchment">{t("A government with land or coastline to partner on?")}</h2>
+            <p className="text-parchment/60 text-sm font-light">{t("Aletheia welcomes confidential discussions with interested states about a treaty partnership.")}</p>
           </div>
-          <Link href="/invest" className="btn-sovereign-gold px-8 py-4 rounded-sm text-sm flex items-center gap-2 group">{t("Sovereign investment")}{' '}<ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          <Link href="/host-nations" className="btn-sovereign-gold px-8 py-4 rounded-sm text-sm flex items-center gap-2 group">{t("For Host Nations")}{' '}<ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
       </section>
