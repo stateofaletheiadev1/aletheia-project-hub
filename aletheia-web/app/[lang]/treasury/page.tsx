@@ -26,14 +26,14 @@ export default function TreasuryPage() {
             <div className="flex items-center gap-3">
               <div className="inline-flex items-center gap-2 px-3 py-1 border border-gold/30 bg-navy-deep/80 rounded-sm">
                 <StarOfTruth size={14} />
-                <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-gold">{t("Ministry of Treasury & Finance")}</span>
+                <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-gold">{t("Treasury & Endowment · Proposed")}</span>
               </div>
-              <StatusBadge status="Under Development" size="sm" />
+              <StatusBadge status="Proposed" size="sm" />
             </div>
 
-            <h1 className="heading-hero">{t("The Sovereign Treasury & Endowment")}</h1>
+            <h1 className="heading-hero">{t("The Proposed Treasury & Endowment")}</h1>
 
-            <p className="text-base sm:text-lg text-parchment/75 leading-relaxed font-light">{t("Governance without coercion: Aletheia finances the Sovereign Covenant State entirely through sovereign asset yields, maritime logistics concessions, and institutional registry services — with personal income tax constitutionally banned.")}</p>
+            <p className="text-base sm:text-lg text-parchment/75 leading-relaxed font-light">{t("The draft Constitution proposes a State funded without personal income tax: from an endowment, fees, leasehold and concessions. None of this exists yet; no capital is held and no money is raised.")}</p>
           </div>
         </div>
       </section>
@@ -43,10 +43,10 @@ export default function TreasuryPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 md:divide-x divide-gold/15 gap-y-2">
             {[
-              { value: '2.45B AEY', label: 'Endowment Fund', sublabel: 'Covenant capital base' },
-              { value: '0.0%', label: 'Income Tax', sublabel: 'Constitutionally banned' },
-              { value: '142%', label: 'Reserve Ratio', sublabel: 'Above statutory floor' },
-              { value: 'AAA (p)', label: 'Public Rating', sublabel: 'Planning instrument basis' },
+              { value: 'Proposed', label: 'Covenant Endowment', sublabel: 'No capital is held' },
+              { value: '0%', label: 'Income Tax', sublabel: 'A constitutional proposal' },
+              { value: 'None', label: 'Reserves Held', sublabel: 'Nothing is raised or held' },
+              { value: 'Unrated', label: 'Credit Rating', sublabel: 'No debt is issued' },
             ].map(({ value, label, sublabel }) => (
               <div key={label} className="px-6 py-4 text-center first:pl-0 last:pr-0 space-y-0.5">
                 <div className="text-2xl font-bold font-mono text-gold tracking-tight">{tx(value)}</div>
@@ -62,33 +62,33 @@ export default function TreasuryPage() {
       <section className="py-16 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
           <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">{t("Sustainable Fiscal Design")}</span>
-          <h2 className="text-3xl font-bold text-navy tracking-tight">{t("The Four Pillars of Sovereign Revenue")}</h2>
-          <p className="text-xs sm:text-sm text-navy/70 leading-relaxed">{t("Aletheia rejects redistributive personal taxation in favor of productive institutional enterprise and sovereign capital management.")}</p>
+          <h2 className="text-3xl font-bold text-navy tracking-tight">{t("Four Proposed Sources of Revenue")}</h2>
+          <p className="text-xs sm:text-sm text-navy/70 leading-relaxed">{t("The draft Constitution proposes funding a future State without personal income tax. None of these revenues exists today.")}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="feature-card rounded-sm p-6 space-y-3">
             <div className="icon-sovereign"><Landmark className="w-5 h-5 text-gold" /></div>
-            <h3 className="text-base font-bold text-navy">{t("1. Sovereign Endowment")}</h3>
-            <p className="text-xs text-navy/70 leading-relaxed">{t("Permanent multi-asset capital fund invested in European government bonds, precious metals, and tier-1 infrastructure yielding baseline state operating budget.")}</p>
+            <h3 className="text-base font-bold text-navy">{t("1. Covenant Endowment")}</h3>
+            <p className="text-xs text-navy/70 leading-relaxed">{t("A proposed permanent fund, invested conservatively, whose returns would meet part of the operating budget.")}</p>
           </div>
 
           <div className="bg-white p-6 border border-navy/15 rounded-sm space-y-3 hover:shadow-md transition-shadow">
             <Coins className="w-6 h-6 text-navy" />
             <h3 className="text-base font-bold text-navy">{t("2. Digital Registry Fees")}</h3>
-            <p className="text-xs text-navy/70 leading-relaxed">{t("E-residency enrollments, 15-minute corporate filings, maritime vessel registrations, and API validator settlement fees.")}</p>
+            <p className="text-xs text-navy/70 leading-relaxed">{t("Proposed fees for e-residency, company filings and ledger settlement, once Aletheia may lawfully charge them.")}</p>
           </div>
 
           <div className="bg-white p-6 border border-navy/15 rounded-sm space-y-3 hover:shadow-md transition-shadow">
             <TrendingUp className="w-6 h-6 text-laurel" />
-            <h3 className="text-base font-bold text-navy">{t("3. Maritime Concessions")}</h3>
-            <p className="text-xs text-navy/70 leading-relaxed">{t("Long-term lease concessions for St. Brendan deepwater container port terminals, bonded transshipment warehouses, and fiber landing stations.")}</p>
+            <h3 className="text-base font-bold text-navy">{t("3. Leasehold & Concessions")}</h3>
+            <p className="text-xs text-navy/70 leading-relaxed">{t("Land leasehold dividends and concessions within a territory agreed by treaty, shared with the host state.")}</p>
           </div>
 
           <div className="bg-white p-6 border border-navy/15 rounded-sm space-y-3 hover:shadow-md transition-shadow">
             <Lock className="w-6 h-6 text-gold" />
             <h3 className="text-base font-bold text-navy">{t("4. Renewable Grid Exports")}</h3>
-            <p className="text-xs text-navy/70 leading-relaxed">{t("Surplus offshore wind, marine wave energy, and green hydrogen exported directly to the Continental European HVDC grid.")}</p>
+            <p className="text-xs text-navy/70 leading-relaxed">{t("In the long-term design, surplus clean energy and hydrogen sold to neighbouring grids.")}</p>
           </div>
         </div>
       </section>
@@ -97,8 +97,8 @@ export default function TreasuryPage() {
       <section className="bg-navy text-parchment py-16 border-t border-gold/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
           <StarOfTruth size={36} className="mx-auto" />
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-parchment">{t("Participate in Sovereign Development")}</h2>
-          <p className="text-xs sm:text-sm text-parchment/70 max-w-xl mx-auto leading-relaxed">{t("Institutional investors, sovereign funds, and accredited e-residents may subscribe to Aletheian Sovereign Development Bonds (SDB).")}</p>
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-parchment">{t("Nothing Is Offered")}</h2>
+          <p className="text-xs sm:text-sm text-parchment/70 max-w-xl mx-auto leading-relaxed">{t("Aletheia issues no bonds and takes no investment through this site. Any future funding would be set out openly, through a lawful structure.")}</p>
           <div className="flex justify-center gap-4 pt-2">
             <Link
               href="/economy"
@@ -107,7 +107,7 @@ export default function TreasuryPage() {
             <Link
               href="/contact"
               className="px-6 py-2.5 border border-gold/30 text-parchment font-semibold text-xs uppercase tracking-wider rounded-sm hover:border-gold/60 transition-colors"
-            >{t("Contact Treasury Desk")}</Link>
+            >{t("Contact the Founding Team")}</Link>
           </div>
         </div>
       </section>

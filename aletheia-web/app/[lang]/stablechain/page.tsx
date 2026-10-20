@@ -4,6 +4,7 @@ import { useI18n } from '@/components/i18n/I18nProvider';
 import Link from '@/components/i18n/Link';
 import { StarOfTruth } from '@/components/brand/Logo';
 import { StatusBadge } from '@/components/ui/StatusBadge';
+import { AeyNotice } from '@/components/ui/AeyNotice';
 import {
   ShieldCheck,
   Zap,
@@ -41,16 +42,16 @@ export default function StableChainPage() {
               <div className="flex items-center gap-3">
                 <div className="inline-flex items-center gap-2 px-3.5 py-1.5 border border-gold/40 bg-navy-deep/80 rounded-sm backdrop-blur-sm">
                   <StarOfTruth size={14} />
-                  <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-gold">{t("Sovereign Layer 1")}</span>
+                  <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-gold">{t("Layer 1 · Testnet")}</span>
                 </div>
-                <StatusBadge status="Under Development" size="sm" />
+                <StatusBadge asset="stablechain" size="sm" />
               </div>
 
               <h1 className="heading-hero">{t("Aletheia")}<br />
                 <span className="text-gold-metallic">{t("StableChain")}</span>
               </h1>
 
-              <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light max-w-2xl">{t("The cryptographic ledger infrastructure of the state. Engineered for 500 ms slots with deterministic finality, a fixed fee schedule, and native execution of constitutional statutes, corporate registries and public expenditures.")}</p>
+              <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light max-w-2xl">{t("The ledger Aletheia is developing, now running as a testnet and reference implementation. It is designed for 500 ms slots with deterministic finality, a fixed fee schedule, and native registries for statutes, companies and public spending.")}</p>
 
               <div className="flex flex-wrap gap-4 pt-2">
                 <Link
@@ -63,13 +64,13 @@ export default function StableChainPage() {
                 <Link
                   href="/transparency"
                   className="btn-sovereign-ghost px-6 py-3.5 rounded-sm text-sm"
-                >{t("Live Ledger Proofs")}</Link>
+                >{t("Status & Disclaimers")}</Link>
                 <a
                   href={STABLECHAIN.explorer}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn-sovereign-ghost px-6 py-3.5 rounded-sm text-sm"
-                >{t("Block Explorer")}</a>
+                >{t("Testnet Explorer")}</a>
               </div>
             </div>
 
@@ -98,7 +99,7 @@ export default function StableChainPage() {
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
           <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">{t("Protocol Engineering")}</span>
           <h2 className="text-3xl font-bold text-navy tracking-tight">{t("Built for Constitutional Governance")}</h2>
-          <p className="text-xs sm:text-sm text-navy/70 leading-relaxed">{t("Unlike speculative public blockchains, StableChain is designed strictly as a high-integrity sovereign public utility with zero congestion pricing.")}</p>
+          <p className="text-xs sm:text-sm text-navy/70 leading-relaxed">{t("Unlike speculative public blockchains, StableChain is designed as a high-integrity public utility with no congestion pricing.")}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -111,22 +112,22 @@ export default function StableChainPage() {
           <div className="bg-white border border-navy/15 rounded-sm p-6 space-y-3 hover:shadow-md transition-shadow">
             <Layers className="w-8 h-8 text-navy" />
             <h3 className="text-base font-bold text-navy">{t("State Validator Consensus")}</h3>
-            <p className="text-xs text-navy/70 leading-relaxed">{t("Consensus validator clusters are physically partitioned across the five federal states, with air-gapped sovereign HSM keys preventing unilateral interference.")}</p>
+            <p className="text-xs text-navy/70 leading-relaxed">{t("Validators would be physically separated across several sites, with keys held in hardware security modules so that no single party can interfere.")}</p>
           </div>
 
           <div className="bg-white border border-navy/15 rounded-sm p-6 space-y-3 hover:shadow-md transition-shadow">
             <FileCheck2 className="w-8 h-8 text-laurel" />
             <h3 className="text-base font-bold text-navy">{t("Native Legal Smart Contracts")}</h3>
-            <p className="text-xs text-navy/70 leading-relaxed">{t("Standardized pre-compiled primitives for English commercial arbitration, company incorporation, and biometric passport public key registration.")}</p>
+            <p className="text-xs text-navy/70 leading-relaxed">{t("Standard built-in primitives for commercial arbitration, company incorporation and public-key registration.")}</p>
           </div>
         </div>
 
-        {/* -- MAINNET ARCHITECTURE NOTICE -- */}
+        {/* -- TESTNET NOTICE -- */}
         <div className="mt-16 bg-navy text-parchment rounded-sm border border-gold/30 p-8 shadow-xl space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-parchment/10 pb-4">
             <div className="flex items-center gap-3">
               <Lock className="w-6 h-6 text-gold" />
-              <h3 className="text-lg font-bold text-parchment">{t("Sovereign Mainnet — Closed State Infrastructure")}</h3>
+              <h3 className="text-lg font-bold text-parchment">{t("Testnet — Reference Implementation")}</h3>
             </div>
             <span className="text-xs font-mono text-gold">{t("Protocol version {version}", { version: STABLECHAIN.protocolVersion })}</span>
           </div>
@@ -134,8 +135,10 @@ export default function StableChainPage() {
           <div className="bg-navy-deep border border-burgundy/30 rounded-sm px-5 py-4 flex items-start gap-3">
             <ShieldCheck className="w-5 h-5 text-gold shrink-0 mt-0.5" />
             <p className="text-sm text-parchment/80 leading-relaxed">
-              <strong className="text-parchment">{t("The Aletheia StableChain operates exclusively as closed sovereign public utility infrastructure.")}</strong>{' '}{t("There is no public testnet. External parties are not permitted to build directly on the national ledger. Access is provided only through constitutionally authorised read-only APIs for transparency and audit purposes.")}</p>
+              <strong className="text-parchment">{t("StableChain runs today as a testnet and reference implementation.")}</strong>{' '}{t("It carries no real value. No AEY or other asset is issued, sold or offered to the public, and no mainnet has launched. Read-only access is provided for transparency and review.")}</p>
           </div>
+
+          <AeyNotice tone="dark" />
 
           <NetworkDetails />
 
@@ -147,9 +150,9 @@ export default function StableChainPage() {
             <span className="text-parchment/20">·</span>
             <a href={STABLECHAIN.explorer} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-parchment/60 hover:text-parchment transition-colors">{t("Block Explorer")}</a>
             <span className="text-parchment/20">·</span>
-            <Link href="/transparency" className="text-sm font-semibold text-parchment/60 hover:text-parchment transition-colors">{t("Public Audit Portal")}</Link>
+            <Link href="/transparency" className="text-sm font-semibold text-parchment/60 hover:text-parchment transition-colors">{t("Status & Disclaimers")}</Link>
             <span className="text-parchment/20">·</span>
-            <Link href="/government" className="text-sm font-semibold text-parchment/60 hover:text-parchment transition-colors">{t("Ministry of Digital State")}</Link>
+            <Link href="/government" className="text-sm font-semibold text-parchment/60 hover:text-parchment transition-colors">{t("Digital State (proposed)")}</Link>
           </div>
         </div>
       </section>

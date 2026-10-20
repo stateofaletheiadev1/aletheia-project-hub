@@ -17,34 +17,34 @@ const REGISTRIES = [
   {
     id: 'identity',
     title: 'National Identity & Civil Status Registry',
-    subtitle: 'Decentralized PKI & Biometric Roots',
-    status: 'Operational' as const,
-    desc: 'Issues W3C-compliant Verifiable Credentials, manages ICAO Doc 9303 CSCA cryptographic keys, and enforces zero-knowledge authentication for citizens and e-residents.',
-    specs: ['BSI TR-03110 EAC v2 Compliant', 'Zero-Knowledge Proof (ZKP) Age Verification', 'FIPS 140-3 Level 4 HSM Key Custody', 'GDPR Article 25 Privacy by Design'],
+    subtitle: 'Public-Key Identity, by Design',
+    status: 'Planned' as const,
+    desc: 'Would issue W3C Verifiable Credentials and use zero-knowledge authentication for citizens and residents. It holds no records today.',
+    specs: ['W3C Verifiable Credentials', 'Zero-knowledge age checks', 'Hardware-held signing keys', 'Privacy by design (GDPR Art. 25)'],
   },
   {
     id: 'companies',
     title: 'Commercial & Corporate State Registry',
-    subtitle: 'Algorithmic Incorporation & Legal Entity Inscription',
-    status: 'Operational' as const,
-    desc: 'Enables 15-minute programmatic company registration, digital corporate seal generation, automated beneficial ownership verification, and real-time EU VAT validation.',
-    specs: ['Automated 15-Minute Incorporation', 'English Common Law Commercial Code', 'Real-Time Legal Entity Identifier (LEI)', 'Cryptographic Digital Seals'],
+    subtitle: 'Digital Incorporation, by Design',
+    status: 'Planned' as const,
+    desc: 'Would allow online company registration with digital seals and beneficial-ownership checks. No company is registered today.',
+    specs: ['Online incorporation', 'English-law commercial principles', 'Beneficial-ownership register', 'Cryptographic digital seals'],
   },
   {
     id: 'maritime',
-    title: 'Autonomous Maritime & Vessel Registry',
-    subtitle: 'Digital Ship Flagging & IMO Certification',
-    status: 'Under Development' as const,
-    desc: 'Paperless international flagging for merchant container fleets, exploratory oceanographic vessels, and private yachts, integrated with automated port state control.',
-    specs: ['IMO & UNCLOS Compliant Electronic Flagging', 'Automated Safety Inspection Tracking', 'Crew Biometric Credential Verification', 'Zero Flagging Bureaucracy'],
+    title: 'Maritime & Vessel Registry',
+    subtitle: 'Only After a Founding Treaty',
+    status: 'Planned' as const,
+    desc: 'A ship registry would be possible only if Aletheia gained the lawful authority to keep one. Aletheia registers no vessels.',
+    specs: ['Under international maritime law', 'Safety inspection records', 'Crew credential checks', 'Paperless records'],
   },
   {
     id: 'spatial',
     title: 'Cadastral & Spatial Concessions Registry',
     subtitle: 'Immutable Land Titles & Deepwater Concessions',
-    status: 'Under Development' as const,
-    desc: 'Timestamped geospatial title deeds for Antioch urban parcels, St. Brendan port terminal leases, and offshore pelagic energy platforms.',
-    specs: ['GIS Coordinates Anchored on StableChain', 'Smart Contract Lease Yield Distribution', 'Instant Secondary Market Title Transfers', 'Zero Title Insurance Friction'],
+    status: 'Planned' as const,
+    desc: 'Would record title deeds and leases within a territory agreed by treaty.',
+    specs: ['Coordinates anchored on StableChain', 'Lease records on the ledger', 'Fast title transfers', 'Lower title-insurance costs'],
   },
 ];
 
@@ -72,14 +72,14 @@ export default function TechnologyPage() {
             <div className="flex items-center gap-3">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 border border-gold/40 bg-navy-deep/80 rounded-sm backdrop-blur-sm">
                 <StarOfTruth size={14} />
-                <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-gold">{t("Ministry of Digital State")}</span>
+                <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-gold">{t("Digital State · Proposed")}</span>
               </div>
-              <StatusBadge status="Under Development" size="sm" />
+              <StatusBadge asset="stablechain" size="sm" />
             </div>
 
             <h1 className="heading-hero">{t("Digital State & National Registries")}</h1>
 
-            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("A paperless state engineered without physical bureaucracy. Every law, corporate charter, sovereign identity, and civil title is cryptographically signed, timestamped, and verified on the Aletheia StableChain.")}</p>
+            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("A paperless state, by design: every law, company charter, identity and title would be signed, timestamped and verifiable on the Aletheia StableChain, now on testnet. The registries hold no records today.")}</p>
 
             <div className="flex flex-wrap gap-4 pt-2">
               <Link
@@ -88,9 +88,10 @@ export default function TechnologyPage() {
               >{t("StableChain Protocol Specs")}{' '}<ArrowRight className="w-3.5 h-3.5" />
               </Link>
               <Link
-                href="/e-residency"
+                href="/founding-members"
+
                 className="px-6 py-2.5 border border-gold/30 text-parchment font-semibold text-xs uppercase tracking-wider rounded-sm hover:border-gold/60 transition-colors"
-              >{t("Apply for Digital ID")}</Link>
+              >{t("Register interest as a Founding Member")}</Link>
             </div>
           </div>
         </div>
@@ -100,8 +101,8 @@ export default function TechnologyPage() {
       <section className="py-16 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
           <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">{t("Core Public Registers")}</span>
-          <h2 className="text-2xl sm:text-3xl font-bold text-navy tracking-tight">{t("The Four Sovereign State Registries")}</h2>
-          <p className="text-xs sm:text-sm text-navy/70 leading-relaxed">{t("Statutorily governed by the National Digital Administration Act 2026, eliminating arbitrary ministerial discretion through deterministic cryptographic execution.")}</p>
+          <h2 className="text-2xl sm:text-3xl font-bold text-navy tracking-tight">{t("Four Proposed Registries")}</h2>
+          <p className="text-xs sm:text-sm text-navy/70 leading-relaxed">{t("Proposed in a draft National Digital Administration Act, to remove arbitrary discretion through deterministic rules.")}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
@@ -124,7 +125,7 @@ export default function TechnologyPage() {
                 <p className="text-xs text-navy/70 leading-relaxed">{tx(reg.desc)}</p>
 
                 <div className="pt-3 border-t border-navy/10 space-y-2">
-                  <span className="text-[11px] font-bold text-navy uppercase tracking-wider block">{t("Statutory Protocol Invariants:")}</span>
+                  <span className="text-[11px] font-bold text-navy uppercase tracking-wider block">{t("Design Features:")}</span>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-navy/70">
                     {reg.specs.map((spec, idx) => (
                       <div key={idx} className="flex items-center gap-2">
@@ -137,11 +138,11 @@ export default function TechnologyPage() {
               </div>
 
               <div className="pt-4 border-t border-navy/10 flex items-center justify-between text-xs">
-                <span className="text-navy/50 font-mono text-[11px]">{t("System Status: Replicated across 5 States")}</span>
+                <span className="text-navy/50 font-mono text-[11px]">{t("Status: proposed · no records")}</span>
                 <Link
-                  href={reg.id === 'companies' ? '/business' : reg.id === 'identity' ? '/passport' : '#'}
+                  href={reg.id === 'companies' ? '/business' : reg.id === 'identity' ? '/design/travel-document' : '/development#treaty'}
                   className="text-navy font-bold hover:text-gold flex items-center gap-1 transition-colors"
-                >{t("Portal Access")}{' '}<ArrowRight className="w-3 h-3" />
+                >{t("Learn More")}{' '}<ArrowRight className="w-3 h-3" />
                 </Link>
               </div>
             </div>
@@ -152,11 +153,11 @@ export default function TechnologyPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           <div className="lg:col-span-6 space-y-6">
             <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">{t("Public Verification")}</span>
-            <h2 className="text-2xl sm:text-3xl font-bold text-navy tracking-tight">{t("Query the Immutable State Registry")}</h2>
-            <p className="text-sm text-navy/70 leading-relaxed">{t("Once the State Registry publishes, any state decree, business incorporation licence, land title hash or notary signature can be checked here against the ledger.")}</p>
+            <h2 className="text-2xl sm:text-3xl font-bold text-navy tracking-tight">{t("Check a Registry Record")}</h2>
+            <p className="text-sm text-navy/70 leading-relaxed">{t("Once a registry exists, any founding document, company registration, land title hash or notary signature could be checked here against the ledger.")}</p>
 
             <form onSubmit={handleQuery} className="p-6 bg-white border border-navy/15 rounded-sm shadow-sm space-y-4">
-              <label htmlFor="reg-query" className="text-xs font-bold text-navy uppercase tracking-wider block">{t("Enter Entity Number, Decree Hash, or Deed ID:")}</label>
+              <label htmlFor="reg-query" className="text-xs font-bold text-navy uppercase tracking-wider block">{t("Enter a Record Number or Hash:")}</label>
               <div className="flex gap-2">
                 <input
                   id="reg-query"
@@ -190,11 +191,11 @@ export default function TechnologyPage() {
               <div className="icon-sovereign"><KeyRound className="w-5 h-5 text-gold" /></div>
               <h3 className="text-lg font-bold text-parchment">{t("Zero-Knowledge Civil Privacy (ZKP)")}</h3>
             </div>
-            <p className="text-xs text-parchment/75 leading-relaxed">{t("Aletheia employs advanced zero-knowledge cryptographic proofs. Citizens and e-residents can prove they are of legal age, hold a valid passport, or possess sufficient capital without revealing their name, exact birthdate, or bank balance to third-party verifiers.")}</p>
+            <p className="text-xs text-parchment/75 leading-relaxed">{t("By design, zero-knowledge proofs would let citizens and residents prove that they are of age, or hold a valid document, without revealing their name, date of birth or other details to the verifier.")}</p>
             <div className="p-4 bg-navy-deep rounded-sm border border-navy/40 font-mono text-xs text-gold space-y-1">
               <div>{t("Proof Primitive: Groth16 / Plonk zk-SNARKs")}</div>
               <div>{t("Verification Overhead: < 15 milliseconds")}</div>
-              <div>{t("Data Minimization: 100% GDPR Article 25 Compliant")}</div>
+              <div>{t("Data minimisation: designed to GDPR Article 25")}</div>
             </div>
           </div>
         </div>
@@ -205,17 +206,17 @@ export default function TechnologyPage() {
       <section className="bg-navy text-parchment py-16 border-t border-gold/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
           <StarOfTruth size={36} className="mx-auto" />
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-parchment">{t("Join the World's Most Advanced Digital State")}</h2>
-          <p className="text-xs sm:text-sm text-parchment/70 max-w-xl mx-auto leading-relaxed">{t("Acquire your cryptographic digital identity and begin incorporating, banking, and executing contracts in minutes.")}</p>
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-parchment">{t("A Digital State, Built in the Open")}</h2>
+          <p className="text-xs sm:text-sm text-parchment/70 max-w-xl mx-auto leading-relaxed">{t("Follow the founding of Aletheia's digital institutions. Nothing is offered or sold.")}</p>
           <div className="flex justify-center gap-4 pt-2">
             <Link
-              href="/e-residency"
+              href="/founding-members"
               className="px-6 py-2.5 bg-gold text-navy font-bold text-xs uppercase tracking-wider rounded-sm hover:bg-gold-tint transition-all"
-            >{t("Apply for E-Residency")}</Link>
+            >{t("Register interest as a Founding Member")}</Link>
             <Link
               href="/business"
               className="px-6 py-2.5 border border-gold/30 text-parchment font-semibold text-xs uppercase tracking-wider rounded-sm hover:border-gold/60 transition-colors"
-            >{t("Incorporate an Enterprise")}</Link>
+            >{t("Business Platform (proposed)")}</Link>
           </div>
         </div>
       </section>

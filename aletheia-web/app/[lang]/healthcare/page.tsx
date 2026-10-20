@@ -6,7 +6,8 @@ import Image from 'next/image';
 import { PageHero } from '@/components/ui/PageHero';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { unsplash } from '@/lib/imagery';
-import type { NationalStatus } from '@/lib/status';
+import type { ManualStatus } from '@/lib/status';
+import { ImageCaption } from '@/components/ui/ImageCaption';
 import {
   Activity,
   ArrowRight,
@@ -21,10 +22,10 @@ import {
 } from 'lucide-react';
 
 const PRINCIPLES = [
-  { icon: HeartPulse, title: 'Universal by covenant', desc: 'Every citizen and lawful resident is covered from the first day of residence. Care is never conditional on employment.' },
-  { icon: Baby, title: 'Children & mothers first', desc: 'Maternity, paediatric and preventive care carry no point-of-care charge, funded directly by the Covenant Endowment.' },
-  { icon: KeyRound, title: 'Patient-held records', desc: 'Medical records belong to the patient. Clinicians gain access only by explicit, revocable, logged consent.' },
-  { icon: ShieldCheck, title: 'Audited outcomes', desc: 'Waiting times, outcomes and spending per facility are published openly and reviewed by the Auditor-General.' },
+  { icon: HeartPulse, title: 'Universal by covenant', desc: 'Every citizen and lawful resident would be covered from the first day of residence. Care would never depend on employment.' },
+  { icon: Baby, title: 'Children & mothers first', desc: 'Maternity, paediatric and preventive care would carry no charge at the point of care, funded by the Covenant Endowment.' },
+  { icon: KeyRound, title: 'Patient-held records', desc: 'Medical records would belong to the patient. Clinicians would gain access only by explicit, revocable, logged consent.' },
+  { icon: ShieldCheck, title: 'Audited outcomes', desc: 'Waiting times, outcomes and spending per facility would be published openly and reviewed by the Auditor-General.' },
 ];
 
 const PATHWAY = [
@@ -34,11 +35,11 @@ const PATHWAY = [
   { step: '04', title: 'Recovery & home care', desc: 'Rehabilitation, community nursing and family support coordinated from discharge onwards.' },
 ];
 
-const SERVICES: { icon: typeof Hospital; title: string; desc: string; status: NationalStatus }[] = [
+const SERVICES: { icon: typeof Hospital; title: string; desc: string; status: ManualStatus }[] = [
   { icon: Hospital, title: 'St. Luke National Research Hospital', desc: 'Teaching hospital and trauma centre at the heart of the Augustine Medical Campus, Port Luke.', status: 'Planned' },
   { icon: Stethoscope, title: 'Family Medicine Network', desc: 'Primary-care clinics integrated into every residential canton of Antioch.', status: 'Planned' },
-  { icon: Activity, title: 'National Health Registry', desc: 'Consent ledger and patient-held record standard (HL7 FHIR R5).', status: 'Under Development' },
-  { icon: LifeBuoy, title: 'Maritime Medical Rescue', desc: 'Helicopter and vessel-borne emergency care with the ADSS Coast Guard.', status: 'Planned' },
+  { icon: Activity, title: 'National Health Registry', desc: 'Consent ledger and patient-held record standard (HL7 FHIR R5).', status: 'Planned' },
+  { icon: LifeBuoy, title: 'Maritime Medical Rescue', desc: 'Helicopter and vessel-borne emergency care with a coastguard and rescue service.', status: 'Planned' },
 ];
 
 export default function HealthcarePage() {
@@ -50,7 +51,7 @@ export default function HealthcarePage() {
         status="Planned"
         image="pharma"
         title={<>{t("Care that is")}{' '}<span className="text-gold-metallic">{t("owed")}</span>{t(", not sold.")}</>}
-        lead={t("Aletheia treats health as a covenant obligation of the State to every member of the community: universal coverage, patient-owned records, and outcomes published for anyone to audit.")}
+        lead={t("Aletheia proposes to treat health as a covenant obligation of the State to every member of the community: universal coverage, patient-owned records, and outcomes published for anyone to audit.")}
       >
         <Link href="#registry" className="btn-sovereign-gold px-7 py-3.5 rounded-sm text-sm flex items-center gap-2 group">{t("The Health Registry")}{' '}<ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
         </Link>
@@ -80,7 +81,7 @@ export default function HealthcarePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl mb-12 space-y-3">
             <div className="eyebrow">{t("Founding Principles")}</div>
-            <h2 className="text-4xl font-bold tracking-tight text-navy leading-tight">{t("Four promises written into the health covenant.")}</h2>
+            <h2 className="text-4xl font-bold tracking-tight text-navy leading-tight">{t("Four promises proposed for the health covenant.")}</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {PRINCIPLES.map(({ icon: Icon, title, desc }) => (
@@ -100,6 +101,7 @@ export default function HealthcarePage() {
           <div className="lg:col-span-6 relative">
             <div className="photo-card relative h-[460px] rounded-sm border border-gold/20 shadow-elevated">
               <Image src={unsplash('clinician', 1200)} alt={t("A clinician reviewing a patient record on a laptop")} fill sizes="(min-width:1024px) 50vw, 100vw" className="object-cover" />
+              <ImageCaption />
               <div className="absolute inset-0 bg-gradient-to-t from-navy-deep/70 via-transparent to-transparent" />
             </div>
             <div className="hidden sm:block absolute -bottom-8 -right-6 w-60 bg-navy-deep text-parchment p-5 rounded-sm border border-gold/30 shadow-elevated space-y-2 animate-float">
@@ -111,13 +113,13 @@ export default function HealthcarePage() {
           <div className="lg:col-span-6 space-y-6">
             <div className="flex items-center gap-3">
               <div className="eyebrow">{t("National Health Registry")}</div>
-              <StatusBadge status="Under Development" size="sm" />
+              <StatusBadge status="Planned" size="sm" />
             </div>
             <h2 className="text-4xl font-bold tracking-tight text-navy leading-[1.15]">{t("Your record, your keys.")}{' '}<span className="text-navy/55 font-light">{t("The State keeps only the receipt.")}</span>
             </h2>
             <div className="space-y-4 text-navy/70 leading-[1.85] font-light">
-              <p>{t("Clinical data never touches the public ledger. Records stay encrypted with the patient's own keys; StableChain stores only a hash of each consent grant, so access is provable without anything sensitive ever being published.")}</p>
-              <p>{t("Every view of a record by a clinician generates an entry the patient can inspect from the citizen portal — and challenge before the independent Health Ombudsman.")}</p>
+              <p>{t("Clinical data would never touch the public ledger. Records would stay encrypted with the patient's own keys; StableChain would store only a hash of each consent grant, so access is provable without anything sensitive ever being published.")}</p>
+              <p>{t("Every view of a record by a clinician would generate an entry the patient could inspect, and challenge before an independent Health Ombudsman.")}</p>
             </div>
             <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
               {['End-to-end encrypted records', 'Revocable, time-boxed consent', 'Full access log for patients', 'GDPR-aligned data rights'].map((item) => (
@@ -157,7 +159,7 @@ export default function HealthcarePage() {
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
             <div className="space-y-3 max-w-2xl">
               <div className="eyebrow">{t("Institutions")}</div>
-              <h2 className="text-4xl font-bold tracking-tight text-navy">{t("The health estate of the Sovereign Covenant State.")}</h2>
+              <h2 className="text-4xl font-bold tracking-tight text-navy">{t("The proposed health estate of the Sovereign Covenant State.")}</h2>
             </div>
             <Link href="/development#augustine" className="inline-flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-navy hover:text-gold transition-colors group">{t("Augustine State")}{' '}<ArrowRight className="w-4 h-4 text-gold group-hover:translate-x-1 transition-transform" />
             </Link>
@@ -165,6 +167,7 @@ export default function HealthcarePage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="photo-card lg:row-span-2 relative min-h-[420px] rounded-sm border border-gold/20 shadow-elevated">
               <Image src={unsplash('laboratory', 1000)} alt={t("Researcher working in a biomedical laboratory")} fill sizes="(min-width:1024px) 33vw, 100vw" className="object-cover" />
+              <ImageCaption />
               <div className="absolute inset-0 bg-gradient-to-t from-navy-deep via-navy-deep/30 to-transparent" />
               <div className="photo-card-body absolute bottom-0 p-7 text-parchment space-y-2">
                 <StatusBadge status="Planned" size="sm" />
@@ -193,12 +196,12 @@ export default function HealthcarePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
           <div className="space-y-3 max-w-2xl">
             <div className="flex items-center gap-2 text-gold text-[11px] font-bold uppercase tracking-[0.2em]"><Users className="w-4 h-4" />{' '}{t("Who is covered")}</div>
-            <h2 className="text-3xl font-bold text-parchment">{t("Coverage begins the day lawful residence begins.")}</h2>
-            <p className="text-parchment/60 text-sm font-light">{t("E-residency is a digital status and does not include healthcare. Lawful residents and citizens are covered in full.")}</p>
+            <h2 className="text-3xl font-bold text-parchment">{t("Coverage would begin the day lawful residence begins.")}</h2>
+            <p className="text-parchment/60 text-sm font-light">{t("E-residency would be a digital status without healthcare. Lawful residents and citizens would be covered in full.")}</p>
           </div>
           <div className="flex flex-wrap gap-3">
             <Link href="/immigration" className="btn-sovereign-gold px-7 py-3.5 rounded-sm text-sm">{t("Residence permits")}</Link>
-            <Link href="/citizenship" className="btn-sovereign-ghost px-7 py-3.5 rounded-sm text-sm">{t("Citizenship")}</Link>
+            <Link href="/founding-members" className="btn-sovereign-ghost px-7 py-3.5 rounded-sm text-sm">{t("Founding Members")}</Link>
           </div>
         </div>
       </section>

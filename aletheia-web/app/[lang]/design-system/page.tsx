@@ -18,7 +18,7 @@ export default function DesignSystemSpecimenPage() {
     { name: 'Burnished Gold', hex: '#8F6A2A', rgb: 'rgb(143, 106, 42)', hsl: '38°, 55%, 36%', role: 'Shield Bevels & Depth Shadows', contrast: '5.2:1 against Parchment (AA)' },
     { name: 'Laurel Green', hex: '#2F6B4F', rgb: 'rgb(47, 107, 79)', hsl: '152°, 37%, 31%', role: 'Civic Peace, Renewal & Agriculture', contrast: '6.4:1 against Parchment (AA)' },
     { name: 'Deep Laurel', hex: '#214C38', rgb: 'rgb(33, 76, 56)', hsl: '152°, 39%, 21%', role: 'Laurel Foliage Underlayer', contrast: '9.8:1 against Parchment (AAA)' },
-    { name: 'Covenant Burgundy', hex: '#701824', rgb: 'rgb(112, 24, 36)', hsl: '352°, 65%, 27%', role: 'Passport Cover & Diplomatic Seals', contrast: '10.2:1 against Parchment (AAA)' },
+    { name: 'Covenant Burgundy', hex: '#701824', rgb: 'rgb(112, 24, 36)', hsl: '352°, 65%, 27%', role: 'Travel Document Cover & Seals', contrast: '10.2:1 against Parchment (AAA)' },
     { name: 'Canvas Parchment', hex: '#F6F3EC', rgb: 'rgb(246, 243, 236)', hsl: '42°, 33%, 95%', role: 'Outer Paper & Ceremonial Mount', contrast: '14.4:1 against Navy (AAA)' },
   ];
 
@@ -198,12 +198,12 @@ export default function DesignSystemSpecimenPage() {
           {[
             { status: 'Operational' as const, note: 'Provable and active in software or operations today' },
             { status: 'Under Development' as const, note: 'Active engineering and formal build phase' },
-            { status: 'Planned' as const, note: 'Approved in roadmap for scheduled construction' },
+            { status: 'Planned' as const, note: 'On the roadmap; depends on earlier phases' },
             { status: 'Proposed' as const, note: 'Policy or design proposal awaiting sanction' },
-            { status: 'Vision' as const, note: 'Long-term 2030–2045 conceptual direction' },
+            { status: 'Vision' as const, note: 'Long-term design studies, not current holdings' },
           ].map((item) => (
             <div key={item.status} className="p-4 bg-white border border-navy/15 rounded-sm space-y-2">
-              <StatusBadge status={item.status} size="md" />
+              <StatusBadge legend={item.status} size="md" />
               <p className="text-xs text-navy/70 leading-relaxed pt-1">{tx(item.note)}</p>
             </div>
           ))}

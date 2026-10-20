@@ -10,7 +10,7 @@ const DESTINATIONS = [
   { label: 'The Constitution', href: '/constitution' },
   { label: 'Citizenship', href: '/citizenship' },
   { label: 'E-Residency', href: '/e-residency' },
-  { label: 'Official Gazette', href: '/news' },
+  { label: 'Gazette', href: '/news' },
   { label: 'Government', href: '/government' },
   { label: 'Contact', href: '/contact' },
 ];
@@ -31,7 +31,7 @@ export default function NotFound() {
         <div className="space-y-3 animate-fade-in-up">
           <p className="text-[11px] font-bold tracking-[0.3em] uppercase text-gold">{t("Error 404 · Uncharted waters")}</p>
           <h1 className="text-4xl sm:text-5xl font-bold tracking-tight">{t("This page is not on the register.")}</h1>
-          <p className="text-parchment/70 leading-relaxed max-w-xl mx-auto font-light">{t("The address may have moved, or it was never promulgated. Every public record of the Sovereign Covenant State is reachable from the destinations below.")}</p>
+          <p className="text-parchment/70 leading-relaxed max-w-xl mx-auto font-light">{t("The address may have moved, or it never existed. Every public record of the Sovereign Covenant State is reachable from the destinations below.")}</p>
         </div>
         <div className="flex flex-wrap justify-center gap-2 animate-fade-in-up delay-200">
           {DESTINATIONS.map((d) => (

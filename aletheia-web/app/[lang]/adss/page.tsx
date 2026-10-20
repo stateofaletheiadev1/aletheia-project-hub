@@ -6,6 +6,8 @@ import Link from '@/components/i18n/Link';
 import Image from 'next/image';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { StarOfTruth } from '@/components/brand/Logo';
+import { ImageCaption } from '@/components/ui/ImageCaption';
+import type { AssetKey, ManualStatus } from '@/lib/status';
 import {
   Shield,
   Anchor,
@@ -21,23 +23,23 @@ import {
   Zap,
 } from 'lucide-react';
 
-const DIRECTORATES = [
+const DIRECTORATES: { id: string; code: string; title: string; subtitle: string; icon: React.ReactNode; asset?: AssetKey; status?: ManualStatus; href: string; mandate: string; capabilities: string[]; commandBasis: string }[] = [
   {
     id: 'navy',
-    code: 'ADSS-N',
-    title: 'Navy & Coast Guard',
-    subtitle: 'Maritime Sovereignty Division',
+    code: 'ADSS-R',
+    title: 'Coastguard & Rescue',
+    subtitle: 'Search, Rescue & Coastal Safety',
     icon: <Anchor className="w-6 h-6 text-gold" />,
-    status: 'Planned' as const,
+    status: 'Planned',
     href: '/adss#navy',
-    mandate: 'Protects territorial waters, conducts search and rescue operations, enforces maritime exclusion zones, and maintains sector patrols around Aletheian sovereign platforms.',
+    mandate: 'Would conduct search and rescue and keep coastal waters safe, within the waters agreed with the host state and in cooperation with its authorities.',
     capabilities: [
-      'Territorial water enforcement (12nm + 200nm EEZ)',
       'Search and rescue coordination',
-      'Platform security and offshore installation protection',
-      'Maritime boundary administration',
+      'Coastal and harbour safety',
+      'Protection of offshore installations',
+      'Cooperation with the host state’s coastguard',
     ],
-    commandBasis: 'Constitution Art. 22; Maritime Security Act',
+    commandBasis: 'Draft Constitution Art. 46; proposed Maritime Safety Act',
   },
   {
     id: 'police',
@@ -45,50 +47,50 @@ const DIRECTORATES = [
     title: 'Police Directorate',
     subtitle: 'Civil Law Enforcement',
     icon: <Shield className="w-6 h-6 text-gold" />,
-    status: 'Planned' as const,
+    asset: 'police',
     href: '/adss#police',
-    mandate: 'A constitutionally civilian law enforcement body with strict separation from military command. Accountable to the High Court and subject to independent oversight.',
+    mandate: 'A proposed civilian police service, separate from every other service, accountable to the High Court and subject to independent oversight.',
     capabilities: [
       'Community policing and crime prevention',
       'Criminal investigations (civil jurisdiction only)',
       'Court order enforcement',
       'Independent civilian complaint authority',
     ],
-    commandBasis: 'Constitution Art. 24; Civil Policing Act',
+    commandBasis: 'Draft Constitution Art. 46; proposed Civil Policing Act',
   },
   {
     id: 'immigration',
     code: 'ADSS-I',
     title: 'Immigration Directorate',
-    subtitle: 'Border & Identity Administration',
+    subtitle: 'Border & Residence Administration',
     icon: <Globe className="w-6 h-6 text-gold" />,
-    status: 'Under Development' as const,
+    asset: 'immigration',
     href: '/adss#immigration',
-    mandate: 'Administers biometric border control, manages the Visa and Residency Registry, and coordinates with the National Identity Registry for passport issuance and revocation.',
+    mandate: 'Would administer border checks and residence permits within a territory agreed by treaty. It issues nothing today.',
     capabilities: [
-      'Biometric border administration (land, sea, air)',
-      'Visa issuance and revocation',
-      'E-residency compliance monitoring',
-      'International extradition coordination',
+      'Border administration',
+      'Visa and residence permits',
+      'E-residency compliance',
+      'Cooperation with the host state',
     ],
-    commandBasis: 'Constitution Art. 25; Border Administration Act',
+    commandBasis: 'Draft Constitution Art. 46; proposed Border Administration Act',
   },
   {
     id: 'cyber',
     code: 'ADSS-C',
     title: 'Cybersecurity Department',
-    subtitle: 'Critical Infrastructure & Validator Protection',
+    subtitle: 'Digital Infrastructure & Validator Protection',
     icon: <Lock className="w-6 h-6 text-gold" />,
-    status: 'Operational' as const,
+    asset: 'cyber',
     href: '/adss/cybersecurity',
-    mandate: 'Mandatory standalone agency mandated to protect StableChain validators, government infrastructure, and critical national networks from cyber threats. Operates a 24/7 CERT/CSIRT.',
+    mandate: 'A planned standalone department to protect StableChain validators, government systems and critical networks from cyber threats.',
     capabilities: [
-      'StableChain validator cluster protection',
-      '24/7 CERT/CSIRT operations center',
-      'National Critical Infrastructure monitoring',
-      'Penetration testing and red team operations',
+      'Validator protection',
+      'A computer emergency response team',
+      'Infrastructure monitoring',
+      'Coordinated vulnerability disclosure',
     ],
-    commandBasis: 'Constitution Art. 26; Cybersecurity Sovereignty Act',
+    commandBasis: 'Draft Constitution Art. 53; proposed Cyber Resilience Act',
   },
 ];
 
@@ -96,24 +98,24 @@ const OVERSIGHT_PRINCIPLES = [
   {
     icon: <Users className="w-4 h-4 text-gold" />,
     title: 'Civilian Constitutional Authority',
-    desc: 'The Ministry of Security exercises full civilian oversight over ADSS. No military command exists — all directorates report to elected ministers, not generals.',
+    desc: 'A civilian minister would oversee every service. All directorates would report to elected ministers.',
   },
   {
     icon: <Eye className="w-4 h-4 text-gold" />,
     id: 'intelligence',
-    title: 'Intelligence Oversight Committee',
-    desc: 'A Standing Parliamentary Committee reviews all intelligence activities. No signals collection without a High Court warrant. Strict surveillance statute.',
+    title: 'Independent Oversight',
+    desc: 'A standing parliamentary committee would review every security function. No surveillance without a High Court warrant.',
   },
   {
     icon: <AlertTriangle className="w-4 h-4 text-gold" />,
     title: 'Proportionality Doctrine',
-    desc: 'Constitutional prohibition on force disproportionate to threat. Independent complaints authority with binding remedial powers.',
+    desc: 'A proposed constitutional ban on disproportionate force, with an independent complaints authority.',
   },
   {
     icon: <Radio className="w-4 h-4 text-gold" />,
     id: 'emergency',
-    title: 'Emergency Coordination Centre',
-    desc: '24/7 National Emergency & Civil Protection Centre coordinates disaster response, maritime rescue, and critical infrastructure incidents.',
+    title: 'Emergency Coordination',
+    desc: 'A planned centre to coordinate disaster response and rescue. Aletheia runs no emergency service today.',
   },
 ];
 
@@ -127,11 +129,12 @@ export default function ADSSPage() {
         <div className="absolute inset-0">
           <Image
             src="/images/cyber_defence.jpg"
-            alt={t("Aletheian Defence and Security Service")}
+            alt=""
             fill
             className="object-cover opacity-12 mix-blend-luminosity"
             priority
           />
+          <ImageCaption position="bottom-right" />
         </div>
         {/* Ambient orbs */}
         <div className="orb-gold w-[460px] h-[460px] -top-24 -left-32 opacity-50 animate-orb-float-1" />
@@ -153,31 +156,31 @@ export default function ADSSPage() {
             <div className="flex items-center gap-3">
               <div className="inline-flex items-center gap-2 px-3 py-1 border border-gold/30 bg-navy-deep/60 rounded-[3px]">
                 <StarOfTruth size={14} />
-                <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-gold">{t("ADSS Directorate")}</span>
+                <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-gold">{t("Resilience & Civil Protection")}</span>
               </div>
               <StatusBadge status="Planned" size="sm" />
             </div>
 
-            <h1 className="heading-hero">{t("Aletheian Defence")}<br />
-              <span className="text-gold-metallic">{t("& Security Service")}</span>
+            <h1 className="heading-hero">{t("Resilience &")}<br />
+              <span className="text-gold-metallic">{t("Civil Protection")}</span>
             </h1>
 
-            <p className="text-base sm:text-lg text-parchment/65 leading-relaxed font-light max-w-2xl">{t("A unified, constitutionally civilian security apparatus covering naval sovereignty, civil law enforcement, border administration, and cybersecurity — with strict proportionality doctrine and independent oversight.")}</p>
+            <p className="text-base sm:text-lg text-parchment/65 leading-relaxed font-light max-w-2xl">{t("Planned civil-protection and resilience functions under civilian command: rescue, civilian policing, border administration and cybersecurity, with independent oversight. None operates today.")}</p>
 
             <div className="flex flex-wrap gap-4 pt-2">
               <Link href="/adss/cybersecurity" className="btn-sovereign-gold px-7 py-3.5 rounded-sm flex items-center gap-2.5 group text-sm">{t("Cybersecurity Department")}{' '}<ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
-              <Link href="/constitution#art-46" className="btn-sovereign-ghost px-6 py-3.5 rounded-sm flex items-center gap-2 text-sm">{t("Constitutional Mandate")}</Link>
+              <Link href="/constitution#art-46" className="btn-sovereign-ghost px-6 py-3.5 rounded-sm flex items-center gap-2 text-sm">{t("Draft Constitutional Mandate")}</Link>
             </div>
           </div>
 
           {/* Directive strip */}
           <div className="mt-16 grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[
-              { label: 'Directorates', value: '4', sub: 'Unified structure' },
-              { label: 'Civilian Command', value: '100%', sub: 'No military chain' },
-              { label: 'CERT/CSIRT', value: '24/7', sub: 'Cyber operations' },
-              { label: 'Intelligence Warrant', value: 'Required', sub: 'High Court order' },
+              { label: 'Planned Functions', value: '4', sub: 'Under one civilian minister' },
+              { label: 'Civilian Command', value: '100%', sub: 'By design' },
+              { label: 'Operating Today', value: 'None', sub: 'Before a founding treaty' },
+              { label: 'Surveillance Warrant', value: 'Required', sub: 'High Court order, as proposed' },
             ].map((m) => (
               <div key={m.label} className="bg-navy-deep/80 border border-gold/15 rounded-[4px] p-4">
                 <span className="text-[10px] uppercase tracking-[0.16em] text-parchment/40 font-semibold block mb-1">{tx(m.label)}</span>
@@ -194,7 +197,7 @@ export default function ADSSPage() {
         <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl mb-12">
             <span className="text-[10px] font-bold tracking-[0.22em] uppercase text-gold block mb-2">{t("Structure")}</span>
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-navy leading-tight">{t("Four unified directorates, one constitutional mandate.")}</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-navy leading-tight">{t("Four planned functions, one civilian mandate.")}</h2>
           </div>
 
           <div className="space-y-5">
@@ -212,7 +215,7 @@ export default function ADSSPage() {
                         <div className="w-10 h-10 bg-navy/[0.05] rounded-[3px] flex items-center justify-center">
                           {tx(dir.icon)}
                         </div>
-                        <StatusBadge status={dir.status} size="sm" />
+                        {dir.asset ? <StatusBadge asset={dir.asset} size="sm" /> : dir.status ? <StatusBadge status={dir.status} size="sm" /> : null}
                       </div>
                       <div>
                         <span className="text-[9px] font-mono font-bold tracking-[0.18em] text-gold/60 block mb-0.5">{tx(dir.code)}</span>
@@ -233,7 +236,7 @@ export default function ADSSPage() {
 
                   {/* Capabilities */}
                   <div className="lg:col-span-4 p-5">
-                    <span className="text-[9px] font-bold tracking-[0.18em] uppercase text-navy/30 block mb-2">{t("Key Capabilities")}</span>
+                    <span className="text-[9px] font-bold tracking-[0.18em] uppercase text-navy/30 block mb-2">{t("Planned Capabilities")}</span>
                     <ul className="space-y-1.5">
                       {dir.capabilities.map((cap) => (
                         <li key={cap} className="flex items-start gap-2 text-[12px] text-navy/65">
@@ -242,7 +245,7 @@ export default function ADSSPage() {
                         </li>
                       ))}
                     </ul>
-                    <Link href={dir.href} className="inline-flex items-center gap-1.5 mt-4 text-[11px] font-bold text-navy hover:text-gold transition-colors uppercase tracking-wider">{t("View Directorate")}{' '}<ArrowRight className="w-3 h-3 text-gold" />
+                    <Link href={dir.href} className="inline-flex items-center gap-1.5 mt-4 text-[11px] font-bold text-navy hover:text-gold transition-colors uppercase tracking-wider">{t("Learn More")}{' '}<ArrowRight className="w-3 h-3 text-gold" />
                     </Link>
                   </div>
                 </div>
@@ -257,7 +260,7 @@ export default function ADSSPage() {
         <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl mb-12">
             <span className="text-[10px] font-bold tracking-[0.22em] uppercase text-gold block mb-2">{t("Constitutional Accountability")}</span>
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-parchment leading-tight">{t("Civilian oversight is not optional — it is constitutional law.")}</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-parchment leading-tight">{t("Civilian oversight, written into the draft Constitution.")}</h2>
           </div>
 
           <div className="grid md:grid-cols-2 gap-5">
@@ -280,8 +283,8 @@ export default function ADSSPage() {
 
           <div className="mt-10 p-5 bg-navy-deep/80 border border-gold/20 rounded-[4px] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="space-y-1">
-              <span className="text-[10px] font-bold tracking-[0.18em] uppercase text-gold block">{t("Cybersecurity Department — Operational")}</span>
-              <p className="text-[12px] text-parchment/55">{t("The ADSS Cybersecurity Department is the only currently operational directorate. A 24/7 CERT/CSIRT protects StableChain validators and national digital infrastructure.")}</p>
+              <span className="text-[10px] font-bold tracking-[0.18em] uppercase text-gold block">{t("Cybersecurity Department — Planned")}</span>
+              <p className="text-[12px] text-parchment/55">{t("The Cybersecurity Department is planned, to protect Aletheia’s digital infrastructure. Security reports about this website are welcome now.")}</p>
             </div>
             <Link
               href="/adss/cybersecurity"
@@ -296,27 +299,28 @@ export default function ADSSPage() {
       <section className="py-20 lg:py-28 bg-parchment-canvas">
         <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <div>
+            <div className="relative">
               <Image
                 src="/images/cyber_defence.jpg"
-                alt={t("Aletheian Cybersecurity Operations")}
+                alt={t("A security operations room")}
                 width={640}
                 height={440}
                 className="w-full object-cover rounded-[4px]"
               />
+              <ImageCaption />
             </div>
             <div className="space-y-5">
               <div className="flex items-center gap-3">
-                <span className="text-[10px] font-bold tracking-[0.22em] uppercase text-gold">{t("ADSS-C Spotlight")}</span>
-                <StatusBadge status="Operational" size="sm" />
+                <span className="text-[10px] font-bold tracking-[0.22em] uppercase text-gold">{t("Cybersecurity Spotlight")}</span>
+                <StatusBadge asset="cyber" size="sm" />
               </div>
-              <h2 className="text-3xl font-bold tracking-tight text-navy leading-tight">{t("Cybersecurity Department: protecting the sovereign ledger.")}</h2>
-              <p className="text-navy/65 leading-relaxed">{t("As a digital-first state, Aletheia's most critical national asset is its StableChain validator infrastructure. The Cybersecurity Department operates as a mandatory standalone agency — completely independent from other government ministries — to eliminate political interference in technical security decisions.")}</p>
+              <h2 className="text-3xl font-bold tracking-tight text-navy leading-tight">{t("Cybersecurity Department: protecting the ledger.")}</h2>
+              <p className="text-navy/65 leading-relaxed">{t("For a digital-first state, the StableChain validators would be critical national infrastructure. The planned Cybersecurity Department would be a standalone agency, independent of the ministries, to keep politics out of technical security decisions.")}</p>
               <div className="space-y-2">
                 {[
                   { icon: <Cpu className="w-3.5 h-3.5 text-gold" />, label: 'StableChain Validator Protection' },
-                  { icon: <Zap className="w-3.5 h-3.5 text-gold" />, label: '24/7 CERT/CSIRT Operations Center' },
-                  { icon: <Lock className="w-3.5 h-3.5 text-gold" />, label: 'Zero-Day Disclosure Programme' },
+                  { icon: <Zap className="w-3.5 h-3.5 text-gold" />, label: 'Computer Emergency Response Team (planned)' },
+                  { icon: <Lock className="w-3.5 h-3.5 text-gold" />, label: 'Coordinated Vulnerability Disclosure' },
                   { icon: <Eye className="w-3.5 h-3.5 text-gold" />, label: 'National Infrastructure Threat Intelligence' },
                 ].map((item, i) => (
                   <div key={i} className="flex items-center gap-2.5 text-[13px] text-navy/75">

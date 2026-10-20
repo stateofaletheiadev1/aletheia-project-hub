@@ -2,6 +2,7 @@
 
 import { useI18n } from '@/components/i18n/I18nProvider';
 import Link from '@/components/i18n/Link';
+import { Placeholder } from '@/components/ui/Placeholder';
 import { LegalDocument } from '@/components/ui/LegalDocument';
 
 export default function PrivacyPage() {
@@ -18,8 +19,10 @@ export default function PrivacyPage() {
           id: 'controller',
           heading: 'Who is responsible',
           body: (
-            <p>{t("The data controller for this platform is the Ministry of Digital State & Registries of the Sovereign Covenant State of Aletheia. Questions about this notice can be sent to")}{' '}<a href="mailto:chancery@aletheia.gov">{t("chancery@aletheia.gov")}</a>.
-            </p>
+            <>
+              <p>{t("This platform is run by the founding team of Aletheia, a new-country project. Aletheia is not a recognised state; the data controller is the legal entity named below.")}</p>
+              <p><Placeholder>data controller (legal entity, registered address) and privacy contact email</Placeholder></p>
+            </>
           ),
         },
         {
@@ -29,10 +32,17 @@ export default function PrivacyPage() {
             <>
               <p>{t("Browsing the public pages of this site requires no account and sets no tracking or advertising cookies. We collect only:")}</p>
               <ul>
-                <li>{t("Information you choose to submit, such as an enquiry, a Gazette subscription or an application in the citizen portal;")}</li>
+                <li>{t("If you register interest as a Founding Member: your name, email address, country and, if you choose, a note on how you would like to contribute;")}</li>
                 <li>{t("Minimal technical logs (IP address, time, page requested) retained for no more than 30 days for security purposes.")}</li>
               </ul>
             </>
+          ),
+        },
+        {
+          id: 'founding-members',
+          heading: 'Founding Member registrations',
+          body: (
+            <p>{t("We use these details only to write to you about the founding of Aletheia. They are stored encrypted, are never published or written to a ledger, and are kept until you ask us to delete them. We do not collect identity documents or payment details.")}</p>
           ),
         },
         {
@@ -46,7 +56,7 @@ export default function PrivacyPage() {
           id: 'purpose',
           heading: 'How we use it',
           body: (
-            <p>{t("Data is used only for the purpose for which you provided it, on the legal basis of your consent or the performance of a public task. It is never sold, never used for advertising and never shared with third parties except where a statute requires it — and every such disclosure is itself logged and auditable.")}</p>
+            <p>{t("Data is used only for the purpose for which you provided it, on the legal basis of your consent. It is never sold, never used for advertising and never shared with third parties except where the law requires it.")}</p>
           ),
         },
         {
@@ -54,11 +64,11 @@ export default function PrivacyPage() {
           heading: 'Your rights',
           body: (
             <ul>
-              <li>{t("Access a copy of the data held about you, including the log of who has viewed it;")}</li>
+              <li>{t("Access a copy of the data held about you;")}</li>
               <li>{t("Correct inaccurate data, and erase data that is no longer required;")}</li>
               <li>{t("Withdraw consent at any time, and object to or restrict processing;")}</li>
               <li>{t("Receive your data in a portable, machine-readable format;")}</li>
-              <li>{t("Complain to the independent Data Protection Commissioner.")}</li>
+              <li>{t("Complain to the data protection authority in your country.")}</li>
             </ul>
           ),
         },
@@ -66,8 +76,8 @@ export default function PrivacyPage() {
           id: 'security',
           heading: 'Security',
           body: (
-            <p>{t("Systems are protected under the oversight of the")}{' '}
-              <Link href="/adss/cybersecurity">{t("Aletheian Cybersecurity Department")}</Link>{t(", using encryption in transit and at rest, hardware-backed key storage and continuous monitoring. Suspected vulnerabilities can be reported through coordinated disclosure.")}</p>
+            <p>{t("Systems are protected using encryption in transit and at rest. Suspected vulnerabilities can be reported through")}{' '}
+              <Link href="/adss/cybersecurity#disclosure">{t("coordinated disclosure")}</Link>.</p>
           ),
         },
       ]}

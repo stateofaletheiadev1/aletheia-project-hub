@@ -6,6 +6,7 @@ import Image from 'next/image';
 import Link from '@/components/i18n/Link';
 import { StarOfTruth } from '@/components/brand/Logo';
 import { StatusBadge } from '@/components/ui/StatusBadge';
+import { AeyNotice } from '@/components/ui/AeyNotice';
 import {
   ArrowLeft,
   ArrowLeftRight,
@@ -133,7 +134,7 @@ const TENDER_FORMS = [
         icon: Globe,
     eyebrow: 'Issuer',
     title: 'The Reserve Bank of Aletheia',
-    body: 'Both forms are issued by the Reserve Bank of Aletheia, under published rules, and recorded in one public register.',
+    body: 'Both forms would be issued by the Reserve Bank of Aletheia, under published rules, and recorded in one public register.',
   },
 ];
 
@@ -180,13 +181,15 @@ export default function AeyPaperCurrencyPage() {
                   <StarOfTruth size={14} />
                   <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-gold">{t("AEY Banknote Series")}</span>
                 </div>
-                <StatusBadge status="Planned" size="sm" />
+                <StatusBadge status="Proposed" size="sm" />
               </div>
 
               <h1 className="heading-hero">{t("The AEY")}<br />
                 <span className="text-gold-metallic">{t("Paper Series")}</span></h1>
 
               <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light max-w-xl">{t("The Aletheian Guilder in paper: five engraved denominations, designed to sit alongside digital AEY on the Aletheia StableChain as the currency of the Sovereign Covenant State.")}</p>
+
+              <AeyNotice tone="dark" className="max-w-xl" />
 
               <div className="flex flex-wrap gap-4 pt-2">
                 <a
@@ -514,7 +517,7 @@ export default function AeyPaperCurrencyPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
           <Layers className="w-9 h-9 text-gold mx-auto" />
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-parchment">{t("One Guilder, Paper or Digital")}</h2>
-          <p className="text-xs sm:text-sm text-parchment/70 max-w-xl mx-auto leading-relaxed">{t("Every AEY, engraved or on the Aletheia StableChain, is the same currency, issued by the Reserve Bank of Aletheia. Explore the digital currency and the institution behind both.")}</p>
+          <p className="text-xs sm:text-sm text-parchment/70 max-w-xl mx-auto leading-relaxed">{t("Every AEY, engraved or on the Aletheia StableChain, would be the same currency, issued by the Reserve Bank of Aletheia. Explore the proposed digital currency and the institution behind both.")}</p>
           <div className="flex flex-wrap justify-center gap-4 pt-2">
             <Link
               href="/aey"

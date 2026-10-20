@@ -30,7 +30,7 @@ interface Ministry {
   mandate: string;
   responsibilities: string[];
   legalBasis: string;
-  status: 'Operational' | 'Under Development' | 'Planned';
+  status: 'Planned';
   icon: React.ReactNode;
   serviceHref: string;
   serviceName: string;
@@ -40,16 +40,16 @@ const MINISTRIES: Ministry[] = [
   {
     id: 'treasury',
     name: 'Ministry of Treasury & Finance',
-    portfolio: 'Public Accounts, Reserves & Bonds',
-    mandate: 'Preserves the fiscal stability of the Sovereign Covenant State, administers the Covenant Endowment Fund, manages sovereign bond issuances, and guarantees zero personal income taxation.',
+    portfolio: 'Public Accounts & Endowment',
+    mandate: 'Would preserve the fiscal stability of the State, administer the Covenant Endowment Fund, and uphold the proposed prohibition of personal income tax.',
     responsibilities: [
       'Covenant Endowment Fund administration',
       'Epochal Merkle proofs of treasury accounts',
-      'Sovereign Development Bond issuance',
+      'Public balance-sheet reporting',
       'Tax-free state revenue model coordination',
     ],
-    legalBasis: 'Constitution Art. 16; Public Finance & Endowment Act',
-    status: 'Under Development',
+    legalBasis: 'Draft Constitution Art. 16; Public Finance & Endowment Act',
+    status: 'Planned',
     icon: <Coins className="w-5 h-5 text-gold" />,
     serviceHref: '/treasury',
     serviceName: 'Treasury & Balance Sheet Audit',
@@ -58,65 +58,65 @@ const MINISTRIES: Ministry[] = [
     id: 'digital-state',
     name: 'Ministry of Digital State & Registries',
     portfolio: 'StableChain, Digital ID & E-Residency',
-    mandate: 'Operates state-authorized validator clusters, supervises the National Identity Registry, coordinates E-Residency services, and maintains immutable civil records.',
+    mandate: 'Would run the State’s validators, supervise the identity registry, coordinate e-residency and keep civil records. Today StableChain runs as a testnet.',
     responsibilities: [
       'StableChain node governance and validator uptime',
-      'National Biometric Identity Registry',
+      'National Identity Registry',
       'E-Residency digital incorporation rail',
       'Data sovereignty and public API infrastructure',
     ],
-    legalBasis: 'Constitution Art. 11; StableChain Governance Act',
-    status: 'Under Development',
+    legalBasis: 'Draft Constitution Art. 11; StableChain Governance Act',
+    status: 'Planned',
     icon: <Cpu className="w-5 h-5 text-gold" />,
     serviceHref: '/e-residency',
-    serviceName: 'E-Residency Portal',
+    serviceName: 'E-Residency (proposed)',
   },
   {
     id: 'security',
-    name: 'Ministry of Security & Civil Defence',
-    portfolio: 'Civilian Governance of ADSS & Emergency',
-    mandate: 'Exercises civilian constitutional authority over the Aletheian Defence & Security Service (ADSS), civil disaster mitigation, and national resilience policy.',
+    name: 'Ministry of Resilience & Civil Protection',
+    portfolio: 'Civilian Oversight & Emergency Response',
+    mandate: 'Would exercise civilian authority over planned civil-protection and resilience functions, disaster response and national resilience policy.',
     responsibilities: [
-      'Civilian governance of ADSS Directorates',
+      'Civilian oversight of resilience functions',
       'Emergency broadcast and maritime disaster readiness',
       'Critical infrastructure physical hardening',
       'Civilian police oversight and accountability',
     ],
-    legalBasis: 'Constitution Art. 46; ADSS Governance Act',
+    legalBasis: 'Draft Constitution Art. 46; ADSS Governance Act',
     status: 'Planned',
     icon: <Shield className="w-5 h-5 text-gold" />,
     serviceHref: '/adss',
-    serviceName: 'ADSS Directory & Directives',
+    serviceName: 'Resilience Overview',
   },
   {
     id: 'foreign-affairs',
     name: 'Ministry of Foreign Affairs & Justice',
-    portfolio: 'Diplomacy, Treaties & Passports',
-    mandate: 'Represents the Sovereign Covenant State in bilateral and international treaties, supervises the legal system, administers the dispute arbitration framework, and issues passports.',
+    portfolio: 'Host-State Relations, Treaties & Justice',
+    mandate: 'Would represent Aletheia in negotiating a founding treaty with a host state and later international agreements, and supervise the legal system and arbitration.',
     responsibilities: [
-      'Bilateral treaties and UNCLOS maritime agreements',
-      'ICAO Doc 9303 machine-readable passport issuance',
+      'Founding-treaty negotiations with a host state',
+      'Bilateral and maritime agreements under UNCLOS',
       'Judicial appointments and arbitral chamber support',
-      'Consular affairs and diplomatic representation',
+      'Consular affairs, once lawfully established',
     ],
-    legalBasis: 'Constitution Art. 2, 8; Diplomatic Relations Act',
+    legalBasis: 'Draft Constitution Art. 2, 8; Diplomatic Relations Act',
     status: 'Planned',
     icon: <Scale className="w-5 h-5 text-gold" />,
-    serviceHref: '/passport',
-    serviceName: 'Passport Issuance & Validation',
+    serviceHref: '/host-nations',
+    serviceName: 'For Host Nations',
   },
   {
     id: 'health',
     name: 'Ministry of Health & Social Well-being',
     portfolio: 'St. Luke National Hospital & Bio-Sciences',
-    mandate: 'Administers universal primary healthcare, hospital networks, biomedical clinical licensing, and family health support in Augustine State.',
+    mandate: 'Would administer universal primary healthcare, hospital networks, clinical licensing and family health support.',
     responsibilities: [
       'St. Luke National Research Hospital operation',
       'High-standard pharmaceuticals and clinical trials licensing',
       'Universal primary medical access for residents',
       'Public health monitoring and emergency medical response',
     ],
-    legalBasis: 'Constitution Art. 41; Health & Medical Standards Act',
+    legalBasis: 'Draft Constitution Art. 41; Health & Medical Standards Act',
     status: 'Planned',
     icon: <HeartPulse className="w-5 h-5 text-gold" />,
     serviceHref: '/healthcare',
@@ -126,14 +126,14 @@ const MINISTRIES: Ministry[] = [
     id: 'education',
     name: 'Ministry of Education & Science',
     portfolio: 'National University & Advanced Research',
-    mandate: 'Oversees higher education, primary schooling, vocational apprenticeships, and sovereign research grants in science, robotics, and maritime law.',
+    mandate: 'Would oversee schools, higher education, apprenticeships and research grants in science, robotics and maritime law.',
     responsibilities: [
       'National University of Aletheia accreditation',
       'STEM, robotics, and maritime engineering curricula',
       'Sovereign research grant administration',
       'Five-language civic education standards',
     ],
-    legalBasis: 'Constitution Art. 40; Education & Research Charter',
+    legalBasis: 'Draft Constitution Art. 40; Education & Research Charter',
     status: 'Planned',
     icon: <GraduationCap className="w-5 h-5 text-gold" />,
     serviceHref: '/education',
@@ -143,14 +143,14 @@ const MINISTRIES: Ministry[] = [
     id: 'maritime',
     name: 'Ministry of Maritime Affairs & Ports',
     portfolio: 'Port Nicholas, Navigation & Fisheries',
-    mandate: 'Governs territorial waters, deepwater port facilities, maritime logistics, vessel registration, and sustainable oceanic resources.',
+    mandate: 'Would govern port facilities, maritime logistics, vessel registration and marine resources within a territory agreed by treaty.',
     responsibilities: [
-      'Port Nicholas deepwater commercial terminal operations',
+      'Port Nicholas deepwater terminal (vision)',
       'Aletheian Maritime Ship Registry',
       'Fisheries and marine conservation oversight',
       'Aviation and maritime navigation safety standards',
     ],
-    legalBasis: 'Constitution Art. 7; Maritime Administration Act',
+    legalBasis: 'Draft Constitution Art. 7; Maritime Administration Act',
     status: 'Planned',
     icon: <Anchor className="w-5 h-5 text-gold" />,
     serviceHref: '/infrastructure',
@@ -160,14 +160,14 @@ const MINISTRIES: Ministry[] = [
     id: 'infrastructure',
     name: 'Ministry of Infrastructure & Energy',
     portfolio: 'Clean Energy Grid, Water & Transport',
-    mandate: 'Constructs and oversees offshore wind farms, small modular nuclear reactors, desalination facilities, and the Antioch rapid transit network.',
+    mandate: 'Would plan and oversee offshore wind, small modular reactors, desalination and transport, as set out in the design studies.',
     responsibilities: [
       'Offshore wind and SMR energy generation',
       'Desalination and autonomous water supply grid',
       'Antioch concentric transport ring management',
       'Subsea power and telecommunication cable links',
     ],
-    legalBasis: 'Constitution Art. 39; National Energy Grid Act',
+    legalBasis: 'Draft Constitution Art. 39; National Energy Grid Act',
     status: 'Planned',
     icon: <Building className="w-5 h-5 text-gold" />,
     serviceHref: '/energy',
@@ -177,14 +177,14 @@ const MINISTRIES: Ministry[] = [
     id: 'agriculture',
     name: 'Ministry of Agriculture & Environment',
     portfolio: 'Controlled Agriculture & Aquaculture',
-    mandate: 'Guarantees food security through high-yield vertical farming, hydroponics, sustainable ocean aquaculture, and environmental stewardship.',
+    mandate: 'Would promote food security through vertical farming, hydroponics, sustainable aquaculture and environmental stewardship.',
     responsibilities: [
       'Hydroponic and vertical farm facilities in Benedict State',
       'Sustainable offshore aquaculture farming',
       'Environmental impact assessments and coastal preservation',
       'Zero-waste circular economy enforcement',
     ],
-    legalBasis: 'Constitution Art. 43; Environmental Protection Act',
+    legalBasis: 'Draft Constitution Art. 43; Environmental Protection Act',
     status: 'Planned',
     icon: <Leaf className="w-5 h-5 text-gold" />,
     serviceHref: '/development#agriculture',
@@ -194,7 +194,7 @@ const MINISTRIES: Ministry[] = [
 
 export default function GovernmentDirectoryPage() {
   const { t, tx } = useI18n();
-  const [filter, setFilter] = useState<'All' | 'Operational' | 'Under Development' | 'Planned'>('All');
+  const [filter, setFilter] = useState<'All' | 'Planned'>('All');
 
   const filteredMinistries = MINISTRIES.filter(
     (m) => filter === 'All' || m.status === filter
@@ -212,7 +212,7 @@ export default function GovernmentDirectoryPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-7">
           <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 bg-navy-deep/80 border border-gold/40 rounded-sm backdrop-blur-sm">
             <HexagonCross size={18} />
-            <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-gold">{t("Institutional Directory")}</span>
+            <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-gold">{t("Proposed Institutions")}</span>
             <span className="text-parchment/30">|</span>
             <span className="text-[11px] text-parchment/70 font-serif italic">{t("The Nine Capped Ministries")}</span>
           </div>
@@ -221,7 +221,7 @@ export default function GovernmentDirectoryPage() {
             <h1 className="heading-hero">{t("Organs of")}{' '}
               <span className="text-gold-metallic">{t("Government")}</span>
             </h1>
-            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("Executive authority is constitutionally capped at nine ministries under the Chancellor. Power is divided among the Covenant Assembly, the Council of the States, the High Court, and checked continuously by the Auditor-General on the sovereign ledger.")}</p>
+            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("The draft Constitution caps executive authority at nine ministries under a Chancellor, and divides power among a Covenant Assembly, a Council of the States, a High Court and an Auditor-General. None of these institutions exists yet or exercises any authority.")}</p>
           </div>
 
           <div className="flex flex-wrap items-center gap-3 pt-2 text-xs animate-fade-in-up delay-200">
@@ -243,10 +243,10 @@ export default function GovernmentDirectoryPage() {
                 <div className="icon-sovereign">
                   <Landmark className="w-5 h-5 text-gold" />
                 </div>
-                <StatusBadge status="Planned" size="sm" />
+                <StatusBadge asset="institutions" size="sm" />
               </div>
               <h3 className="text-base font-bold text-navy">{t("The Covenant Assembly")}</h3>
-              <p className="text-xs text-navy/70 leading-relaxed">{t("The primary legislative chamber of 61 members elected every four years by open-list proportional representation across Antioch and the four states.")}</p>
+              <p className="text-xs text-navy/70 leading-relaxed">{t("A proposed legislative chamber of 61 members, elected every four years by open-list proportional representation.")}</p>
               <div className="text-[11px] font-mono text-gold-shadow pt-2 border-t border-navy/10 font-semibold">{t("61 Seats · 4-Year Term · Min 5 per State")}</div>
             </div>
 
@@ -256,10 +256,10 @@ export default function GovernmentDirectoryPage() {
                 <div className="icon-sovereign">
                   <Building className="w-5 h-5 text-gold" />
                 </div>
-                <StatusBadge status="Planned" size="sm" />
+                <StatusBadge asset="institutions" size="sm" />
               </div>
               <h3 className="text-base font-bold text-navy">{t("Council of the States")}</h3>
-              <p className="text-xs text-navy/70 leading-relaxed">{t("Territorial review chamber comprising 15 members (3 from each State Council and 3 from Antioch). Suspensive review on land, energy, and currency acts.")}</p>
+              <p className="text-xs text-navy/70 leading-relaxed">{t("A proposed territorial review chamber of 15 members, with suspensive review of land, energy and currency acts.")}</p>
               <div className="text-[11px] font-mono text-gold-shadow pt-2 border-t border-navy/10 font-semibold">{t("15 Members · Suspensive Veto: 90 Days")}</div>
             </div>
 
@@ -269,10 +269,10 @@ export default function GovernmentDirectoryPage() {
                 <div className="icon-sovereign">
                   <Gavel className="w-5 h-5 text-gold" />
                 </div>
-                <StatusBadge status="Planned" size="sm" />
+                <StatusBadge asset="institutions" size="sm" />
               </div>
               <h3 className="text-base font-bold text-navy">{t("The High Court of Aletheia")}</h3>
-              <p className="text-xs text-navy/70 leading-relaxed">{t("The supreme judicial body — constitutional supremacy, administrative review, and the Court of Maritime & Commercial Disputes with smart-contract arbitration.")}</p>
+              <p className="text-xs text-navy/70 leading-relaxed">{t("A proposed supreme court for constitutional and administrative review, with a Court of Maritime & Commercial Disputes.")}</p>
               <div className="text-[11px] font-mono text-gold-shadow pt-2 border-t border-navy/10 font-semibold">{t("Constitutional · Civil · Commercial Benches")}</div>
             </div>
           </div>
@@ -290,7 +290,7 @@ export default function GovernmentDirectoryPage() {
             </div>
 
             <div className="flex items-center gap-2">
-              {(['All', 'Under Development', 'Planned'] as const).map((s) => (
+              {(['All', 'Planned'] as const).map((s) => (
                 <button
                   key={s}
                   onClick={() => setFilter(s)}
@@ -373,7 +373,7 @@ export default function GovernmentDirectoryPage() {
           <div className="space-y-1">
             <span className="eyebrow">{t("Fourth Pillar of Verification")}</span>
             <h2 className="text-2xl sm:text-3xl font-bold text-parchment">{t("Independent Constitutional Bodies")}</h2>
-            <p className="text-sm text-parchment/65 max-w-2xl">{t("These bodies operate outside the nine ministries and report directly to the Covenant Assembly.")}</p>
+            <p className="text-sm text-parchment/65 max-w-2xl">{t("These proposed bodies would operate outside the nine ministries and report directly to the Covenant Assembly.")}</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -382,10 +382,10 @@ export default function GovernmentDirectoryPage() {
                 <div className="icon-sovereign">
                   <CheckCircle className="w-5 h-5 text-gold" />
                 </div>
-                <StatusBadge status="Under Development" size="sm" />
+                <StatusBadge asset="institutions" size="sm" />
               </div>
               <h4 className="font-bold text-parchment text-sm">{t("Auditor-General")}</h4>
-              <p className="text-xs text-parchment/65 leading-relaxed">{t("Publishes autonomous cryptographic Merkle proofs of public expenditure against finalized StableChain blocks every 12-hour ledger epoch.")}</p>
+              <p className="text-xs text-parchment/65 leading-relaxed">{t("Would publish proofs of public expenditure against finalised StableChain blocks every ledger epoch.")}</p>
             </div>
 
             <div className="sovereign-card-dark rounded-sm p-6 space-y-3">
@@ -393,10 +393,10 @@ export default function GovernmentDirectoryPage() {
                 <div className="icon-sovereign">
                   <Lock className="w-5 h-5 text-gold" />
                 </div>
-                <StatusBadge status="Planned" size="sm" />
+                <StatusBadge asset="institutions" size="sm" />
               </div>
               <h4 className="font-bold text-parchment text-sm">{t("Registry & Privacy Ombudsman")}</h4>
-              <p className="text-xs text-parchment/65 leading-relaxed">{t("Independent guardian enforcing zero-knowledge identity separation and auditing that no PII is ever stored on-chain.")}</p>
+              <p className="text-xs text-parchment/65 leading-relaxed">{t("Would enforce the separation of identity data, and audit that no personal data is ever stored on-chain.")}</p>
             </div>
 
             <div className="sovereign-card-dark rounded-sm p-6 space-y-3">
@@ -404,10 +404,10 @@ export default function GovernmentDirectoryPage() {
                 <div className="icon-sovereign">
                   <Scale className="w-5 h-5 text-gold" />
                 </div>
-                <StatusBadge status="Under Development" size="sm" />
+                <StatusBadge asset="institutions" size="sm" />
               </div>
               <h4 className="font-bold text-parchment text-sm">{t("The Monetary Board")}</h4>
-              <p className="text-xs text-parchment/65 leading-relaxed">{t("Independent overseers of the Aletheian Guilder (AEY) issuance rules, examining the public register and the accounts of the Reserve Bank of Aletheia.")}</p>
+              <p className="text-xs text-parchment/65 leading-relaxed">{t("Would oversee the rules for issuing the Aletheian Guilder (AEY), and examine the public register and accounts of the Reserve Bank of Aletheia.")}</p>
             </div>
           </div>
         </div>

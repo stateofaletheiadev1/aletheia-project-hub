@@ -2,49 +2,22 @@
 
 import { useI18n } from '@/components/i18n/I18nProvider';
 import React from 'react';
-import { useToast } from '@/components/ui/Toast';
 import Link from '@/components/i18n/Link';
 import { StarOfTruth } from '@/components/brand/Logo';
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import {
-  Lock,
-  Server,
-  Bug,
-  Activity,
-  Radio,
-} from 'lucide-react';
+import { Placeholder } from '@/components/ui/Placeholder';
+import { ServerCrash, KeyRound, Cpu, Bug, ArrowRight } from 'lucide-react';
 import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
 
-const ADVISORIES = [
-  {
-    id: 'ALE-ADV-2026-03',
-    title: 'State Validator Node Hardening: BGP Anycast Prefix Monitoring',
-    severity: 'High',
-    date: '2026-09-22',
-    desc: 'Mandatory configuration update for all validator node operators across the five federated states to enforce RPKI route origin validation against autonomous system hijacking.',
-    cve: 'Covenant Security Directive 26-09',
-  },
-  {
-    id: 'ALE-ADV-2026-02',
-    title: 'Post-Quantum Migration: ML-KEM Key Encapsulation Standard',
-    severity: 'Medium',
-    date: '2026-08-14',
-    desc: 'Transition protocol for ministerial TLS 1.3 endpoints adopting NIST FIPS 203 (ML-KEM/Kyber) hybrid cipher suites to safeguard public records against retrospective decryption.',
-    cve: 'National Crypto Standard § 4',
-  },
-  {
-    id: 'ALE-ADV-2026-01',
-    title: 'SCADA Telemetry Isolation on St. Brendan Port Crane Networks',
-    severity: 'Critical',
-    date: '2026-07-08',
-    desc: 'Air-gap verification completed across automated container terminal handling controllers. Zero internet exposure confirmed with optical data diodes.',
-    cve: 'Infrastructure Shield Audit 01',
-  },
+const MANDATES = [
+  { icon: ServerCrash, title: 'Validator Protection', desc: 'DDoS protection, network failover and hardware security modules isolating the signing keys of StableChain validators.' },
+  { icon: KeyRound, title: 'Post-Quantum Cryptography', desc: 'A planned move to standardised post-quantum algorithms, so records signed today stay safe in future.' },
+  { icon: Cpu, title: 'Isolated Control Systems', desc: 'Industrial control systems in energy and port facilities kept off the public internet, by design.' },
+  { icon: Bug, title: 'Coordinated Disclosure', desc: 'A clear way for researchers to report vulnerabilities, with acknowledgement and credit.' },
 ];
 
 export default function CybersecurityPage() {
   const { t, tx } = useI18n();
-  const { notify } = useToast();
 
   return (
     <div className="flex flex-col min-h-screen bg-parchment-canvas">
@@ -57,150 +30,62 @@ export default function CybersecurityPage() {
             <div className="flex items-center gap-3">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 border border-gold/40 bg-navy-deep/80 rounded-sm backdrop-blur-sm">
                 <StarOfTruth size={14} />
-                <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-gold">{t("CSIRT-ALE National Desk")}</span>
+                <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-gold">{t("Cybersecurity Department")}</span>
               </div>
-              <StatusBadge status="Operational" size="sm" />
+              <StatusBadge asset="cyber" size="sm" />
             </div>
 
-            <h1 className="heading-hero">{t("National Cyber Defence & CSIRT")}</h1>
+            <h1 className="heading-hero">{t("Protecting Digital Infrastructure")}</h1>
 
-            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("Continuous 24/7 sovereign cyber defence protecting the Aletheia StableChain, ministerial registries, offshore energy grids, and maritime communications against state-sponsored intrusions and asymmetric threats.")}</p>
+            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("A planned department to protect Aletheia’s digital infrastructure: the StableChain validators, the registries and, in future, the networks of a territory agreed by treaty. Today, the founding team looks after the security of this website and the testnet.")}</p>
 
             <div className="flex flex-wrap gap-4 pt-2">
-              <button
-                onClick={() => notify('Responsible disclosure channel', 'Submit encrypted reports to security@adss.aletheia.gov. Acknowledgement within 72 hours under the coordinated disclosure policy.', 'info')}
+              <a
+                href="#disclosure"
                 className="px-6 py-2.5 bg-gold text-navy font-bold text-xs uppercase tracking-wider rounded-sm hover:bg-gold-tint transition-all flex items-center gap-2 shadow-lg shadow-gold/10"
               >{t("Report a Vulnerability")}{' '}<Bug className="w-3.5 h-3.5" />
-              </button>
+              </a>
               <Link
                 href="/stablechain"
                 className="px-6 py-2.5 border border-gold/30 text-parchment font-semibold text-xs uppercase tracking-wider rounded-sm hover:border-gold/60 transition-colors"
-              >{t("StableChain Consensus Hardening")}</Link>
+              >{t("About StableChain")}</Link>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── LIVE CSIRT STATUS BAR ── */}
-      <section className="bg-navy-deep border-b border-navy/30 text-parchment py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-            <div className="space-y-1">
-              <span className="text-2xl font-bold text-laurel flex items-center justify-center gap-1">
-                <Activity className="w-4 h-4" />{' '}{t("GREEN")}</span>
-              <p className="text-xs text-parchment/70 uppercase tracking-wide">{t("National Cyber Threat Level")}</p>
-            </div>
-            <div className="space-y-1">
-              <span className="text-2xl font-bold text-gold">100%</span>
-              <p className="text-xs text-parchment/70 uppercase tracking-wide">{t("Validator Node Uptime")}</p>
-            </div>
-            <div className="space-y-1">
-              <span className="text-2xl font-bold text-gold">{t("Post-Quantum")}</span>
-              <p className="text-xs text-parchment/70 uppercase tracking-wide">{t("ML-KEM / ML-DSA Ready")}</p>
-            </div>
-            <div className="space-y-1">
-              <span className="text-2xl font-bold text-gold">{t("< 3 mins")}</span>
-              <p className="text-xs text-parchment/70 uppercase tracking-wide">{t("CSIRT Incident Triage Time")}</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── DEFENCE PILLARS ── */}
+      {/* ── MANDATES ── */}
       <section className="py-16 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
-          <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">{t("Zero-Trust State")}</span>
-          <h2 className="text-3xl font-bold text-navy tracking-tight">{t("Four Defensive Mandates")}</h2>
-          <p className="text-xs sm:text-sm text-navy/70 leading-relaxed">{t("Engineered to exceed ENISA (European Union Agency for Cybersecurity) and BSI Germany baseline standards.")}</p>
+          <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">{t("Zero-Trust by Design")}</span>
+          <h2 className="text-3xl font-bold text-navy tracking-tight">{t("Four Planned Mandates")}</h2>
+          <p className="text-xs sm:text-sm text-navy/70 leading-relaxed">{t("Designed with reference to ENISA and BSI baseline standards.")}</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-          <div className="bg-white p-6 border border-navy/15 rounded-sm space-y-3 hover:shadow-md transition-shadow">
-            <Server className="w-8 h-8 text-gold" />
-            <h3 className="text-base font-bold text-navy">{t("Validator Protection")}</h3>
-            <p className="text-xs text-navy/70 leading-relaxed">{t("Anti-DDoS scrubbers, automated BGP failover, and hardware security modules (HSM) isolating consensus signing keys.")}</p>
-          </div>
-
-          <div className="bg-white p-6 border border-navy/15 rounded-sm space-y-3 hover:shadow-md transition-shadow">
-            <Lock className="w-8 h-8 text-navy" />
-            <h3 className="text-base font-bold text-navy">{t("Post-Quantum Crypto")}</h3>
-            <p className="text-xs text-navy/70 leading-relaxed">{t("Standardized deployment of lattice-based post-quantum cryptography protecting citizen records from future quantum computers.")}</p>
-          </div>
-
-          <div className="bg-white p-6 border border-navy/15 rounded-sm space-y-3 hover:shadow-md transition-shadow">
-            <Radio className="w-8 h-8 text-laurel" />
-            <h3 className="text-base font-bold text-navy">{t("SCADA Air-Gapping")}</h3>
-            <p className="text-xs text-navy/70 leading-relaxed">{t("Physical optical diodes separating operational technology on offshore energy platforms and container cranes from public IP networks.")}</p>
-          </div>
-
-          <div className="bg-white p-6 border border-navy/15 rounded-sm space-y-3 hover:shadow-md transition-shadow">
-            <Bug className="w-8 h-8 text-gold" />
-            <h3 className="text-base font-bold text-navy">{t("Sovereign Bug Bounty")}</h3>
-            <p className="text-xs text-navy/70 leading-relaxed">{t("Continuous red-teaming incentives awarding white-hat security researchers up to 100,000 AEY for responsible vulnerability disclosures.")}</p>
-          </div>
-        </div>
-
-        {/* ── SECURITY ADVISORIES FEED ── */}
-        <div className="bg-white border border-navy/15 rounded-sm p-8 shadow-sm space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-navy/10 pb-4">
-            <div>
-              <span className="text-xs font-bold text-gold uppercase tracking-wider block">{t("Official Dispatches")}</span>
-              <h3 className="text-2xl font-bold text-navy">{t("Recent CSIRT-ALE Security Advisories")}</h3>
-            </div>
-            <span className="text-xs font-mono text-navy/50">{t("PGP Key ID: 0x9B12FE00")}</span>
-          </div>
-
-          <div className="space-y-4">
-            {ADVISORIES.map((adv) => (
-              <div
-                key={adv.id}
-                className="p-5 bg-parchment-light border border-navy/10 rounded-sm space-y-2 hover:border-gold/40 transition-colors"
-              >
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex items-center gap-3">
-                    <span className="px-2 py-0.5 bg-navy text-parchment text-[10px] font-mono font-bold rounded-sm">
-                      {tx(adv.id)}
-                    </span>
-                    <span
-                      className={`text-xs font-bold uppercase tracking-wider ${
-                        adv.severity === 'Critical'
-                          ? 'text-red-700'
-                          : adv.severity === 'High'
-                          ? 'text-orange-600'
-                          : 'text-laurel'
-                      }`}
-                    >{t("Severity:")}{' '}{tx(adv.severity)}
-                    </span>
-                  </div>
-                  <span className="text-[11px] font-mono text-navy/50">{tx(adv.date)}</span>
-                </div>
-
-                <h4 className="text-sm font-bold text-navy">{tx(adv.title)}</h4>
-                <p className="text-xs text-navy/70 leading-relaxed">{tx(adv.desc)}</p>
-                <div className="text-[10px] font-mono text-navy/50 pt-1">{t("Reference:")}{' '}{tx(adv.cve)}</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {MANDATES.map(({ icon: Icon, title, desc }) => (
+            <div key={title} className="feature-card rounded-sm p-6 space-y-3">
+              <div className="w-10 h-10 rounded-sm bg-navy text-gold flex items-center justify-center">
+                <Icon className="w-5 h-5" />
               </div>
-            ))}
-          </div>
+              <h3 className="text-base font-bold text-navy">{tx(title)}</h3>
+              <p className="text-xs text-navy/70 leading-relaxed">{tx(desc)}</p>
+            </div>
+          ))}
         </div>
-
       </section>
 
-      {/* ── CALL TO ACTION ── */}
-      <section id="disclosure" className="bg-navy text-parchment py-16 border-t border-gold/20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
-          <StarOfTruth size={36} className="mx-auto" />
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-parchment">{t("Report a Security Incident")}</h2>
-          <p className="text-xs sm:text-sm text-parchment/70 max-w-xl mx-auto leading-relaxed">{t("Incident reports and vulnerability findings must be encrypted using the official CSIRT PGP key before transmission.")}</p>
-          <div className="flex justify-center gap-4 pt-2">
-            <Link
-              href="/contact"
-              className="px-6 py-2.5 bg-gold text-navy font-bold text-xs uppercase tracking-wider rounded-sm hover:bg-gold-tint transition-all"
-            >{t("Contact CSIRT Desk")}</Link>
-            <Link
-              href="/security"
-              className="px-6 py-2.5 border border-gold/30 text-parchment font-semibold text-xs uppercase tracking-wider rounded-sm hover:border-gold/60 transition-colors"
-            >{t("Civil Defence Command")}</Link>
+      {/* ── DISCLOSURE ── */}
+      <section id="disclosure" className="bg-navy text-parchment py-16 border-t border-gold/20 scroll-mt-24">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5">
+          <StarOfTruth size={36} />
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-parchment">{t("Coordinated Vulnerability Disclosure")}</h2>
+          <p className="text-sm text-parchment/70 leading-relaxed">{t("If you find a security problem in this website or the StableChain testnet, please tell us privately and give us reasonable time to fix it before publishing. We will acknowledge your report and credit you if you wish. There is no paid bug bounty.")}</p>
+          <div className="space-y-2 text-sm">
+            <div className="flex flex-wrap items-center gap-2"><span className="text-gold font-semibold">{t("Report to:")}</span> <Placeholder>security contact address</Placeholder></div>
+            <div className="flex flex-wrap items-center gap-2"><span className="text-gold font-semibold">{t("Encryption key:")}</span> <Placeholder>PGP key, if any</Placeholder></div>
           </div>
+          <Link href="/contact" className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gold hover:text-gold-tint transition-colors">{t("Contact the Founding Team")}{' '}<ArrowRight className="w-3.5 h-3.5" /></Link>
         </div>
       </section>
 

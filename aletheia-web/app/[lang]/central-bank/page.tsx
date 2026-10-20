@@ -5,6 +5,7 @@ import React from 'react';
 import Link from '@/components/i18n/Link';
 import { StarOfTruth } from '@/components/brand/Logo';
 import { StatusBadge } from '@/components/ui/StatusBadge';
+import { AeyNotice } from '@/components/ui/AeyNotice';
 import { ArrowUpRight, Landmark } from 'lucide-react';
 import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
 import { RESERVE_BANK } from '@/lib/reserve-bank';
@@ -31,7 +32,7 @@ export default function CentralBankPage() {
                 <StarOfTruth size={14} />
                 <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-gold">{t("Banca Centralis Aletheiae")}</span>
               </div>
-              <StatusBadge status="Under Development" size="sm" />
+              <StatusBadge asset="reserveBank" size="sm" />
             </div>
 
             <h1 className="heading-hero">{t("Reserve Bank of Aletheia")}</h1>
@@ -116,7 +117,8 @@ export default function CentralBankPage() {
       <section className="bg-navy text-parchment py-16 border-t border-gold/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
           <StarOfTruth size={36} className="mx-auto" />
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-parchment">{t("Discover the Sovereign Currency: The Aletheian Guilder (AEY)")}</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-parchment">{t("The Proposed Currency: The Aletheian Guilder (AEY)")}</h2>
+          <AeyNotice tone="dark" className="max-w-2xl mx-auto text-left" />
           <p className="text-xs sm:text-sm text-parchment/70 max-w-xl mx-auto leading-relaxed">{t("Learn more about the technical, monetary, and settlement characteristics of the Aletheian Guilder (AEY).")}</p>
           <div className="flex flex-wrap justify-center gap-4 pt-2">
             <Link

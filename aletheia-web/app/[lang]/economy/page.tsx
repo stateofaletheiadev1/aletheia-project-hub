@@ -21,6 +21,8 @@ import {
   FileText,
 } from 'lucide-react';
 import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
+import { AeyNotice } from '@/components/ui/AeyNotice';
+import { ImageCaption } from '@/components/ui/ImageCaption';
 
 const INVARIANTS = [
   { id: '1', label: 'Published Rules', rule: 'New AEY is issued only under rules adopted and published by the Reserve Bank of Aletheia.' },
@@ -37,36 +39,36 @@ const REVENUE_STREAMS = [
   {
     id: 'tx',
     title: 'Transaction Settlement Fees',
-    desc: 'Micro-fees on StableChain validator settlement. No personal income tax required.',
-    amount: '~0.001% per settlement',
+    desc: 'Small fixed fees on StableChain settlement, under a published schedule.',
+    amount: 'Proposed',
     icon: <Zap className="w-4 h-4 text-gold" />,
   },
   {
     id: 'corp',
     title: 'Corporate Registry Fees',
-    desc: 'One-time incorporation and annual licence renewals for registered businesses.',
-    amount: '2,500 — 25,000 AEY',
+    desc: 'Incorporation and annual licence fees for registered businesses.',
+    amount: 'Proposed',
     icon: <Building2 className="w-4 h-4 text-gold" />,
   },
   {
     id: 'eresidency',
     title: 'E-Residency Programme',
-    desc: 'Annual digital residency permits for global entrepreneurs and remote entities.',
-    amount: '150 AEY / year',
+    desc: 'Annual fees for digital residency, should the programme ever be offered.',
+    amount: 'Proposed',
     icon: <Globe className="w-4 h-4 text-gold" />,
   },
   {
-    id: 'bonds',
-    title: 'Sovereign Development Bonds',
-    desc: 'Infrastructure and capital development bonds issued to institutional investors.',
-    amount: 'Variable, rated issuances',
+    id: 'leasehold',
+    title: 'Land Leasehold Dividends',
+    desc: 'Ground rents on land held in covenant trust, within a territory agreed by treaty.',
+    amount: 'Proposed',
     icon: <FileText className="w-4 h-4 text-gold" />,
   },
   {
     id: 'endowment',
     title: 'Covenant Endowment Fund',
-    desc: 'Sovereign wealth fund returns from diversified reserve and infrastructure portfolio.',
-    amount: 'Long-term capital returns',
+    desc: 'Long-term returns of a proposed endowment fund.',
+    amount: 'Proposed',
     icon: <TrendingUp className="w-4 h-4 text-gold" />,
   },
 ];
@@ -101,10 +103,10 @@ export default function EconomyPage() {
           <div className="max-w-3xl space-y-8">
             <div className="pill-sovereign gold-glow-sm">
               <StarOfTruth size={12} />
-              <span>{t("Ministry of Finance & Economic Architecture")}</span>
+              <span>{t("The Proposed Economy")}</span>
             </div>
 
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.04] text-parchment">{t("A sovereign economy built on")}{' '}
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.04] text-parchment">{t("An economy designed for")}{' '}
               <span className="text-gold-metallic">{t("provable truth.")}</span>
             </h1>
 
@@ -120,22 +122,23 @@ export default function EconomyPage() {
                 <Cpu className="w-4 h-4 text-gold" />
               </Link>
             </div>
+            <AeyNotice tone="dark" className="max-w-2xl" />
           </div>
 
-          {/* Live metrics strip */}
+          {/* Design metrics strip */}
           <div className="mt-16 grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[
-              { label: 'Monetary Model', value: 'Fiat', sub: 'Published rules', status: 'Planned' as const },
-              { label: 'Issuer', value: 'RBA', sub: 'Reserve Bank of Aletheia', status: 'Under Development' as const },
-              { label: 'Ledger Finality', value: '≈ 1 s', sub: 'Two 500 ms slots', status: 'Under Development' as const },
-              { label: 'Personal Tax', value: 'None', sub: 'Zero income tax', status: 'Operational' as const },
+              { label: 'Monetary Model', value: 'Fiat', sub: 'Published rules', asset: 'aey' as const },
+              { label: 'Proposed Issuer', value: 'RBA', sub: 'Reserve Bank of Aletheia', asset: 'reserveBank' as const },
+              { label: 'Target: Ledger Finality', value: '≈ 1 s', sub: 'Two 500 ms slots, on testnet', asset: 'finality' as const },
+              { label: 'Proposed: Personal Tax', value: 'None', sub: 'A constitutional proposal', asset: 'incomeTax' as const },
             ].map((m) => (
               <div key={m.label} className="stat-card rounded-sm p-5 space-y-2">
                 <span className="text-[10px] uppercase tracking-[0.18em] text-gold/65 font-semibold block">{tx(m.label)}</span>
                 <span className="text-3xl font-extrabold text-parchment tabular-nums">{tx(m.value)}</span>
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] text-parchment/45">{tx(m.sub)}</span>
-                  <StatusBadge status={m.status} size="sm" />
+                  <StatusBadge asset={m.asset} size="sm" />
                 </div>
               </div>
             ))}
@@ -170,7 +173,7 @@ export default function EconomyPage() {
                   </div>
                 ))}
               </div>
-              <Link href="/aey" className="inline-flex items-center gap-2 text-[12px] font-bold text-navy hover:text-gold uppercase tracking-wider transition-colors mt-2">{t("Aletheian Guilder (AEY) Whitepaper")}{' '}<ArrowRight className="w-3.5 h-3.5 text-gold" />
+              <Link href="/aey" className="inline-flex items-center gap-2 text-[12px] font-bold text-navy hover:text-gold uppercase tracking-wider transition-colors mt-2">{t("About the Aletheian Guilder (AEY)")}{' '}<ArrowRight className="w-3.5 h-3.5 text-gold" />
               </Link>
             </div>
 
@@ -210,12 +213,12 @@ export default function EconomyPage() {
         <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div className="space-y-6">
-              <span className="label-parchment block">{t("Sovereign Ledger Infrastructure")}</span>
+              <span className="label-parchment block">{t("Ledger Infrastructure · Testnet")}</span>
               <h2 className="text-4xl sm:text-5xl font-bold tracking-tight text-parchment leading-tight">{t("Aletheia")}{' '}
                 <span className="text-gold-metallic">{t("StableChain")}</span>
               </h2>
               <div className="rule-gold max-w-xs" />
-              <p className="text-parchment/65 leading-relaxed">{t("A Byzantine-fault-tolerant ledger purpose-built for state operations: 500 ms slots, deterministic finality, a fixed fee schedule and constitutional-grade validator governance. Not a fork. A sovereign protocol.")}</p>
+              <p className="text-parchment/65 leading-relaxed">{t("A Byzantine-fault-tolerant ledger designed for state operations, now running as a testnet: 500 ms slots, deterministic finality, a fixed fee schedule and published validator governance. Not a fork: its own protocol.")}</p>
 
               <div className="grid grid-cols-2 gap-4">
                 {[
@@ -233,8 +236,8 @@ export default function EconomyPage() {
               </div>
 
               <div className="flex items-center gap-2 pt-2">
-                <StatusBadge status="Under Development" size="sm" />
-                <span className="text-[11px] text-parchment/50">{t("Mainnet — Sovereign Protocol · Q4 2026")}</span>
+                <StatusBadge asset="stablechain" size="sm" />
+                <span className="text-[11px] text-parchment/50">{t("Testnet · reference implementation")}</span>
               </div>
 
               <Link href="/stablechain" className="inline-flex items-center gap-2 px-5 py-2.5 border border-gold/30 text-parchment font-semibold text-[12px] uppercase tracking-wider rounded-[3px] hover:border-gold/60 transition-colors group">{t("StableChain Technical Docs")}{' '}<ArrowRight className="w-3.5 h-3.5 text-gold group-hover:translate-x-0.5 transition-transform" />
@@ -269,8 +272,8 @@ export default function EconomyPage() {
         <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl mb-12">
             <span className="text-[10px] font-bold tracking-[0.22em] uppercase text-gold block mb-2">{t("Fiscal Architecture")}</span>
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-navy leading-tight mb-4">{t("Zero personal income tax. A sovereign revenue model that works.")}</h2>
-            <p className="text-navy/60 leading-relaxed">{t("Aletheia funds its operations through institutional efficiency, not individual taxation. Every revenue stream is codified in the Public Finance Act and auditable on-chain.")}</p>
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-navy leading-tight mb-4">{t("No personal income tax: a proposed revenue model.")}</h2>
+            <p className="text-navy/60 leading-relaxed">{t("As proposed, a future Aletheia would fund itself through fees, leasehold and endowment returns, not individual taxation. None of these revenues exists today.")}</p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -301,25 +304,26 @@ export default function EconomyPage() {
       <section className="py-20 lg:py-28 bg-parchment-light">
         <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <div>
+            <div className="relative">
               <Image
                 src="/images/architecture_antioch.jpg"
-                alt={t("Antioch Business District")}
+                alt={t("Design study of Antioch")}
                 width={640}
                 height={440}
                 className="w-full object-cover rounded-[4px]"
               />
+              <ImageCaption kind="design" />
             </div>
             <div className="space-y-6">
-              <span className="text-[10px] font-bold tracking-[0.22em] uppercase text-gold block">{t("Business Platform")}</span>
-              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-navy leading-tight">{t("Incorporate in Aletheia in 15 minutes.")}</h2>
-              <p className="text-navy/65 leading-relaxed">{t("The Aletheian Business Registry is a fully digital, blockchain-anchored company formation and licensing platform. No lawyers, no notaries, no paper filing. Your company record is a sovereign NFT on the StableChain — immutable, transferable, and globally verifiable.")}</p>
+              <span className="text-[10px] font-bold tracking-[0.22em] uppercase text-gold block">{t("Business Platform · Proposed")}</span>
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-navy leading-tight">{t("Company formation, designed to take minutes.")}</h2>
+              <p className="text-navy/65 leading-relaxed">{t("A proposed digital company registry, anchored to StableChain: no paper filing, with each company record verifiable by anyone. It is not open; no company can be registered today.")}</p>
               <div className="space-y-3">
                 {[
-                  { step: '01', label: 'Submit digital application', desc: 'Fill out the formation form with your identity credentials.' },
-                  { step: '02', label: 'Automated compliance check', desc: 'AI-assisted statutory compliance screening — instant results.' },
-                  { step: '03', label: 'Pay incorporation fee', desc: 'Pay the published incorporation fee.' },
-                  { step: '04', label: 'Receive your Sovereign Charter', desc: 'A StableChain NFT is minted as your company registration — permanently on-ledger.' },
+                  { step: '01', label: 'Digital application', desc: 'A formation form completed online.' },
+                  { step: '02', label: 'Compliance check', desc: 'Statutory screening, with reasons for any refusal.' },
+                  { step: '03', label: 'Published fee', desc: 'A fee set by law and published in advance.' },
+                  { step: '04', label: 'Company charter', desc: 'The registration recorded on StableChain.' },
                 ].map((s) => (
                   <div key={s.step} className="flex gap-4">
                     <span className="text-[10px] font-bold text-gold/70 font-mono pt-0.5 w-5 shrink-0">{tx(s.step)}</span>
@@ -331,9 +335,9 @@ export default function EconomyPage() {
                 ))}
               </div>
               <div className="flex gap-3 pt-2">
-                <Link href="/business" className="px-5 py-2.5 bg-navy text-parchment font-bold text-[12px] uppercase tracking-wider rounded-[3px] hover:bg-navy-deep transition-colors flex items-center gap-2 border border-gold/20 group">{t("Start Your Application")}{' '}<ArrowRight className="w-3.5 h-3.5 text-gold group-hover:translate-x-0.5 transition-transform" />
+                <Link href="/business" className="px-5 py-2.5 bg-navy text-parchment font-bold text-[12px] uppercase tracking-wider rounded-[3px] hover:bg-navy-deep transition-colors flex items-center gap-2 border border-gold/20 group">{t("Business Platform")}{' '}<ArrowRight className="w-3.5 h-3.5 text-gold group-hover:translate-x-0.5 transition-transform" />
                 </Link>
-                <Link href="/invest" className="px-5 py-2.5 border border-navy/15 text-navy font-semibold text-[12px] uppercase tracking-wider rounded-[3px] hover:border-navy/30 hover:bg-navy/[0.03] transition-all">{t("Investor Relations")}</Link>
+                <Link href="/host-nations" className="px-5 py-2.5 border border-navy/15 text-navy font-semibold text-[12px] uppercase tracking-wider rounded-[3px] hover:border-navy/30 hover:bg-navy/[0.03] transition-all">{t("For Host Nations")}</Link>
               </div>
             </div>
           </div>

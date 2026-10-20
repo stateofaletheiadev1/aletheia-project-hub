@@ -19,12 +19,13 @@ import {
   Sprout,
   Stethoscope,
 } from 'lucide-react';
+import { ImageCaption } from '@/components/ui/ImageCaption';
 
 const STAGES: { age: string; title: string; desc: string; image: PhotoKey }[] = [
-  { age: 'Ages 3–6', title: 'Early Years', desc: 'Play-based learning, two languages from the start, and free places in every canton.', image: 'earlyLearning' },
+  { age: 'Ages 3–6', title: 'Early Years', desc: 'Play-based learning, two languages from the start, and free places in every canton (proposed).', image: 'earlyLearning' },
   { age: 'Ages 6–18', title: 'Covenant Schools', desc: 'A broad European curriculum with civics, mathematics, sciences, classics and the maritime arts.', image: 'classroom' },
-  { age: 'Ages 18+', title: 'University & Polytechnic', desc: 'The National University and a maritime polytechnic, tuition-free for citizens and residents.', image: 'lecture' },
-  { age: 'Lifelong', title: 'Open Learning', desc: 'Micro-credentials recorded on the ledger and recognised across the European Qualifications Framework.', image: 'tabletWork' },
+  { age: 'Ages 18+', title: 'University & Polytechnic', desc: 'A proposed National University and maritime polytechnic, tuition-free for citizens and residents.', image: 'lecture' },
+  { age: 'Lifelong', title: 'Open Learning', desc: 'Micro-credentials recorded on the ledger and designed to align with the European Qualifications Framework.', image: 'tabletWork' },
 ];
 
 const FACULTIES = [
@@ -45,7 +46,7 @@ export default function EducationPage() {
         status="Planned"
         image="libraryAisle"
         title={<>{t("A nation is only as wise as its")}{' '}<span className="text-gold-metallic">{t("schools.")}</span></>}
-        lead={t("From first words to doctoral research, education in Aletheia is free at the point of learning, bilingual by design, and every research grant is published for the public to see.")}
+        lead={t("From first words to doctoral research, education in Aletheia is designed to be free at the point of learning and bilingual, with every research grant published for the public to see.")}
       >
         <Link href="#university" className="btn-sovereign-gold px-7 py-3.5 rounded-sm text-sm flex items-center gap-2 group">{t("National University")}{' '}<ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
         </Link>
@@ -64,6 +65,7 @@ export default function EducationPage() {
               <div key={s.title} className="photo-card group sovereign-card-premium rounded-sm flex flex-col">
                 <div className="relative h-48">
                   <Image src={unsplash(s.image, 700)} alt="" fill sizes="(min-width:1024px) 25vw, (min-width:640px) 50vw, 100vw" className="object-cover" />
+                  <ImageCaption />
                   <div className="absolute inset-0 bg-gradient-to-t from-navy-deep/75 to-transparent" />
                   <span className="absolute bottom-3 left-4 text-[10px] font-mono font-bold uppercase tracking-wider text-gold-tint">{tx(s.age)}</span>
                 </div>
@@ -88,8 +90,8 @@ export default function EducationPage() {
             </div>
             <h2 className="text-4xl lg:text-5xl font-bold tracking-tight leading-[1.1]">{t("Six faculties at Port Luke,")}{' '}<span className="text-gold-metallic">{t("Augustine State.")}</span>
             </h2>
-            <p className="text-parchment/70 leading-[1.85] font-light">{t("A research university chartered to guarantee academic freedom, co-located with the Augustine Medical Campus. The draft charter is open for public comment in the")}{' '}
-              <Link href="/news/national-university-charter" className="text-gold underline-offset-4 hover:underline">{t("Official Gazette")}</Link>.
+            <p className="text-parchment/70 leading-[1.85] font-light">{t("A proposed research university, with academic freedom guaranteed by its charter, beside the Augustine Medical Campus. The draft charter is published for comment in the")}{' '}
+              <Link href="/news/national-university-charter" className="text-gold underline-offset-4 hover:underline">{t("Gazette")}</Link>.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {FACULTIES.map(({ icon: Icon, name }) => (
@@ -103,12 +105,15 @@ export default function EducationPage() {
           <div className="lg:col-span-6 grid grid-cols-2 gap-4">
             <div className="photo-card relative h-72 rounded-sm border border-gold/25 col-span-2">
               <Image src={unsplash('library', 1200)} alt={t("A long university library hall lined with books")} fill sizes="(min-width:1024px) 50vw, 100vw" className="object-cover" />
+              <ImageCaption />
             </div>
             <div className="photo-card relative h-44 rounded-sm border border-gold/25">
               <Image src={unsplash('laboratory', 600)} alt={t("Engineering laboratory")} fill sizes="25vw" className="object-cover" />
+              <ImageCaption />
             </div>
             <div className="photo-card relative h-44 rounded-sm border border-gold/25">
               <Image src={unsplash('bookStack', 600)} alt={t("A stack of books")} fill sizes="25vw" className="object-cover" />
+              <ImageCaption />
             </div>
           </div>
         </div>
@@ -120,7 +125,7 @@ export default function EducationPage() {
           <div className="space-y-5">
             <div className="eyebrow">{t("Bilingual by Design")}</div>
             <h2 className="text-4xl font-bold tracking-tight text-navy leading-tight">{t("English, plus one more official language.")}</h2>
-            <p className="text-navy/65 leading-[1.85] font-light">{t("Civic proficiency in English and one further official language is a condition of naturalisation — so every school teaches both from the earliest years, and adult residents study free of charge.")}</p>
+            <p className="text-navy/65 leading-[1.85] font-light">{t("Civic proficiency in English and one further official language is proposed as a condition of naturalisation, so every school would teach both from the earliest years, and adult residents would study free of charge.")}</p>
             <Link href="/society#languages" className="inline-flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-navy hover:text-gold transition-colors group">{t("The five official languages")}{' '}<ArrowRight className="w-4 h-4 text-gold group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
@@ -166,11 +171,11 @@ export default function EducationPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
           <div className="space-y-3 max-w-2xl">
             <h2 className="text-3xl font-bold text-parchment">{t("Build the Sovereign Covenant State. Start by learning it.")}</h2>
-            <p className="text-parchment/60 text-sm font-light">{t("Read the Covenant every Aletheian student studies, or explore the path to membership.")}</p>
+            <p className="text-parchment/60 text-sm font-light">{t("Read the draft Covenant, or join the founding community.")}</p>
           </div>
           <div className="flex flex-wrap gap-3">
             <Link href="/constitution" className="btn-sovereign-gold px-7 py-3.5 rounded-sm text-sm">{t("Read the Covenant")}</Link>
-            <Link href="/citizenship" className="btn-sovereign-ghost px-7 py-3.5 rounded-sm text-sm">{t("Path to citizenship")}</Link>
+            <Link href="/founding-members" className="btn-sovereign-ghost px-7 py-3.5 rounded-sm text-sm">{t("Become a founding member")}</Link>
           </div>
         </div>
       </section>

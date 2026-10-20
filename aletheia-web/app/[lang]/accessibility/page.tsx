@@ -37,9 +37,9 @@ export default function AccessibilityPage() {
           heading: 'Known limitations',
           body: (
             <ul>
-              <li>{t("Some data-dense tables in the officer and portal areas are not yet optimised for small screens;")}</li>
-              <li>{t("Official PDF editions are not yet tagged for screen readers; the HTML page for every statute and document is the accessible version;")}</li>
-              <li>{t("Officer administration screens are published in English only, the working language of state administration; all public pages are available in the five official languages.")}</li>
+              <li>{t("Some data-dense tables are not yet optimised for small screens;")}</li>
+              <li>{t("PDF editions are not yet tagged for screen readers; the HTML page for every document is the accessible version;")}</li>
+              <li>{t("Administration screens are in English only; all public pages are available in all five languages.")}</li>
             </ul>
           ),
         },
@@ -48,7 +48,7 @@ export default function AccessibilityPage() {
           heading: 'Feedback and alternative formats',
           body: (
             <p>{t("If you find a barrier, or need information in another format such as large print, easy-read or audio, please")}{' '}
-              <Link href="/contact">{t("contact the public registry")}</Link>{t(". We aim to respond within five working days.")}</p>
+              <Link href="/contact">{t("contact the founding team")}</Link>{t(". We aim to respond within five working days.")}</p>
           ),
         },
       ]}
