@@ -33,7 +33,7 @@ const INFRA_PROJECTS = [
     tag: 'Oceanic Civil Protection',
     status: 'Vision' as const,
     lead: 'Design study · Civil protection',
-    desc: 'A design study for marine concrete caissons to withstand a 1-in-200-year storm surge, adapted to whatever coastline is agreed by treaty.',
+    desc: 'A design study for marine concrete caissons to withstand a 1-in-200-year storm surge, for the foundations of Aletheia’s fixed platforms.',
     specs: ['Designed to maritime classification rules', 'Integrated wave turbines', 'Self-healing bio-concrete', 'Automated tidal floodgates'],
   },
   {
@@ -76,7 +76,7 @@ export default function InfrastructurePage() {
 
             <h1 className="heading-hero">{t("Ports & Coastal Works: Design Studies")}</h1>
 
-            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("Design studies for the long term: a deepwater port, a concentric capital, coastal protection and digital links. None is under construction. Each would be built only within a territory agreed by treaty, with the host state’s consent, beginning with a pilot zone.")}</p>
+            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("Design studies for the long term: a deepwater port, a concentric capital, coastal protection and digital links. None is under construction. Each would be built at sea, on platforms Aletheia owns, beginning with a single pilot platform.")}</p>
           </div>
         </div>
       </section>
@@ -136,17 +136,17 @@ export default function InfrastructurePage() {
       <section className="bg-navy text-parchment py-16 border-t border-gold/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
           <StarOfTruth size={36} className="mx-auto" />
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-parchment">{t("A Partnership with a Host State")}</h2>
-          <p className="text-xs sm:text-sm text-parchment/70 max-w-xl mx-auto leading-relaxed">{t("These works would be built with, and for the benefit of, a host nation. No tenders or investments are offered.")}</p>
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-parchment">{t("Built on Our Own Platforms")}</h2>
+          <p className="text-xs sm:text-sm text-parchment/70 max-w-xl mx-auto leading-relaxed">{t("These works would be built at sea, on platforms Aletheia owns. No tenders or investments are offered.")}</p>
           <div className="flex justify-center gap-4 pt-2">
             <Link
-              href="/development#treaty"
+              href="/development#seastead"
               className="px-6 py-2.5 bg-gold text-navy font-bold text-xs uppercase tracking-wider rounded-sm hover:bg-gold-tint transition-all"
-            >{t("Territory by Treaty")}</Link>
+            >{t("The Seastead")}</Link>
             <Link
-              href="/host-nations"
+              href="/founding-members"
               className="px-6 py-2.5 border border-gold/30 text-parchment font-semibold text-xs uppercase tracking-wider rounded-sm hover:border-gold/60 transition-colors"
-            >{t("For Host Nations")}</Link>
+            >{t("Register interest")}</Link>
           </div>
         </div>
       </section>

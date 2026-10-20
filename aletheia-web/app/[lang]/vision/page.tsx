@@ -36,8 +36,8 @@ const VISION_PILLARS = [
   {
     icon: Anchor,
     title: 'Maritime Autonomy & Resilience',
-    subtitle: 'Land First, Sea After',
-    desc: 'Maritime districts developed within a territory agreed by treaty, under the host state’s consent and UNCLOS, with search and rescue for the waters around it.',
+    subtitle: 'A Nation at Sea',
+    desc: 'Maritime districts built as platforms beyond any state’s exclusive economic zone, under UNCLOS, with search and rescue for the waters around it.',
   },
 ];
 
@@ -50,20 +50,20 @@ const MILESTONES = [
   },
   {
     year: 'Phases 1–2',
-    title: 'Thesis, Counsel & Host-State Discussions',
-    desc: 'The Founding Thesis published, legal counsel engaged, and confidential discussions with potential host states.',
+    title: 'Thesis, Counsel & Platform Design',
+    desc: 'The Founding Thesis published, legal counsel engaged, and the design of the first platform.',
     status: 'Planned' as const,
   },
   {
     year: 'Phases 3–4',
-    title: 'Founding Treaty & Pilot Zone',
-    desc: 'A founding treaty with a host state; a pilot zone of modest size; licensed AEY issuance and the APN within it; the first residents.',
+    title: 'Pilot Platform',
+    desc: 'A pilot platform, built and owned by Aletheia; licensed AEY issuance and the APN on it; the first residents.',
     status: 'Planned' as const,
   },
   {
     year: 'Vision',
     title: 'Antioch & the Maritime Districts',
-    desc: 'The long-term national design: a concentric capital, a deepwater port and coastal districts, at a scale set by treaty.',
+    desc: 'The long-term national design: a concentric capital, a deepwater port and coastal districts, built at sea, platform by platform.',
     status: 'Vision' as const,
   },
 ];
@@ -89,7 +89,7 @@ export default function VisionPage() {
 
             <h1 className="heading-hero">{t("The National Vision of Aletheia")}</h1>
 
-            <p className="text-base sm:text-lg text-parchment/75 leading-relaxed font-light max-w-2xl">{t("The state Aletheia hopes to become, by treaty: one where power is strictly bounded, law is incorruptible and human dignity is paramount. A maritime home for free enterprise and European constitutional excellence, for generations to come.")}</p>
+            <p className="text-base sm:text-lg text-parchment/75 leading-relaxed font-light max-w-2xl">{t("The state Aletheia hopes to become: one where power is strictly bounded, law is incorruptible and human dignity is paramount. A maritime home for free enterprise and European constitutional excellence, for generations to come.")}</p>
 
             <div className="flex flex-wrap gap-4 pt-4">
               <Link
@@ -100,7 +100,7 @@ export default function VisionPage() {
               <Link
                 href="/development"
                 className="px-6 py-3 border border-gold/30 text-parchment font-semibold text-xs uppercase tracking-wider rounded-sm hover:border-gold/60 transition-colors"
-              >{t("Territory by Treaty")}</Link>
+              >{t("The Seastead")}</Link>
             </div>
           </div>
         </div>

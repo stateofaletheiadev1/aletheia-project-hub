@@ -21,10 +21,9 @@ const SEARCH_DATABASE: SearchItem[] = [
   { title: 'Status & Disclaimers', category: 'Founding', href: '/transparency', desc: 'The status register and what Aletheia is, and is not, today.', asset: 'platform' },
   { title: 'Register interest as a Founding Member', category: 'Founding', href: '/founding-members', desc: 'Free. Aletheia does not sell citizenship, residency, passports or currency.' },
   { title: 'Founding Team', category: 'Founding', href: '/about', desc: 'Who is building Aletheia, and how to reach them.' },
-  { title: 'Roadmap', category: 'Founding', href: '/roadmap', desc: 'The path, phase by phase, to a founding treaty and a pilot zone.' },
+  { title: 'Roadmap', category: 'Founding', href: '/roadmap', desc: 'The path, phase by phase, to a pilot platform.' },
   { title: 'Founding Thesis', category: 'Founding', href: '/thesis', desc: 'Legal structure, governance, economics, host regions and diplomacy.' },
-  { title: 'For Host Nations', category: 'Founding', href: '/host-nations', desc: 'A partnership offer to governments, by treaty.' },
-  { title: 'Territory by Treaty', category: 'Founding', href: '/development#treaty', desc: 'A first territory secured by agreement with a host state.', asset: 'territory' },
+  { title: 'The Seastead', category: 'Founding', href: '/development#seastead', desc: 'A territory at sea that Aletheia builds and owns.', asset: 'territory' },
 
   // Constitution
   { title: 'Article 1: Founding Promises & Provable State', category: 'Constitution', href: '/constitution#art-1', desc: 'Truth in records, honest money, and lean constitutional government.' },

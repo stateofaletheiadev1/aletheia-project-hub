@@ -31,7 +31,7 @@ export function constitutionSpec(): Spec {
       heading: `${a.title}  (${a.part})`,
       paragraphs: a.clauses.map((c) => `${c.number}  ${c.text}`),
     })),
-    attestation: ['Published as a draft by the founding team', 'A proposal: it has no legal force until adopted under a founding treaty'],
+    attestation: ['Published as a draft by the founding team', 'A proposal: it has no legal force until adopted by Aletheia’s citizens'],
     hash: '8f2b7a4c91e3d085fa49b817e4521098ef7321ac90b34d76a218fce1b2049e91',
     subject: 'Constitution',
   };

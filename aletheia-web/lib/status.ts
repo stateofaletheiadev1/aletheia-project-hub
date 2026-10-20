@@ -73,14 +73,14 @@ export const NATIONAL_ASSETS = {
   police: { label: 'Police Directorate', status: 'Planned', note: 'Civilian policing, within a future territory.' },
   immigration: { label: 'Immigration Directorate', status: 'Planned', note: 'Residence and border administration, within a future territory.' },
   eResidency: { label: 'E-Residency', status: 'Planned', note: 'No applications are accepted.' },
-  residence: { label: 'Lawful Residence', status: 'Planned', note: 'Depends on a founding treaty and territory.' },
-  citizenship: { label: 'Citizenship & travel document', status: 'Proposed', note: 'Citizenship only by birth or naturalisation, under a founding treaty.' },
-  territory: { label: 'Territory', status: 'Planned', note: 'To be secured by treaty with a host state.' },
-  antioch: { label: 'Antioch & the four founding states', status: 'Vision', note: 'Design studies; scale and location to be set by treaty.' },
+  residence: { label: 'Lawful Residence', status: 'Planned', note: 'Depends on statehood and a built platform.' },
+  citizenship: { label: 'Citizenship & travel document', status: 'Proposed', note: 'Citizenship only by birth or naturalisation, once Aletheia is established as a state.' },
+  territory: { label: 'Territory', status: 'Planned', note: 'A seastead: platforms Aletheia builds and owns.' },
+  antioch: { label: 'Antioch & the four founding states', status: 'Vision', note: 'Design studies, to be built at sea.' },
   maritime: { label: 'Port Nicholas & maritime works', status: 'Vision', note: 'Design studies; no works have begun.' },
   population: { label: 'Permanent population', status: 'Under Development', note: 'Founding community forming.' },
   government: { label: 'Effective government', status: 'Under Development', note: 'Constitution and institutions designed, not yet exercising authority.' },
-  foreignRelations: { label: 'Capacity for international relations', status: 'Proposed', note: 'To follow a founding treaty.' },
+  foreignRelations: { label: 'Capacity for international relations', status: 'Proposed', note: 'To follow the first platform.' },
 } as const satisfies Record<string, { label: string; status: NationalStatus; note: string }>;
 
 export type AssetKey = keyof typeof NATIONAL_ASSETS;

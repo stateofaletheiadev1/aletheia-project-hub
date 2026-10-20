@@ -8,7 +8,7 @@ import Image from 'next/image';
 import { StatusBadge, StatusLegend } from '@/components/ui/StatusBadge';
 import { MontevideoTable } from '@/components/ui/StatusTables';
 import { AeyNotice } from '@/components/ui/AeyNotice';
-import { TreatyPrinciples } from '@/components/development/TreatyPrinciples';
+import { SeasteadPrinciples } from '@/components/development/SeasteadPrinciples';
 import { StarOfTruth, HexagonCross } from '@/components/brand/Logo';
 import { NationalFlag } from '@/components/brand/Flags';
 import { unsplash, type PhotoKey } from '@/lib/imagery';
@@ -27,11 +27,10 @@ import {
   Landmark,
   Users,
   Zap,
-  Handshake,
 } from 'lucide-react';
 
 const FOCUS: { href: string; title: string; kicker: string; desc?: string; image: PhotoKey; span: string; big?: boolean }[] = [
-  { href: '/infrastructure', title: 'A maritime nation', kicker: 'Ports & the sea · Vision', desc: 'A design study for a deepwater terminal at Port Nicholas, to be built within a territory agreed by treaty.', image: 'containerShip', span: 'md:col-span-2 md:row-span-2', big: true },
+  { href: '/infrastructure', title: 'A maritime nation', kicker: 'Ports & the sea · Vision', desc: 'A design study for a deepwater terminal at Port Nicholas, to be built as part of Aletheia’s seastead.', image: 'containerShip', span: 'md:col-span-2 md:row-span-2', big: true },
   { href: '/energy', title: 'Clean energy', kicker: 'Benedict State · Vision', image: 'offshoreWind', span: 'md:col-span-1' },
   { href: '/education', title: 'Schools & university', kicker: 'Augustine State', image: 'libraryAisle', span: 'md:col-span-1' },
   { href: '/healthcare', title: 'Covenant healthcare', kicker: 'Health & Social Care', image: 'clinician', span: 'md:col-span-1' },
@@ -106,7 +105,7 @@ export default function HomePage() {
               </h1>
 
               {/* Sub-headline */}
-              <p className="text-lg text-parchment/72 leading-[1.85] max-w-xl font-light animate-fade-in-up delay-200">{t("Aletheia is a founding-phase project to build a compact, high-efficiency, European-oriented maritime nation, by treaty.")}{' '}{t("It is designed so that proof is the default: public records kept open and immutable, and every item of public spending leaving an auditable receipt.")}</p>
+              <p className="text-lg text-parchment/72 leading-[1.85] max-w-xl font-light animate-fade-in-up delay-200">{t("Aletheia is a founding-phase project to build a compact, high-efficiency, European-oriented maritime nation, built at sea on platforms it owns.")}{' '}{t("It is designed so that proof is the default: public records kept open and immutable, and every item of public spending leaving an auditable receipt.")}</p>
 
               {/* Status row */}
               <div className="flex flex-wrap items-center gap-3 text-[11px] animate-fade-in-up delay-300">
@@ -141,7 +140,7 @@ export default function HomePage() {
                 {[
                   { label: 'Constitution', href: '/constitution' },
                   { label: 'Economy & AEY', href: '/economy' },
-                  { label: 'Territory by Treaty', href: '/development#treaty' },
+                  { label: 'The Seastead', href: '/development#seastead' },
                   { label: 'Roadmap', href: '/roadmap' },
                   { label: 'StableChain', href: '/stablechain' },
                 ].map(({ label, href }) => (
@@ -181,7 +180,7 @@ export default function HomePage() {
 
                   <div className="grid grid-cols-2 gap-2 pt-3 border-t border-parchment/10">
                     {[
-                      { label: 'Territory', value: 'To be secured by treaty' },
+                      { label: 'Territory', value: 'A seastead Aletheia owns' },
                       { label: 'Draft Constitution', value: '67 Proposed Articles' },
                       { label: 'Proposed Cabinet', value: 'Nine Ministries Max' },
                       { label: 'StableChain Testnet', value: 'Target: ≈ 1 s Finality' },
@@ -259,9 +258,9 @@ export default function HomePage() {
                 desc: 'A Byzantine-fault-tolerant ledger on testnet, designed for 500 ms slots, published supply rules and fixed-fee settlement.',
               },
               {
-                num: '03', title: 'Territory by Treaty', asset: 'territory' as const,
+                num: '03', title: 'A Sovereign Seastead', asset: 'territory' as const,
                 color: 'bg-navy',
-                desc: 'A first territory to be secured by treaty or long-term leasehold with a host state, beginning with a pilot zone. Antioch and the maritime districts remain design studies.',
+                desc: 'Platforms that Aletheia designs, builds and owns outright, beginning with a single pilot platform. No landlord can reclaim them. Antioch and the maritime districts remain design studies.',
               },
             ].map(({ num, title, asset, color, desc }) => (
               <div key={num} className="sovereign-card-premium rounded-sm overflow-hidden flex flex-col">
@@ -404,28 +403,28 @@ export default function HomePage() {
       </section>
 
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-          5. THE TERRITORY — TERRITORY BY TREATY
+          5. THE TERRITORY — A SOVEREIGN SEASTEAD
       ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-      <section id="treaty" className="bg-parchment-canvas section-xl border-b border-navy/08">
+      <section id="seastead" className="bg-parchment-canvas section-xl border-b border-navy/08">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-14">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-end">
             <div className="lg:col-span-7 space-y-4">
               <div className="eyebrow">{t("Part II: The Territory")}</div>
-              <h2 className="text-4xl font-bold tracking-tight text-navy leading-tight">{t("Territory by Treaty")}</h2>
-              <p className="text-xl text-navy/80 leading-snug font-light">{t("Aletheia will not claim land. It will be granted land, by agreement.")}</p>
+              <h2 className="text-4xl font-bold tracking-tight text-navy leading-tight">{t("A Sovereign Seastead")}</h2>
+              <p className="text-xl text-navy/80 leading-snug font-light">{t("Aletheia will not lease land from another state. It will build its own.")}</p>
             </div>
             <div className="lg:col-span-5 flex items-center gap-3 lg:justify-end">
               <StatusBadge asset="territory" size="sm" />
-              <span className="text-xs text-navy/55">{t("To be secured by treaty with a host state")}</span>
+              <span className="text-xs text-navy/55">{t("Platforms Aletheia builds and owns")}</span>
             </div>
           </div>
 
-          <p className="text-navy/65 max-w-3xl text-base leading-[1.85] font-light">{t("The Sovereign Covenant State follows a treaty-first path: its first territory will be secured through a long-term leasehold or shared-sovereignty arrangement with an existing, recognised state, negotiated openly and entered into by mutual consent. We do not pursue the high seas, disputed territory or unilateral declaration. A covenant nation must itself be founded by covenant.")}</p>
+          <p className="text-navy/65 max-w-3xl text-base leading-[1.85] font-light">{t("Land leased from an existing state can be taken back, and a nation built on it would live under its landlord’s law. Aletheia will instead be a seastead: platforms that it designs, builds and owns outright, sited beyond any state’s exclusive economic zone under the freedoms of the high seas. It begins with a single pilot platform and grows platform by platform. Recognition as a state is not automatic; it must be earned, openly, from other nations.")}</p>
 
           {/* Our principles */}
           <div className="space-y-5">
             <h3 className="text-xs font-bold tracking-[0.18em] uppercase text-gold-shadow">{t("Our principles")}</h3>
-            <TreatyPrinciples />
+            <SeasteadPrinciples />
           </div>
 
           {/* The Antioch Plan · Vision */}
@@ -449,7 +448,7 @@ export default function HomePage() {
                 <StatusBadge asset="antioch" size="sm" />
               </div>
               <h3 className="text-2xl font-bold text-navy">{t("The Antioch Plan")}</h3>
-              <p className="text-sm text-navy/62 leading-relaxed">{t("Antioch and the four founding states (St. Barbara, Augustine, Benedict and St. Brendan) describe Aletheia’s long-term national design: a concentric capital, a deepwater port at Port Nicholas, and coastal districts for energy, learning, care and security. These are design studies for the future, not current holdings. Their scale and location will be set by treaty, beginning with a pilot zone of modest size.")}</p>
+              <p className="text-sm text-navy/62 leading-relaxed">{t("Antioch and the four founding states (St. Barbara, Augustine, Benedict and St. Brendan) describe Aletheia’s long-term national design: a concentric capital, a deepwater port at Port Nicholas, and coastal districts for energy, learning, care and security. These are design studies for the future, not current holdings. They would be built at sea, platform by platform, beginning with a single pilot platform.")}</p>
               <Link href="/development#antioch" className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gold-shadow hover:text-navy transition-colors group">
                 <span>{t("Read the design study")}</span>
                 <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
@@ -485,7 +484,7 @@ export default function HomePage() {
             ))}
           </div>
 
-          {/* The path to statehood + For host nations */}
+          {/* The path to statehood + Why a seastead */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             <div className="lg:col-span-7 space-y-4">
               <h3 className="text-2xl font-bold text-navy">{t("The path to statehood")}</h3>
@@ -495,12 +494,12 @@ export default function HomePage() {
             <div className="lg:col-span-5">
               <div className="h-full bg-navy-deep text-parchment rounded-sm border border-gold/25 p-7 space-y-4 flex flex-col">
                 <div className="flex items-center gap-3">
-                  <Handshake className="w-5 h-5 text-gold" aria-hidden="true" />
-                  <h3 className="text-lg font-bold">{t("For host nations")}</h3>
+                  <Anchor className="w-5 h-5 text-gold" aria-hidden="true" />
+                  <h3 className="text-lg font-bold">{t("Why a seastead")}</h3>
                 </div>
-                <p className="text-sm text-parchment/72 leading-relaxed font-light flex-1">{t("Aletheia offers governments a way to turn underused land or coastline into a high-value partnership: long-term lease income, private investment in ports and clean energy, and a transparent, auditable partner whose every public record is designed to be provable. We welcome confidential discussions with interested states.")}</p>
-                <Link href="/host-nations" className="btn-sovereign-gold px-6 py-3 rounded-sm text-xs font-bold uppercase tracking-wider inline-flex items-center gap-2 self-start group">
-                  <span>{t("For Host Nations")}</span>
+                <p className="text-sm text-parchment/72 leading-relaxed font-light flex-1">{t("A territory held on lease depends on the goodwill of its landlord: when the lease ends or a government changes its mind, the land can be taken back, and the people living on it lose their home. A seastead that Aletheia builds and owns cannot be reclaimed in that way. Its ground is its own.")}</p>
+                <Link href="/development#seastead" className="btn-sovereign-gold px-6 py-3 rounded-sm text-xs font-bold uppercase tracking-wider inline-flex items-center gap-2 self-start group">
+                  <span>{t("Read the seastead plan")}</span>
                   <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </div>
@@ -539,14 +538,14 @@ export default function HomePage() {
                 <h2 className="text-4xl font-bold tracking-tight text-navy leading-[1.15]">{t("Membership by Covenant:")}<br />
                   <span className="text-navy/60 font-light">{t("transparent standards for all.")}</span>
                 </h2>
-                <p className="text-navy/62 text-base leading-relaxed font-light max-w-xl">{t("Citizenship is a covenant, never an auction. Aletheia is to keep a clear distinction between digital e-residency, physical residency and full citizenship. Citizenship will be conferred only by birth or naturalisation, under a founding treaty.")}</p>
+                <p className="text-navy/62 text-base leading-relaxed font-light max-w-xl">{t("Citizenship is a covenant, never an auction. Aletheia is to keep a clear distinction between digital e-residency, physical residency and full citizenship. Citizenship will be conferred only by birth or naturalisation, once Aletheia is established as a state.")}</p>
               </div>
 
               <div className="space-y-3">
                 {[
                   { icon: Cpu, title: 'E-Residency', asset: 'eResidency' as const, desc: 'Proposed: digital identity, online company formation and remote contract execution. It would convey no physical residence or voting rights.' },
                   { icon: Users, title: 'Lawful Residence', asset: 'residence' as const, desc: 'Proposed: a 5-year renewable permit to live, work and study in a future Aletheian territory, with access to healthcare and education.' },
-                  { icon: Shield, title: 'Citizenship & Travel Document', asset: 'citizenship' as const, desc: 'Citizenship will be conferred only by birth or naturalisation, under a founding treaty, and sealed by the public Covenant Oath.' },
+                  { icon: Shield, title: 'Citizenship & Travel Document', asset: 'citizenship' as const, desc: 'Citizenship will be conferred only by birth or naturalisation, once Aletheia is established as a state, and sealed by the public Covenant Oath.' },
                 ].map(({ icon: Icon, title, asset, desc }) => (
                   <div key={title} className="sovereign-card-premium p-5 rounded-sm flex items-start gap-4 group">
                     <div className="p-2.5 bg-navy text-gold rounded-sm flex-shrink-0 mt-0.5 group-hover:bg-navy-subtle transition-colors">
@@ -693,7 +692,7 @@ export default function HomePage() {
                   </div>
                   <StatusBadge asset="immigration" size="sm" />
                 </div>
-                <p className="text-xs text-navy/62 leading-relaxed flex-1">{t("Planned residence permits and border administration, once a territory is agreed by treaty.")}</p>
+                <p className="text-xs text-navy/62 leading-relaxed flex-1">{t("Planned residence permits and border administration, once the first platform is built.")}</p>
                 <Link href="/immigration" className="text-xs font-bold text-navy hover:text-gold flex items-center gap-1 transition-colors group">
                   <span>{t("Immigration & Residence")}</span>
                   <ChevronRight className="w-3.5 h-3.5 text-gold group-hover:translate-x-0.5 transition-transform" />

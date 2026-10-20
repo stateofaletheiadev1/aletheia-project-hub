@@ -54,7 +54,7 @@ export const REGISTER: RegisterDocument[] = [
     status: 'Proposed',
     description: 'Design notes for a future travel document. Not a regulation: no document is issued.',
     body: {
-      lead: 'Design notes for a travel document of the Sovereign Covenant State of Aletheia, drawn up with reference to international travel-document conventions. They are not a regulation and have no legal force. No document will be issued unless Aletheia is established by treaty and has the lawful authority to do so.',
+      lead: 'Design notes for a travel document of the Sovereign Covenant State of Aletheia, drawn up with reference to international travel-document conventions. They are not a regulation and have no legal force. No document will be issued unless Aletheia is established as a state and has the lawful authority to do so.',
       sections: [
         { number: 'Note 1', heading: 'Form', paragraphs: ['A booklet in the conventional passport size, with a machine-readable zone on the data page.'] },
         { number: 'Note 2', heading: 'Appearance', paragraphs: ['A Covenant Burgundy cover bearing the national arms in gold foil, with the name of the State in the five proposed official languages.', 'A laser-engraved polycarbonate data page with a tactile surface relief, a ghost image and micro-text bearing the opening words of Article 1 of the Covenant.'] },
@@ -91,7 +91,7 @@ export const REGISTER: RegisterDocument[] = [
         { number: 'Part 1', heading: 'The nine ministries', paragraphs: ['Nine ministries are proposed, and no more: Treasury & Finance; Digital State & Registries; Resilience & Civil Protection; Foreign Affairs & Justice; Health & Social Well-being; Education & Science; Maritime Affairs & Ports; Infrastructure & Energy; Agriculture & Environment.'] },
         { number: 'Part 2', heading: 'Independent bodies', paragraphs: ['An Auditor-General, a Registry & Privacy Ombudsman and a Reserve Bank are proposed as independent bodies, answerable to the Covenant Assembly and not to ministers.'] },
         { number: 'Part 3', heading: 'The Gazette', paragraphs: ['In the founding phase, the Gazette publishes founding documents, design studies and planning notes. They have no legal force.'] },
-        { number: 'Part 4', heading: 'Relations with other states', paragraphs: ['Aletheia would approach other states only openly and by consent, beginning with confidential discussions towards a founding treaty with a host state.'] },
+        { number: 'Part 4', heading: 'Relations with other states', paragraphs: ['Aletheia would approach other states only openly and by consent, seeking recognition once its first platform is built.'] },
       ],
       signatory: 'Founding Team',
     },

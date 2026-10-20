@@ -14,7 +14,7 @@ const PAGES = [
   '/', '/aletheia', '/vision', '/identity', '/society', '/healthcare', '/education', '/transparency', '/news',
   '/news/public-key-directory', '/documents', '/contact', '/faq', '/government', '/government/ministry-of-foreign-affairs',
   '/government/ministry-of-maritime', '/constitution', '/laws', '/laws/adss-act', '/citizenship', '/citizenship/apply',
-  '/registry', '/e-residency', '/immigration', '/design/travel-document', '/founding-members', '/about', '/roadmap', '/thesis', '/host-nations', '/development', '/infrastructure', '/energy', '/economy',
+  '/registry', '/e-residency', '/immigration', '/design/travel-document', '/founding-members', '/about', '/roadmap', '/thesis', '/development', '/infrastructure', '/energy', '/economy',
   '/treasury', '/central-bank', '/aey', '/aey/paper-currency', '/de/aey/paper-currency', '/stablechain', '/business', '/invest', '/technology', '/security', '/adss',
   '/adss/cybersecurity', '/privacy', '/terms', '/accessibility', '/portal/login', '/de', '/nl', '/sr', '/it', '/sr/citizenship', '/de/citizenship/apply', '/nl/registry',
 ];

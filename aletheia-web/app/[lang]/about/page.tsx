@@ -65,7 +65,7 @@ export default function AboutPage() {
                 <Mail className="w-5 h-5 text-gold" aria-hidden="true" />
                 <h2 className="text-xl font-bold">{t("Contact the founding team")}</h2>
               </div>
-              <p className="text-sm text-parchment/70 leading-relaxed">{t("For press, partnerships and host-state discussions, use the contact page. Confidential enquiries from governments are welcome.")}</p>
+              <p className="text-sm text-parchment/70 leading-relaxed">{t("For press, partnerships and diplomatic enquiries, use the contact page. Confidential enquiries from governments are welcome.")}</p>
             </div>
             <div className="md:col-span-4 flex flex-wrap gap-3 md:justify-end">
               <Link href="/contact" className="btn-sovereign-gold px-6 py-3 rounded-sm text-xs font-bold uppercase tracking-wider inline-flex items-center gap-2 group">

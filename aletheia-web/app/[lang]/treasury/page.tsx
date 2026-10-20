@@ -82,7 +82,7 @@ export default function TreasuryPage() {
           <div className="bg-white p-6 border border-navy/15 rounded-sm space-y-3 hover:shadow-md transition-shadow">
             <TrendingUp className="w-6 h-6 text-laurel" />
             <h3 className="text-base font-bold text-navy">{t("3. Leasehold & Concessions")}</h3>
-            <p className="text-xs text-navy/70 leading-relaxed">{t("Land leasehold dividends and concessions within a territory agreed by treaty, shared with the host state.")}</p>
+            <p className="text-xs text-navy/70 leading-relaxed">{t("Leasehold dividends on platform space, and concessions, held in covenant trust.")}</p>
           </div>
 
           <div className="bg-white p-6 border border-navy/15 rounded-sm space-y-3 hover:shadow-md transition-shadow">

@@ -59,7 +59,7 @@ const REVENUE_STREAMS = [
   {
     id: 'leasehold',
     title: 'Land Leasehold Dividends',
-    desc: 'Ground rents on land held in covenant trust, within a territory agreed by treaty.',
+    desc: 'Ground rents on platform space held in covenant trust.',
     amount: 'Proposed',
     icon: <FileText className="w-4 h-4 text-gold" />,
   },
@@ -335,7 +335,7 @@ export default function EconomyPage() {
               <div className="flex gap-3 pt-2">
                 <Link href="/business" className="px-5 py-2.5 bg-navy text-parchment font-bold text-[12px] uppercase tracking-wider rounded-[3px] hover:bg-navy-deep transition-colors flex items-center gap-2 border border-gold/20 group">{t("Business Platform")}{' '}<ArrowRight className="w-3.5 h-3.5 text-gold group-hover:translate-x-0.5 transition-transform" />
                 </Link>
-                <Link href="/host-nations" className="px-5 py-2.5 border border-navy/15 text-navy font-semibold text-[12px] uppercase tracking-wider rounded-[3px] hover:border-navy/30 hover:bg-navy/[0.03] transition-all">{t("For Host Nations")}</Link>
+                <Link href="/development#seastead" className="px-5 py-2.5 border border-navy/15 text-navy font-semibold text-[12px] uppercase tracking-wider rounded-[3px] hover:border-navy/30 hover:bg-navy/[0.03] transition-all">{t("The Seastead")}</Link>
               </div>
             </div>
           </div>

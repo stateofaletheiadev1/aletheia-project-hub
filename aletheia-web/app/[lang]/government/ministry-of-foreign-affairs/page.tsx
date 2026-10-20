@@ -16,12 +16,12 @@ import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
 
 const DIPLOMATIC_PILLARS = [
   {
-    title: 'A Founding Treaty',
-    desc: 'The first task: negotiating, openly and by consent, a treaty or long-term leasehold with a recognised host state, beginning with a pilot zone.',
+    title: 'Recognition',
+    desc: 'The first task: seeking recognition from other states, openly and by consent, once the first platform is built.',
   },
   {
     title: 'Covenants & Agreements',
-    desc: 'After a founding treaty, agreements on trade, navigation and environmental stewardship, negotiated under the Vienna Convention on the Law of Treaties.',
+    desc: 'After recognition, agreements on trade, navigation and environmental stewardship, negotiated under the Vienna Convention on the Law of Treaties.',
   },
   {
     title: 'Justice & Arbitration',
@@ -53,13 +53,13 @@ export default function MinistryForeignAffairsPage() {
 
             <h1 className="heading-hero">{t("Ministry of Foreign Affairs & Justice")}</h1>
 
-            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("The proposed ministry for host-state relations, treaties, justice and arbitration, in accordance with international law and the UN Charter. It does not exist yet, and Aletheia has signed no treaty.")}</p>
+            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("The proposed ministry for diplomatic relations, treaties, justice and arbitration, in accordance with international law and the UN Charter. It does not exist yet, and Aletheia has signed no treaty.")}</p>
 
             <div className="flex flex-wrap gap-4 pt-2">
               <Link
-                href="/host-nations"
+                href="/development#seastead"
                 className="px-6 py-2.5 bg-gold text-navy font-bold text-xs uppercase tracking-wider rounded-sm hover:bg-gold-tint transition-all flex items-center gap-2 shadow-lg shadow-gold/10"
-              >{t("For Host Nations")}{' '}<ArrowRight className="w-3.5 h-3.5" />
+              >{t("The Seastead")}{' '}<ArrowRight className="w-3.5 h-3.5" />
               </Link>
               <Link
                 href="/government"
@@ -111,7 +111,7 @@ export default function MinistryForeignAffairsPage() {
 
           <div className="p-5 bg-parchment-light border border-navy/10 rounded-sm space-y-2">
             <h4 className="text-sm font-bold text-navy">{t("No treaties or agreements")}</h4>
-            <p className="text-xs text-navy/70 leading-relaxed">{t("Aletheia has signed no treaty or agreement with any state or organisation. The first would be a founding treaty with a host state; it will be published here when it exists.")}</p>
+            <p className="text-xs text-navy/70 leading-relaxed">{t("Aletheia has signed no treaty or agreement with any state or organisation. Any agreement will be published here when it exists.")}</p>
           </div>
         </div>
 
@@ -121,8 +121,8 @@ export default function MinistryForeignAffairsPage() {
       <section className="bg-navy text-parchment py-16 border-t border-gold/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
           <StarOfTruth size={36} className="mx-auto" />
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-parchment">{t("Host-State & Government Enquiries")}</h2>
-          <p className="text-xs sm:text-sm text-parchment/70 max-w-xl mx-auto leading-relaxed">{t("Governments and international bodies may write to the founding team. Host-state enquiries are confidential.")}</p>
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-parchment">{t("Government Enquiries")}</h2>
+          <p className="text-xs sm:text-sm text-parchment/70 max-w-xl mx-auto leading-relaxed">{t("Governments and international bodies may write to the founding team. Such enquiries are confidential.")}</p>
           <div className="flex justify-center gap-4 pt-2">
             <Link
               href="/contact"

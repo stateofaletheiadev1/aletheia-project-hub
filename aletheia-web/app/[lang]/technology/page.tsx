@@ -33,7 +33,7 @@ const REGISTRIES = [
   {
     id: 'maritime',
     title: 'Maritime & Vessel Registry',
-    subtitle: 'Only After a Founding Treaty',
+    subtitle: 'Only After Statehood',
     status: 'Planned' as const,
     desc: 'A ship registry would be possible only if Aletheia gained the lawful authority to keep one. Aletheia registers no vessels.',
     specs: ['Under international maritime law', 'Safety inspection records', 'Crew credential checks', 'Paperless records'],
@@ -43,7 +43,7 @@ const REGISTRIES = [
     title: 'Cadastral & Spatial Concessions Registry',
     subtitle: 'Immutable Land Titles & Deepwater Concessions',
     status: 'Planned' as const,
-    desc: 'Would record title deeds and leases within a territory agreed by treaty.',
+    desc: 'Would record title deeds and leases on Aletheia’s platforms.',
     specs: ['Coordinates anchored on StableChain', 'Lease records on the ledger', 'Fast title transfers', 'Lower title-insurance costs'],
   },
 ];
@@ -140,7 +140,7 @@ export default function TechnologyPage() {
               <div className="pt-4 border-t border-navy/10 flex items-center justify-between text-xs">
                 <span className="text-navy/50 font-mono text-[11px]">{t("Status: proposed · no records")}</span>
                 <Link
-                  href={reg.id === 'companies' ? '/business' : reg.id === 'identity' ? '/design/travel-document' : '/development#treaty'}
+                  href={reg.id === 'companies' ? '/business' : reg.id === 'identity' ? '/design/travel-document' : '/development#seastead'}
                   className="text-navy font-bold hover:text-gold flex items-center gap-1 transition-colors"
                 >{t("Learn More")}{' '}<ArrowRight className="w-3 h-3" />
                 </Link>

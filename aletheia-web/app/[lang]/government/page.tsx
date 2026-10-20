@@ -91,10 +91,10 @@ const MINISTRIES: Ministry[] = [
   {
     id: 'foreign-affairs',
     name: 'Ministry of Foreign Affairs & Justice',
-    portfolio: 'Host-State Relations, Treaties & Justice',
-    mandate: 'Would represent Aletheia in negotiating a founding treaty with a host state and later international agreements, and supervise the legal system and arbitration.',
+    portfolio: 'Diplomatic Relations, Treaties & Justice',
+    mandate: 'Would represent Aletheia in seeking recognition and international agreements, and supervise the legal system and arbitration.',
     responsibilities: [
-      'Founding-treaty negotiations with a host state',
+      'Recognition by other states',
       'Bilateral and maritime agreements under UNCLOS',
       'Judicial appointments and arbitral chamber support',
       'Consular affairs, once lawfully established',
@@ -102,8 +102,8 @@ const MINISTRIES: Ministry[] = [
     legalBasis: 'Draft Constitution Art. 2, 8; Diplomatic Relations Act',
     status: 'Planned',
     icon: <Scale className="w-5 h-5 text-gold" />,
-    serviceHref: '/host-nations',
-    serviceName: 'For Host Nations',
+    serviceHref: '/development#seastead',
+    serviceName: 'The Seastead',
   },
   {
     id: 'health',
@@ -143,7 +143,7 @@ const MINISTRIES: Ministry[] = [
     id: 'maritime',
     name: 'Ministry of Maritime Affairs & Ports',
     portfolio: 'Port Nicholas, Navigation & Fisheries',
-    mandate: 'Would govern port facilities, maritime logistics, vessel registration and marine resources within a territory agreed by treaty.',
+    mandate: 'Would govern port facilities, maritime logistics, vessel registration and marine resources around Aletheia’s platforms.',
     responsibilities: [
       'Port Nicholas deepwater terminal (vision)',
       'Aletheian Maritime Ship Registry',

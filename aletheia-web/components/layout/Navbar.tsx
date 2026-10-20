@@ -49,7 +49,7 @@ const EDITORIAL: Record<string, { title: string; desc: string; href: string; tag
   },
   Development: {
     title: 'Antioch Concentric Masterplan',
-    desc: 'A long-term design study. Scale and location are to be set by treaty.',
+    desc: 'A long-term design study, to be built at sea, platform by platform.',
     href: '/development',
     tag: 'VISION · DESIGN STUDY',
   },

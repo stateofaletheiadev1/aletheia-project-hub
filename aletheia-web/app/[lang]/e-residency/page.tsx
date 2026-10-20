@@ -56,8 +56,8 @@ const BENEFITS = [
 const PROCESS_STEPS = [
   {
     step: '01',
-    title: 'A Founding Treaty',
-    desc: 'E-residency would be offered only once Aletheia is established by treaty and has the lawful authority to do so.',
+    title: 'Statehood First',
+    desc: 'E-residency would be offered only once Aletheia is established as a state and has the lawful authority to do so.',
     time: 'Planned',
   },
   {
@@ -83,7 +83,7 @@ const PROCESS_STEPS = [
 const FAQS = [
   {
     q: 'Can I apply for e-residency now?',
-    a: 'No. Aletheia accepts no applications in its founding phase. E-residency is a proposal; it would be offered only once Aletheia is established by treaty. You can register interest as a Founding Member instead.',
+    a: 'No. Aletheia accepts no applications in its founding phase. E-residency is a proposal; it would be offered only once Aletheia is established as a state. You can register interest as a Founding Member instead.',
   },
   {
     q: 'Would e-residency be the same as citizenship?',
@@ -171,7 +171,7 @@ export default function EResidencyPage() {
                       'No applications are accepted',
                       'No fee is charged',
                       'No identity documents are collected',
-                      'Offered only after a founding treaty',
+                      'Offered only after statehood',
                     ].map((f) => (
                       <div key={f} className="flex items-center gap-2 text-[12px] text-parchment/70">
                         <CheckCircle className="w-3.5 h-3.5 text-laurel shrink-0" />

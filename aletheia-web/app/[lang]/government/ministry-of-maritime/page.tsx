@@ -27,12 +27,12 @@ const MARITIME_DIVISIONS = [
   },
   {
     title: 'Oceanographic Stewardship & Marine Reserves',
-    desc: 'Would monitor the marine environment of any territory agreed by treaty, protect marine ecosystems and enforce zero-discharge rules.',
+    desc: 'Would monitor the marine environment around Aletheia’s platforms, protect marine ecosystems and enforce zero-discharge rules.',
     icon: Waves,
   },
   {
     title: 'Autonomous Navigation & Hydrography',
-    desc: 'Would publish nautical charts, run vessel traffic services and collect marine weather data, in cooperation with the host state.',
+    desc: 'Would publish nautical charts, run vessel traffic services and collect marine weather data, in cooperation with neighbouring states.',
     icon: Compass,
   },
 ];
@@ -66,7 +66,7 @@ export default function MinistryMaritimePage() {
 
             <h1 className="heading-hero">{t("Ministry of Maritime Affairs & Ports")}</h1>
 
-            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("A proposed ministry for ports, shipping and marine stewardship, within a territory agreed by treaty and under the Law of the Sea. It does not exist yet and exercises no authority.")}</p>
+            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("A proposed ministry for ports, shipping and marine stewardship around Aletheia’s platforms, under the Law of the Sea. It does not exist yet and exercises no authority.")}</p>
 
             <div className="flex flex-wrap gap-4 pt-2">
               <Link
@@ -92,7 +92,7 @@ export default function MinistryMaritimePage() {
               <p className="text-xs text-parchment/70 uppercase tracking-wide">{t("Port Nicholas Design Study")}</p>
             </div>
             <div className="space-y-1">
-              <span className="text-2xl font-bold font-mono text-gold">{t("By Treaty")}</span>
+              <span className="text-2xl font-bold font-mono text-gold">{t("UNCLOS")}</span>
               <p className="text-xs text-parchment/70 uppercase tracking-wide">{t("Any Maritime Zone")}</p>
             </div>
             <div className="space-y-1">
@@ -112,7 +112,7 @@ export default function MinistryMaritimePage() {
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
           <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">{t("Proposed Directorates")}</span>
           <h2 className="text-3xl font-bold text-navy tracking-tight">{t("Maritime Portfolios")}</h2>
-          <p className="text-xs sm:text-sm text-navy/70 leading-relaxed">{t("How a future maritime ministry would be organised, once a territory is agreed by treaty.")}</p>
+          <p className="text-xs sm:text-sm text-navy/70 leading-relaxed">{t("How a future maritime ministry would be organised, once the first platform is built.")}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
@@ -137,14 +137,14 @@ export default function MinistryMaritimePage() {
           <div className="lg:col-span-8 space-y-3">
             <span className="text-xs font-bold text-gold uppercase tracking-wider block">{t("Vessel Registration")}</span>
             <h3 className="text-2xl font-bold text-navy">{t("Aletheia does not register vessels")}</h3>
-            <p className="text-xs text-navy/70 leading-relaxed">{t("Aletheia is not a flag state and cannot register ships, yachts or any other vessel. A registry would be possible only after a founding treaty, and only under international maritime law.")}</p>
+            <p className="text-xs text-navy/70 leading-relaxed">{t("Aletheia is not a flag state and cannot register ships, yachts or any other vessel. A registry would be possible only after statehood, and only under international maritime law.")}</p>
           </div>
 
           <div className="lg:col-span-4 flex justify-end">
             <Link
-              href="/development#treaty"
+              href="/development#seastead"
               className="px-6 py-3 bg-navy text-gold font-bold text-xs uppercase tracking-wider rounded-sm hover:bg-navy-deep transition-colors flex items-center gap-2"
-            >{t("Territory by Treaty")}{' '}<ArrowRight className="w-3.5 h-3.5" />
+            >{t("The Seastead")}{' '}<ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
         </div>
@@ -155,12 +155,12 @@ export default function MinistryMaritimePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
           <StarOfTruth size={36} className="mx-auto" />
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-parchment">{t("A Maritime Nation Governed by Covenant")}</h2>
-          <p className="text-xs sm:text-sm text-parchment/70 max-w-xl mx-auto leading-relaxed">{t("Read how Aletheia intends to secure territory by treaty, and the design studies for its maritime future.")}</p>
+          <p className="text-xs sm:text-sm text-parchment/70 max-w-xl mx-auto leading-relaxed">{t("Read how Aletheia intends to build its own territory at sea, and the design studies for its maritime future.")}</p>
           <div className="flex justify-center gap-4 pt-2">
             <Link
               href="/development"
               className="px-6 py-2.5 bg-gold text-navy font-bold text-xs uppercase tracking-wider rounded-sm hover:bg-gold-tint transition-all"
-            >{t("Territory by Treaty")}</Link>
+            >{t("The Seastead")}</Link>
             <Link
               href="/government"
               className="px-6 py-2.5 border border-gold/30 text-parchment font-semibold text-xs uppercase tracking-wider rounded-sm hover:border-gold/60 transition-colors"

@@ -10,7 +10,7 @@ import { Mail, Newspaper, Handshake, Landmark, Users, ArrowRight } from 'lucide-
 import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
 
 const ENQUIRIES = [
-  { icon: Landmark, title: 'Host-state enquiries', desc: 'Governments interested in a treaty partnership. Confidential by default.', subject: 'Host-state enquiry' },
+  { icon: Landmark, title: 'Government enquiries', desc: 'Governments and international bodies. Confidential by default.', subject: 'Government enquiry' },
   { icon: Newspaper, title: 'Press', desc: 'Journalists and researchers writing about Aletheia or new-country projects.', subject: 'Press enquiry' },
   { icon: Handshake, title: 'Partnerships', desc: 'Organisations interested in working with the founding team.', subject: 'Partnership enquiry' },
   { icon: Users, title: 'General', desc: 'Anything else. To join the founding community, register interest instead.', subject: 'General enquiry' },
@@ -37,7 +37,7 @@ export default function ContactPage() {
 
             <h1 className="heading-hero">{t("Contact the Founding Team")}</h1>
 
-            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("For host-state discussions, press, partnerships and general questions. Aletheia has no embassies, missions or offices; the founding team answers every message itself.")}</p>
+            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("For government enquiries, press, partnerships and general questions. Aletheia has no embassies, missions or offices; the founding team answers every message itself.")}</p>
           </div>
         </div>
       </section>
@@ -78,7 +78,7 @@ export default function ContactPage() {
                   <Mail className="w-4 h-4 text-gold shrink-0 mt-0.5" aria-hidden="true" />
                   <Placeholder>contact email address</Placeholder>
                 </div>
-                <p className="leading-relaxed">{t("We aim to reply within a few working days. Host-state enquiries are treated as confidential.")}</p>
+                <p className="leading-relaxed">{t("We aim to reply within a few working days. Government enquiries are treated as confidential.")}</p>
               </div>
             </div>
             <p className="text-xs text-navy/60 leading-relaxed">{t("Aletheia does not sell citizenship, residency, passports or currency. Anyone offering them in Aletheia’s name is not acting for us.")}</p>

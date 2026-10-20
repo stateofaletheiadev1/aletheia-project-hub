@@ -38,7 +38,7 @@ export const CONSTITUTION_DATA: ConstitutionalArticle[] = [
     clauses: [
       {
         number: '1(1)',
-        text: 'The Sovereign Covenant State of Aletheia shall be an independent, European-oriented maritime nation, founded by treaty, whose supreme authority resides in the Covenant ratified by its citizens and constituent states.',
+        text: 'The Sovereign Covenant State of Aletheia shall be an independent, European-oriented maritime nation, whose supreme authority resides in the Covenant ratified by its citizens and constituent states.',
       },
       {
         number: '1(2)',
@@ -96,11 +96,11 @@ export const CONSTITUTION_DATA: ConstitutionalArticle[] = [
     part: 'Part II: Territory & Maritime Zones',
     title: 'The Five Constituent Territories',
     status: 'Proposed',
-    summary: 'Territory granted by treaty with a host state, within which the Federal District of Antioch and four founding states would be established.',
+    summary: 'Territory built and owned by the State at sea, within which the Federal District of Antioch and four founding states would be established.',
     clauses: [
       {
         number: '7(1)',
-        text: 'The territory of the Sovereign Covenant State shall be that granted to it by treaty with a host state. Within it shall be established the Federal District of Antioch and four constituent states: St. Barbara State, Augustine State, Benedict State, and St. Brendan State.',
+        text: 'The territory of the Sovereign Covenant State shall consist of the platforms and structures it builds and owns at sea. Within it shall be established the Federal District of Antioch and four constituent states: St. Barbara State, Augustine State, Benedict State, and St. Brendan State.',
       },
       {
         number: '7(2)',
@@ -108,7 +108,7 @@ export const CONSTITUTION_DATA: ConstitutionalArticle[] = [
       },
       {
         number: '7(3)',
-        text: 'Any maritime zones of the Sovereign Covenant State shall be those agreed with the host state, in accordance with the United Nations Convention on the Law of the Sea.',
+        text: 'The Sovereign Covenant State shall claim no maritime zone beyond what the United Nations Convention on the Law of the Sea allows.',
       },
     ],
     crossReferences: ['art-8', 'art-9', 'art-47'],
@@ -121,8 +121,8 @@ export const CONSTITUTION_DATA: ConstitutionalArticle[] = [
       href: '/laws/maritime-zones',
     },
     relatedService: {
-      title: 'Territory by Treaty',
-      href: '/development#treaty',
+      title: 'The Seastead',
+      href: '/development#seastead',
     },
   },
   {
@@ -139,7 +139,7 @@ export const CONSTITUTION_DATA: ConstitutionalArticle[] = [
       },
       {
         number: '8(2)',
-        text: 'Citizenship is a civic covenant. It shall never be sold, auctioned or conferred in return for investment or payment, and never without the Covenant Oath. It is conferred only by birth or naturalisation, under a founding treaty.',
+        text: 'Citizenship is a civic covenant. It shall never be sold, auctioned or conferred in return for investment or payment, and never without the Covenant Oath. It is conferred only by birth or naturalisation, once Aletheia is established as a state.',
       },
       {
         number: '8(3)',

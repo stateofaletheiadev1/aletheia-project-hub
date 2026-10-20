@@ -44,7 +44,7 @@ export const GAZETTE_POSTS: GazettePost[] = [
       'A design concept for a future Aletheian travel document, in Covenant Burgundy, is published for comment.',
     body: [
       'The founding team has published a design concept for a future Aletheian travel document, drawn up with reference to international travel-document conventions.',
-      'The concept describes a Covenant Burgundy booklet, a polycarbonate data page and an electronic chip. It is a design only: no document has been produced or issued, and none will be issued unless Aletheia is established by treaty and has the lawful authority to do so.',
+      'The concept describes a Covenant Burgundy booklet, a polycarbonate data page and an electronic chip. It is a design only: no document has been produced or issued, and none will be issued unless Aletheia is established as a state and has the lawful authority to do so.',
       'The design concept is shown on the travel-document design page.',
     ],
     signatory: 'Founding Team',
@@ -63,7 +63,7 @@ export const GAZETTE_POSTS: GazettePost[] = [
     body: [
       'The founding team has published a design study for the St. Brendan Maritime Terminus, a deepwater port at Port Nicholas in the long-term Antioch plan.',
       'The study sketches automated container handling, bonded warehousing, a renewable microgrid and passenger facilities. It is a vision for the future, not a project under way: no site has been chosen, no contracts have been awarded and no works have begun.',
-      'Any port would be built only within a territory agreed by treaty with a host state, with that state’s consent and under international maritime law.',
+      'Any port would be built at sea, on platforms Aletheia owns, under international maritime law.',
     ],
     signatory: 'Founding Team',
     image: 'containerPort',
@@ -94,10 +94,10 @@ export const GAZETTE_POSTS: GazettePost[] = [
     status: 'Proposed',
     date: '2026-08-12',
     summary:
-      'A proposal for open seabed mapping and marine-ecology monitoring, to be agreed with a future host state.',
+      'A proposal for open seabed mapping and marine-ecology monitoring around Aletheia’s future platforms.',
     body: [
-      'This note proposes how Aletheia would monitor the marine environment of any territory it is granted by treaty.',
-      'The proposal includes seabed mapping, ecology monitoring by autonomous survey vessels, and the publication of all data as open data. No accord has been signed; any programme would be agreed with the host state.',
+      'This note proposes how Aletheia would monitor the marine environment around any platform it builds.',
+      'The proposal includes seabed mapping, ecology monitoring by autonomous survey vessels, and the publication of all data as open data. No accord has been signed; any programme would begin with the first platform.',
     ],
     signatory: 'Founding Team',
     image: 'oceanAerial',

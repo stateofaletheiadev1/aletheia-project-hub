@@ -167,7 +167,7 @@ export default function SocietyPage() {
           {[
             { href: '/healthcare', title: 'Health & Social Care', desc: 'The proposed covenant healthcare model.', image: 'stethoscope' as const },
             { href: '/education', title: 'Education & Research', desc: 'Proposed schools and a National University.', image: 'bookshelf' as const },
-            { href: '/development', title: 'Territory by Treaty', desc: 'Where Aletheia could be built, and the Antioch design studies.', image: 'highlands' as const },
+            { href: '/development', title: 'The Seastead', desc: 'Where Aletheia could be built, and the Antioch design studies.', image: 'highlands' as const },
           ].map((c) => (
             <Link key={c.href} href={c.href} className="photo-card group relative h-72 rounded-sm border border-gold/20 shadow-institutional">
               <Image src={unsplash(c.image, 800)} alt="" fill sizes="(min-width:768px) 33vw, 100vw" className="object-cover" />

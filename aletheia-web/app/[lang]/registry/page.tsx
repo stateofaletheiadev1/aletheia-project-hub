@@ -32,7 +32,7 @@ export default function RegistryPage() {
       <section className="bg-navy-deep border-b border-gold/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 sm:grid-cols-3 sm:divide-x divide-gold/15">
           {[
-            { icon: Landmark, label: 'Citizens', sub: 'Citizenship only by birth or naturalisation, under a founding treaty' },
+            { icon: Landmark, label: 'Citizens', sub: 'Citizenship only by birth or naturalisation, once Aletheia is established as a state' },
             { icon: Users, label: 'E-residents', sub: 'E-residency is proposed; no applications are accepted' },
             { icon: Building2, label: 'Registered companies', sub: 'Incorporation is proposed; nothing is registered' },
           ].map(({ icon: Icon, label, sub }) => (

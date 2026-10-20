@@ -17,22 +17,22 @@ const PHASES: { phase: string; title: string; now?: boolean; vision?: boolean; i
   {
     phase: 'Phase 1',
     title: 'Foundations',
-    items: ['The Founding Thesis published', 'Legal counsel engaged', 'Research into potential host states'],
+    items: ['The Founding Thesis published', 'Legal counsel engaged', 'Seastead engineering research'],
   },
   {
     phase: 'Phase 2',
-    title: 'Partnership',
-    items: ['Confidential discussions with host states', 'A development company formed', 'Seed funding'],
+    title: 'Design',
+    items: ['Platform design and site survey', 'A development company formed', 'Seed funding'],
   },
   {
     phase: 'Phase 3',
-    title: 'Treaty',
-    items: ['A founding treaty with a host state', 'A pilot zone of modest size'],
+    title: 'Pilot Platform',
+    items: ['A pilot platform, built and owned by Aletheia', 'Seeking recognition from other states'],
   },
   {
     phase: 'Phase 4',
     title: 'First Residents',
-    items: ['Licensed AEY issuance and the APN, within the pilot zone', 'The first residents'],
+    items: ['Licensed AEY issuance and the APN, on the pilot platform', 'The first residents'],
   },
   {
     phase: 'Vision',
@@ -51,7 +51,7 @@ export default function RoadmapPage() {
         eyebrow="Roadmap"
         image="coastSunrise"
         title="An Honest Roadmap"
-        lead="How Aletheia intends to move from a founding community to a founding treaty, phase by phase. Each phase depends on the one before it."
+        lead="How Aletheia intends to move from a founding community to its first platform, phase by phase. Each phase depends on the one before it."
       />
 
       <section className="py-16 lg:py-24">
@@ -92,7 +92,7 @@ export default function RoadmapPage() {
               <span>{t("Register interest as a Founding Member")}</span>
               <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
             </Link>
-            <Link href="/host-nations" className="px-6 py-3 border border-navy/20 text-navy text-xs font-semibold uppercase tracking-wider rounded-sm hover:border-navy/40 transition-colors">{t("For Host Nations")}</Link>
+            <Link href="/development#seastead" className="px-6 py-3 border border-navy/20 text-navy text-xs font-semibold uppercase tracking-wider rounded-sm hover:border-navy/40 transition-colors">{t("The Seastead")}</Link>
           </div>
         </div>
       </section>

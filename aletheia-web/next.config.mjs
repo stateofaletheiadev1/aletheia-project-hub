@@ -5,6 +5,8 @@ const nextConfig = {
   async redirects() {
     return [
       { source: '/passport', destination: '/design/travel-document', permanent: true },
+      { source: '/host-nations', destination: '/development', permanent: true },
+      { source: '/:lang(en|de|nl|sr|it)/host-nations', destination: '/:lang/development', permanent: true },
       { source: '/:lang(en|de|nl|sr|it)/passport', destination: '/:lang/design/travel-document', permanent: true },
       // Gazette records renamed when they were rewritten as design and planning records (lib/gazette.ts).
       ...Object.entries({

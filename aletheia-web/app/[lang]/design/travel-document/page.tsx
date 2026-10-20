@@ -80,7 +80,7 @@ export default function TravelDocumentDesignPage() {
 
               <h1 className="heading-hero">{t("Design Concept: Aletheian Travel Document")}</h1>
 
-              <p className="text-base sm:text-lg text-parchment/75 leading-relaxed font-light max-w-2xl">{t("A design concept for a future Aletheian travel document, designed with reference to international travel-document conventions. It is not a travel document, none has been issued, and none will be issued unless Aletheia is established by treaty and has the lawful authority to do so.")}</p>
+              <p className="text-base sm:text-lg text-parchment/75 leading-relaxed font-light max-w-2xl">{t("A design concept for a future Aletheian travel document, designed with reference to international travel-document conventions. It is not a travel document, none has been issued, and none will be issued unless Aletheia is established as a state and has the lawful authority to do so.")}</p>
 
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-2">
                 {[
@@ -198,7 +198,7 @@ export default function TravelDocumentDesignPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
           <StarOfTruth size={36} className="mx-auto" />
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-parchment">{t("Citizenship Comes First")}</h2>
-          <p className="text-xs sm:text-sm text-parchment/70 max-w-xl mx-auto leading-relaxed">{t("Citizenship will be conferred only by birth or naturalisation, under a founding treaty. Until then, you can join the founding community.")}</p>
+          <p className="text-xs sm:text-sm text-parchment/70 max-w-xl mx-auto leading-relaxed">{t("Citizenship will be conferred only by birth or naturalisation, once Aletheia is established as a state. Until then, you can join the founding community.")}</p>
           <div className="flex flex-wrap justify-center gap-4 pt-2">
             <Link
               href="/founding-members"

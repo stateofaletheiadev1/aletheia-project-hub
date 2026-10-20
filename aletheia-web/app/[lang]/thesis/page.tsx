@@ -7,11 +7,11 @@ import { Placeholder } from '@/components/ui/Placeholder';
 import { Scale, Landmark, Coins, Globe2, Handshake } from 'lucide-react';
 
 const SECTIONS = [
-  { id: 'legal-structure', icon: Scale, title: 'Legal Structure', placeholder: 'the legal form of the founding entity, the governing law, and how a treaty would give Aletheia authority' },
+  { id: 'legal-structure', icon: Scale, title: 'Legal Structure', placeholder: 'the legal form of the founding entity, the governing law, and how Aletheia would come to exercise lawful authority' },
   { id: 'governance', icon: Landmark, title: 'Governance Architecture', placeholder: 'how the draft Constitution’s institutions would be brought into being, and who governs in the meantime' },
   { id: 'economic-model', icon: Coins, title: 'Economic Model', placeholder: 'how the founding phase is funded, the revenue model of a future territory, and the licensed route for any currency' },
-  { id: 'host-regions', icon: Globe2, title: 'Preferred Host Regions', placeholder: 'the regions under study and the criteria for a host state' },
-  { id: 'diplomacy', icon: Handshake, title: 'Diplomatic Strategy', placeholder: 'how host-state discussions are approached, and the path to recognition after a treaty' },
+  { id: 'sites', icon: Globe2, title: 'Seastead Sites', placeholder: 'the sea areas under study and the criteria for a platform site' },
+  { id: 'diplomacy', icon: Handshake, title: 'Diplomatic Strategy', placeholder: 'how other states are approached, and the path to recognition' },
 ];
 
 export default function ThesisPage() {
@@ -23,7 +23,7 @@ export default function ThesisPage() {
         eyebrow="Founding Thesis"
         image="lawLibrary"
         title="The Founding Thesis"
-        lead="The reasoning behind Aletheia: how it would be structured, governed and funded, where it might be hosted, and how it intends to reach a founding treaty."
+        lead="The reasoning behind Aletheia: how it would be structured, governed and funded, where its platforms might be sited, and how it intends to earn recognition."
         status="Under Development"
       />
 
@@ -55,7 +55,7 @@ export default function ThesisPage() {
               {t("Until the Thesis is published, the")}{' '}
               <Link href="/roadmap" className="font-semibold text-navy underline underline-offset-2 decoration-gold">{t("roadmap")}</Link>{' '}
               {t("and the")}{' '}
-              <Link href="/development#treaty" className="font-semibold text-navy underline underline-offset-2 decoration-gold">{t("treaty-first principles")}</Link>{' '}
+              <Link href="/development#seastead" className="font-semibold text-navy underline underline-offset-2 decoration-gold">{t("seastead principles")}</Link>{' '}
               {t("set out the approach.")}
             </p>
           </div>

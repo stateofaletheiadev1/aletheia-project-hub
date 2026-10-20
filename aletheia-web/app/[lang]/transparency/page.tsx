@@ -69,8 +69,8 @@ export default function TransparencyPage() {
             <div className="eyebrow">{t("The path to statehood")}</div>
             <h2 className="text-3xl font-bold text-navy tracking-tight">{t("Measured against Montevideo")}</h2>
             <p className="text-sm text-navy/70 leading-relaxed">{t("Aletheia measures itself honestly against the four Montevideo criteria:")}</p>
-            <Link href="/development#treaty" className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-navy hover:text-gold transition-colors group">
-              <span>{t("Territory by Treaty")}</span>
+            <Link href="/development#seastead" className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-navy hover:text-gold transition-colors group">
+              <span>{t("The Seastead")}</span>
               <ArrowRight className="w-3.5 h-3.5 text-gold group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>

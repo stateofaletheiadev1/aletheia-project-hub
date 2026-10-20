@@ -33,7 +33,7 @@ export default function EnergyPage() {
 
             <h1 className="heading-hero">{t("Clean Energy: a Design Study")}</h1>
 
-            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("A design study for zero-emission power combining offshore floating wind, wave energy and small modular reactors (SMRs), with green hydrogen. Nothing is built or contracted; any project would follow a founding treaty, with the host state.")}</p>
+            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("A design study for zero-emission power combining offshore floating wind, wave energy and small modular reactors (SMRs), with green hydrogen. Nothing is built or contracted; any project would be built on Aletheia’s own platforms.")}</p>
           </div>
         </div>
       </section>
@@ -55,7 +55,7 @@ export default function EnergyPage() {
               <p className="text-xs text-parchment/70 uppercase tracking-wide">{t("Design Study: HVDC Link")}</p>
             </div>
             <div className="space-y-1">
-              <span className="text-2xl font-bold text-gold">{t("By Treaty")}</span>
+              <span className="text-2xl font-bold text-gold">{t("At Sea")}</span>
               <p className="text-xs text-parchment/70 uppercase tracking-wide">{t("Location & Scale")}</p>
             </div>
           </div>
@@ -80,7 +80,7 @@ export default function EnergyPage() {
           <div className="feature-card rounded-sm p-6 space-y-4 group">
             <Atom className="w-8 h-8 text-navy" />
             <h3 className="text-base font-bold text-navy">{t("Small Modular Reactors")}</h3>
-            <p className="text-xs text-navy/70 leading-relaxed">{t("Passively safe small modular reactors for steady baseload power, subject to the host state’s nuclear regulation.")}</p>
+            <p className="text-xs text-navy/70 leading-relaxed">{t("Passively safe small modular reactors for steady baseload power, subject to international nuclear safety standards.")}</p>
           </div>
 
           <div className="feature-card rounded-sm p-6 space-y-3 group">
@@ -101,18 +101,17 @@ export default function EnergyPage() {
       <section className="bg-navy text-parchment py-16 border-t border-gold/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
           <StarOfTruth size={36} className="mx-auto" />
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-parchment">{t("Built with a Host Nation")}</h2>
-          <p className="text-xs sm:text-sm text-parchment/70 max-w-xl mx-auto leading-relaxed">{t("Energy works would be developed with, and for the benefit of, a host state. No procurement, concession or investment is open.")}</p>
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-parchment">{t("Built on Our Own Platforms")}</h2>
+          <p className="text-xs sm:text-sm text-parchment/70 max-w-xl mx-auto leading-relaxed">{t("Energy works would be built at sea, on platforms Aletheia owns. No procurement, concession or investment is open.")}</p>
           <div className="flex justify-center gap-4 pt-2">
             <Link
-              href="/host-nations"
-
+              href="/founding-members"
               className="px-6 py-2.5 bg-gold text-navy font-bold text-xs uppercase tracking-wider rounded-sm hover:bg-gold-tint transition-all"
-            >{t("For Host Nations")}</Link>
+            >{t("Register interest")}</Link>
             <Link
               href="/development"
               className="px-6 py-2.5 border border-gold/30 text-parchment font-semibold text-xs uppercase tracking-wider rounded-sm hover:border-gold/60 transition-colors"
-            >{t("Territory by Treaty")}</Link>
+            >{t("The Seastead")}</Link>
           </div>
         </div>
       </section>

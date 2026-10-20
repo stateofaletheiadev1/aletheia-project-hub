@@ -53,7 +53,7 @@ export const STATUTES: StatuteMeta[] = [
     article: 'Constitution Article 3 § 4',
     date: '2026-02-05',
     hash: 'fdd4edf14bb8710d0bb0da90a2e997f381b4950851ab3d794f7497dce07be806',
-    summary: 'Provides that any maritime zones would be only those agreed with a host state by treaty, under the Law of the Sea.',
+    summary: 'Provides that Aletheia would claim no maritime zone beyond what the Law of the Sea allows its platforms.',
     pages: 26,
   },
   {

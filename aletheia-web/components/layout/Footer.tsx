@@ -57,7 +57,7 @@ export function Footer() {
               </div>
             </div>
 
-            <p className="text-xs text-parchment/70 leading-relaxed max-w-sm">{t("A founding-phase project to build a European-oriented maritime nation, by treaty: founded upon open records, honest money, and the rule of covenant law.")}</p>
+            <p className="text-xs text-parchment/70 leading-relaxed max-w-sm">{t("A founding-phase project to build a European-oriented maritime nation at sea: founded upon open records, honest money, and the rule of covenant law.")}</p>
 
             <div className="pt-2 flex items-center gap-4">
               <div>
@@ -161,10 +161,7 @@ export function Footer() {
                 <Link href="/thesis" className="hover:text-gold transition-colors">{t("Founding Thesis")}</Link>
               </li>
               <li>
-                <Link href="/host-nations" className="hover:text-gold transition-colors">{t("For Host Nations")}</Link>
-              </li>
-              <li>
-                <Link href="/development" className="hover:text-gold transition-colors">{t("Territory by Treaty")}</Link>
+                <Link href="/development" className="hover:text-gold transition-colors">{t("The Seastead")}</Link>
               </li>
               <li>
                 <Link href="/adss" className="hover:text-gold transition-colors">{t("Resilience & Civil Protection")}</Link>

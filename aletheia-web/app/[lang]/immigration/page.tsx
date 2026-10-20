@@ -88,7 +88,7 @@ export default function ImmigrationPage() {
 
             <h1 className="heading-hero">{t("Immigration & Residence")}</h1>
 
-            <p className="text-base sm:text-lg text-parchment/75 leading-relaxed font-light max-w-2xl">{t("A proposed system of visas and residence permits for a future Aletheian territory, secured by treaty. Nothing on this page is open: no visa or permit can be applied for, and none is issued.")}</p>
+            <p className="text-base sm:text-lg text-parchment/75 leading-relaxed font-light max-w-2xl">{t("A proposed system of visas and residence permits for a future Aletheian seastead. Nothing on this page is open: no visa or permit can be applied for, and none is issued.")}</p>
 
             <div className="p-4 bg-navy-deep/80 border border-gold/25 rounded-sm flex items-start gap-3 max-w-2xl">
               <AlertTriangle className="w-5 h-5 text-gold shrink-0 mt-0.5" />
@@ -236,7 +236,7 @@ export default function ImmigrationPage() {
             <div className="lg:col-span-8 space-y-4">
               <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">{t("Long-Term Settlement")}</span>
               <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-parchment">{t("From Lawful Residence to Citizenship")}</h2>
-              <p className="text-xs sm:text-sm text-parchment/70 leading-relaxed max-w-2xl">{t("As proposed, permanent residents with five continuous years of residence who complete civic integration could apply to naturalise. Citizenship will be conferred only by birth or naturalisation, under a founding treaty.")}</p>
+              <p className="text-xs sm:text-sm text-parchment/70 leading-relaxed max-w-2xl">{t("As proposed, permanent residents with five continuous years of residence who complete civic integration could apply to naturalise. Citizenship will be conferred only by birth or naturalisation, once Aletheia is established as a state.")}</p>
             </div>
             <div className="lg:col-span-4 flex flex-col sm:flex-row lg:flex-col gap-3 justify-end">
               <Link

@@ -9,9 +9,9 @@ import { Building2, Anchor, Zap, Globe2, AlertTriangle } from 'lucide-react';
 import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
 
 const SECTORS = [
-  { icon: Anchor, tone: 'text-gold', title: 'Ports & Logistics', desc: 'Container berths, cold-chain storage and bunkering, within a territory agreed by treaty.' },
+  { icon: Anchor, tone: 'text-gold', title: 'Ports & Logistics', desc: 'Container berths, cold-chain storage and bunkering, on Aletheia’s platforms.' },
   { icon: Zap, tone: 'text-laurel', title: 'Clean Energy', desc: 'Offshore wind, subsea cables and green hydrogen, as set out in the design studies.' },
-  { icon: Building2, tone: 'text-navy', title: 'Urban Development', desc: 'Housing, university campuses and laboratories in a future pilot zone.' },
+  { icon: Building2, tone: 'text-navy', title: 'Urban Development', desc: 'Housing, university campuses and laboratories on a future pilot platform.' },
   { icon: Globe2, tone: 'text-gold', title: 'Digital Connectivity', desc: 'Cable landing stations and data centres.' },
 ];
 
@@ -36,7 +36,7 @@ export default function InvestPage() {
 
             <h1 className="heading-hero">{t("Building Aletheia, Together")}</h1>
 
-            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("How partners and investors could one day take part in building Aletheia: in ports, clean energy and a pilot zone, alongside a host state. Nothing is offered today.")}</p>
+            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("How partners and investors could one day take part in building Aletheia: in ports, clean energy and a pilot platform. Nothing is offered today.")}</p>
           </div>
         </div>
       </section>
@@ -54,8 +54,8 @@ export default function InvestPage() {
         <div className="bg-white border border-navy/15 rounded-sm p-8 shadow-sm space-y-6">
           <div className="max-w-2xl space-y-2">
             <span className="text-xs font-bold text-gold uppercase tracking-wider">{t("Future Sectors")}</span>
-            <h3 className="text-2xl font-bold text-navy">{t("Where Partnership Could Follow a Treaty")}</h3>
-            <p className="text-xs text-navy/70">{t("Sectors drawn from the design studies. Each depends on a founding treaty and the consent of the host state.")}</p>
+            <h3 className="text-2xl font-bold text-navy">{t("Where Partnership Could Follow")}</h3>
+            <p className="text-xs text-navy/70">{t("Sectors drawn from the design studies. Each depends on the first platform being built.")}</p>
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 text-xs">
@@ -75,12 +75,12 @@ export default function InvestPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
           <StarOfTruth size={36} className="mx-auto" />
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-parchment">{t("Talk to the Founding Team")}</h2>
-          <p className="text-xs sm:text-sm text-parchment/70 max-w-xl mx-auto leading-relaxed">{t("Governments and organisations interested in a future partnership are welcome to write. Host-state discussions are confidential.")}</p>
+          <p className="text-xs sm:text-sm text-parchment/70 max-w-xl mx-auto leading-relaxed">{t("Governments and organisations interested in a future partnership are welcome to write. Enquiries are confidential.")}</p>
           <div className="flex flex-wrap justify-center gap-4 pt-2">
             <Link
-              href="/host-nations"
+              href="/development#seastead"
               className="px-6 py-2.5 bg-gold text-navy font-bold text-xs uppercase tracking-wider rounded-sm hover:bg-gold-tint transition-all"
-            >{t("For Host Nations")}</Link>
+            >{t("The Seastead")}</Link>
             <Link
               href="/contact"
               className="px-6 py-2.5 border border-gold/30 text-parchment font-semibold text-xs uppercase tracking-wider rounded-sm hover:border-gold/60 transition-colors"

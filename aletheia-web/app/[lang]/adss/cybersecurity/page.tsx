@@ -37,7 +37,7 @@ export default function CybersecurityPage() {
 
             <h1 className="heading-hero">{t("Protecting Digital Infrastructure")}</h1>
 
-            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("A planned department to protect Aletheia’s digital infrastructure: the StableChain validators, the registries and, in future, the networks of a territory agreed by treaty. Today, the founding team looks after the security of this website and the testnet.")}</p>
+            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("A planned department to protect Aletheia’s digital infrastructure: the StableChain validators, the registries and, in future, the networks of its platforms. Today, the founding team looks after the security of this website and the testnet.")}</p>
 
             <div className="flex flex-wrap gap-4 pt-2">
               <a

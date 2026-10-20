@@ -49,7 +49,7 @@ export default function FoundingMembersPage() {
         eyebrow="Founding Members"
         image="friendsSunset"
         title="Become a Founding Member"
-        lead="Aletheia is forming its founding community: the people who will shape its institutions, help secure a founding treaty, and, in time, settle its first territory."
+        lead="Aletheia is forming its founding community: the people who will shape its institutions, help build its first platform, and, in time, live on it."
       />
 
       <section className="py-16 lg:py-24">

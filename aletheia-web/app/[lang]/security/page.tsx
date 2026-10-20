@@ -15,8 +15,8 @@ const DIRECTORATES: { id: string; title: string; tag: string; asset?: AssetKey; 
     title: 'Coastguard & Rescue',
     tag: 'Search, Rescue & Coastal Safety',
     status: 'Planned',
-    mandate: 'Would provide search and rescue and coastal safety in the waters agreed with the host state, in cooperation with its authorities.',
-    assets: ['Rescue vessels', 'Air-sea rescue helicopters', 'Coastal radar', 'Cooperation with the host state'],
+    mandate: 'Would provide search and rescue and coastal safety in the waters around Aletheia’s platforms, in cooperation with neighbouring coastguards.',
+    assets: ['Rescue vessels', 'Air-sea rescue helicopters', 'Coastal radar', 'Cooperation with neighbouring states'],
   },
   {
     id: 'police',
@@ -64,7 +64,7 @@ export default function SecurityPage() {
 
             <h1 className="heading-hero">{t("Resilience & Civil Protection")}</h1>
 
-            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("Planned civil-protection and resilience functions under civilian command: rescue, policing, emergency response and the protection of digital infrastructure. None exists yet, and none will operate before a founding treaty.")}</p>
+            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("Planned civil-protection and resilience functions under civilian command: rescue, policing, emergency response and the protection of digital infrastructure. None exists yet, and none will operate before statehood.")}</p>
 
             <div className="flex flex-wrap gap-4 pt-2">
               <Link

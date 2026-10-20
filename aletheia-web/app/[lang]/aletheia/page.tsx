@@ -50,7 +50,7 @@ export default function AletheiaPage() {
 
             <p className="text-lg sm:text-xl text-parchment/80 font-serif italic max-w-2xl">{t("“Veritas in Foedere” — Truth in Covenant. A constitutional state designed for human dignity, institutional transparency, and maritime liberty.")}</p>
 
-            <p className="text-sm sm:text-base text-parchment/65 leading-relaxed font-light max-w-2xl">{t("Aletheia is a founding-phase project to build a maritime nation, by treaty: one founded on the supremacy of constitutional law, verifiable public registries, and a civic covenant between citizens and state institutions.")}</p>
+            <p className="text-sm sm:text-base text-parchment/65 leading-relaxed font-light max-w-2xl">{t("Aletheia is a founding-phase project to build a maritime nation at sea: one founded on the supremacy of constitutional law, verifiable public registries, and a civic covenant between citizens and state institutions.")}</p>
 
             <div className="flex flex-wrap gap-4 pt-4">
               <Link
@@ -59,9 +59,9 @@ export default function AletheiaPage() {
               >{t("Read The Covenant")}{' '}<ArrowRight className="w-3.5 h-3.5" />
               </Link>
               <Link
-                href="/development#treaty"
+                href="/development#seastead"
                 className="px-6 py-3 border border-gold/30 text-parchment font-semibold text-xs uppercase tracking-wider rounded-sm hover:border-gold/60 transition-colors"
-              >{t("Territory by Treaty")}</Link>
+              >{t("The Seastead")}</Link>
               <Link
                 href="/founding-members"
                 className="px-6 py-3 bg-navy-deep/80 border border-navy/30 text-parchment/80 font-semibold text-xs uppercase tracking-wider rounded-sm hover:text-parchment transition-colors"
@@ -89,7 +89,7 @@ export default function AletheiaPage() {
             </div>
             <div className="space-y-1">
               <span className="text-[10px] font-mono uppercase tracking-widest text-gold/70">{t("Territory")}</span>
-              <p className="text-lg font-bold text-parchment">{t("To be secured by treaty")}</p>
+              <p className="text-lg font-bold text-parchment">{t("A seastead Aletheia owns")}</p>
             </div>
           </div>
         </div>
@@ -122,7 +122,7 @@ export default function AletheiaPage() {
               <div className="lg:col-span-7 space-y-6">
                 <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">{t("The Genesis of Aletheia")}</span>
                 <h2 className="text-3xl sm:text-4xl font-bold text-navy tracking-tight leading-tight">{t("A state to be founded not upon conquest, but upon voluntary compact.")}</h2>
-                <p className="text-base text-navy/80 leading-relaxed">{t("The Sovereign Covenant State of Aletheia is conceived to reconcile the ancient European tradition of legal covenant with twenty-first-century institutional engineering. In traditional states, sovereignty often rests on historical accident; in Aletheia, it would rest on a Covenant ratified by free citizens, and on a founding treaty with a host state.")}</p>
+                <p className="text-base text-navy/80 leading-relaxed">{t("The Sovereign Covenant State of Aletheia is conceived to reconcile the ancient European tradition of legal covenant with twenty-first-century institutional engineering. In traditional states, sovereignty often rests on historical accident; in Aletheia, it would rest on a Covenant ratified by free citizens, on territory it has built for itself.")}</p>
                 <div className="grid sm:grid-cols-2 gap-4 pt-2">
                   <div className="p-4 bg-white border border-navy/10 rounded-sm space-y-2">
                     <div className="flex items-center gap-2 text-navy font-bold text-sm">
@@ -220,9 +220,9 @@ export default function AletheiaPage() {
           <div className="space-y-8">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
               <div className="lg:col-span-6 space-y-6">
-                <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">{t("Land First, Sea After")}</span>
+                <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">{t("A Nation at Sea")}</span>
                 <h2 className="text-3xl sm:text-4xl font-bold text-navy tracking-tight leading-tight">{t("A maritime vision, under the law of the sea.")}</h2>
-                <p className="text-base text-navy/80 leading-relaxed">{t("Aletheia exercises no maritime jurisdiction today. Its maritime districts would be developed within a territory agreed by treaty, with the host state’s consent and under the United Nations Convention on the Law of the Sea (UNCLOS).")}</p>
+                <p className="text-base text-navy/80 leading-relaxed">{t("Aletheia exercises no maritime jurisdiction today. Its maritime districts would be built as platforms beyond any state’s exclusive economic zone, under the United Nations Convention on the Law of the Sea (UNCLOS).")}</p>
                 <ul className="space-y-3 text-sm text-navy/75">
                   <li className="flex items-start gap-3">
                     <CheckCircle2 className="w-4 h-4 text-laurel shrink-0 mt-0.5" />
@@ -261,7 +261,7 @@ export default function AletheiaPage() {
             <div className="max-w-2xl space-y-3">
               <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">{t("Long-Term Design")}</span>
               <h2 className="text-2xl sm:text-3xl font-bold text-navy tracking-tight">{t("The Five States: a Design Study")}</h2>
-              <p className="text-sm text-navy/70 leading-relaxed">{t("The long-term design divides Aletheia into five states, each with self-government under the Covenant. These are design studies; their scale and location will be set by treaty, beginning with a pilot zone.")}</p>
+              <p className="text-sm text-navy/70 leading-relaxed">{t("The long-term design divides Aletheia into five states, each with self-government under the Covenant. These are design studies, to be built at sea platform by platform, beginning with a pilot platform.")}</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -313,7 +313,7 @@ export default function AletheiaPage() {
               <div className="p-6 bg-navy text-parchment rounded-sm space-y-3 flex flex-col justify-center">
                 <span className="text-xs font-mono text-gold uppercase">{t("Territorial Masterplan")}</span>
                 <h4 className="text-base font-bold text-parchment">{t("The Development Design Study")}</h4>
-                <p className="text-xs text-parchment/70">{t("Explore the design study, and the treaty-first path to territory.")}</p>
+                <p className="text-xs text-parchment/70">{t("Explore the design study, and the plan for a sovereign seastead.")}</p>
                 <Link href="/development" className="text-xs text-gold font-bold hover:underline inline-flex items-center gap-1 pt-1">{t("View Development Plan")}{' '}<ArrowRight className="w-3.5 h-3.5" />
                 </Link>
               </div>

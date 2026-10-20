@@ -37,9 +37,8 @@ export const MAIN_NAVIGATION: NavItem[] = [
         group: 'The Founding Project',
         items: [
           { title: 'Founding Team', href: '/about', desc: 'Who is building Aletheia, and how to reach them' },
-          { title: 'Roadmap', href: '/roadmap', desc: 'An honest path, phase by phase, to a founding treaty' },
+          { title: 'Roadmap', href: '/roadmap', desc: 'An honest path, phase by phase, to a pilot platform' },
           { title: 'Founding Thesis', href: '/thesis', desc: 'Legal structure, governance, economics and diplomacy' },
-          { title: 'For Host Nations', href: '/host-nations', desc: 'A partnership offer to governments, by treaty' },
         ],
       },
       {
@@ -81,7 +80,7 @@ export const MAIN_NAVIGATION: NavItem[] = [
           { title: 'Treasury & Finance', href: '/treasury', desc: 'The Covenant Endowment design and public balance-sheet model' },
           { title: 'Digital State & Registries', href: '/technology', desc: 'StableChain testnet, digital identity design and registries' },
           { title: 'Resilience & Civil Protection', href: '/security', desc: 'Planned civil oversight of resilience and cyber protection' },
-          { title: 'Foreign Affairs & Justice', href: '/government/ministry-of-foreign-affairs', desc: 'Host-state relations, treaties and the travel-document design' },
+          { title: 'Foreign Affairs & Justice', href: '/government/ministry-of-foreign-affairs', desc: 'Diplomatic relations, treaties and the travel-document design' },
           { title: 'All Ministries Directory', href: '/government', desc: 'The proposed ministries and their mandates' },
         ],
       },
@@ -127,7 +126,7 @@ export const MAIN_NAVIGATION: NavItem[] = [
       {
         group: 'Territory & Design Studies',
         items: [
-          { title: 'Territory by Treaty', href: '/development#treaty', desc: 'A first territory to be secured by treaty with a host state', asset: 'territory' },
+          { title: 'The Seastead', href: '/development#seastead', desc: 'A territory at sea that Aletheia builds and owns', asset: 'territory' },
           { title: 'Antioch (Federal District)', href: '/development#antioch', desc: 'Design study for a concentric capital city', asset: 'antioch' },
           { title: 'St. Barbara State', href: '/development#barbara', desc: 'Aerospace, engineering and civil-protection functions', asset: 'antioch' },
           { title: 'Augustine State', href: '/development#augustine', desc: 'Medicine, universities, research, and civic life', asset: 'antioch' },
@@ -138,10 +137,9 @@ export const MAIN_NAVIGATION: NavItem[] = [
       {
         group: 'Infrastructure & Engineering',
         items: [
-          { title: 'Development Map', href: '/development#map', desc: 'A design-study map; location to be set by treaty', status: 'Vision' },
+          { title: 'Development Map', href: '/development#map', desc: 'A design-study map; to be built at sea', status: 'Vision' },
           { title: 'Clean Energy', href: '/energy', desc: 'Offshore wind, small modular reactors and hydrogen: design studies', status: 'Vision' },
           { title: 'Ports & Coastal Works', href: '/infrastructure', desc: 'Port and coastal engineering design studies', asset: 'maritime' },
-          { title: 'For Host Nations', href: '/host-nations', desc: 'How a host state and Aletheia would build together' },
         ],
       },
     ],

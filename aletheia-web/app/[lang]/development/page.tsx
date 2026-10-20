@@ -11,7 +11,7 @@ import { HexagonCross } from '@/components/brand/Logo';
 import { unsplash, type PhotoKey } from '@/lib/imagery';
 import type { ManualStatus } from '@/lib/status';
 import { MontevideoTable } from '@/components/ui/StatusTables';
-import { TreatyPrinciples } from '@/components/development/TreatyPrinciples';
+import { SeasteadPrinciples } from '@/components/development/SeasteadPrinciples';
 import { Anchor, ArrowRight, Building2, CheckCircle, Cpu, Fish, Globe, GraduationCap, Shield, Sprout, TreePine, Wheat, Zap } from 'lucide-react';
 
 const DISTRICTS = [
@@ -103,9 +103,9 @@ const STATES: State[] = [
 
 const ROADMAP: { year: string; title: string; status: ManualStatus }[] = [
   { year: 'Phase 0', title: 'Founding community, digital institutions & StableChain testnet', status: 'Under Development' },
-  { year: 'Phase 1', title: 'Founding Thesis, legal counsel & host-state research', status: 'Planned' },
-  { year: 'Phase 2', title: 'Host-state discussions & seed funding', status: 'Planned' },
-  { year: 'Phase 3', title: 'Founding treaty & a pilot zone', status: 'Planned' },
+  { year: 'Phase 1', title: 'Founding Thesis, legal counsel & seastead engineering research', status: 'Planned' },
+  { year: 'Phase 2', title: 'Platform design, site survey & seed funding', status: 'Planned' },
+  { year: 'Phase 3', title: 'A pilot platform, built and owned by Aletheia', status: 'Planned' },
   { year: 'Vision', title: 'Antioch & the maritime districts', status: 'Vision' },
 ];
 
@@ -115,22 +115,22 @@ export default function DevelopmentPage() {
   return (
     <div className="flex flex-col bg-parchment-canvas">
       <PageHero
-        eyebrow={t("Territory by Treaty")}
+        eyebrow={t("A Sovereign Seastead")}
         asset="territory"
         image="oceanAerial"
-        title={<>{t("Territory by treaty,")}{' '}<span className="text-gold-metallic">{t("a capital by design.")}</span></>}
-        lead={t("Aletheia will not claim land. Its first territory will be secured by treaty with a host state, beginning with a pilot zone. Antioch and the four founding states are long-term design studies.")}
+        title={<>{t("A seastead of our own,")}{' '}<span className="text-gold-metallic">{t("a capital by design.")}</span></>}
+        lead={t("Aletheia will not lease land from another state. It will build its own territory at sea, beginning with a single pilot platform. Antioch and the four founding states are long-term design studies.")}
       >
-        <Link href="#treaty" className="btn-sovereign-gold px-7 py-3.5 rounded-sm text-sm flex items-center gap-2 group">{t("Territory by Treaty")}{' '}<ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+        <Link href="#seastead" className="btn-sovereign-gold px-7 py-3.5 rounded-sm text-sm flex items-center gap-2 group">{t("The Seastead")}{' '}<ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
         </Link>
-        <Link href="/host-nations" className="btn-sovereign-ghost px-7 py-3.5 rounded-sm text-sm">{t("For Host Nations")}</Link>
+        <Link href="/founding-members" className="btn-sovereign-ghost px-7 py-3.5 rounded-sm text-sm">{t("Register interest")}</Link>
       </PageHero>
 
       {/* ── STATS ── */}
       <section className="bg-navy-deep border-b border-gold/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 md:grid-cols-5 md:divide-x divide-gold/15 gap-y-2">
           {[
-            { v: 'By treaty', l: 'Territory', s: 'Beginning with a pilot zone' },
+            { v: 'At sea', l: 'Territory', s: 'Beginning with a pilot platform' },
             { v: '1 + 4', l: 'Districts & states', s: 'A long-term design study' },
             { v: '6', l: 'Radial avenues', s: 'From the Constitutional Plaza' },
             { v: '40%', l: 'Green coverage', s: 'Proposed constitutional floor' },
@@ -145,15 +145,15 @@ export default function DevelopmentPage() {
         </div>
       </section>
 
-      {/* ── TERRITORY BY TREATY ── */}
-      <section id="treaty" className="section-xl border-b border-navy/08">
+      {/* ── A SOVEREIGN SEASTEAD ── */}
+      <section id="seastead" className="section-xl border-b border-navy/08">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           <div className="max-w-3xl space-y-4">
-            <div className="eyebrow">{t("Territory by Treaty")}</div>
-            <h2 className="text-4xl font-bold tracking-tight text-navy leading-tight">{t("Aletheia will not claim land. It will be granted land, by agreement.")}</h2>
-            <p className="text-navy/65 leading-[1.85] font-light">{t("The Sovereign Covenant State follows a treaty-first path: its first territory will be secured through a long-term leasehold or shared-sovereignty arrangement with an existing, recognised state, negotiated openly and entered into by mutual consent. We do not pursue the high seas, disputed territory or unilateral declaration. A covenant nation must itself be founded by covenant.")}</p>
+            <div className="eyebrow">{t("A Sovereign Seastead")}</div>
+            <h2 className="text-4xl font-bold tracking-tight text-navy leading-tight">{t("Aletheia will not lease land. It will build its own.")}</h2>
+            <p className="text-navy/65 leading-[1.85] font-light">{t("Land leased from an existing state can be taken back, and a nation built on it would live under its landlord’s law. Aletheia will instead be a seastead: platforms that it designs, builds and owns outright, sited beyond any state’s exclusive economic zone under the freedoms of the high seas. It begins with a single pilot platform and grows platform by platform. Recognition as a state is not automatic; it must be earned, openly, from other nations.")}</p>
           </div>
-          <TreatyPrinciples />
+          <SeasteadPrinciples />
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             <div className="lg:col-span-7 space-y-4">
               <h3 className="text-2xl font-bold text-navy">{t("The path to statehood")}</h3>
@@ -162,8 +162,8 @@ export default function DevelopmentPage() {
             </div>
             <div className="lg:col-span-5 bg-navy-deep text-parchment rounded-sm border border-gold/25 p-7 space-y-4">
               <h3 className="text-lg font-bold">{t("Everything below is a design study")}</h3>
-              <p className="text-sm text-parchment/72 leading-relaxed font-light">{t("Antioch and the four founding states describe Aletheia’s long-term national design. They are design studies for the future, not current holdings. Their scale and location will be set by treaty, beginning with a pilot zone of modest size.")}</p>
-              <Link href="/host-nations" className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gold hover:text-gold-tint transition-colors group">{t("For Host Nations")}{' '}<ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" /></Link>
+              <p className="text-sm text-parchment/72 leading-relaxed font-light">{t("Antioch and the four founding states describe Aletheia’s long-term national design. They are design studies for the future, not current holdings. They would be built at sea, platform by platform, beginning with a single pilot platform.")}</p>
+              <Link href="/roadmap" className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gold hover:text-gold-tint transition-colors group">{t("See the roadmap")}{' '}<ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" /></Link>
             </div>
           </div>
         </div>
@@ -178,7 +178,7 @@ export default function DevelopmentPage() {
               <StatusBadge asset="antioch" size="sm" />
             </div>
             <h2 className="text-4xl font-bold tracking-tight text-navy leading-tight">{t("Select a territory to explore its mandate.")}</h2>
-            <p className="text-navy/65 leading-[1.85] font-light">{t("The design-study map: the Antioch Federal District at the centre, ringed by the four founding states, each carrying one quarter of the national arms and a distinct economic mandate. It shows no real place; location and scale will be set by treaty.")}</p>
+            <p className="text-navy/65 leading-[1.85] font-light">{t("The design-study map: the Antioch Federal District at the centre, ringed by the four founding states, each carrying one quarter of the national arms and a distinct economic mandate. It shows no real place; the layout would be adapted to the platforms as they are built.")}</p>
             <ul className="space-y-2">
               {[{ id: 'antioch', name: 'Antioch Federal District', capital: 'Antioch' }, ...STATES].map((s) => (
                 <li key={s.id}>
@@ -393,10 +393,10 @@ export default function DevelopmentPage() {
       <section className="cta-banner py-20 relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
           <div className="space-y-3 max-w-2xl">
-            <h2 className="text-3xl font-bold text-parchment">{t("A government with land or coastline to partner on?")}</h2>
-            <p className="text-parchment/60 text-sm font-light">{t("Aletheia welcomes confidential discussions with interested states about a treaty partnership.")}</p>
+            <h2 className="text-3xl font-bold text-parchment">{t("Help build the first platform.")}</h2>
+            <p className="text-parchment/60 text-sm font-light">{t("Aletheia is forming its founding community: engineers, lawyers, financiers and future residents.")}</p>
           </div>
-          <Link href="/host-nations" className="btn-sovereign-gold px-8 py-4 rounded-sm text-sm flex items-center gap-2 group">{t("For Host Nations")}{' '}<ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          <Link href="/founding-members" className="btn-sovereign-gold px-8 py-4 rounded-sm text-sm flex items-center gap-2 group">{t("Register interest")}{' '}<ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
       </section>

@@ -23,7 +23,7 @@ const RIGHTS = [
   'Right to vote in Covenant Assembly elections',
   'Right to hold elected or appointed public office',
   'Right to a travel document, once Aletheia may lawfully issue one',
-  'Right to reside in Aletheian territory, once agreed by treaty',
+  'Right to reside on Aletheian territory, once it is built',
   'Right to access all civic services without fee',
   'Right to education and healthcare under the Covenant',
   'Freedom of expression, assembly, and conscience',
@@ -43,13 +43,13 @@ const PATHWAYS = [
     title: 'Citizenship by Birth',
     desc: 'A child born to an Aletheian citizen would be a citizen by birth, and would swear the Covenant Oath on coming of age.',
     status: 'Proposed' as const,
-    detail: 'Requires a founding treaty and a lawful register of citizens.',
+    detail: 'Requires statehood and a lawful register of citizens.',
   },
   {
     title: 'Naturalisation by Residence',
     desc: 'After 5 years of lawful, continuous physical residence in an Aletheian territory, residents could apply for citizenship through naturalisation.',
     status: 'Proposed' as const,
-    detail: 'Requires a territory agreed by treaty. Physical residence required.',
+    detail: 'Requires a built platform. Physical residence required.',
   },
 ];
 
@@ -92,7 +92,7 @@ export default function CitizenshipPage() {
               <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.04] text-parchment">{t("Membership by")}{' '}
                 <span className="text-gold-metallic">{t("covenant,")}</span>
                 <br />{t("not by accident of birth.")}</h1>
-              <p className="text-base sm:text-xl text-parchment/70 leading-relaxed font-light max-w-2xl">{t("Aletheian citizenship is proposed as a voluntary, bilateral covenant between the individual and the Sovereign Covenant State. Citizenship will be conferred only by birth or naturalisation, under a founding treaty. It is never sold, and no applications are accepted.")}</p>
+              <p className="text-base sm:text-xl text-parchment/70 leading-relaxed font-light max-w-2xl">{t("Aletheian citizenship is proposed as a voluntary, bilateral covenant between the individual and the Sovereign Covenant State. Citizenship will be conferred only by birth or naturalisation, once Aletheia is established as a state. It is never sold, and no applications are accepted.")}</p>
             </div>
 
             <div className="flex flex-wrap gap-4 pt-2">
@@ -100,7 +100,7 @@ export default function CitizenshipPage() {
                 <span>{t("Register interest as a Founding Member")}</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
-              <Link href="/development#treaty" className="btn-sovereign-ghost px-8 py-3.5 rounded-sm text-sm">{t("Territory by Treaty")}</Link>
+              <Link href="/development#seastead" className="btn-sovereign-ghost px-8 py-3.5 rounded-sm text-sm">{t("The Seastead")}</Link>
             </div>
 
             {/* Key stat strip */}
@@ -146,7 +146,7 @@ export default function CitizenshipPage() {
               <span className="text-gold-metallic">{t("citizenship.")}</span>
             </h2>
             <div className="rule-gold mt-5 max-w-xs" />
-            <p className="text-navy/60 mt-4 text-sm leading-relaxed">{t("Citizenship will be conferred only by birth or naturalisation, under a founding treaty, as set out in the proposed Nationality & Naturalisation Act. It can never be bought.")}</p>
+            <p className="text-navy/60 mt-4 text-sm leading-relaxed">{t("Citizenship will be conferred only by birth or naturalisation, once Aletheia is established as a state, as set out in the proposed Nationality & Naturalisation Act. It can never be bought.")}</p>
           </div>
 
           <div className="grid md:grid-cols-2 gap-6">

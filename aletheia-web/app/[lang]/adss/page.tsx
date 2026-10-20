@@ -31,12 +31,12 @@ const DIRECTORATES: { id: string; code: string; title: string; subtitle: string;
     icon: <Anchor className="w-6 h-6 text-gold" />,
     status: 'Planned',
     href: '/adss#navy',
-    mandate: 'Would conduct search and rescue and keep coastal waters safe, within the waters agreed with the host state and in cooperation with its authorities.',
+    mandate: 'Would conduct search and rescue and keep the waters around Aletheia’s platforms safe, in cooperation with neighbouring coastguards.',
     capabilities: [
       'Search and rescue coordination',
       'Coastal and harbour safety',
       'Protection of offshore installations',
-      'Cooperation with the host state’s coastguard',
+      'Cooperation with neighbouring coastguards',
     ],
     commandBasis: 'Draft Constitution Art. 46; proposed Maritime Safety Act',
   },
@@ -65,12 +65,12 @@ const DIRECTORATES: { id: string; code: string; title: string; subtitle: string;
     icon: <Globe className="w-6 h-6 text-gold" />,
     asset: 'immigration',
     href: '/adss#immigration',
-    mandate: 'Would administer border checks and residence permits within a territory agreed by treaty. It issues nothing today.',
+    mandate: 'Would administer border checks and residence permits on Aletheia’s platforms. It issues nothing today.',
     capabilities: [
       'Border administration',
       'Visa and residence permits',
       'E-residency compliance',
-      'Cooperation with the host state',
+      'Cooperation with neighbouring states',
     ],
     commandBasis: 'Draft Constitution Art. 46; proposed Border Administration Act',
   },
@@ -177,7 +177,7 @@ export default function ADSSPage() {
             {[
               { label: 'Planned Functions', value: '4', sub: 'Under one civilian minister' },
               { label: 'Civilian Command', value: '100%', sub: 'By design' },
-              { label: 'Operating Today', value: 'None', sub: 'Before a founding treaty' },
+              { label: 'Operating Today', value: 'None', sub: 'Before statehood' },
               { label: 'Surveillance Warrant', value: 'Required', sub: 'High Court order, as proposed' },
             ].map((m) => (
               <div key={m.label} className="bg-navy-deep/80 border border-gold/15 rounded-[4px] p-4">

@@ -75,7 +75,7 @@ export default function ConstitutionPage() {
             <h1 className="heading-hero">{t("The Covenant")}<br />
               <span className="text-gold-metallic">{t("of Aletheia")}</span>
             </h1>
-            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("The draft constitution of the Sovereign Covenant State of Aletheia, published for review. It has no legal force; it would bind government, the states and citizens only once adopted under a founding treaty.")}</p>
+            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("The draft constitution of the Sovereign Covenant State of Aletheia, published for review. It has no legal force; it would bind government, the states and citizens only once ratified.")}</p>
           </div>
 
           {/* Action Row */}
