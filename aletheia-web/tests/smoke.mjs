@@ -44,7 +44,6 @@ await expect('/pdf/constitution', { status: 200, type: 'application/pdf' });
 for (const s of ids('lib/statutes.ts', 'slug')) await expect(`/pdf/statutes/${s}`, { status: 200, type: 'application/pdf' });
 for (const s of ids('lib/gazette.ts', 'slug')) await expect(`/pdf/gazette/${s}`, { status: 200, type: 'application/pdf' });
 for (const s of ids('lib/documents.ts', 'id')) await expect(`/pdf/documents/${s}`, { status: 200, type: 'application/pdf' });
-for (const s of ids('lib/bonds.ts', 'id')) await expect(`/pdf/bonds/${s}`, { status: 200, type: 'application/pdf' });
 await expect('/pdf/statutes/no-such-act', { status: 404 });
 
 if (failures.length) {

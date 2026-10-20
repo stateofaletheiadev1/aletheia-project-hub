@@ -1,129 +1,141 @@
 import type { PhotoKey } from '@/lib/imagery';
+import type { ManualStatus } from '@/lib/status';
 
-export type GazetteCategory = 'Executive Decree' | 'Territory & Engineering' | 'Diplomacy' | 'Regulatory';
+export type GazetteCategory = 'Founding Document' | 'Design Record' | 'Planning Note';
 
 export interface GazettePost {
   slug: string;
   number: string;
   title: string;
   category: GazetteCategory;
+  /** What the record describes: a design, a proposal or a plan. Never an event that did not happen. */
+  status: ManualStatus;
   date: string;
   summary: string;
-  /** Full bulletin text, one paragraph per entry. */
+  /** Full text, one paragraph per entry. */
   body: string[];
   signatory: string;
   image: PhotoKey;
   readMinutes: number;
 }
 
-export const GAZETTE_CATEGORIES: GazetteCategory[] = [
-  'Executive Decree',
-  'Territory & Engineering',
-  'Diplomacy',
-  'Regulatory',
-];
+export const GAZETTE_CATEGORIES: GazetteCategory[] = ['Founding Document', 'Design Record', 'Planning Note'];
 
-/** Official Gazette bulletins, newest first. */
+/** Shown at the top of the Gazette and on every record. */
+export const GAZETTE_NOTICE = 'Founding-phase records. These documents have no legal force.';
+
+/** Earlier addresses of records that were renamed, for redirects. */
+export const GAZETTE_RENAMED: Record<string, string> = {
+  'icao-td3-passport-standard': 'travel-document-design-concept',
+  'offshore-wind-concession-round': 'offshore-wind-design-study',
+  'maritime-environmental-accord': 'marine-environmental-monitoring',
+};
+
+/** Gazette records, newest first. */
 export const GAZETTE_POSTS: GazettePost[] = [
   {
-    slug: 'icao-td3-passport-standard',
-    number: 'DEC-2026-09',
-    title: 'Promulgation of the ICAO TD3 eMRTD Passport Standard',
-    category: 'Regulatory',
+    slug: 'travel-document-design-concept',
+    number: 'REC-2026-09',
+    title: 'Design Concept: Aletheian Travel Document',
+    category: 'Design Record',
+    status: 'Proposed',
     date: '2026-09-28',
     summary:
-      'The Ministry of Foreign Affairs & Justice adopts ICAO Doc 9303 standards for machine-readable biometric passports in Covenant Burgundy.',
+      'A design concept for a future Aletheian travel document, in Covenant Burgundy, is published for comment.',
     body: [
-      'Pursuant to Article 8 of the Covenant of Aletheia, the Ministry of Foreign Affairs & Justice has finalised the technical baseline for the national biometric passport.',
-      'The specification adopts ICAO Doc 9303 Part 4 (TD3) with an 80 KB contactless microcontroller, Supplemental Access Control (SAC), Extended Access Control (EAC) for fingerprint data groups, and a laser-engraved polycarbonate data page.',
-      'Issuance begins in a pilot phase with the founding cohort of citizens. Production issuance follows certification of the Country Signing Certificate Authority and accession to the ICAO Public Key Directory.',
+      'The founding team has published a design concept for a future Aletheian travel document, drawn up with reference to international travel-document conventions.',
+      'The concept describes a Covenant Burgundy booklet, a polycarbonate data page and an electronic chip. It is a design only: no document has been produced or issued, and none will be issued unless Aletheia is established by treaty and has the lawful authority to do so.',
+      'The design concept, overprinted as a specimen, is shown on the travel-document design page.',
     ],
-    signatory: 'Chancellor & Minister of Foreign Affairs',
+    signatory: 'Founding Team',
     image: 'flight',
-    readMinutes: 3,
+    readMinutes: 2,
   },
   {
     slug: 'st-brendan-maritime-terminus',
-    number: 'DEC-2026-08',
-    title: 'Groundbreaking on the St. Brendan Autonomous Maritime Terminus',
-    category: 'Territory & Engineering',
+    number: 'REC-2026-08',
+    title: 'Design Study Published: St. Brendan Maritime Terminus (Vision)',
+    category: 'Design Record',
+    status: 'Vision',
     date: '2026-09-14',
     summary:
-      'Engineering contracts awarded for Phase 1 of deepwater container logistics, marine renewables and automated border gates at Port Nicholas.',
+      'A design study for a deepwater port at Port Nicholas, St. Brendan, is published. No site has been chosen and no works have begun.',
     body: [
-      'The Ministry of Territorial Development announces commencement of geotechnical survey and marine anchoring works for the St. Brendan port complex at Port Nicholas.',
-      'Phase 1 comprises an automated container crane network, customs-bonded warehousing, a renewable marine microgrid and biometric e-gates for passenger traffic.',
-      'All contract awards, milestone payments and inspection certificates are recorded on the public ledger and summarised quarterly by the Auditor-General.',
+      'The founding team has published a design study for the St. Brendan Maritime Terminus, a deepwater port at Port Nicholas in the long-term Antioch plan.',
+      'The study sketches automated container handling, bonded warehousing, a renewable microgrid and passenger facilities. It is a vision for the future, not a project under way: no site has been chosen, no contracts have been awarded and no works have begun.',
+      'Any port would be built only within a territory agreed by treaty with a host state, with that state’s consent and under international maritime law.',
     ],
-    signatory: 'Minister of Territorial Development',
+    signatory: 'Founding Team',
     image: 'containerPort',
-    readMinutes: 4,
+    readMinutes: 2,
   },
   {
     slug: 'public-key-directory',
-    number: 'DEC-2026-07',
-    title: 'Establishment of the Public Cryptographic State Key Directory',
-    category: 'Executive Decree',
+    number: 'REC-2026-07',
+    title: 'Design Record: A Public Key Directory',
+    category: 'Design Record',
+    status: 'Planned',
     date: '2026-08-30',
     summary:
-      'Country signing root certificates to be distributed to international aviation and maritime border checkpoints.',
+      'How Aletheia plans to publish the keys that sign its records, so anyone can check them.',
     body: [
-      'Executive Order 2026-14 mandates public availability of the Country Signing CA (CSCA) root certificate to facilitate automated e-Gate passage for Aletheian passport holders.',
-      'The directory will also publish validator keys for StableChain state nodes and the signing keys of the Official Gazette, so any citizen can verify a decree independently.',
+      'This record describes a planned public directory of the keys that sign Aletheia’s published records.',
+      'In its first form it would publish the signing keys of the StableChain testnet validators and of the Gazette, so anyone can check a published record independently. Keys for travel documents would be added only if such documents were ever lawfully issued.',
     ],
-    signatory: 'Chancellor of the Sovereign Covenant State',
+    signatory: 'Founding Team',
     image: 'circuitGlow',
     readMinutes: 2,
   },
   {
-    slug: 'maritime-environmental-accord',
-    number: 'DEC-2026-06',
-    title: 'Scientific & Maritime Environmental Accord for the North Sea',
-    category: 'Diplomacy',
+    slug: 'marine-environmental-monitoring',
+    number: 'REC-2026-06',
+    title: 'Proposal: Marine Environmental Monitoring',
+    category: 'Planning Note',
+    status: 'Proposed',
     date: '2026-08-12',
     summary:
-      'A partnership for high-resolution seabed mapping and sustainable North Sea ecology monitoring.',
+      'A proposal for open seabed mapping and marine-ecology monitoring, to be agreed with a future host state.',
     body: [
-      'Aletheia enters into mutual environmental monitoring protocols to protect pelagic ecosystems within its proposed maritime zones.',
-      'Autonomous solar-powered surface vessels will provide continuous oceanographic telemetry, published as open data under the transparency mandate.',
+      'This note proposes how Aletheia would monitor the marine environment of any territory it is granted by treaty.',
+      'The proposal includes seabed mapping, ecology monitoring by autonomous survey vessels, and the publication of all data as open data. No accord has been signed; any programme would be agreed with the host state.',
     ],
-    signatory: 'Department of Maritime Affairs',
+    signatory: 'Founding Team',
     image: 'oceanAerial',
     readMinutes: 2,
   },
   {
-    slug: 'offshore-wind-concession-round',
-    number: 'DEC-2026-05',
-    title: 'First Offshore Wind Concession Round Opened for Benedict State',
-    category: 'Territory & Engineering',
+    slug: 'offshore-wind-design-study',
+    number: 'REC-2026-05',
+    title: 'Design Study: Offshore Wind for Benedict State (Vision)',
+    category: 'Design Record',
+    status: 'Vision',
     date: '2026-07-21',
     summary:
-      'Expressions of interest invited for a 1.2 GW offshore wind array to anchor the sovereign clean grid.',
+      'A design study for offshore wind in the long-term Benedict plan. No concession exists and none is offered.',
     body: [
-      'The Ministry of Infrastructure & Energy invites expressions of interest from qualified developers for the first offshore wind concession off the Benedict coast.',
-      'Concession revenue flows to the Covenant Endowment rather than general taxation, consistent with the constitutional prohibition on personal income tax.',
-      'Evaluation criteria, bidder questions and the final award will be published in full in the Official Gazette.',
+      'The founding team has published a design study for offshore wind generation in Benedict State, part of the long-term Antioch plan.',
+      'The study describes how concession revenue could flow to the Covenant Endowment rather than to general taxation, as the draft Constitution proposes. No concession exists, none is offered, and no expressions of interest are sought.',
     ],
-    signatory: 'Minister of Infrastructure & Energy',
+    signatory: 'Founding Team',
     image: 'offshoreWind',
-    readMinutes: 3,
+    readMinutes: 2,
   },
   {
     slug: 'national-university-charter',
-    number: 'DEC-2026-04',
-    title: 'Charter Proposed for the National University of Aletheia',
-    category: 'Regulatory',
+    number: 'REC-2026-04',
+    title: 'Draft Charter Published: National University of Aletheia',
+    category: 'Founding Document',
+    status: 'Proposed',
     date: '2026-06-30',
     summary:
-      'Draft charter tabled for a research university at Augustine State with faculties of medicine, law, engineering and maritime science.',
+      'A draft charter for a future research university with faculties of medicine, law, engineering and maritime science.',
     body: [
-      'The Ministry of Education & Science has tabled a draft charter establishing the National University of Aletheia at Port Luke, Augustine State.',
-      'The charter guarantees academic freedom, publishes all research grants on the public ledger, and reserves founding scholarships for citizens and lawful residents.',
-      'The draft is open for public comment for ninety days before consideration by the Covenant Assembly.',
+      'A draft charter for a future National University of Aletheia, with faculties of medicine, law, engineering and maritime science, has been published for comment.',
+      'The draft guarantees academic freedom and the publication of all research grants. It has no legal force; it would be considered only once Aletheia has a lawful legislature. Comments are welcome through the contact page.',
     ],
-    signatory: 'Minister of Education & Science',
+    signatory: 'Founding Team',
     image: 'libraryAisle',
-    readMinutes: 3,
+    readMinutes: 2,
   },
 ];
 

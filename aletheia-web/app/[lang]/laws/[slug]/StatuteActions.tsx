@@ -19,7 +19,7 @@ export function StatuteActions({ slug }: { slug: string }) {
         rel="noopener"
         className="px-3 py-1.5 bg-navy text-gold font-bold uppercase tracking-wider rounded-sm hover:bg-navy-deep transition-colors flex items-center gap-1.5"
       >
-        <Download className="w-3.5 h-3.5" />{' '}{t("Official PDF")}</a>
+        <Download className="w-3.5 h-3.5" />{' '}{t("PDF Edition")}</a>
     </div>
   );
 }

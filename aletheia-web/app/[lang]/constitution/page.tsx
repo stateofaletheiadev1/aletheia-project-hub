@@ -66,7 +66,7 @@ export default function ConstitutionPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-7">
           <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 bg-navy-deep/80 border border-gold/40 rounded-sm backdrop-blur-sm">
             <StarOfTruth size={16} />
-            <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-gold">{t("Supreme Constitutional Charter")}</span>
+            <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-gold">{t("Draft Constitution")}</span>
             <span className="text-parchment/30">|</span>
             <span className="text-[11px] text-parchment/70 font-serif italic">{t("Edition 2026.3")}</span>
           </div>
@@ -75,7 +75,7 @@ export default function ConstitutionPage() {
             <h1 className="heading-hero">{t("The Covenant")}<br />
               <span className="text-gold-metallic">{t("of Aletheia")}</span>
             </h1>
-            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("The constitutional instrument establishing the Sovereign Covenant State of Aletheia. Every provision is an immutable public covenant binding government, constituent states, and citizens under the rule of verifiable law.")}</p>
+            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("The draft constitution of the Sovereign Covenant State of Aletheia, published for review. It has no legal force; it would bind government, the states and citizens only once adopted under a founding treaty.")}</p>
           </div>
 
           {/* Action Row */}
@@ -85,7 +85,7 @@ export default function ConstitutionPage() {
               className="px-5 py-2.5 bg-navy-deep/80 backdrop-blur-sm border border-gold/35 text-parchment hover:text-gold hover:border-gold/60 rounded-sm flex items-center gap-2 transition-all text-xs font-semibold uppercase tracking-wider"
             >
               <Printer className="w-3.5 h-3.5 text-gold" />
-              <span>{t("Print Official Version")}</span>
+              <span>{t("Print the Draft")}</span>
             </button>
             <a
               href="/pdf/constitution"
@@ -97,7 +97,7 @@ export default function ConstitutionPage() {
               <span>{t("Download PDF")}</span>
             </a>
             <span className="text-parchment/30">|</span>
-            <span className="text-parchment/60 font-mono text-xs">{t("Status: Authoritative Working Draft — Planning Instrument")}</span>
+            <span className="text-parchment/60 font-mono text-xs">{t("Status: Working draft. A proposal without legal force.")}</span>
           </div>
         </div>
       </section>

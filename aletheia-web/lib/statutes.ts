@@ -1,4 +1,4 @@
-/** Codified statutes of the Sovereign Covenant State — source of truth for /laws/[slug]. */
+/** Proposed Acts of the Sovereign Covenant State: drafts without legal force. Source of truth for /laws/[slug]. */
 
 export interface StatuteDetail {
   slug: string;
@@ -38,11 +38,11 @@ export const STATUTE_DATABASE: Record<string, StatuteDetail> = {
     title: 'Official Languages & Diplomatic Communication Act',
     article: 'Constitution Article 2 § 2',
     date: '2026-01-28',
-    hash: '14ea892018fa34091ec87201948ba209ef731204891230fca890214890ecb820',
+    hash: 'adfff80b8341114fbd4a689b0cea99e489ce1b3133272696963edd636d0a13e2',
     preamble: 'An Act providing for the official language regime of the Sovereign Covenant State, ensuring equal dignity for European languages and seamless global diplomatic representation.',
     sections: [
       { number: 'Section 1', heading: 'Official Languages', text: 'The official languages of The Sovereign Covenant State of Aletheia are English, German, Dutch, Serbian, and Italian. English shall serve as the primary procedural language for international commercial contracts.' },
-      { number: 'Section 2', heading: 'Bilingual & Multilingual State Documents', text: 'All primary constitutional texts, biometric passport inscriptions, and legal codes shall be published concurrently in the five official languages.' },
+      { number: 'Section 2', heading: 'Bilingual & Multilingual State Documents', text: 'All primary constitutional texts, travel-document inscriptions, and legal codes shall be published concurrently in the five official languages.' },
       { number: 'Section 3', heading: 'Judicial Proceedings', text: 'Parties to any civil, commercial, or criminal proceeding possess the statutory right to sworn simultaneous translation without fee.' },
     ],
     signatory: 'Minister of Foreign Affairs & Justice',
@@ -50,17 +50,17 @@ export const STATUTE_DATABASE: Record<string, StatuteDetail> = {
   'maritime-zones': {
     slug: 'maritime-zones',
     code: 'ACT-2026-03',
-    title: 'Maritime Zones & UNCLOS Jurisdiction Act',
+    title: 'Maritime Zones Act',
     article: 'Constitution Article 3 § 4',
     date: '2026-02-05',
-    hash: '77ba90123ca87201948ea20914be872190847b2c01948fe2198034a890123ca7',
-    preamble: 'An Act defining the maritime territorial limits, contiguous zone, and Exclusive Economic Zone of Aletheia in strict compliance with the United Nations Convention on the Law of the Sea.',
+    hash: 'fdd4edf14bb8710d0bb0da90a2e997f381b4950851ab3d794f7497dce07be806',
+    preamble: 'An Act providing that any maritime zones of Aletheia shall be those agreed with a host state by treaty, in strict compliance with the United Nations Convention on the Law of the Sea.',
     sections: [
-      { number: 'Section 1', heading: 'Territorial Sea Limit', text: 'The sovereignty of Aletheia extends to a territorial sea baseline of 12 nautical miles, encompassing all civil platforms, breakwaters, and natural baselines.' },
-      { number: 'Section 2', heading: 'Exclusive Economic Zone', text: 'The Sovereign Covenant State claims an Exclusive Economic Zone (EEZ) extending up to 200 nautical miles for the purpose of exploring, conserving, and managing marine pelagic resources, wave energy generation, and offshore wind.' },
+      { number: 'Section 1', heading: 'Zones by Agreement', text: 'Aletheia claims no maritime zone of its own motion. Any territorial sea, contiguous zone or other zone shall be only that agreed with the host state in the founding treaty.' },
+      { number: 'Section 2', heading: 'Marine Resources', text: 'Within any agreed zone, marine resources, wave energy and offshore wind shall be managed for conservation and shared benefit with the host state, as the founding treaty provides.' },
       { number: 'Section 3', heading: 'Right of Innocent Passage', text: 'Foreign civilian and merchant vessels enjoy the right of innocent passage through territorial waters pursuant to international maritime conventions.' },
     ],
-    signatory: 'Minister of Territorial Development & ADSS Maritime Admiral',
+    signatory: 'Minister of Maritime Affairs & Ports',
   },
   'nationality-act': {
     slug: 'nationality-act',
@@ -68,13 +68,14 @@ export const STATUTE_DATABASE: Record<string, StatuteDetail> = {
     title: 'Nationality & Naturalisation Act',
     article: 'Constitution Article 8 § 5',
     date: '2026-02-14',
-    hash: '3c9902ba14ff28e67a01d5e390c88461ab209ef731478201fa8892ca3401ef62',
-    preamble: 'An Act setting forth the rights, duties, and acquisition criteria for Aletheian citizenship, defining naturalisation by physical residence and covenant awards.',
+    hash: '62c38c614d4e59bbd1aa762296f101f262c3f731034383dccc46d0ff9ecb879a',
+    preamble: 'An Act setting forth the rights, duties, and acquisition criteria for Aletheian citizenship, conferred only by birth or by naturalisation through physical residence.',
     sections: [
       { number: 'Section 1', heading: 'Citizenship by Covenant', text: 'Citizenship is a voluntary civic covenant. No person shall be compelled into citizenship, nor stripped of nationality for political expression.' },
       { number: 'Section 2', heading: 'Naturalisation Requirements', text: 'Lawful permanent residents who have resided physically in Aletheian territory for five continuous years and demonstrated knowledge of the Covenant are entitled to apply for full naturalisation.' },
-      { number: 'Section 2A', heading: 'Covenant Investor Citizenship', text: 'A person aged eighteen or over who makes a qualifying investment — a National Development Contribution of 250,000 AEY, or a subscription of 500,000 AEY in Covenant Development Bonds held for five years — may be granted citizenship without a period of residence, upon clearing enhanced due diligence on identity and source of funds, holding no serious criminal conviction in the preceding ten years, and swearing the public Covenant Oath. Spouses and dependent children may be included upon a further qualifying amount for each.' },
-      { number: 'Section 3', heading: 'Biometric Passport Right', text: 'Every confirmed citizen possesses an inalienable statutory right to an ICAO Doc 9303 compliant biometric passport issued in Covenant Burgundy.' },
+      { number: 'Section 2A', heading: 'No Citizenship for Payment', text: 'Citizenship shall never be granted in return for investment, contribution or payment of any kind.' },
+
+      { number: 'Section 3', heading: 'Travel Document', text: 'Once Aletheia has the lawful authority to issue one, every citizen shall be entitled to a travel document in Covenant Burgundy.' },
     ],
     signatory: 'Chancellor of the Sovereign Covenant State & Registrar General',
   },
@@ -114,12 +115,12 @@ export const STATUTE_DATABASE: Record<string, StatuteDetail> = {
     title: 'Executive Cabinet & Ministerial Portfolios Act',
     article: 'Constitution Article 15 § 5',
     date: '2026-03-12',
-    hash: '44d270f72e1664c91dd71b7a01ef783a5dce93d3ab85c7fb12518bf2964088e4',
+    hash: '8d9581af61da8b37b670e708eda04a04c7c9e04643158305bca721d9d0904e4f',
     preamble: 'An Act governing the structure, powers, and constitutional limits of the executive government, enforcing the statutory maximum of nine ministries.',
     sections: [
       { number: 'Section 1', heading: 'Cabinet Cap', text: 'The executive Cabinet shall consist of the Chancellor and not more than eight ministers of state. No additional ministry may be created without constitutional amendment.' },
       { number: 'Section 2', heading: 'Parliamentary Confirmation', text: 'All ministerial nominees must be examined and confirmed by a majority vote of the Covenant Assembly.' },
-      { number: 'Section 3', heading: 'Statutory Transparency', text: 'All executive orders and ministerial determinations must be signed with official cryptographic keys and published in the Official Gazette within 24 hours of enactment.' },
+      { number: 'Section 3', heading: 'Statutory Transparency', text: 'All executive orders and ministerial determinations must be signed with published cryptographic keys and published in the Gazette within 24 hours of enactment.' },
     ],
     signatory: 'Chancellor of the Sovereign Covenant State & Speaker of the Covenant Assembly',
   },
@@ -129,14 +130,14 @@ export const STATUTE_DATABASE: Record<string, StatuteDetail> = {
     title: 'Aletheian Defence & Security Service (ADSS) Governance Act',
     article: 'Constitution Article 18 § 4',
     date: '2026-03-20',
-    hash: '4489021fa89023ebc87201948ea20914bca890214890ec8201948ea20914801e',
-    preamble: 'An Act regulating the armed defence forces, civilian police, and coast guard services, enforcing strict civilian control and prohibiting internal domestic military policing.',
+    hash: '4a44d2a77acfb2e0b3842f3e71e2a227bb1f59e2cfa43d544dad655cf7a09040',
+    preamble: 'An Act regulating civil-protection, civilian police and coastguard services, enforcing strict civilian control and prohibiting the use of any other service for domestic policing.',
     sections: [
-      { number: 'Section 1', heading: 'Civilian Subordination', text: 'The Aletheian Defence & Security Service is subordinated to civilian authority. The civilian Minister of Security exercises executive direction over all operational commands.' },
-      { number: 'Section 2', heading: 'Prohibition of Domestic Military Policing', text: 'Military personnel and defense hardware shall never be deployed for domestic civilian crowd control or routine law enforcement.' },
+      { number: 'Section 1', heading: 'Civilian Subordination', text: 'The Aletheian Defence & Security Service is subordinated to civilian authority. The civilian Minister of Resilience & Civil Protection exercises executive direction over all its services.' },
+      { number: 'Section 2', heading: 'Policing Only by the Police', text: 'No service other than the Police Directorate shall ever be deployed for crowd control or routine law enforcement.' },
       { number: 'Section 3', heading: 'Maritime Search & Rescue Mandate', text: 'The Coast Guard Directorate is statutorily bound to render immediate maritime humanitarian assistance to any vessel in distress regardless of flag or nationality.' },
     ],
-    signatory: 'Minister of Security & Civil Defence',
+    signatory: 'Minister of Resilience & Civil Protection',
   },
   'cyber-resilience': {
     slug: 'cyber-resilience',

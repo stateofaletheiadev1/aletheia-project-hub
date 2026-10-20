@@ -1,9 +1,12 @@
+import type { ManualStatus } from '@/lib/status';
+
+/** The draft Covenant. Every article is a proposal without legal force. */
 export interface ConstitutionalArticle {
   id: string;
   number: number;
   part: string;
   title: string;
-  status: 'Operational' | 'Under Development' | 'Planned' | 'Proposed';
+  status: ManualStatus;
   summary: string;
   clauses: {
     number: string;
@@ -30,12 +33,12 @@ export const CONSTITUTION_DATA: ConstitutionalArticle[] = [
     number: 1,
     part: 'Part I: Foundational Principles & Sovereignty',
     title: 'Nature of the Sovereign Covenant State',
-    status: 'Operational',
-    summary: 'Establishes Aletheia as a compact maritime nation founded upon truth, public proof, and covenant law.',
+    status: 'Proposed',
+    summary: 'Would establish Aletheia as a compact maritime nation founded upon truth, public proof, and covenant law.',
     clauses: [
       {
         number: '1(1)',
-        text: 'The Sovereign Covenant State of Aletheia is an independent, European-oriented maritime nation whose supreme authority resides in the Covenant ratified by its citizens and constituent states.',
+        text: 'The Sovereign Covenant State of Aletheia shall be an independent, European-oriented maritime nation, founded by treaty, whose supreme authority resides in the Covenant ratified by its citizens and constituent states.',
       },
       {
         number: '1(2)',
@@ -61,7 +64,7 @@ export const CONSTITUTION_DATA: ConstitutionalArticle[] = [
     number: 2,
     part: 'Part I: Foundational Principles & Sovereignty',
     title: 'The Five Official Languages & Equality of Access',
-    status: 'Operational',
+    status: 'Proposed',
     summary: 'Codifies English as the working language alongside German, Dutch, Serbian, and Italian with full official standing.',
     clauses: [
       {
@@ -90,22 +93,22 @@ export const CONSTITUTION_DATA: ConstitutionalArticle[] = [
   {
     id: 'art-7',
     number: 7,
-    part: 'Part II: Territory & Maritime Jurisdiction',
+    part: 'Part II: Territory & Maritime Zones',
     title: 'The Five Constituent Territories',
-    status: 'Planned',
-    summary: 'Defines the Federal District of Antioch and the four founding states: St. Barbara, Augustine, Benedict, and St. Brendan.',
+    status: 'Proposed',
+    summary: 'Territory granted by treaty with a host state, within which the Federal District of Antioch and four founding states would be established.',
     clauses: [
       {
         number: '7(1)',
-        text: 'The territory of the Sovereign Covenant State comprises the Federal District of Antioch and the four constituent maritime states: St. Barbara State, Augustine State, Benedict State, and St. Brendan State.',
+        text: 'The territory of the Sovereign Covenant State shall be that granted to it by treaty with a host state. Within it shall be established the Federal District of Antioch and four constituent states: St. Barbara State, Augustine State, Benedict State, and St. Brendan State.',
       },
       {
         number: '7(2)',
-        text: 'The Federal District of Antioch is the perpetual capital city and seat of the sovereign legislative, executive, and judicial authorities of the Sovereign Covenant State.',
+        text: 'The Federal District of Antioch shall be the capital city and seat of the legislative, executive, and judicial authorities of the Sovereign Covenant State.',
       },
       {
         number: '7(3)',
-        text: 'The territorial sea extends 12 nautical miles from the baseline, flanked by a 24-nautical-mile contiguous zone and an Exclusive Economic Zone (EEZ) extending 200 nautical miles pursuant to the United Nations Convention on the Law of the Sea.',
+        text: 'Any maritime zones of the Sovereign Covenant State shall be those agreed with the host state, in accordance with the United Nations Convention on the Law of the Sea.',
       },
     ],
     crossReferences: ['art-8', 'art-9', 'art-47'],
@@ -118,8 +121,8 @@ export const CONSTITUTION_DATA: ConstitutionalArticle[] = [
       href: '/laws/maritime-zones',
     },
     relatedService: {
-      title: 'Territorial Masterplan & GIS Portal',
-      href: '/development#map',
+      title: 'Territory by Treaty',
+      href: '/development#treaty',
     },
   },
   {
@@ -127,8 +130,8 @@ export const CONSTITUTION_DATA: ConstitutionalArticle[] = [
     number: 8,
     part: 'Part III: Citizenship, E-Residency & Rights',
     title: 'Citizenship by Descent & Naturalisation',
-    status: 'Planned',
-    summary: 'Specifies the conditions of citizen membership, the Covenant Oath, and the issuance of the ICAO eMRTD passport.',
+    status: 'Proposed',
+    summary: 'Would set the conditions of citizenship, by birth or naturalisation only, and the Covenant Oath.',
     clauses: [
       {
         number: '8(1)',
@@ -136,16 +139,16 @@ export const CONSTITUTION_DATA: ConstitutionalArticle[] = [
       },
       {
         number: '8(2)',
-        text: 'Citizenship is a civic covenant and shall never be auctioned or conferred without the Covenant Oath. The Sovereign Covenant State may confer citizenship upon persons who make a qualifying investment in the development of the Sovereign Covenant State, as prescribed by statute, subject to enhanced due diligence, a clean criminal record and the public Covenant Oath.',
+        text: 'Citizenship is a civic covenant. It shall never be sold, auctioned or conferred in return for investment or payment, and never without the Covenant Oath. It is conferred only by birth or naturalisation, under a founding treaty.',
       },
       {
         number: '8(3)',
-        text: 'Every citizen is entitled to an electronic machine-readable passport conforming to ICAO Doc 9303, bearing the coat of arms in gold foil upon Covenant Burgundy.',
+        text: 'Once the Sovereign Covenant State has the lawful authority to issue one, every citizen shall be entitled to a travel document in Covenant Burgundy, bearing the coat of arms in gold foil.',
       },
     ],
     crossReferences: ['art-11', 'art-12', 'art-13'],
     responsibleInstitution: {
-      name: 'Immigration Directorate (ADSS)',
+      name: 'Immigration Directorate (proposed)',
       href: '/adss#immigration',
     },
     relatedLaw: {
@@ -162,7 +165,7 @@ export const CONSTITUTION_DATA: ConstitutionalArticle[] = [
     number: 11,
     part: 'Part III: Citizenship, E-Residency & Rights',
     title: 'E-Residency & Digital Commercial Standing',
-    status: 'Under Development',
+    status: 'Proposed',
     summary: 'Establishes the e-residency framework for borderless digital incorporation and contract execution.',
     clauses: [
       {
@@ -188,7 +191,7 @@ export const CONSTITUTION_DATA: ConstitutionalArticle[] = [
       href: '/laws/e-residency-act',
     },
     relatedService: {
-      title: 'Apply for Aletheia E-Residency',
+      title: 'E-Residency (proposed)',
       href: '/e-residency',
     },
   },
@@ -197,7 +200,7 @@ export const CONSTITUTION_DATA: ConstitutionalArticle[] = [
     number: 16,
     part: 'Part IV: Monetary Architecture & Public Finance',
     title: 'The Aletheian Guilder (AEY) & Monetary Integrity',
-    status: 'Under Development',
+    status: 'Proposed',
     summary: 'Establishes the national currency and its single issuer, and prohibits financing deficits by creating money.',
     clauses: [
       {
@@ -232,7 +235,7 @@ export const CONSTITUTION_DATA: ConstitutionalArticle[] = [
     number: 23,
     part: 'Part V: The Executive & Cabinet Capping',
     title: 'Limitation of Ministries to Nine Portfolios',
-    status: 'Operational',
+    status: 'Proposed',
     summary: 'Constitutionally caps the national executive at nine ministries to permanently prevent bureaucratic proliferation.',
     clauses: [
       {
@@ -261,27 +264,27 @@ export const CONSTITUTION_DATA: ConstitutionalArticle[] = [
   {
     id: 'art-46',
     number: 46,
-    part: 'Part VI: Security & Defence',
+    part: 'Part VI: Security & Resilience',
     title: 'Aletheian Defence & Security Service (ADSS)',
-    status: 'Planned',
-    summary: 'Organizes national defence under unified civilian command while strictly segregating civilian policing.',
+    status: 'Proposed',
+    summary: 'Would place civil protection and security under unified civilian command, strictly separate from civilian policing.',
     clauses: [
       {
         number: '46(1)',
-        text: 'The defence and public safety of the Sovereign Covenant State are entrusted to the Aletheian Defence & Security Service (ADSS), acting under the supreme command of the Minister of Security.',
+        text: 'Civil protection and public safety in the Sovereign Covenant State shall be entrusted to the Aletheian Defence & Security Service (ADSS), under the civilian command of the Minister of Resilience & Civil Protection.',
       },
       {
         number: '46(2)',
-        text: 'The Police Directorate shall remain institutionally distinct from military and maritime defence commands, dedicated exclusively to civilian law enforcement and human rights protection.',
+        text: 'The Police Directorate shall remain institutionally distinct from every other service, dedicated exclusively to civilian law enforcement and human rights protection.',
       },
       {
         number: '46(3)',
-        text: 'The deployment of military forces within the domestic territory is prohibited except under parliamentary proclamation of extreme national emergency.',
+        text: 'No security service may be deployed against the civilian population except under parliamentary proclamation of a national emergency.',
       },
     ],
     crossReferences: ['art-47', 'art-50', 'art-53'],
     responsibleInstitution: {
-      name: 'Ministry of Security & Civil Defence',
+      name: 'Ministry of Resilience & Civil Protection',
       href: '/security',
     },
     relatedLaw: {
@@ -289,21 +292,21 @@ export const CONSTITUTION_DATA: ConstitutionalArticle[] = [
       href: '/laws/adss-act',
     },
     relatedService: {
-      title: 'ADSS Directory & Reporting',
+      title: 'Resilience Overview',
       href: '/adss',
     },
   },
   {
     id: 'art-53',
     number: 53,
-    part: 'Part VI: Security & Defence',
+    part: 'Part VI: Security & Resilience',
     title: 'Aletheian Cybersecurity Department',
-    status: 'Operational',
-    summary: 'Codifies the mandatory standalone national cybersecurity department to protect critical infrastructure and ledger nodes.',
+    status: 'Proposed',
+    summary: 'Would establish a standalone cybersecurity department to protect digital infrastructure and ledger nodes.',
     clauses: [
       {
         number: '53(1)',
-        text: 'The Aletheian Cybersecurity Department is established as a permanent sovereign agency charged with the protection of state networks, validator clusters, citizen identity registries, and maritime telemetry.',
+        text: 'The Aletheian Cybersecurity Department shall be established as a permanent agency charged with the protection of state networks, validator clusters, citizen identity registries, and maritime telemetry.',
       },
       {
         number: '53(2)',

@@ -4,9 +4,11 @@ import { useI18n } from '@/components/i18n/I18nProvider';
 import Link from '@/components/i18n/Link';
 import Image from 'next/image';
 import { StarOfTruth } from '@/components/brand/Logo';
-import { GAZETTE_POSTS, formatGazetteDate, getGazettePost } from '@/lib/gazette';
+import { GAZETTE_NOTICE, GAZETTE_POSTS, formatGazetteDate, getGazettePost } from '@/lib/gazette';
+import { StatusBadge } from '@/components/ui/StatusBadge';
+import { ImageCaption } from '@/components/ui/ImageCaption';
 import { unsplash } from '@/lib/imagery';
-import { ArrowLeft, ArrowRight, Calendar, CheckCircle2, Clock, Download, PenLine } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Calendar, Clock, Download, Info, PenLine } from 'lucide-react';
 
 export function GazetteArticleView({ slug }: { slug: string }) {
   const { t, tx, intl } = useI18n();
@@ -24,12 +26,14 @@ export function GazetteArticleView({ slug }: { slug: string }) {
           <Image src={unsplash(post.image, 2000)} alt="" fill priority sizes="100vw" className="object-cover" />
         </div>
         <div className="absolute inset-0 bg-gradient-to-t from-[#060C14] via-[#0E1B31]/75 to-[#0E1B31]/30" />
+        <ImageCaption position="top-right" className="top-24" />
         <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-14 pt-32 w-full space-y-5">
           <Link href="/news" className="inline-flex items-center gap-1.5 text-xs font-semibold text-gold hover:text-gold-tint transition-colors" data-print-hide>
-            <ArrowLeft className="w-3.5 h-3.5" />{' '}{t("All Gazette bulletins")}</Link>
+            <ArrowLeft className="w-3.5 h-3.5" />{' '}{t("All Gazette records")}</Link>
           <div className="flex flex-wrap items-center gap-3 animate-fade-in-up">
             <span className="px-2 py-0.5 bg-gold text-navy font-mono text-[11px] font-bold rounded-sm">{tx(post.number)}</span>
             <span className="text-[11px] font-bold text-gold uppercase tracking-[0.18em]">{tx(post.category)}</span>
+            <StatusBadge status={post.status} size="sm" />
           </div>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-[1.1] animate-fade-in-up delay-100">
             {tx(post.title)}
@@ -44,6 +48,10 @@ export function GazetteArticleView({ slug }: { slug: string }) {
 
       {/* ── BODY ── */}
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-20">
+        <p role="note" className="flex items-start gap-2 text-xs font-semibold text-navy/70 bg-parchment-light border border-navy/10 rounded-sm px-4 py-3 mb-10">
+          <Info className="w-4 h-4 text-gold shrink-0" aria-hidden="true" />
+          {t(GAZETTE_NOTICE)}
+        </p>
         <p className="text-xl text-navy leading-relaxed font-light border-l-2 border-gold pl-6 mb-12">{tx(post.summary)}</p>
         <div className="space-y-6 text-[17px] leading-[1.9] text-navy/80 font-serif">
           {post.body.map((para, i) => (
@@ -55,9 +63,9 @@ export function GazetteArticleView({ slug }: { slug: string }) {
 
         <footer className="mt-14 pt-8 border-t-2 border-navy/15 flex flex-col sm:flex-row justify-between gap-6">
           <div className="space-y-1 text-sm">
-            <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-gold-shadow block">{t("Promulgating authority")}</span>
+            <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-gold-shadow block">{t("Published by")}</span>
             <p className="font-bold text-navy">{tx(post.signatory)}</p>
-            <p className="text-xs font-mono text-navy/50">{t("Official Gazette No.")}{' '}{tx(post.number)}</p>
+            <p className="text-xs font-mono text-navy/50">{t("Gazette record")}{' '}{tx(post.number)}</p>
           </div>
           <a
             href={`/pdf/gazette/${post.slug}`}
@@ -70,13 +78,13 @@ export function GazetteArticleView({ slug }: { slug: string }) {
           <div className="self-start flex items-center gap-3 p-4 bg-navy rounded-sm border border-gold/30 text-parchment">
             <StarOfTruth size={22} />
             <div className="text-[11px] font-mono">
-              <div className="text-gold font-bold flex items-center gap-1"><CheckCircle2 className="w-3 h-3" />{' '}{t("Promulgated")}</div>
-              <div className="text-parchment/55">{t("Signed Gazette entry")}</div>
+              <div className="text-gold font-bold">{t("Founding-phase record")}</div>
+              <div className="text-parchment/55">{t("No legal force")}</div>
             </div>
           </div>
         </footer>
 
-        <nav className="mt-12 grid grid-cols-1 sm:grid-cols-2 gap-4" aria-label={t("Adjacent bulletins")} data-print-hide>
+        <nav className="mt-12 grid grid-cols-1 sm:grid-cols-2 gap-4" aria-label={t("Adjacent records")} data-print-hide>
           {tx(newer ? (
             <Link href={`/news/${newer.slug}`} className="group sovereign-card-premium rounded-sm p-5 space-y-1">
               <span className="text-[10px] font-bold uppercase tracking-wider text-gold-shadow flex items-center gap-1"><ArrowLeft className="w-3 h-3" />{' '}{t("Newer")}</span>
@@ -101,6 +109,7 @@ export function GazetteArticleView({ slug }: { slug: string }) {
               <Link key={p.slug} href={`/news/${p.slug}`} className="photo-card group sovereign-card-premium rounded-sm flex flex-col">
                 <div className="relative h-44">
                   <Image src={unsplash(p.image, 800)} alt="" fill sizes="(min-width:768px) 33vw, 100vw" className="object-cover" />
+                  <ImageCaption />
                 </div>
                 <div className="photo-card-body p-5 space-y-2">
                   <span className="text-[10px] font-bold text-gold-shadow uppercase tracking-[0.16em]">{tx(p.category)}</span>

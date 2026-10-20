@@ -85,7 +85,7 @@ export async function renderOfficialPdf(spec: OfficialPdfSpec): Promise<Uint8Arr
   doc.setTitle(toWinAnsi(`${spec.code} — ${spec.title}`));
   doc.setAuthor('The Sovereign Covenant State of Aletheia');
   doc.setCreator('stateofaletheia.org');
-  doc.setProducer('Aletheia Official Gazette');
+  doc.setProducer('Aletheia Founding-Phase Platform');
   doc.setSubject(toWinAnsi(spec.subject ?? spec.kind));
   doc.setLanguage('en-GB');
 
@@ -126,7 +126,7 @@ export async function renderOfficialPdf(spec: OfficialPdfSpec): Promise<Uint8Arr
   }
   const headX = MARGIN_X + (arms ? 68 : 0);
   page.drawText('THE SOVEREIGN COVENANT STATE OF ALETHEIA', { x: headX, y: TOP - 8, size: 12, font: sansBold, color: NAVY });
-  page.drawText('Veritas in Foedere  ·  Official Gazette', { x: headX, y: TOP - 24, size: 9, font: serifItalic, color: GOLD_DARK });
+  page.drawText('Veritas in Foedere  ·  Founding-Phase Record', { x: headX, y: TOP - 24, size: 9, font: serifItalic, color: GOLD_DARK });
   const codeW = sansBold.widthOfTextAtSize(toWinAnsi(spec.code), 10);
   page.drawText(toWinAnsi(spec.code), { x: A4[0] - MARGIN_X - codeW, y: TOP - 8, size: 10, font: sansBold, color: GOLD_DARK });
   y = TOP - 64;
@@ -190,7 +190,7 @@ export async function renderOfficialPdf(spec: OfficialPdfSpec): Promise<Uint8Arr
     p.drawLine({ start: { x: MARGIN_X, y: 52 }, end: { x: A4[0] - MARGIN_X, y: 52 }, thickness: 0.5, color: GOLD });
     const left = spec.hash ? `Ledger inscription ${spec.hash.slice(0, 26)}...` : 'stateofaletheia.org';
     p.drawText(toWinAnsi(left), { x: MARGIN_X, y: 38, size: 7.5, font: sans, color: MUTED });
-    p.drawText('The English text is authoritative.', { x: MARGIN_X, y: 27, size: 7.5, font: serifItalic, color: MUTED });
+    p.drawText('Founding-phase record without legal force. Aletheia is not a recognised state. The English text is authoritative.', { x: MARGIN_X, y: 27, size: 7.5, font: serifItalic, color: MUTED });
     const n = `Page ${i + 1} of ${pages.length}`;
     p.drawText(n, { x: A4[0] - MARGIN_X - sans.widthOfTextAtSize(n, 7.5), y: 38, size: 7.5, font: sans, color: MUTED });
   });

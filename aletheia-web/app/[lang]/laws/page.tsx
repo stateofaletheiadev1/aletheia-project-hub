@@ -33,7 +33,7 @@ export const STATUTES: StatuteMeta[] = [
     article: 'Constitution Article 1 § 3',
     date: '2026-01-20',
     hash: '8f2b7a4c91e3d085fa49b817e4521098ef7321ac90b34d76a218fce1b2049e91',
-    summary: 'Codifies the absolute supremacy of the Covenant over ordinary statutes, establishing the jurisdiction of the High Court to void unconstitutional executive decrees.',
+    summary: 'Would affirm the supremacy of the Covenant over ordinary statutes, and give the High Court jurisdiction to void unconstitutional acts.',
     pages: 18,
   },
   {
@@ -42,18 +42,18 @@ export const STATUTES: StatuteMeta[] = [
     title: 'Official Languages & Diplomatic Communication Act',
     article: 'Constitution Article 2 § 2',
     date: '2026-01-28',
-    hash: '14ea892018fa34091ec87201948ba209ef731204891230fca890214890ecb820',
-    summary: 'Designates English, German, Dutch, Serbian, and Italian as official national languages, regulating statutory translations, gazette publications, and diplomatic passports.',
+    hash: 'adfff80b8341114fbd4a689b0cea99e489ce1b3133272696963edd636d0a13e2',
+    summary: 'Would designate English, German, Dutch, Serbian and Italian as official languages, regulating translations, Gazette publications and travel-document inscriptions.',
     pages: 14,
   },
   {
     slug: 'maritime-zones',
     code: 'ACT-2026-03',
-    title: 'Maritime Zones & UNCLOS Jurisdiction Act',
+    title: 'Maritime Zones Act',
     article: 'Constitution Article 3 § 4',
     date: '2026-02-05',
-    hash: '77ba90123ca87201948ea20914be872190847b2c01948fe2198034a890123ca7',
-    summary: 'Enforces statutory boundaries for Aletheia’s 12nm territorial waters, contiguous zone, and 200nm Exclusive Economic Zone in adherence to international law.',
+    hash: 'fdd4edf14bb8710d0bb0da90a2e997f381b4950851ab3d794f7497dce07be806',
+    summary: 'Provides that any maritime zones would be only those agreed with a host state by treaty, under the Law of the Sea.',
     pages: 26,
   },
   {
@@ -62,8 +62,8 @@ export const STATUTES: StatuteMeta[] = [
     title: 'Nationality & Naturalisation Act',
     article: 'Constitution Article 8 § 5',
     date: '2026-02-14',
-    hash: '3c9902ba14ff28e67a01d5e390c88461ab209ef731478201fa8892ca3401ef62',
-    summary: 'Establishes the criteria for founding citizenship, naturalisation by physical residence, civic integration assessment, and passport issuance rights.',
+    hash: '62c38c614d4e59bbd1aa762296f101f262c3f731034383dccc46d0ff9ecb879a',
+    summary: 'Would set the criteria for citizenship by birth and by naturalisation through physical residence, and forbid citizenship for payment.',
     pages: 32,
   },
   {
@@ -73,7 +73,7 @@ export const STATUTES: StatuteMeta[] = [
     article: 'Constitution Article 9 § 4',
     date: '2026-02-22',
     hash: '55902148ea20914801fa8892ca3401ef6291a0123ca78091ecb87201948ba209',
-    summary: 'Defines the legal rights of digital identity holders, 15-minute corporate incorporation, virtual legal standing, and explicit physical residency exclusions.',
+    summary: 'Would define the rights of digital identity holders, online incorporation and legal standing, and exclude physical residence.',
     pages: 24,
   },
   {
@@ -83,7 +83,7 @@ export const STATUTES: StatuteMeta[] = [
     article: 'Constitution Article 14 § 6',
     date: '2026-03-04',
     hash: 'bee5ed66b8935fd4ee0c11db3adb79337ed73bdd5299f54a9dbd0476991b8450',
-    summary: 'Statutory mandate creating the Aletheian Guilder (AEY), establishing the Reserve Bank of Aletheia as its sole issuer, and prohibiting monetary financing of the State.',
+    summary: 'Would create the Aletheian Guilder (AEY), make the Reserve Bank of Aletheia its sole issuer, and prohibit monetary financing of the State.',
     pages: 28,
   },
   {
@@ -93,7 +93,7 @@ export const STATUTES: StatuteMeta[] = [
     article: 'Constitution Article 15 § 5',
     date: '2026-03-12',
     hash: '9920184fa9802ecb8720918ba340291ef732014890ecb8201948ea20914801fa',
-    summary: 'Imposes the strict constitutional maximum of nine ministries, defining statutory responsibilities, oaths of office, and parliamentary oversight mechanisms.',
+    summary: 'Would impose the constitutional maximum of nine ministries, with their responsibilities, oaths of office and parliamentary oversight.',
     pages: 20,
   },
   {
@@ -102,8 +102,8 @@ export const STATUTES: StatuteMeta[] = [
     title: 'Aletheian Defence & Security Service (ADSS) Governance Act',
     article: 'Constitution Article 18 § 4',
     date: '2026-03-20',
-    hash: '4489021fa89023ebc87201948ea20914bca890214890ec8201948ea20914801e',
-    summary: 'Mandates absolute civilian subordination of security forces, prohibits military domestic policing, and establishes the Coast Guard maritime SAR protocol.',
+    hash: '4a44d2a77acfb2e0b3842f3e71e2a227bb1f59e2cfa43d544dad655cf7a09040',
+    summary: 'Would place every security service under civilian control, reserve policing to the Police Directorate, and set a coastguard rescue duty.',
     pages: 36,
   },
   {
@@ -113,7 +113,7 @@ export const STATUTES: StatuteMeta[] = [
     article: 'Constitution Article 19 § 3',
     date: '2026-03-29',
     hash: '66189023ebca87201948ea20914801e991204890ecb8201948ea20914801fa88',
-    summary: 'Enacts mandatory post-quantum cryptographic standards, validator consensus protection, and SCADA air-gapping across national energy and maritime facilities.',
+    summary: 'Would set cryptographic standards, validator protection and the isolation of control systems in energy and maritime facilities.',
     pages: 30,
   },
 ];
@@ -142,12 +142,12 @@ export default function LawsIndexPage() {
                 <StarOfTruth size={14} />
                 <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-gold">{t("Sovereign Covenant State of Aletheia")}</span>
               </div>
-              <StatusBadge status="Operational" size="sm" />
+              <StatusBadge status="Proposed" size="sm" />
             </div>
 
-            <h1 className="heading-hero">{t("The Statutory Code & Organic Acts")}</h1>
+            <h1 className="heading-hero">{t("Proposed Acts")}</h1>
 
-            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("Official codified legislation enacted pursuant to the Covenant of Aletheia. Every statute is authenticated by parliamentary inscription and verified on the public ledger.")}</p>
+            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("Draft legislation proposed under the draft Covenant of Aletheia. None has been enacted and none has legal force; each is published with a hash of its text.")}</p>
           </div>
         </div>
       </section>
@@ -162,11 +162,11 @@ export default function LawsIndexPage() {
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder={t("Search codified statutes, acts, or keywords...")}
+                placeholder={t("Search proposed Acts or keywords...")}
                 className="w-full pl-9 pr-4 py-2 text-xs border border-navy/20 rounded-sm focus:outline-none focus:border-navy"
               />
             </div>
-            <span className="text-xs font-mono text-navy/60">{t("Showing")}{' '}{tx(filtered.length)}{' '}{t("of")}{' '}{tx(STATUTES.length)}{' '}{t("Codified Acts")}</span>
+            <span className="text-xs font-mono text-navy/60">{t("Showing")}{' '}{tx(filtered.length)}{' '}{t("of")}{' '}{tx(STATUTES.length)}{' '}{t("Proposed Acts")}</span>
           </div>
         </div>
       </section>

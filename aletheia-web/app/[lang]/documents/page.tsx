@@ -44,12 +44,12 @@ export default function DocumentsPage() {
                 <StarOfTruth size={14} />
                 <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-gold">{t("Public Repository")}</span>
               </div>
-              <StatusBadge status="Operational" size="sm" />
+              <StatusBadge asset="platform" size="sm" />
             </div>
 
-            <h1 className="heading-hero">{t("Official Documents & Legal Registry")}</h1>
+            <h1 className="heading-hero">{t("Founding Documents & Public Register")}</h1>
 
-            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("All statutory acts, constitutional texts, executive decrees, and technical standards of Aletheia are published openly. Every record includes a cryptographic SHA-256 integrity hash verifiable against the national ledger.")}</p>
+            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("The draft Constitution, proposed Acts, founding documents and technical standards of Aletheia, published openly with a SHA-256 hash of each text. These are founding-phase documents; they have no legal force.")}</p>
           </div>
         </div>
       </section>
@@ -71,7 +71,7 @@ export default function DocumentsPage() {
             </div>
 
             <div className="flex flex-wrap gap-2 w-full md:w-auto">
-              {['All', 'Constitutional', 'Statute', 'Gazette', 'Technical Standard'].map((cat) => (
+              {['All', 'Constitutional', 'Statute', 'Founding Document', 'Design Record', 'Technical Standard'].map((cat) => (
                 <button
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
@@ -155,8 +155,8 @@ export default function DocumentsPage() {
       <section className="bg-navy text-parchment py-12 border-t border-gold/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-3">
           <ShieldCheck className="w-8 h-8 text-gold mx-auto" />
-          <h3 className="text-xl font-bold text-parchment">{t("Cryptographic Hash Verification")}</h3>
-          <p className="text-xs text-parchment/70 max-w-xl mx-auto">{t("Every statute published above is hashed and verified against root state block #0 of the Aletheia StableChain ledger.")}</p>
+          <h3 className="text-xl font-bold text-parchment">{t("Checking a Document")}</h3>
+          <p className="text-xs text-parchment/70 max-w-xl mx-auto">{t("Each document above is published with the SHA-256 hash of its text, so anyone can check that a copy has not been altered.")}</p>
         </div>
       </section>
 
