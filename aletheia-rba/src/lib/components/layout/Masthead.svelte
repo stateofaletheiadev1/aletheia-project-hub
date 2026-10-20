@@ -287,9 +287,16 @@
 		color: var(--fg-muted);
 	}
 
-	@media (max-width: 479px) {
+	/* Below 480 px, and where the full menu first appears (1024-1279 px), the name stands alone. */
+	@media (max-width: 479px), (min-width: 1024px) and (max-width: 1279px) {
 		.wordmark__sub {
 			display: none;
+		}
+	}
+
+	@media (min-width: 1024px) and (max-width: 1279px) {
+		.wordmark__name {
+			max-width: 9rem;
 		}
 	}
 

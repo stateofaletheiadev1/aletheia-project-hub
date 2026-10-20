@@ -33,19 +33,27 @@ export const PRIMARY_NAV: NavItem[] = [
 		label: 'About the Bank',
 		children: [
 			{ href: '/about', label: 'About the Bank', description: 'Purpose, mandate and principles' },
+			{ href: '/about/mission', label: 'Mission and values', description: 'What we stand for' },
+			{ href: '/about/strategy', label: 'Strategic priorities', description: 'Building the Bank' },
 			{ href: '/about/governance', label: 'Governance', description: 'Board, committees and law' },
+			{
+				href: '/about/organisation',
+				label: 'Organisation',
+				description: 'How the Bank is organised'
+			},
+			{ href: '/about/integrity', label: 'Ethics and integrity', description: 'Conduct and audit' },
 			{
 				href: '/about/international',
 				label: 'International cooperation',
 				description: 'Working with other institutions'
 			},
-			{ href: '/explained', label: 'The Bank explained', description: 'Central banking in brief' },
+			{ href: '/about/seal', label: 'The seal', description: 'The Bank’s emblem' },
 			{ href: '/about/careers', label: 'Careers', description: 'Working at the Bank' }
 		]
 	},
 	{ href: '/monetary-policy', label: 'Monetary Policy' },
 	{
-		label: 'Financial Stability',
+		label: 'Financial System',
 		children: [
 			{
 				href: '/financial-stability',
@@ -53,29 +61,51 @@ export const PRIMARY_NAV: NavItem[] = [
 				description: 'A sound financial system'
 			},
 			{ href: '/payments', label: 'Payments', description: 'Settlement and infrastructure' },
-			{ href: '/reserves', label: 'Reserves', description: 'Reserve and exchange policy' }
+			{ href: '/reserves', label: 'Reserves', description: 'Reserve and exchange policy' },
+			{
+				href: '/financial-inclusion',
+				label: 'Financial inclusion',
+				description: 'A system for everyone'
+			},
+			{ href: '/innovation', label: 'Innovation', description: 'Modern foundations' },
+			{ href: '/sustainability', label: 'Sustainability', description: 'A maritime nation' }
 		]
 	},
 	{
 		label: 'The Guilder',
 		children: [
 			{ href: '/currency', label: 'Currency', description: 'The Aletheian Guilder' },
+			{ href: '/banknotes', label: 'Banknotes', description: 'The banknote series' },
+			{ href: '/banknotes/design', label: 'Design themes', description: 'The story of the series' },
 			{
 				href: '/digital-guilder',
 				label: 'Digital Guilder',
 				description: 'The Guilder in digital form'
 			},
-			{ href: '/banknotes', label: 'Banknotes', description: 'The banknote series' },
-			{ href: '/issuance', label: 'Issuance', description: 'Issued on the record' }
+			{ href: '/issuance', label: 'Issuance', description: 'Issued on the record' },
+			{
+				href: '/banknotes/reproduction',
+				label: 'Using banknote images',
+				description: 'Reproduction rules'
+			}
 		]
 	},
-	{ href: '/statistics', label: 'Statistics' },
+	{
+		label: 'Learn',
+		children: [
+			{ href: '/learn', label: 'Money and you', description: 'Practical guides' },
+			{ href: '/explained', label: 'The Bank explained', description: 'Central banking in brief' },
+			{ href: '/faq', label: 'Questions and answers', description: 'Common questions' }
+		]
+	},
 	{
 		label: 'News & Publications',
 		children: [
 			{ href: '/news', label: 'News', description: 'Announcements and notices' },
 			{ href: '/publications', label: 'Publications', description: 'Documents of the Bank' },
-			{ href: '/research', label: 'Research', description: 'The Bank’s research agenda' }
+			{ href: '/research', label: 'Research', description: 'The Bank’s research agenda' },
+			{ href: '/statistics', label: 'Statistics', description: 'Monetary and financial data' },
+			{ href: '/media', label: 'Media centre', description: 'Press and official marks' }
 		]
 	}
 ];
@@ -92,23 +122,32 @@ export const FOOTER_NAV: { heading: string; links: NavLink[] }[] = [
 		heading: 'The Bank',
 		links: [
 			{ href: '/about', label: 'About the Bank' },
+			{ href: '/about/mission', label: 'Mission and values' },
 			{ href: '/about/governance', label: 'Governance' },
-			{ href: '/about/international', label: 'International cooperation' },
-			{ href: '/explained', label: 'The Bank explained' },
+			{ href: '/about/organisation', label: 'Organisation' },
+			{ href: '/about/integrity', label: 'Ethics and integrity' },
+			{ href: '/about/careers', label: 'Careers' }
+		]
+	},
+	{
+		heading: 'Policy and the system',
+		links: [
 			{ href: '/monetary-policy', label: 'Monetary policy' },
 			{ href: '/financial-stability', label: 'Financial stability' },
 			{ href: '/payments', label: 'Payments' },
-			{ href: '/reserves', label: 'Reserves' }
+			{ href: '/reserves', label: 'Reserves' },
+			{ href: '/financial-inclusion', label: 'Financial inclusion' },
+			{ href: '/innovation', label: 'Innovation' }
 		]
 	},
 	{
 		heading: 'The Guilder',
 		links: [
 			{ href: '/currency', label: 'The Aletheian Guilder' },
-			{ href: '/digital-guilder', label: 'Digital Guilder' },
 			{ href: '/banknotes', label: 'Banknotes' },
-			{ href: '/banknotes/reproduction', label: 'Using banknote images' },
-			{ href: '/issuance', label: 'Issuance' }
+			{ href: '/digital-guilder', label: 'Digital Guilder' },
+			{ href: '/issuance', label: 'Issuance' },
+			{ href: '/learn', label: 'Money and you' }
 		]
 	},
 	{
@@ -117,10 +156,8 @@ export const FOOTER_NAV: { heading: string; links: NavLink[] }[] = [
 			{ href: '/news', label: 'News' },
 			{ href: '/publications', label: 'Publications' },
 			{ href: '/statistics', label: 'Statistics' },
-			{ href: '/research', label: 'Research' },
-			{ href: '/about/careers', label: 'Careers' },
+			{ href: '/media', label: 'Media centre' },
 			{ href: '/procurement', label: 'Procurement' },
-			{ href: '/faq', label: 'Questions and answers' },
 			{ href: '/fraud-warning', label: 'Fraud warning' },
 			{ href: '/contact', label: 'Contact' }
 		]

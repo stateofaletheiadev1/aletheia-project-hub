@@ -32,9 +32,10 @@
 
 	// Flatten for the staggered entrance: each row gets its index.
 	const rows = $derived.by(() => {
-		const out: { href: string; label: string; child: boolean }[] = [];
+		const out: { href: string | null; label: string; child: boolean }[] = [];
 		for (const item of PRIMARY_NAV) {
 			if (isGroup(item)) {
+				out.push({ href: null, label: item.label, child: false });
 				for (const c of item.children) out.push({ href: c.href, label: c.label, child: true });
 			} else {
 				out.push({ href: item.href, label: item.label, child: false });
@@ -78,9 +79,13 @@
 
 		<nav aria-label="Main">
 			<ul role="list" class="links">
-				{#each rows as row, i (row.href)}
-					<li class:child={row.child} style:--i={i}>
-						<a href={row.href} aria-current={current(row.href)}>{row.label}</a>
+				{#each rows as row, i (row.href ?? row.label)}
+					<li class:child={row.child} class:heading={!row.href} style:--i={Math.min(i, 12)}>
+						{#if row.href}
+							<a href={row.href} aria-current={current(row.href)}>{row.label}</a>
+						{:else}
+							<span class="t-meta">{row.label}</span>
+						{/if}
 					</li>
 				{/each}
 			</ul>
@@ -224,8 +229,14 @@
 	}
 
 	.links .child a {
-		padding-left: var(--space-5);
 		font-size: var(--fs-lead);
+	}
+
+	.links .heading {
+		padding-top: var(--space-6);
+		padding-bottom: var(--space-2);
+		color: var(--c-gold);
+		border-bottom: var(--hairline) solid var(--line-strong);
 	}
 
 	.links a[aria-current='page'] {
