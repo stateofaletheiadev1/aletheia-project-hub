@@ -7,7 +7,6 @@ import Image from 'next/image';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { PageHero } from '@/components/ui/PageHero';
 import { GAZETTE_CATEGORIES, GAZETTE_NOTICE, GAZETTE_POSTS, formatGazetteDate } from '@/lib/gazette';
-import { ImageCaption } from '@/components/ui/ImageCaption';
 import { unsplash } from '@/lib/imagery';
 import { ArrowRight, Bell, Calendar, Clock, Info, Search } from 'lucide-react';
 
@@ -96,7 +95,6 @@ export default function NewsPage() {
           >
             <div className="lg:col-span-7 relative min-h-[300px] lg:min-h-[440px]">
               <Image src={unsplash(lead.image, 1400)} alt="" fill sizes="(min-width:1024px) 60vw, 100vw" className="object-cover" />
-              <ImageCaption />
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-navy-deep/90 hidden lg:block" />
               <div className="absolute inset-0 bg-gradient-to-t from-navy-deep via-navy-deep/20 to-transparent lg:hidden" />
             </div>
@@ -132,7 +130,6 @@ export default function NewsPage() {
               >
                 <div className="relative h-52">
                   <Image src={unsplash(post.image, 900)} alt="" fill sizes="(min-width:1024px) 33vw, (min-width:768px) 50vw, 100vw" className="object-cover" />
-                  <ImageCaption />
                   <div className="absolute inset-0 bg-gradient-to-t from-navy-deep/80 via-transparent to-transparent" />
                   <span className="absolute bottom-3 left-4 px-2 py-0.5 bg-navy-deep/80 backdrop-blur-sm text-parchment font-mono text-[10px] font-bold rounded-sm border border-gold/30">
                     {tx(post.number)}

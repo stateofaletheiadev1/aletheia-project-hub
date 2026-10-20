@@ -6,7 +6,6 @@ import Link from '@/components/i18n/Link';
 import Image from 'next/image';
 import { StarOfTruth } from '@/components/brand/Logo';
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import { SpecimenWatermark } from '@/components/ui/SpecimenWatermark';
 import { Cpu, FileCheck2, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
 
@@ -97,7 +96,7 @@ export default function TravelDocumentDesignPage() {
               </div>
             </div>
 
-            {/* Cover — overprinted as a specimen */}
+            {/* Cover */}
             <div className="lg:col-span-5 flex justify-center">
               <figure className="relative group">
                 <div className="absolute -inset-4 bg-gradient-to-r from-covenant-burgundy/40 to-gold/20 rounded-2xl blur-xl opacity-60 group-hover:opacity-80 transition-opacity" />
@@ -112,10 +111,9 @@ export default function TravelDocumentDesignPage() {
                       style={{ filter: 'drop-shadow(0 25px 50px rgba(0,0,0,0.6)) drop-shadow(0 8px 16px rgba(112,24,36,0.4))' }}
                       priority
                     />
-                    <SpecimenWatermark />
                   </div>
                   <figcaption className="mt-4 text-center">
-                    <span className="inline-block px-3 py-1 bg-navy-deep/90 border border-gold/30 rounded-full text-[10px] font-mono text-gold tracking-widest uppercase">{t("Specimen · Design concept")}</span>
+                    <span className="inline-block px-3 py-1 bg-navy-deep/90 border border-gold/30 rounded-full text-[10px] font-mono text-gold tracking-widest uppercase">{t("Design concept")}</span>
                   </figcaption>
                 </div>
               </figure>

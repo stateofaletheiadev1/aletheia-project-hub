@@ -52,7 +52,7 @@ export const PUBLIC_ROUTES = {
   '/treasury': { title: 'Treasury & Endowment', description: 'The proposed Covenant Endowment, public balance sheet and revenue model.', priority: 0.7, changeFrequency: 'monthly' },
   '/central-bank': { title: 'Reserve Bank of Aletheia', description: 'The Reserve Bank of Aletheia, the proposed monetary institution of the Sovereign Covenant State of Aletheia.', priority: 0.7, changeFrequency: 'monthly' },
   '/aey': { title: 'The Aletheian Guilder (AEY)', description: 'The proposed national currency of Aletheia. Not issued to the public, and not legal tender or e-money.', priority: 0.8, changeFrequency: 'monthly' },
-  '/aey/paper-currency': { title: 'AEY Paper Currency', description: 'Design concepts for an AEY banknote series, shown as specimens.', priority: 0.6, changeFrequency: 'monthly' },
+  '/aey/paper-currency': { title: 'AEY Paper Currency', description: 'Design concepts for an AEY banknote series, 1 to 100 AEY.', priority: 0.6, changeFrequency: 'monthly' },
   '/stablechain': { title: 'Aletheia StableChain', description: 'Ledger infrastructure on testnet: 500 ms slots, finality in about a second and fixed settlement fees.', priority: 0.8, changeFrequency: 'monthly' },
   '/business': { title: 'Business Platform', description: 'Proposed digital incorporation, commercial licensing and a corporate registry for Aletheia.', priority: 0.7, changeFrequency: 'monthly' },
   '/invest': { title: 'Investment & Partnerships', description: 'How future partners and investors could take part in building Aletheia. Nothing is offered or sold.', priority: 0.6, changeFrequency: 'monthly' },

@@ -7,7 +7,6 @@ import { PageHero } from '@/components/ui/PageHero';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { unsplash } from '@/lib/imagery';
 import type { ManualStatus } from '@/lib/status';
-import { ImageCaption } from '@/components/ui/ImageCaption';
 import {
   Activity,
   ArrowRight,
@@ -101,7 +100,6 @@ export default function HealthcarePage() {
           <div className="lg:col-span-6 relative">
             <div className="photo-card relative h-[460px] rounded-sm border border-gold/20 shadow-elevated">
               <Image src={unsplash('clinician', 1200)} alt={t("A clinician reviewing a patient record on a laptop")} fill sizes="(min-width:1024px) 50vw, 100vw" className="object-cover" />
-              <ImageCaption />
               <div className="absolute inset-0 bg-gradient-to-t from-navy-deep/70 via-transparent to-transparent" />
             </div>
             <div className="hidden sm:block absolute -bottom-8 -right-6 w-60 bg-navy-deep text-parchment p-5 rounded-sm border border-gold/30 shadow-elevated space-y-2 animate-float">
@@ -167,7 +165,6 @@ export default function HealthcarePage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="photo-card lg:row-span-2 relative min-h-[420px] rounded-sm border border-gold/20 shadow-elevated">
               <Image src={unsplash('laboratory', 1000)} alt={t("Researcher working in a biomedical laboratory")} fill sizes="(min-width:1024px) 33vw, 100vw" className="object-cover" />
-              <ImageCaption />
               <div className="absolute inset-0 bg-gradient-to-t from-navy-deep via-navy-deep/30 to-transparent" />
               <div className="photo-card-body absolute bottom-0 p-7 text-parchment space-y-2">
                 <StatusBadge status="Planned" size="sm" />

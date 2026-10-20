@@ -6,7 +6,6 @@ import Link from '@/components/i18n/Link';
 import Image from 'next/image';
 import { StarOfTruth } from '@/components/brand/Logo';
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import { ImageCaption } from '@/components/ui/ImageCaption';
 import {
   ShieldCheck,
   Plane,
@@ -75,7 +74,6 @@ export default function ImmigrationPage() {
             className="object-cover opacity-20 mix-blend-luminosity"
             priority
           />
-          <ImageCaption kind="design" position="bottom-right" />
         </div>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

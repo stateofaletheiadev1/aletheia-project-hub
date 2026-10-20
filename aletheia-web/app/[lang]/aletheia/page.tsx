@@ -7,8 +7,6 @@ import Image from 'next/image';
 import { StarOfTruth } from '@/components/brand/Logo';
 import { NationalFlag } from '@/components/brand/Flags';
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import { ImageCaption } from '@/components/ui/ImageCaption';
-import { SpecimenWatermark } from '@/components/ui/SpecimenWatermark';
 import {
   ArrowRight,
   Shield,
@@ -204,7 +202,6 @@ export default function AletheiaPage() {
                       height={140}
                       className="object-contain drop-shadow-md"
                     />
-                    <SpecimenWatermark className="[&>span]:text-[6px] [&>span]:px-1 [&>span]:tracking-[0.08em]" />
                   </div>
                 </div>
                 <h3 className="text-base font-bold text-navy">{t("Travel Document Design Concept")}</h3>
@@ -249,7 +246,6 @@ export default function AletheiaPage() {
                   fill
                   className="object-cover"
                 />
-                <ImageCaption kind="design" />
                 <div className="absolute inset-0 bg-gradient-to-t from-navy/90 via-navy/30 to-transparent p-6 flex flex-col justify-end text-parchment">
                   <span className="text-[10px] font-mono uppercase text-gold">{t("Vision · design study")}</span>
                   <p className="text-lg font-bold">{t("St. Brendan Deepwater Port & Maritime Terminus")}</p>

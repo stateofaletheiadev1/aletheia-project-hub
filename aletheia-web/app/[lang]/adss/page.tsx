@@ -6,7 +6,6 @@ import Link from '@/components/i18n/Link';
 import Image from 'next/image';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { StarOfTruth } from '@/components/brand/Logo';
-import { ImageCaption } from '@/components/ui/ImageCaption';
 import type { AssetKey, ManualStatus } from '@/lib/status';
 import {
   Shield,
@@ -134,7 +133,6 @@ export default function ADSSPage() {
             className="object-cover opacity-12 mix-blend-luminosity"
             priority
           />
-          <ImageCaption position="bottom-right" />
         </div>
         {/* Ambient orbs */}
         <div className="orb-gold w-[460px] h-[460px] -top-24 -left-32 opacity-50 animate-orb-float-1" />
@@ -307,7 +305,6 @@ export default function ADSSPage() {
                 height={440}
                 className="w-full object-cover rounded-[4px]"
               />
-              <ImageCaption />
             </div>
             <div className="space-y-5">
               <div className="flex items-center gap-3">

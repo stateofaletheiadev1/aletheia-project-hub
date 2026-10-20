@@ -45,7 +45,7 @@ export const GAZETTE_POSTS: GazettePost[] = [
     body: [
       'The founding team has published a design concept for a future Aletheian travel document, drawn up with reference to international travel-document conventions.',
       'The concept describes a Covenant Burgundy booklet, a polycarbonate data page and an electronic chip. It is a design only: no document has been produced or issued, and none will be issued unless Aletheia is established by treaty and has the lawful authority to do so.',
-      'The design concept, overprinted as a specimen, is shown on the travel-document design page.',
+      'The design concept is shown on the travel-document design page.',
     ],
     signatory: 'Founding Team',
     image: 'flight',

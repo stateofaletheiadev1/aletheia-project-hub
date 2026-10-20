@@ -6,7 +6,6 @@ import Image from 'next/image';
 import { StarOfTruth } from '@/components/brand/Logo';
 import { GAZETTE_NOTICE, GAZETTE_POSTS, formatGazetteDate, getGazettePost } from '@/lib/gazette';
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import { ImageCaption } from '@/components/ui/ImageCaption';
 import { unsplash } from '@/lib/imagery';
 import { ArrowLeft, ArrowRight, Calendar, Clock, Download, Info, PenLine } from 'lucide-react';
 
@@ -26,7 +25,6 @@ export function GazetteArticleView({ slug }: { slug: string }) {
           <Image src={unsplash(post.image, 2000)} alt="" fill priority sizes="100vw" className="object-cover" />
         </div>
         <div className="absolute inset-0 bg-gradient-to-t from-[#060C14] via-[#0E1B31]/75 to-[#0E1B31]/30" />
-        <ImageCaption position="top-right" className="top-24" />
         <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-14 pt-32 w-full space-y-5">
           <Link href="/news" className="inline-flex items-center gap-1.5 text-xs font-semibold text-gold hover:text-gold-tint transition-colors" data-print-hide>
             <ArrowLeft className="w-3.5 h-3.5" />{' '}{t("All Gazette records")}</Link>
@@ -109,7 +107,6 @@ export function GazetteArticleView({ slug }: { slug: string }) {
               <Link key={p.slug} href={`/news/${p.slug}`} className="photo-card group sovereign-card-premium rounded-sm flex flex-col">
                 <div className="relative h-44">
                   <Image src={unsplash(p.image, 800)} alt="" fill sizes="(min-width:768px) 33vw, 100vw" className="object-cover" />
-                  <ImageCaption />
                 </div>
                 <div className="photo-card-body p-5 space-y-2">
                   <span className="text-[10px] font-bold text-gold-shadow uppercase tracking-[0.16em]">{tx(p.category)}</span>

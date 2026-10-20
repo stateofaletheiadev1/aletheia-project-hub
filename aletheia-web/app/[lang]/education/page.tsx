@@ -19,7 +19,6 @@ import {
   Sprout,
   Stethoscope,
 } from 'lucide-react';
-import { ImageCaption } from '@/components/ui/ImageCaption';
 
 const STAGES: { age: string; title: string; desc: string; image: PhotoKey }[] = [
   { age: 'Ages 3–6', title: 'Early Years', desc: 'Play-based learning, two languages from the start, and free places in every canton (proposed).', image: 'earlyLearning' },
@@ -65,7 +64,6 @@ export default function EducationPage() {
               <div key={s.title} className="photo-card group sovereign-card-premium rounded-sm flex flex-col">
                 <div className="relative h-48">
                   <Image src={unsplash(s.image, 700)} alt="" fill sizes="(min-width:1024px) 25vw, (min-width:640px) 50vw, 100vw" className="object-cover" />
-                  <ImageCaption />
                   <div className="absolute inset-0 bg-gradient-to-t from-navy-deep/75 to-transparent" />
                   <span className="absolute bottom-3 left-4 text-[10px] font-mono font-bold uppercase tracking-wider text-gold-tint">{tx(s.age)}</span>
                 </div>
@@ -105,15 +103,12 @@ export default function EducationPage() {
           <div className="lg:col-span-6 grid grid-cols-2 gap-4">
             <div className="photo-card relative h-72 rounded-sm border border-gold/25 col-span-2">
               <Image src={unsplash('library', 1200)} alt={t("A long university library hall lined with books")} fill sizes="(min-width:1024px) 50vw, 100vw" className="object-cover" />
-              <ImageCaption />
             </div>
             <div className="photo-card relative h-44 rounded-sm border border-gold/25">
               <Image src={unsplash('laboratory', 600)} alt={t("Engineering laboratory")} fill sizes="25vw" className="object-cover" />
-              <ImageCaption />
             </div>
             <div className="photo-card relative h-44 rounded-sm border border-gold/25">
               <Image src={unsplash('bookStack', 600)} alt={t("A stack of books")} fill sizes="25vw" className="object-cover" />
-              <ImageCaption />
             </div>
           </div>
         </div>

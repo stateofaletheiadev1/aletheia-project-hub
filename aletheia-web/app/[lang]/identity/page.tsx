@@ -7,7 +7,6 @@ import Image from 'next/image';
 import { StarOfTruth, HexagonCross } from '@/components/brand/Logo';
 import { NationalFlag } from '@/components/brand/Flags';
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import { SpecimenWatermark } from '@/components/ui/SpecimenWatermark';
 import { ArrowRight, CheckCircle2 } from 'lucide-react';
 import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
 
@@ -131,7 +130,7 @@ export default function IdentityPage() {
         </div>
       </section>
 
-      {/* ── 3. THE PASSPORT SPECIMEN ── */}
+      {/* ── 3. THE TRAVEL DOCUMENT DESIGN ── */}
       <section className="py-16 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           
@@ -147,7 +146,6 @@ export default function IdentityPage() {
                   className="object-contain"
                   style={{ filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.5)) drop-shadow(0 6px 12px rgba(112,24,36,0.35))' }}
                 />
-                <SpecimenWatermark />
               </div>
             </div>
           </div>

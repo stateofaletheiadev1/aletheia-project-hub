@@ -157,7 +157,7 @@ export default function AeyCurrencyPage() {
                 </div>
 
                 <div className="relative z-10 pt-3 border-t border-parchment/10">
-                  <p className="text-[10px] font-mono text-parchment/40 text-center tracking-wider [text-wrap:balance]">{t("SPECIMEN · RESERVE BANK OF ALETHEIA · VERITAS IN FOEDERE")}</p>
+                  <p className="text-[10px] font-mono text-parchment/40 text-center tracking-wider [text-wrap:balance]">{t("RESERVE BANK OF ALETHEIA · VERITAS IN FOEDERE")}</p>
                 </div>
               </div>
             </div>
@@ -354,7 +354,7 @@ export default function AeyCurrencyPage() {
                 >
                   <Image
                     src={`/images/currency/aey-${value}-front.webp`}
-                    alt={i === 1 ? t("100 AEY banknote design, front, specimen") : ''}
+                    alt={i === 1 ? t("100 AEY banknote design, front") : ''}
                     width={1168}
                     height={784}
                     loading="lazy"

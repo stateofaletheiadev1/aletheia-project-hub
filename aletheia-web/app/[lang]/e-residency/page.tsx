@@ -6,7 +6,6 @@ import Link from '@/components/i18n/Link';
 import Image from 'next/image';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { StarOfTruth } from '@/components/brand/Logo';
-import { ImageCaption } from '@/components/ui/ImageCaption';
 import {
   Globe,
   Zap,
@@ -118,7 +117,6 @@ export default function EResidencyPage() {
             className="object-cover opacity-10 mix-blend-luminosity"
             priority
           />
-          <ImageCaption position="bottom-right" />
         </div>
         {/* Ambient orbs */}
         <div className="orb-gold w-[420px] h-[420px] -top-20 -right-20 opacity-55 animate-orb-float-1" />

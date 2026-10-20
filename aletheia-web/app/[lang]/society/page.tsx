@@ -5,7 +5,6 @@ import Link from '@/components/i18n/Link';
 import Image from 'next/image';
 import { PageHero } from '@/components/ui/PageHero';
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import { ImageCaption } from '@/components/ui/ImageCaption';
 import { unsplash, type PhotoKey } from '@/lib/imagery';
 import { ArrowRight, Church, Home, Landmark, Music, Sailboat, Trees, Users } from 'lucide-react';
 
@@ -82,7 +81,6 @@ export default function SocietyPage() {
           {[...GALLERY, ...GALLERY].map((g, i) => (
             <div key={i} className="photo-card relative w-[340px] h-[230px] rounded-sm border border-gold/20 shrink-0" aria-hidden={i >= GALLERY.length}>
               <Image src={unsplash(g.image, 700)} alt={tx(i < GALLERY.length ? g.alt : '')} fill sizes="340px" className="object-cover" />
-              <ImageCaption />
             </div>
           ))}
         </div>
@@ -118,7 +116,6 @@ export default function SocietyPage() {
         <div className="absolute inset-0 animate-ken-burns" aria-hidden="true">
           <Image src={unsplash('oceanWave', 2000)} alt="" fill sizes="100vw" className="object-cover" />
         </div>
-        <ImageCaption position="bottom-right" />
         <div className="absolute inset-0 bg-gradient-to-r from-[#060C14]/95 via-[#0E1B31]/75 to-transparent" />
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 w-full">
           <div className="max-w-xl space-y-6">
@@ -174,7 +171,6 @@ export default function SocietyPage() {
           ].map((c) => (
             <Link key={c.href} href={c.href} className="photo-card group relative h-72 rounded-sm border border-gold/20 shadow-institutional">
               <Image src={unsplash(c.image, 800)} alt="" fill sizes="(min-width:768px) 33vw, 100vw" className="object-cover" />
-              <ImageCaption />
               <div className="absolute inset-0 bg-gradient-to-t from-navy-deep via-navy-deep/40 to-transparent" />
               <div className="photo-card-body absolute bottom-0 p-6 text-parchment space-y-1">
                 <h3 className="text-xl font-bold flex items-center gap-2">{tx(c.title)} <ArrowRight className="w-4 h-4 text-gold group-hover:translate-x-1 transition-transform" /></h3>

@@ -238,7 +238,7 @@ export default function AeyPaperCurrencyPage() {
             {[
               { value: '5', label: 'Denominations', sublabel: '1 · 5 · 10 · 20 · 100 AEY' },
               { value: '2', label: 'Forms', sublabel: 'Banknotes & StableChain AEY' },
-              { value: 'Specimen', label: 'Banknote Designs', sublabel: 'Shown as specimens' },
+              { value: '5', label: 'Banknote Designs', sublabel: '1 to 100 AEY' },
               { value: 'RBA', label: 'Issuer', sublabel: 'Reserve Bank of Aletheia' },
             ].map(({ value, label, sublabel }) => (
               <div key={label} className="px-6 py-4 text-center first:pl-0 last:pr-0 space-y-0.5">
@@ -255,7 +255,7 @@ export default function AeyPaperCurrencyPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full pt-10">
         <div className="flex items-start gap-3 p-4 bg-white border border-gold/40 border-l-4 border-l-gold rounded-sm text-xs text-navy/80 leading-relaxed">
           <Info className="w-4 h-4 text-gold shrink-0 mt-0.5" />
-          <p><strong className="text-navy">{t("Proposed designs.")}</strong>{' '}{t("The images are shown as specimens. The notes are to be issued by the Reserve Bank of Aletheia, which will announce the series and its issue on its own website.")}</p>
+          <p><strong className="text-navy">{t("Proposed designs.")}</strong>{' '}{t("The notes are to be issued by the Reserve Bank of Aletheia, which will announce the series and its issue on its own website.")}</p>
         </div>
       </div>
 

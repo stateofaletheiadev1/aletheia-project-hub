@@ -1,6 +1,5 @@
 import Image from 'next/image';
 import { unsplash, type PhotoKey } from '@/lib/imagery';
-import { ImageCaption } from '@/components/ui/ImageCaption';
 
 interface HeroBackdropProps {
   image: PhotoKey;
@@ -17,7 +16,6 @@ interface HeroBackdropProps {
  */
 export function HeroBackdrop({ image, intensity = 0.32, position = 'center' }: HeroBackdropProps) {
   return (
-    <>
     <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
       <div className="absolute inset-0 animate-ken-burns">
         <Image
@@ -34,7 +32,5 @@ export function HeroBackdrop({ image, intensity = 0.32, position = 'center' }: H
       <div className="absolute inset-0 bg-gradient-to-t from-[#060C14]/90 via-transparent to-[#060C14]/40" />
       <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-gold/60 to-transparent" />
     </div>
-    <ImageCaption position="bottom-right" />
-    </>
   );
 }

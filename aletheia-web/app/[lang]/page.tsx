@@ -6,8 +6,6 @@ import React from 'react';
 import Link from '@/components/i18n/Link';
 import Image from 'next/image';
 import { StatusBadge, StatusLegend } from '@/components/ui/StatusBadge';
-import { ImageCaption } from '@/components/ui/ImageCaption';
-import { SpecimenWatermark } from '@/components/ui/SpecimenWatermark';
 import { MontevideoTable } from '@/components/ui/StatusTables';
 import { AeyNotice } from '@/components/ui/AeyNotice';
 import { TreatyPrinciples } from '@/components/development/TreatyPrinciples';
@@ -63,7 +61,6 @@ export default function HomePage() {
             priority
           />
         </div>
-        <ImageCaption position="bottom-right" />
 
         {/* Deep gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-br from-[#060C14]/92 via-[#0E1B31]/72 to-[#090F1A]/85 pointer-events-none" />
@@ -306,7 +303,6 @@ export default function HomePage() {
                 className={'photo-card group relative min-h-[260px] rounded-sm border border-gold/20 shadow-institutional ' + f.span}
               >
                 <Image src={unsplash(f.image, f.big ? 1400 : 800)} alt="" fill sizes={f.big ? '(min-width:768px) 50vw, 100vw' : '(min-width:768px) 25vw, 100vw'} className="object-cover" />
-                <ImageCaption />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#060C14]/95 via-[#0E1B31]/35 to-transparent" />
                 <div className="photo-card-body absolute inset-x-0 bottom-0 p-6 text-parchment space-y-2">
                   <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-gold-tint">{tx(f.kicker)}</span>
@@ -374,7 +370,6 @@ export default function HomePage() {
                   className="object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-navy-deep/95 via-navy/30 to-transparent" />
-                <ImageCaption />
                 <div className="absolute bottom-5 left-5 right-5 text-parchment space-y-1">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-mono font-bold text-gold uppercase tracking-wider">{t("The Covenant Assembly (proposed)")}</span>
@@ -443,7 +438,6 @@ export default function HomePage() {
                 className="object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-navy-deep/90 via-navy/30 to-transparent" />
-              <ImageCaption kind="design" />
               <div className="absolute bottom-5 left-5 text-parchment">
                 <span className="text-[10px] font-mono uppercase tracking-wider text-gold block mb-1">{t("Vision · design study")}</span>
                 <h4 className="text-xl font-bold">{t("Antioch: the concentric capital")}</h4>
@@ -535,7 +529,6 @@ export default function HomePage() {
                     className="object-contain"
                     style={{ filter: 'drop-shadow(0 32px 56px rgba(0,0,0,0.32)) drop-shadow(0 6px 14px rgba(112,24,36,0.25))' }}
                   />
-                  <SpecimenWatermark />
                 </div>
               </div>
             </div>
@@ -648,7 +641,6 @@ export default function HomePage() {
               <div className="relative h-48 overflow-hidden">
                 <Image src="/images/cyber_defence.jpg" alt={t("A security operations room")} fill className="object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-navy-deep/90 via-navy/40 to-transparent" />
-                <ImageCaption />
                 <div className="absolute top-3 right-3"><StatusBadge asset="cyber" size="sm" /></div>
                 <div className="absolute bottom-3 left-4"><span className="text-[10px] font-mono text-gold uppercase tracking-wider">{t("Core Mandate")}</span></div>
               </div>
@@ -669,7 +661,6 @@ export default function HomePage() {
               <div className="relative h-48 overflow-hidden">
                 <Image src={unsplash('europeanTown', 800)} alt={t("A quiet European town street at dusk")} fill sizes="(min-width:768px) 33vw, 100vw" className="object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-navy-deep/90 via-navy/30 to-transparent" />
-                <ImageCaption />
                 <div className="absolute bottom-3 left-4"><span className="text-[10px] font-mono text-gold uppercase tracking-wider">{t("Civilian Command")}</span></div>
               </div>
               <div className="p-6 space-y-3 flex-1 flex flex-col">
@@ -692,7 +683,6 @@ export default function HomePage() {
               <div className="relative h-48 overflow-hidden">
                 <Image src={unsplash('flight', 800)} alt={t("Aircraft wing above the clouds")} fill sizes="(min-width:768px) 33vw, 100vw" className="object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-navy-deep/90 via-navy/30 to-transparent" />
-                <ImageCaption />
                 <div className="absolute bottom-3 left-4"><span className="text-[10px] font-mono text-gold uppercase tracking-wider">{t("Paperless Borders")}</span></div>
               </div>
               <div className="p-6 space-y-3 flex-1 flex flex-col">
@@ -736,7 +726,6 @@ export default function HomePage() {
               <Link key={post.slug} href={'/news/' + post.slug} className="photo-card group sovereign-card-premium rounded-sm flex flex-col">
                 <div className="relative h-48">
                   <Image src={unsplash(post.image, 800)} alt="" fill sizes="(min-width:768px) 33vw, 100vw" className="object-cover" />
-                  <ImageCaption />
                   <div className="absolute inset-0 bg-gradient-to-t from-navy-deep/75 to-transparent" />
                   <span className="absolute bottom-3 left-4 px-2 py-0.5 bg-navy-deep/80 backdrop-blur-sm text-parchment font-mono text-[10px] font-bold rounded-sm border border-gold/30">{tx(post.number)}</span>
                 </div>

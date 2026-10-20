@@ -10,7 +10,6 @@ import { PageHero } from '@/components/ui/PageHero';
 import { HexagonCross } from '@/components/brand/Logo';
 import { unsplash, type PhotoKey } from '@/lib/imagery';
 import type { ManualStatus } from '@/lib/status';
-import { ImageCaption } from '@/components/ui/ImageCaption';
 import { MontevideoTable } from '@/components/ui/StatusTables';
 import { TreatyPrinciples } from '@/components/development/TreatyPrinciples';
 import { Anchor, ArrowRight, Building2, CheckCircle, Cpu, Fish, Globe, GraduationCap, Shield, Sprout, TreePine, Wheat, Zap } from 'lucide-react';
@@ -230,7 +229,6 @@ export default function DevelopmentPage() {
               <span className="text-[11px] font-mono text-navy/55">{t("Aerial concept · design study, not a real place")}</span>
             </figcaption>
             <a href="/images/national-blueprint.webp" target="_blank" rel="noopener" className="block relative">
-              <ImageCaption kind="design" />
               <Image
                 src="/images/national-blueprint.webp"
                 alt={t("Aerial concept of the Sovereign Covenant State of Aletheia: the Antioch Federal District at the centre, ringed by St. Barbara, Augustine, St. Brendan and Benedict States")}
@@ -268,7 +266,6 @@ export default function DevelopmentPage() {
             </div>
             <div className="lg:col-span-6 photo-card relative h-[520px] rounded-sm border border-gold/30 shadow-elevated">
               <Image src="/images/architecture_antioch.jpg" alt={t("Concept of Antioch's concentric civic architecture")} fill sizes="(min-width:1024px) 50vw, 100vw" className="object-cover" />
-              <ImageCaption kind="design" />
               <div className="absolute inset-0 bg-gradient-to-t from-navy-deep/80 via-transparent to-transparent" />
             </div>
           </div>
@@ -306,7 +303,6 @@ export default function DevelopmentPage() {
               <article key={s.id} id={s.id} className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
                 <div className={`lg:col-span-7 photo-card relative h-[380px] lg:h-[460px] rounded-sm border border-gold/20 shadow-elevated ${i % 2 ? 'lg:order-2' : ''}`}>
                   <Image src={unsplash(s.image, 1400)} alt="" fill sizes="(min-width:1024px) 58vw, 100vw" className="object-cover" />
-                  <ImageCaption />
                   <div className="absolute inset-0 bg-gradient-to-t from-navy-deep/80 via-navy-deep/10 to-transparent" />
                   <div className="absolute bottom-6 left-6 text-parchment">
                     <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-gold-tint block">{tx(s.quarter)}</span>
@@ -343,7 +339,6 @@ export default function DevelopmentPage() {
       <section id="agriculture" className="relative overflow-hidden text-parchment">
         <div className="absolute inset-0 animate-ken-burns" aria-hidden="true">
           <Image src={unsplash('windMeadow', 2000)} alt="" fill sizes="100vw" className="object-cover" />
-          <ImageCaption />
         </div>
         <div className="absolute inset-0 bg-gradient-to-r from-[#060C14]/95 via-[#0E1B31]/80 to-[#0E1B31]/30" />
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32 grid grid-cols-1 lg:grid-cols-2 gap-12">

@@ -22,7 +22,6 @@ import {
 } from 'lucide-react';
 import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
 import { AeyNotice } from '@/components/ui/AeyNotice';
-import { ImageCaption } from '@/components/ui/ImageCaption';
 
 const INVARIANTS = [
   { id: '1', label: 'Published Rules', rule: 'New AEY is issued only under rules adopted and published by the Reserve Bank of Aletheia.' },
@@ -312,7 +311,6 @@ export default function EconomyPage() {
                 height={440}
                 className="w-full object-cover rounded-[4px]"
               />
-              <ImageCaption kind="design" />
             </div>
             <div className="space-y-6">
               <span className="text-[10px] font-bold tracking-[0.22em] uppercase text-gold block">{t("Business Platform · Proposed")}</span>
