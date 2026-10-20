@@ -212,8 +212,8 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 sm:grid-cols-4 sm:divide-x divide-gold/15 gap-y-2">
             {[
-              { value: '100%', label: 'Reserve Backing', sub: 'AEY · EUR Parity', status: 'Operational' as const },
-              { value: '1:1', label: 'AEY / EUR Peg', sub: 'Fixed, on-chain', status: 'Operational' as const },
+              { value: 'AEY', label: 'National Currency', sub: 'Reserve Bank of Aletheia', status: 'Planned' as const },
+              { value: '5', label: 'Banknote Designs', sub: '1 to 100 AEY', status: 'Planned' as const },
               { value: '≈ 1 s', label: 'Ledger Finality', sub: 'Two 500 ms slots', status: 'Under Development' as const },
               { value: '0%', label: 'Personal Income Tax', sub: 'By constitutional decree', status: 'Operational' as const },
             ].map(({ value, label, sub, status }) => (
@@ -259,7 +259,7 @@ export default function HomePage() {
               {
                 num: '02', title: 'StableChain Protocol & APN', status: 'Under Development' as const,
                 color: 'bg-gold',
-                desc: 'Byzantine-fault-tolerant ledger with 500 ms slots, AEY reserve backing invariants, and fixed-fee settlement rails operating on the sovereign closed mainnet.',
+                desc: 'Byzantine-fault-tolerant ledger with 500 ms slots, supply invariants for the Aletheian Guilder, and fixed-fee settlement rails.',
               },
               {
                 num: '03', title: 'Territorial Antioch Build', status: 'Planned' as const,
@@ -345,7 +345,7 @@ export default function HomePage() {
               <div className="grid grid-cols-2 gap-4">
                 {[
                   { icon: CheckCircle, title: 'Provable Accounts', desc: 'Every government disbursement produces an immutable public receipt checked by the Auditor-General each epoch.' },
-                  { icon: Lock, title: 'Honest Reserves', desc: 'The AEY is redeemable and mathematically guarded by twelve supply invariants. The node halts rather than print unbacked currency.' },
+                  { icon: Lock, title: 'Honest Money', desc: 'The AEY is to be issued only under published rules by the Reserve Bank of Aletheia, with every issue recorded in a public register.' },
                 ].map(({ icon: Icon, title, desc }) => (
                   <div key={title} className="sovereign-card-premium p-5 rounded-sm space-y-2">
                     <div className="flex items-center gap-2">
@@ -570,7 +570,7 @@ export default function HomePage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {[
               { val: '500 ms', label: 'Block Slot', desc: 'A block every 500 ms, final two slots later, across state-authorised validator clusters.' },
-              { val: '100%', label: 'Provable AEY Reserve', desc: 'AEY is pegged 1:1 with EUR. Cryptographic balance sheet proofs published every epoch.' },
+              { val: 'AEY', label: 'The Aletheian Guilder', desc: 'The national currency, to be issued by the Reserve Bank of Aletheia in banknotes and on StableChain.' },
               { val: '0%', label: 'Personal Income Tax', desc: 'State revenue funded by land leasehold dividends, APN fees, and the Covenant Endowment.' },
               { val: 'APN Rail', label: 'Payment Network', desc: 'Instant merchant settlement connecting retail point-of-sale directly to SEPA and SWIFT gateways.' },
             ].map(({ val, label, desc }) => (

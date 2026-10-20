@@ -140,9 +140,9 @@ export const MAIN_NAVIGATION: NavItem[] = [
         group: 'Monetary Architecture',
         items: [
           { title: 'Treasury & Endowment', href: '/treasury', desc: 'Tax-free revenue model, public receipts, and sovereign reserves' },
-          { title: 'Aletheian Reserve Bank', href: '/central-bank', desc: 'Monetary Board, reserve invariants, and settlement policies' },
-          { title: 'The Aletheian Guilder (AEY)', href: '/aey', desc: 'The sovereign unit of account backed by provable 100% reserves' },
-          { title: 'AEY Paper Currency', href: '/aey/paper-currency', desc: 'Engraved banknotes, legal tender alongside StableChain AEY', status: 'Planned' },
+          { title: 'Reserve Bank of Aletheia', href: '/central-bank', desc: 'The State’s monetary institution and issuer of the AEY' },
+          { title: 'The Aletheian Guilder (AEY)', href: '/aey', desc: 'The national currency, in banknotes and on StableChain' },
+          { title: 'AEY Paper Currency', href: '/aey/paper-currency', desc: 'The engraved banknote series, 1 to 100 AEY', status: 'Planned' },
           { title: 'Aletheia StableChain', href: '/stablechain', desc: 'Cryptographic ledger infrastructure (500 ms slots, fixed fee schedule)', status: 'Under Development' },
           { title: 'StableChain Block Explorer', href: STABLECHAIN.explorer, desc: 'Every block, transaction and account, read from finalized state', status: 'Under Development' },
         ],

@@ -9,7 +9,7 @@ const FAQ: { group: string; items: { q: string; a: string; link?: { href: string
   {
     group: 'About Aletheia',
     items: [
-      { q: 'What is Aletheia today?', a: 'Aletheia is a sovereign, European-oriented maritime republic founded on the Covenant. Its constitutional framework, digital platform and registries are being built in the open, and every institution on this site carries an explicit status — Operational, Under Development, Planned, Proposed or Vision — so aspiration is never presented as fact.', link: { href: '/transparency', label: 'How statuses work' } },
+      { q: 'What is Aletheia today?', a: 'Aletheia is a sovereign, European-oriented maritime state founded on the Covenant. Its constitutional framework, digital platform and registries are being built in the open, and every institution on this site carries an explicit status — Operational, Under Development, Planned, Proposed or Vision — so aspiration is never presented as fact.', link: { href: '/transparency', label: 'How statuses work' } },
       { q: 'Where is Aletheia?', a: 'The territorial plan comprises the federal capital district of Antioch and four founding states — St. Barbara, Augustine, Benedict and St. Brendan — oriented to the North Sea, with a planned national territory of 6,500 km². Territorial development is at the Planned stage.', link: { href: '/development', label: 'Explore the territory' } },
       { q: 'What does “Veritas in Foedere” mean?', a: 'It is the national motto: “Truth in Covenant.” It expresses the founding idea that public institutions should be able to prove what they claim, and that membership of the nation rests on a mutual covenant rather than on commerce.' },
     ],
@@ -27,9 +27,9 @@ const FAQ: { group: string; items: { q: string; a: string; link?: { href: string
     group: 'Economy & Money',
     items: [
       { q: 'Is there really no income tax?', a: 'Personal income tax is prohibited by the Covenant. The State is funded by land leasehold dividends, payment-network and registry fees, maritime concessions, and the yield of the Covenant Endowment.', link: { href: '/treasury', label: 'How the Treasury is funded' } },
-      { q: 'Is the AEY a cryptocurrency?', a: 'No. The Aletheian Guilder (AEY) is a sovereign unit of account pegged 1:1 to the euro and backed by fully audited reserves. It settles on StableChain, national payment infrastructure with fixed fees — not a speculative token.', link: { href: '/aey', label: 'About the AEY' } },
+      { q: 'Is the AEY a cryptocurrency?', a: 'No. The Aletheian Guilder (AEY) is the proposed national currency, to be issued by the Reserve Bank of Aletheia in banknotes and on StableChain, national payment infrastructure with fixed fees. It is not a speculative token.', link: { href: '/aey', label: 'About the AEY' } },
       { q: 'How much has been raised to build Aletheia?', a: 'The National Registry & Revenue page publishes funds raised by source — endowment capital, development bonds, investor contributions and fees — and how they are allocated to the port, the capital and the energy grid.', link: { href: '/registry', label: 'National Registry & Revenue' } },
-      { q: 'How can I verify the reserves?', a: 'The Monetary Board publishes a Merkle-attested reserve report every epoch. If any of the twelve supply invariants is violated, the state validators halt minting automatically rather than issue unbacked currency.', link: { href: '/central-bank', label: 'Aletheian Reserve Bank' } },
+      { q: 'Who issues the AEY?', a: 'The Reserve Bank of Aletheia, under rules it publishes. Every issue is to be recorded in a public register, and digital issuance on StableChain can be verified by anyone.', link: { href: '/central-bank', label: 'Reserve Bank of Aletheia' } },
     ],
   },
   {

@@ -23,14 +23,14 @@ import {
 import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
 
 const INVARIANTS = [
-  { id: '1', label: 'Supply Cap', rule: 'Total AEY in circulation ≤ 125% of reserve value at any epoch.' },
-  { id: '2', label: 'Reserve Floor', rule: 'Reserve backing must remain ≥ 80% in Tier-1 assets at all times.' },
-  { id: '3', label: 'Peg Band', rule: 'AEY/EUR exchange rate maintained within ±0.5% via automated stabiliser.' },
-  { id: '4', label: 'Mint Gate', rule: 'New AEY may only be minted against verified reserve inflow on-chain.' },
-  { id: '5', label: 'Halt Trigger', rule: 'State validator halts all minting if any invariant is violated — no exceptions.' },
-  { id: '6', label: 'Burn Invariant', rule: 'Redemptions burn AEY supply atomically; no fractional reserve expansion.' },
-  { id: '7', label: 'Epoch Audit', rule: 'Monetary Board produces a Merkle-attested reserve report every 12-hour epoch.' },
-  { id: '8', label: 'Transparency Mandate', rule: 'Full reserve ledger published in real-time via Public Ledger Audit portal.' },
+  { id: '1', label: 'Published Rules', rule: 'New AEY is issued only under rules adopted and published by the Reserve Bank of Aletheia.' },
+  { id: '2', label: 'Single Issuer', rule: 'Only the Reserve Bank of Aletheia may issue the Guilder, in banknotes or in digital form.' },
+  { id: '3', label: 'Public Register', rule: 'Every issue and withdrawal is entered in a public register with its date and source document.' },
+  { id: '4', label: 'No Budget Financing', rule: 'The Reserve Bank does not create money to finance the State’s budget.' },
+  { id: '5', label: 'Ledger Record', rule: 'Digital issuance is recorded on the Aletheia StableChain, where anyone can verify it.' },
+  { id: '6', label: 'Independent Audit', rule: 'The register and the Bank’s accounts are examined by an independent auditor.' },
+  { id: '7', label: 'Regular Reporting', rule: 'The Reserve Bank reports on a fixed calendar and publishes its statistics.' },
+  { id: '8', label: 'Decided in Public', rule: 'Monetary policy is consulted on, adopted and published with its reasons.' },
 ];
 
 const REVENUE_STREAMS = [
@@ -108,7 +108,7 @@ export default function EconomyPage() {
               <span className="text-gold-metallic">{t("provable truth.")}</span>
             </h1>
 
-            <p className="text-base sm:text-xl text-parchment/70 leading-relaxed font-light max-w-2xl">{t("Aletheia's monetary system runs on twelve cryptographic invariants. The Aletheian Guilder (AEY) is not a promise — it is a mathematically bounded claim on verified reserves, settled on a 500ms sovereign ledger with no discretionary override.")}</p>
+            <p className="text-base sm:text-xl text-parchment/70 leading-relaxed font-light max-w-2xl">{t("The Aletheian Guilder (AEY) is the proposed national currency, to be issued by the Reserve Bank of Aletheia under published rules and recorded on a 500 ms sovereign ledger.")}</p>
 
             <div className="flex flex-wrap gap-4 pt-2">
               <Link href="/aey" className="btn-sovereign-gold px-8 py-3.5 rounded-sm flex items-center gap-2.5 group text-sm">
@@ -125,8 +125,8 @@ export default function EconomyPage() {
           {/* Live metrics strip */}
           <div className="mt-16 grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[
-              { label: 'Reserve Backing', value: '100%', sub: 'Tier-1 Assets', status: 'Operational' as const },
-              { label: 'AEY/EUR Peg', value: '1 : 1', sub: '± 0.5% band', status: 'Operational' as const },
+              { label: 'Monetary Model', value: 'Fiat', sub: 'Published rules', status: 'Planned' as const },
+              { label: 'Issuer', value: 'RBA', sub: 'Reserve Bank of Aletheia', status: 'Under Development' as const },
               { label: 'Ledger Finality', value: '≈ 1 s', sub: 'Two 500 ms slots', status: 'Under Development' as const },
               { label: 'Personal Tax', value: 'None', sub: 'Zero income tax', status: 'Operational' as const },
             ].map((m) => (
@@ -155,14 +155,14 @@ export default function EconomyPage() {
                 </h2>
                 <div className="rule-gold mt-4 max-w-xs" />
               </div>
-              <p className="text-navy/70 leading-relaxed">{t("The Aletheian Guilder (AEY) is the sovereign currency of Aletheia, pegged 1:1 to the Euro. It is not a cryptocurrency speculation vehicle — it is a state-issued digital and physical unit of account backed 100% by Tier-1 reserve assets held in the Covenant Endowment Fund.")}</p>
-              <p className="text-navy/70 leading-relaxed">{t("Unlike central bank fiat systems, AEY's reserve status is not a political statement — it is a cryptographic proof. Every epoch, the Monetary Board produces a Merkle-attested reserve report readable by any citizen, auditor, or foreign central bank.")}</p>
+              <p className="text-navy/70 leading-relaxed">{t("The Aletheian Guilder (AEY) is the proposed national currency of Aletheia: a state currency in banknotes and digital form, intended as a fiat currency issued by the Reserve Bank of Aletheia. It is not a cryptocurrency speculation vehicle.")}</p>
+              <p className="text-navy/70 leading-relaxed">{t("Its credibility rests on rules, governance and openness: issuance under published rules, a public register anyone can read, and an independent audit.")}</p>
               <div className="pt-2 space-y-2">
                 {[
-                  'No discretionary money printing',
-                  'Automated algorithmic stabiliser',
-                  'State validator halt on invariant breach',
-                  'Public reserve ledger in real-time',
+                  'Issuance under published rules',
+                  'A single issuer: the Reserve Bank',
+                  'A public register of all issuance',
+                  'No financing of the State budget',
                 ].map((point) => (
                   <div key={point} className="flex items-center gap-2.5 text-[13px] text-navy/80">
                     <CheckCircle className="w-4 h-4 text-laurel shrink-0" />
@@ -177,8 +177,8 @@ export default function EconomyPage() {
             {/* 12 Invariants Grid */}
             <div className="lg:col-span-7">
               <div className="mb-4">
-                <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-gold/80 block mb-1">{t("The 8 Core Supply Invariants")}</span>
-                <p className="text-[12px] text-navy/50">{t("Encoded into StableChain state machine — unoverrideable by any ministry or executive order.")}</p>
+                <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-gold/80 block mb-1">{t("Eight Principles of Issuance")}</span>
+                <p className="text-[12px] text-navy/50">{t("Set by the Reserve Bank of Aletheia. Digital issuance is recorded on the Aletheia StableChain.")}</p>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {INVARIANTS.map((inv) => (
@@ -244,13 +244,11 @@ export default function EconomyPage() {
             <div className="relative">
               <div className="bg-navy-deep/60 border border-gold/20 rounded-[4px] p-6 font-mono text-[11px] leading-6 text-parchment/70 space-y-1">
                 <span className="text-gold/60 block mb-3">{t("# StableChain Epoch Report — Slot #1,847,392")}</span>
-                <span className="text-parchment/40 block">{t("reserve_snapshot:")}</span>
-                <span className="pl-4 text-laurel block">{' '}{t("total_aey_supply: 48,291,004.00")}</span>
-                <span className="pl-4 text-laurel block">{' '}{t("tier1_reserve_eur: 51,734,882.40")}</span>
-                <span className="pl-4 text-laurel block">{' '}{t("backing_ratio: 107.13%")}</span>
-                <span className="pl-4 text-laurel block">{' '}{t("peg_deviation: +0.003%")}</span>
-                <span className="text-parchment/40 block mt-2">{t("invariant_checks:")}</span>
-                {['SUPPLY_CAP', 'RESERVE_FLOOR', 'PEG_BAND', 'MINT_GATE', 'HALT_TRIGGER'].map((inv) => (
+                <span className="text-parchment/40 block">{t("ledger_snapshot:")}</span>
+                <span className="pl-4 text-laurel block">{' '}{t("finality: 2 slots (≈ 1 s)")}</span>
+                <span className="pl-4 text-laurel block">{' '}{t("validators_signing: 4 of 4")}</span>
+                <span className="text-parchment/40 block mt-2">{t("ledger_checks:")}</span>
+                {['SIGNATURES_VALID', 'FINALITY_2_CHAIN', 'ISSUANCE_RECORDED', 'STATE_ROOT_MATCH'].map((inv) => (
                   <span key={inv} className="pl-4 block">
                     <span className="text-parchment/40">{tx(inv)}: </span>
                     <span className="text-laurel font-bold">{t("PASS ✓")}</span>
@@ -320,7 +318,7 @@ export default function EconomyPage() {
                 {[
                   { step: '01', label: 'Submit digital application', desc: 'Fill out the formation form with your identity credentials.' },
                   { step: '02', label: 'Automated compliance check', desc: 'AI-assisted statutory compliance screening — instant results.' },
-                  { step: '03', label: 'Pay incorporation fee', desc: 'Pay via AEY or major currency. Fee anchored in reserve-backed value.' },
+                  { step: '03', label: 'Pay incorporation fee', desc: 'Pay the published incorporation fee.' },
                   { step: '04', label: 'Receive your Sovereign Charter', desc: 'A StableChain NFT is minted as your company registration — permanently on-ledger.' },
                 ].map((s) => (
                   <div key={s.step} className="flex gap-4">

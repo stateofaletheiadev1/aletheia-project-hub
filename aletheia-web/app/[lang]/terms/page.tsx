@@ -18,7 +18,7 @@ export default function TermsPage() {
           id: 'status',
           heading: 'Status of information',
           body: (
-            <p>{t("Aletheia is a republic in its founding phase. Every institution, service and asset on this platform is labelled Operational, Under Development, Planned, Proposed or Vision. Only items marked Operational are functioning today; nothing on this site should be read as a representation that a Planned or Proposed item exists. See")}{' '}<Link href="/transparency">{t("Public Transparency")}</Link>.
+            <p>{t("Aletheia is a sovereign state in its founding phase. Every institution, service and asset on this platform is labelled Operational, Under Development, Planned, Proposed or Vision. Only items marked Operational are functioning today; nothing on this site should be read as a representation that a Planned or Proposed item exists. See")}{' '}<Link href="/transparency">{t("Public Transparency")}</Link>.
             </p>
           ),
         },

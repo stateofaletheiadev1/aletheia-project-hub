@@ -79,11 +79,11 @@ export const STATUTES: StatuteMeta[] = [
   {
     slug: 'monetary-act',
     code: 'ACT-2026-06',
-    title: 'Monetary Architecture & Reserve Backing Act',
+    title: 'Monetary Architecture Act',
     article: 'Constitution Article 14 § 6',
     date: '2026-03-04',
-    hash: 'aa18902ef34b890123ca78091ecb87201948ba209ef182049ec8720914be8721',
-    summary: 'Statutory mandate creating the Aletheian Guilder (AEY), enforcing the 100% reserve floor in gold and EU debt, and guaranteeing par redemption on demand.',
+    hash: 'bee5ed66b8935fd4ee0c11db3adb79337ed73bdd5299f54a9dbd0476991b8450',
+    summary: 'Statutory mandate creating the Aletheian Guilder (AEY), establishing the Reserve Bank of Aletheia as its sole issuer, and prohibiting monetary financing of the State.',
     pages: 28,
   },
   {

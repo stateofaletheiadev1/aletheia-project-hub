@@ -113,7 +113,7 @@ export function bondSpec(b: BondTranche): Spec {
     sections: [
       { number: '1.', heading: 'Issuer', paragraphs: ['The Sovereign Covenant State of Aletheia, acting through the Ministry of Treasury & Finance, with the full faith of the Covenant Endowment.'] },
       { number: '2.', heading: 'Use of proceeds', paragraphs: [`Proceeds are ring-fenced for: ${b.purpose}. Every disbursement is receipted on the public ledger and summarised quarterly by the Auditor-General.`] },
-      { number: '3.', heading: 'Denomination and settlement', paragraphs: ['Bonds are denominated in Aletheian Guilders (AEY), at par with the euro, and settle on StableChain. Coupons are payable in EUR or AEY at the holder\'s election.'] },
+      { number: '3.', heading: 'Denomination and settlement', paragraphs: ['Bonds are denominated in Aletheian Guilders (AEY) and settle on StableChain. Coupons are payable in EUR or AEY at the holder\'s election.'] },
       { number: '4.', heading: 'Governing law', paragraphs: ['The bonds are governed by English commercial law. Disputes are resolved before the Court of Maritime & Commercial Disputes of Aletheia, with recourse to international arbitration.'] },
       { number: '5.', heading: 'Citizenship', paragraphs: ['A subscription of 500,000 AEY or more, held for at least five years, may qualify the holder for the Covenant Investor route to citizenship, subject to enhanced due diligence and the Covenant Oath. Qualification is determined solely by the Immigration Directorate.'] },
       { number: '6.', heading: 'Risk', paragraphs: ['The infrastructure financed by this tranche is at the status shown above. Investors should read the prospectus risk factors in full before subscribing.'] },

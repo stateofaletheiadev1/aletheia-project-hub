@@ -5,11 +5,19 @@ import React from 'react';
 import Link from '@/components/i18n/Link';
 import { StarOfTruth } from '@/components/brand/Logo';
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import { Scale } from 'lucide-react';
+import { ArrowUpRight, Landmark } from 'lucide-react';
 import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
+import { RESERVE_BANK } from '@/lib/reserve-bank';
+
+const FUNCTIONS = [
+  { value: 'Issue', label: 'The Aletheian Guilder' },
+  { value: 'Policy', label: 'Monetary Policy' },
+  { value: 'Payments', label: 'Settlement & Oversight' },
+  { value: 'Record', label: 'Public Register & Statistics' },
+];
 
 export default function CentralBankPage() {
-  const { t } = useI18n();
+  const { t, tx } = useI18n();
   return (
     <div className="flex flex-col min-h-screen bg-parchment-canvas">
 
@@ -26,104 +34,79 @@ export default function CentralBankPage() {
               <StatusBadge status="Under Development" size="sm" />
             </div>
 
-            <h1 className="heading-hero">{t("Aletheian Reserve Bank & Monetary Authority")}</h1>
+            <h1 className="heading-hero">{t("Reserve Bank of Aletheia")}</h1>
 
-            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("Guarantor of monetary integrity, price stability, and reserve backing invariants. The Aletheian Reserve Bank, central bank of the Sovereign Covenant State of Aletheia, operates under constitutional limits that prohibit inflationary debasement and fractional reserve expansion.")}</p>
+            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("The monetary institution being established for the Sovereign Covenant State of Aletheia, and the issuer of its currency, the Aletheian Guilder. Its purpose: money that keeps its value, payments that work, and a public record anyone can check.")}</p>
+
+            <div className="pt-2">
+              <a
+                href={RESERVE_BANK.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-sovereign-gold inline-flex px-7 py-3.5 rounded-sm items-center gap-2.5 group text-sm"
+              >
+                <span>{t("Visit the Reserve Bank")}</span>
+                <ArrowUpRight className="w-4 h-4" />
+              </a>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ── MONETARY METRICS ── */}
+      {/* ── FUNCTIONS ── */}
       <section className="bg-navy-deep border-b border-navy/30 text-parchment py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-            <div className="space-y-1">
-              <span className="text-2xl font-bold text-gold">1 : 1</span>
-              <p className="text-xs text-parchment/70 uppercase tracking-wide">{t("AEY Peg to Euro Target")}</p>
-            </div>
-            <div className="space-y-1">
-              <span className="text-2xl font-bold text-gold">{t("≥ 100%")}</span>
-              <p className="text-xs text-parchment/70 uppercase tracking-wide">{t("Constitutional Reserve Floor")}</p>
-            </div>
-            <div className="space-y-1">
-              <span className="text-2xl font-bold text-gold">0.0%</span>
-              <p className="text-xs text-parchment/70 uppercase tracking-wide">{t("Statutory Inflation Target")}</p>
-            </div>
-            <div className="space-y-1">
-              <span className="text-2xl font-bold text-gold">24 / 7 / 365</span>
-              <p className="text-xs text-parchment/70 uppercase tracking-wide">{t("Continuous RTGS Clearing")}</p>
-            </div>
+            {FUNCTIONS.map(({ value, label }) => (
+              <div key={value} className="space-y-1">
+                <span className="text-2xl font-bold text-gold">{tx(value)}</span>
+                <p className="text-xs text-parchment/70 uppercase tracking-wide">{tx(label)}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* ── MONETARY CONSTITUTION ── */}
+      {/* ── PRINCIPLES ── */}
       <section className="py-16 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          
+
           <div className="lg:col-span-7 space-y-6">
-            <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">{t("Constitutional Monetary Law")}</span>
-            <h2 className="text-2xl sm:text-3xl font-bold text-navy tracking-tight">{t("The Inviolable Reserve Invariant")}</h2>
-            <p className="text-sm text-navy/70 leading-relaxed">{t("Pursuant to Constitution Article 14, the Aletheian Reserve Bank is legally prohibited from monetizing government deficits or creating unbacked liquidity. The monetary base is governed by mathematical algorithmic invariants published on the state ledger.")}</p>
+            <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">{t("Founding Principles")}</span>
+            <h2 className="text-2xl sm:text-3xl font-bold text-navy tracking-tight">{t("A Currency Held to Account")}</h2>
+            <p className="text-sm text-navy/70 leading-relaxed">{t("The Guilder is intended as a fiat currency, trusted for the rules that govern it. The Reserve Bank is to issue it only under published rules, record every issue in a public register, and explain each decision.")}</p>
 
             <div className="space-y-3 text-xs text-navy/75">
               <div className="p-4 bg-white border border-navy/10 rounded-sm space-y-1">
                 <strong className="text-navy block font-bold">{t("Separation from Fiscal Politics:")}</strong>
-                <span>{t("The Monetary Board is independent of the Chancellor and Cabinet. Governors serve staggered nine-year non-renewable terms.")}</span>
+                <span>{t("The body that issues money does not spend it. The Reserve Bank is kept apart from the Treasury and does not finance the State’s budget.")}</span>
               </div>
               <div className="p-4 bg-white border border-navy/10 rounded-sm space-y-1">
-                <strong className="text-navy block font-bold">{t("Cryptographic Proof of Reserves (PoR):")}</strong>
-                <span>{t("Audited custodial keys and bank vault allocations are verified on-chain every 60 seconds with zero knowledge proofs.")}</span>
+                <strong className="text-navy block font-bold">{t("Independent and Accountable:")}</strong>
+                <span>{t("The Bank is intended to decide monetary policy within its legal mandate, and in return to publish its decisions, its reasons and its accounts.")}</span>
               </div>
               <div className="p-4 bg-white border border-navy/10 rounded-sm space-y-1">
-                <strong className="text-navy block font-bold">{t("SEPA & Target2 Interoperability:")}</strong>
-                <span>{t("Full compatibility with European payments infrastructure to enable frictionless trade for Aletheian enterprises.")}</span>
+                <strong className="text-navy block font-bold">{t("Modern Payments:")}</strong>
+                <span>{t("Settlement in central bank money, the digital Guilder on the Aletheia StableChain, and payment standards aligned with European practice.")}</span>
               </div>
             </div>
           </div>
 
           <div className="lg:col-span-5 bg-navy text-parchment p-8 rounded-sm border border-gold/30 shadow-xl space-y-6">
             <div className="flex items-center gap-3">
-              <div className="icon-sovereign"><Scale className="w-5 h-5 text-gold" /></div>
-              <h3 className="text-lg font-bold text-parchment">{t("Reserve Composition")}</h3>
+              <div className="icon-sovereign"><Landmark className="w-5 h-5 text-gold" /></div>
+              <h3 className="text-lg font-bold text-parchment">{t("The Reserve Bank’s Website")}</h3>
             </div>
-
-            <div className="space-y-4 text-xs">
-              <div>
-                <div className="flex justify-between text-parchment/80 font-mono mb-1">
-                  <span>{t("Physical Gold (London Good Delivery)")}</span>
-                  <span className="text-gold font-bold">40%</span>
-                </div>
-                <div className="w-full h-2 bg-navy-deep rounded-full overflow-hidden">
-                  <div className="h-full bg-gold" style={{ width: '40%' }} />
-                </div>
-              </div>
-
-              <div>
-                <div className="flex justify-between text-parchment/80 font-mono mb-1">
-                  <span>{t("Sovereign European Debt (AAA/AA)")}</span>
-                  <span className="text-gold font-bold">35%</span>
-                </div>
-                <div className="w-full h-2 bg-navy-deep rounded-full overflow-hidden">
-                  <div className="h-full bg-parchment" style={{ width: '35%' }} />
-                </div>
-              </div>
-
-              <div>
-                <div className="flex justify-between text-parchment/80 font-mono mb-1">
-                  <span>{t("Liquid Tier-1 Cash & SDR Claims")}</span>
-                  <span className="text-gold font-bold">25%</span>
-                </div>
-                <div className="w-full h-2 bg-navy-deep rounded-full overflow-hidden">
-                  <div className="h-full bg-laurel" style={{ width: '25%' }} />
-                </div>
-              </div>
-            </div>
-
-            <div className="pt-4 border-t border-navy/40 flex items-center justify-between text-[11px] font-mono text-parchment/60">
-              <span>{t("Auditor: Independent Big-4 Audit")}</span>
-              <span className="text-gold">{t("Status: 100% Backed")}</span>
-            </div>
+            <p className="text-xs text-parchment/75 leading-relaxed">{t("Monetary policy, issuance, the banknote series, publications and statistics are published by the Reserve Bank of Aletheia on its own website.")}</p>
+            <a
+              href={RESERVE_BANK.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-sm font-bold text-gold hover:text-gold-tint transition-colors"
+            >
+              <span>{RESERVE_BANK.host}</span>
+              <ArrowUpRight className="w-4 h-4" />
+            </a>
           </div>
 
         </div>
@@ -135,15 +118,15 @@ export default function CentralBankPage() {
           <StarOfTruth size={36} className="mx-auto" />
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-parchment">{t("Discover the Sovereign Currency: The Aletheian Guilder (AEY)")}</h2>
           <p className="text-xs sm:text-sm text-parchment/70 max-w-xl mx-auto leading-relaxed">{t("Learn more about the technical, monetary, and settlement characteristics of the Aletheian Guilder (AEY).")}</p>
-          <div className="flex justify-center gap-4 pt-2">
+          <div className="flex flex-wrap justify-center gap-4 pt-2">
+            <Link
+              href="/aey"
+              className="px-6 py-2.5 bg-gold text-navy font-bold text-xs uppercase tracking-wider rounded-sm hover:bg-gold-tint transition-all"
+            >{t("The Aletheian Guilder (AEY)")}</Link>
             <Link
               href="/economy"
-              className="px-6 py-2.5 bg-gold text-navy font-bold text-xs uppercase tracking-wider rounded-sm hover:bg-gold-tint transition-all"
-            >{t("Economy & Monetary Policy")}</Link>
-            <Link
-              href="/treasury"
               className="px-6 py-2.5 border border-gold/30 text-parchment font-semibold text-xs uppercase tracking-wider rounded-sm hover:border-gold/60 transition-colors"
-            >{t("Public Treasury")}</Link>
+            >{t("Economy & Monetary Policy")}</Link>
           </div>
         </div>
       </section>

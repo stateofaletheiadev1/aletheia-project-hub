@@ -32,7 +32,7 @@ export function Footer() {
               <span className="w-2 h-2 rounded-full bg-gold shrink-0" />
               {t("Platform Status")}
             </span>
-            <span className="text-parchment/80">{t("Aletheia is a maritime republic in its founding phase. Every institution is labelled:")}</span>
+            <span className="text-parchment/80">{t("Aletheia is a maritime state in its founding phase. Every institution is labelled:")}</span>
             <span className="flex flex-wrap items-center gap-1.5">
               {(['Operational', 'Under Development', 'Planned'] as const).map((status) => (
                 <span
@@ -68,7 +68,7 @@ export function Footer() {
               </div>
             </div>
 
-            <p className="text-xs text-parchment/70 leading-relaxed max-w-sm">{t("A sovereign, European-oriented maritime republic founded upon immutable records, provable reserves, and the rule of covenant law.")}</p>
+            <p className="text-xs text-parchment/70 leading-relaxed max-w-sm">{t("A sovereign, European-oriented maritime state founded upon immutable records, honest money, and the rule of covenant law.")}</p>
 
             <div className="pt-2 flex items-center gap-4">
               <div>
@@ -108,6 +108,9 @@ export function Footer() {
               </li>
               <li>
                 <a href="https://www.aletheiagov.org" target="_blank" rel="noopener noreferrer" className="hover:text-gold transition-colors">{t("Government Website (aletheiagov.org)")}</a>
+              </li>
+              <li>
+                <a href="https://rbaletheia.org" target="_blank" rel="noopener noreferrer" className="hover:text-gold transition-colors">{t("Reserve Bank of Aletheia (rbaletheia.org)")}</a>
               </li>
             </ul>
           </div>

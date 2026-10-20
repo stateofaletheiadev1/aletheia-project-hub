@@ -13,7 +13,7 @@ export const MINIMUM_AGE = 18;
 export interface InvestmentOption {
   id: 'contribution' | 'bonds';
   title: string;
-  /** Amount in AEY (1 AEY = 1 EUR). */
+  /** Amount in Aletheian Guilders (AEY). */
   amount: number;
   /** Additional amount per included family member. */
   perDependant: number;

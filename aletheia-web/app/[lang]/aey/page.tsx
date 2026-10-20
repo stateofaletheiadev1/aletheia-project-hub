@@ -1,7 +1,7 @@
 'use client';
 
 import { useI18n } from '@/components/i18n/I18nProvider';
-import React, { useState } from 'react';
+import React from 'react';
 import Link from '@/components/i18n/Link';
 import { StarOfTruth } from '@/components/brand/Logo';
 import { StatusBadge } from '@/components/ui/StatusBadge';
@@ -10,11 +10,13 @@ import {
   Banknote,
   CreditCard,
   ArrowRight,
+  ArrowUpRight,
   CheckCircle2,
-  Scale,
+  Landmark,
   Zap,
 } from 'lucide-react';
 import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
+import { RESERVE_BANK } from '@/lib/reserve-bank';
 
 const PAYMENT_INSTRUMENTS = [
   {
@@ -22,8 +24,8 @@ const PAYMENT_INSTRUMENTS = [
     formFactor: 'Engraved Paper Notes: 1, 5, 10, 20 & 100 AEY',
     rail: 'Hand-to-Hand / Accredited Banks',
     velocity: 'Immediate Hand-to-Hand',
-    fee: '0.00 AEY (Exchange 1:1 to Digital)',
-    security: 'Latent images, microprint, guilloche and dual serials; convertible 1:1 to digital AEY',
+    fee: '0.00 AEY',
+    security: 'Latent images, microprint, guilloche and dual serials',
   },
   {
     instrument: 'Citizen Biometric Card (e-Purse)',
@@ -50,28 +52,17 @@ const PAYMENT_INSTRUMENTS = [
     security: 'Multi-institutional HSM signers, programmable escrow, automated audit trails',
   },
   {
-    instrument: 'Aletheian Reserve Bank Interbank Gateway',
-    formFactor: 'Sovereign RTGS & SEPA ISO 20022 Clearing Corridor',
-    rail: 'Direct Reserve Bank Liquidity Bridge',
-    velocity: 'Instant Parity Batch Settlement',
-    fee: 'Zero Spread at Parity (1:1 EUR)',
-    security: 'Daily Merkle reserve root verification, segregated Tier-1 European asset custody',
+    instrument: 'Reserve Bank of Aletheia Interbank Gateway',
+    formFactor: 'Real-Time Gross Settlement & ISO 20022 Messaging',
+    rail: 'Settlement in Central Bank Money',
+    velocity: 'Real-Time Gross Settlement',
+    fee: 'Published Tariff',
+    security: 'Final, irrevocable settlement across the Reserve Bank’s books',
   },
 ];
 
 export default function AeyCurrencyPage() {
   const { t, tx } = useI18n();
-  const [convertAmount, setConvertAmount] = useState('1000');
-  const [sourceCurrency, setSourceCurrency] = useState<'EUR' | 'USD' | 'GBP'>('EUR');
-
-  const getExchangeRate = () => {
-    if (sourceCurrency === 'EUR') return 1.0;
-    if (sourceCurrency === 'USD') return 0.92;
-    if (sourceCurrency === 'GBP') return 1.18;
-    return 1.0;
-  };
-
-  const aeyResult = (parseFloat(convertAmount || '0') * getExchangeRate()).toFixed(2);
 
   return (
     <div className="flex flex-col min-h-screen bg-parchment-canvas">
@@ -107,50 +98,52 @@ export default function AeyCurrencyPage() {
               <div className="flex items-center gap-3">
                 <div className="inline-flex items-center gap-2 px-3.5 py-1.5 border border-gold/40 bg-navy-deep/80 rounded-sm backdrop-blur-sm">
                   <StarOfTruth size={14} />
-                  <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-gold">{t("Sovereign Unit of Account")}</span>
+                  <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-gold">{t("National Currency")}</span>
                 </div>
-                <StatusBadge status="Operational" size="sm" />
+                <StatusBadge status="Planned" size="sm" />
               </div>
 
               <h1 className="heading-hero">{t("The Aletheian")}<br />
                 <span className="text-gold-metallic">{t("Guilder")}</span>{' '}{t("(AEY)")}</h1>
 
-              <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light max-w-2xl">{t("The official constitutional currency of The Sovereign Covenant State of Aletheia. Pegged 1:1 to the Euro, backed by provable 100% segregated reserves, and issued in two forms: engraved AEY banknotes and digital AEY on the Aletheia StableChain.")}{' '}<strong className="text-parchment/90">{t("One reserve. Paper or digital. Exchangeable worldwide.")}</strong>
+              <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light max-w-2xl">{t("The proposed national currency of the Sovereign Covenant State of Aletheia, to be issued by the Reserve Bank of Aletheia in two forms: engraved AEY banknotes and digital AEY on the Aletheia StableChain.")}{' '}<strong className="text-parchment/90">{t("One currency. Paper or digital. One public record.")}</strong>
               </p>
 
               <div className="flex flex-wrap gap-4 pt-2">
-                <Link
-                  href="/central-bank"
+                <a
+                  href={RESERVE_BANK.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="btn-sovereign-gold px-7 py-3.5 rounded-sm flex items-center gap-2.5 group text-sm"
                 >
-                  <span>{t("Reserve Proof Audit")}</span>
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </Link>
+                  <span>{t("Reserve Bank of Aletheia")}</span>
+                  <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                </a>
                 <Link
-                  href="/treasury"
+                  href="/aey/paper-currency"
                   className="btn-sovereign-ghost px-6 py-3.5 rounded-sm flex items-center gap-2 text-sm"
-                >{t("Endowment Balance Sheet")}</Link>
+                >{t("The Banknote Series")}</Link>
               </div>
             </div>
 
-            {/* Right: AEY live parity card */}
+            {/* Right: the currency at a glance */}
             <div className="lg:col-span-5 animate-fade-in-up delay-200">
               <div className="border-flow rounded-sm p-7 space-y-6 relative">
                 <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-gold to-transparent" />
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-gold/6 rounded-full blur-3xl pointer-events-none" />
 
                 <div className="relative z-10 text-center space-y-2">
-                  <p className="text-[10px] font-bold tracking-[0.22em] uppercase text-gold/80">{t("AEY / EUR Official Parity")}</p>
-                  <div className="metric-display">1.0000</div>
-                  <p className="text-xs text-parchment/55 font-mono">{t("Audited daily by Tier-1 independent custody attestation")}</p>
+                  <p className="text-[10px] font-bold tracking-[0.22em] uppercase text-gold/80">{t("The Currency at a Glance")}</p>
+                  <div className="metric-display">AEY</div>
+                  <p className="text-xs text-parchment/55 font-mono">{t("Aletheian Guilder · plural Aletheian Guilders")}</p>
                 </div>
 
                 <div className="relative z-10 grid grid-cols-2 gap-3">
                   {[
-                    { label: 'Reserve Backing', value: '100%', mono: true },
+                    { label: 'Issuer', value: 'Reserve Bank', mono: false },
+                    { label: 'Monetary Model', value: 'Fiat', mono: false },
+                    { label: 'Forms', value: 'Paper + Digital', mono: false },
                     { label: 'Block Finality', value: '≈ 1 s', mono: true },
-                    { label: 'Legal Tender', value: 'Paper + Digital', mono: false },
-                    { label: 'EUR Parity', value: 'Fixed 1:1', mono: false },
                   ].map(({ label, value, mono }) => (
                     <div key={label} className="stat-tile p-3 rounded-sm text-center space-y-1">
                       <span className="text-[10px] font-bold tracking-[0.14em] uppercase text-gold/70 block">{tx(label)}</span>
@@ -160,7 +153,7 @@ export default function AeyCurrencyPage() {
                 </div>
 
                 <div className="relative z-10 pt-3 border-t border-parchment/10">
-                  <p className="text-[10px] font-mono text-parchment/40 text-center tracking-wider [text-wrap:balance]">{t("CURRENCY & DIGITAL SETTLEMENT ACT 2026 · CONSTITUTIONAL ART. 14 § 3")}</p>
+                  <p className="text-[10px] font-mono text-parchment/40 text-center tracking-wider [text-wrap:balance]">{t("ISSUED BY THE RESERVE BANK OF ALETHEIA · VERITAS IN FOEDERE")}</p>
                 </div>
               </div>
             </div>
@@ -168,14 +161,14 @@ export default function AeyCurrencyPage() {
         </div>
       </section>
 
-      {/* ── KEY MONETARY INVARIANTS ── */}
+      {/* ── KEY FACTS ── */}
       <section className="bg-[#060C14] border-b border-gold/25 text-parchment py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 md:divide-x divide-gold/15 gap-y-2">
             {[
-              { value: '1.0000', label: 'AEY / EUR Parity', sublabel: 'Fixed · Constitutional Art. 14' },
-              { value: '2', label: 'Forms of Legal Tender', sublabel: 'Banknotes & StableChain' },
-              { value: '100%', label: 'Segregated Reserves', sublabel: 'Daily cryptographic proof' },
+              { value: '5', label: 'Banknote Denominations', sublabel: '1 · 5 · 10 · 20 · 100 AEY' },
+              { value: '2', label: 'Forms of the Currency', sublabel: 'Banknotes & StableChain' },
+              { value: 'Fiat', label: 'Monetary Model', sublabel: 'Issued under published rules' },
               { value: '≈ 1 s', label: 'Block Finality', sublabel: 'Two 500 ms slots, 2-chain BFT' },
             ].map(({ value, label, sublabel }) => (
               <div key={label} className="px-6 py-4 text-center first:pl-0 last:pr-0 space-y-0.5">
@@ -188,16 +181,16 @@ export default function AeyCurrencyPage() {
         </div>
       </section>
 
-      {/* ── DUAL LEGAL TENDER: PAPER & DIGITAL ── */}
+      {/* ── PAPER & DIGITAL ── */}
       <section className="py-16 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
-          <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">{t("Paper & Digital Legal Tender")}</span>
+          <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">{t("Paper & Digital")}</span>
           <h2 className="text-3xl font-bold text-navy tracking-tight">{t("Frictionless Digital Rails & Sovereign Cryptographic Velocity")}</h2>
-          <p className="text-xs sm:text-sm text-navy/70 leading-relaxed">{t("Inside the Republic the AEY circulates as engraved banknotes and as digital balances on the Aletheia StableChain: one unit, one reserve, interchangeable at par. Abroad, either form can be exchanged for EUR, GBP or USD.")}</p>
+          <p className="text-xs sm:text-sm text-navy/70 leading-relaxed">{t("The AEY is designed to exist as engraved banknotes and as digital balances on the Aletheia StableChain: one unit, one issuer, one public register.")}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
-          
+
           {/* Sovereign Biometric Smart Card */}
           <div className="bg-white border border-navy/15 rounded-sm p-8 space-y-6 hover:shadow-md transition-shadow">
             <div className="flex items-center gap-3">
@@ -210,12 +203,12 @@ export default function AeyCurrencyPage() {
               </div>
             </div>
 
-            <p className="text-xs text-navy/70 leading-relaxed">{t("Polycarbonate NFC citizen cards with EAL6+ secure element chips. Enables sub-300ms offline and online tap-to-pay across all retail merchants, civic transit, and automated municipal kiosks.")}</p>
+            <p className="text-xs text-navy/70 leading-relaxed">{t("Polycarbonate NFC citizen cards with EAL6+ secure element chips, designed for fast offline and online tap-to-pay at retail merchants, civic transit and municipal kiosks.")}</p>
 
             <div className="space-y-3 pt-2 border-t border-navy/10 text-xs">
               <div className="flex items-start gap-2">
                 <CheckCircle2 className="w-4 h-4 text-laurel shrink-0 mt-0.5" />
-                <span><strong>{t("Interchangeable with Banknotes:")}</strong>{' '}{t("Card balances and AEY banknotes convert 1:1 at accredited banks and Aletheian Reserve Bank redemption agents.")}</span>
+                <span><strong>{t("Interchangeable with Banknotes:")}</strong>{' '}{t("Card balances and AEY banknotes are the same currency, issued by the Reserve Bank of Aletheia.")}</span>
               </div>
               <div className="flex items-start gap-2">
                 <CheckCircle2 className="w-4 h-4 text-laurel shrink-0 mt-0.5" />
@@ -260,12 +253,12 @@ export default function AeyCurrencyPage() {
 
         </div>
 
-        {/* ── NATIONAL PAYMENT INSTRUMENTS REGISTRY ── */}
+        {/* ── NATIONAL PAYMENT INSTRUMENTS ── */}
         <div className="bg-white border border-navy/15 rounded-sm p-8 shadow-sm space-y-6">
           <div className="max-w-2xl space-y-2">
             <span className="text-xs font-bold text-gold uppercase tracking-wider">{t("Sovereign Settlement Taxonomy")}</span>
             <h3 className="text-2xl font-bold text-navy">{t("National Payment Instruments")}</h3>
-            <p className="text-xs text-navy/70">{t("Pursuant to the Currency & Digital Settlement Act 2026, issued under the direct supervision of the Monetary Board.")}</p>
+            <p className="text-xs text-navy/70">{t("The planned instruments for paying in AEY, under the oversight of the Reserve Bank of Aletheia.")}</p>
           </div>
 
           <div className="overflow-x-auto">
@@ -294,66 +287,30 @@ export default function AeyCurrencyPage() {
           </div>
         </div>
 
-        {/* ── INTERACTIVE PARITY CALCULATOR & REDEMPTION PORTAL ── */}
+        {/* ── THE ISSUER ── */}
         <div className="mt-16 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           <div className="lg:col-span-6 space-y-6">
-            <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">{t("Public Parity Converter")}</span>
-            <h2 className="text-3xl font-bold text-navy tracking-tight">{t("Convert & Verify Parity Value")}</h2>
-            <p className="text-sm text-navy/70 leading-relaxed">{t("Calculate the statutory purchasing value of international reserve currencies against AEY under the official Aletheian Reserve Bank exchange reference rates.")}</p>
-
-            <div className="p-6 bg-white border border-navy/15 rounded-sm shadow-sm space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-[11px] font-bold text-navy uppercase tracking-wider block">{t("Source Currency")}</label>
-                  <select
-                    value={sourceCurrency}
-                    onChange={(e) => setSourceCurrency(e.target.value as typeof sourceCurrency)}
-                    className="w-full px-3 py-2 text-xs border border-navy/20 rounded-sm focus:outline-none focus:border-navy bg-white"
-                  >
-                    <option value="EUR">{t("EUR — European Euro")}</option>
-                    <option value="USD">{t("USD — US Dollar")}</option>
-                    <option value="GBP">{t("GBP — British Pound")}</option>
-                  </select>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[11px] font-bold text-navy uppercase tracking-wider block">{t("Source Amount")}</label>
-                  <input
-                    type="number"
-                    value={convertAmount}
-                    onChange={(e) => setConvertAmount(e.target.value)}
-                    className="w-full px-3 py-2 text-xs border border-navy/20 rounded-sm focus:outline-none focus:border-navy font-mono"
-                  />
-                </div>
-              </div>
-
-              <div className="p-4 bg-navy-deep text-parchment rounded-sm border border-gold/30 flex items-center justify-between">
-                <div>
-                  <span className="text-[10px] font-mono uppercase text-gold block">{t("Aletheian Guilder Output")}</span>
-                  <span className="text-2xl font-bold font-mono text-parchment">{tx(aeyResult)}{' '}{t("AEY")}</span>
-                </div>
-                <div className="text-right text-[11px] font-mono text-parchment/60">
-                  <span>{t("Rate: 1")}{' '}{tx(sourceCurrency)} = {getExchangeRate()}{' '}{t("AEY")}</span>
-                  <span className="block text-laurel font-bold">{t("100% Backed")}</span>
-                </div>
-              </div>
-            </div>
+            <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">{t("The Issuer")}</span>
+            <h2 className="text-3xl font-bold text-navy tracking-tight">{t("Issued by the Reserve Bank of Aletheia")}</h2>
+            <p className="text-sm text-navy/70 leading-relaxed">{t("The Reserve Bank of Aletheia is the monetary institution being established for the Sovereign Covenant State. It is to issue the Guilder, set monetary policy and keep a public register of everything it issues.")}</p>
+            <p className="text-sm text-navy/70 leading-relaxed">{t("The Guilder is intended as a fiat currency: money issued by the State’s monetary institution under law, whose value rests on the rules and institutions behind it.")}</p>
           </div>
 
           <div className="lg:col-span-6 bg-navy text-parchment p-8 rounded-sm border border-gold/30 space-y-6">
             <div className="flex items-center gap-3">
-              <Scale className="w-6 h-6 text-gold" />
-              <h3 className="text-lg font-bold text-parchment">{t("The Unconditional Redemption Guarantee")}</h3>
+              <Landmark className="w-6 h-6 text-gold" />
+              <h3 className="text-lg font-bold text-parchment">{t("Monetary Policy & Issuance")}</h3>
             </div>
-
-            <p className="text-xs text-parchment/75 leading-relaxed">{t("Article 14 § 3 of the Covenant provides:")}</p>
-
-            <blockquote className="p-4 bg-navy-deep border-l-2 border-gold font-serif italic text-xs text-parchment/90 leading-relaxed">{t("“Any natural or legal person presenting lawful AEY to the Aletheian Reserve Bank or its designated redemption agents is entitled to immediate settlement in European Euros or London Good Delivery Gold at statutory parity, without fee, haircut, or administrative obstruction.”")}</blockquote>
-
-            <div className="flex items-center justify-between pt-2 text-[11px] font-mono text-gold">
-              <span>{t("Auditor: Tier-1 Independent Custody Attestation")}</span>
-              <span>{t("Reconciled Daily")}</span>
-            </div>
+            <p className="text-xs text-parchment/75 leading-relaxed">{t("The Reserve Bank publishes its monetary policy framework, its issuance rules and the banknote series on its own website.")}</p>
+            <a
+              href={RESERVE_BANK.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-sm font-bold text-gold hover:text-gold-tint transition-colors"
+            >
+              <span>{RESERVE_BANK.host}</span>
+              <ArrowUpRight className="w-4 h-4" />
+            </a>
           </div>
         </div>
 
@@ -368,7 +325,7 @@ export default function AeyCurrencyPage() {
               <StatusBadge status="Planned" size="sm" />
             </div>
             <h2 className="text-3xl font-bold text-navy tracking-tight">{t("The AEY Paper Series")}</h2>
-            <p className="text-sm text-navy/70 leading-relaxed">{t("Not every nation or buyer wants crypto. The AEY is also issued on paper: five engraved denominations — 1, 5, 10, 20 and 100 AEY — backed by the same reserve as StableChain AEY. Spend notes or digital AEY inside the Republic, and exchange either for EUR, GBP or USD abroad.")}</p>
+            <p className="text-sm text-navy/70 leading-relaxed">{t("Not every nation or buyer wants crypto. The AEY is also designed in paper: five engraved denominations — 1, 5, 10, 20 and 100 AEY — the same currency as digital AEY, to be issued by the Reserve Bank of Aletheia.")}</p>
             <Link
               href="/aey/paper-currency"
               className="btn-sovereign-gold inline-flex px-7 py-3.5 rounded-sm items-center gap-2.5 group text-sm"
@@ -393,7 +350,7 @@ export default function AeyCurrencyPage() {
                 >
                   <Image
                     src={`/images/currency/aey-${value}-front.webp`}
-                    alt={i === 1 ? t("100 AEY banknote, front") : ''}
+                    alt={i === 1 ? t("100 AEY banknote design, front, specimen") : ''}
                     width={1168}
                     height={784}
                     loading="lazy"
@@ -410,17 +367,19 @@ export default function AeyCurrencyPage() {
       <section className="bg-navy text-parchment py-16 border-t border-gold/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
           <StarOfTruth size={36} className="mx-auto" />
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-parchment">{t("Experience Sound Money by Covenant")}</h2>
-          <p className="text-xs sm:text-sm text-parchment/70 max-w-xl mx-auto leading-relaxed">{t("Open an enterprise account or acquire digital AEY settlement balances through accredited e-residency.")}</p>
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-parchment">{t("Sound Money by Covenant")}</h2>
+          <p className="text-xs sm:text-sm text-parchment/70 max-w-xl mx-auto leading-relaxed">{t("Learn how the Guilder is designed, governed and issued.")}</p>
           <div className="flex flex-wrap justify-center gap-4 pt-2">
-            <Link
-              href="/e-residency"
+            <a
+              href={RESERVE_BANK.url}
+              target="_blank"
+              rel="noopener noreferrer"
               className="px-6 py-2.5 bg-gold text-navy font-bold text-xs uppercase tracking-wider rounded-sm hover:bg-gold-tint transition-all"
-            >{t("Apply for E-Residency")}</Link>
+            >{t("Reserve Bank of Aletheia")}</a>
             <Link
               href="/central-bank"
               className="px-6 py-2.5 border border-gold/30 text-parchment font-semibold text-xs uppercase tracking-wider rounded-sm hover:border-gold/60 transition-colors"
-            >{t("Reserve Bank Architecture")}</Link>
+            >{t("The Central Bank")}</Link>
             <Link
               href="/aey/paper-currency"
               className="px-6 py-2.5 border border-gold/30 text-parchment font-semibold text-xs uppercase tracking-wider rounded-sm hover:border-gold/60 transition-colors"

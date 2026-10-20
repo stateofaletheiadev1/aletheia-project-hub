@@ -44,7 +44,7 @@ const BENEFITS = [
   {
     icon: <Building2 className="w-5 h-5 text-gold" />,
     title: 'AEY Banking Access',
-    desc: 'Open an AEY-denominated sovereign account. 100% reserve-backed, instant settlement, and provable on-ledger.',
+    desc: 'Open an AEY-denominated sovereign account, with instant settlement recorded on the ledger.',
   },
   {
     icon: <Cpu className="w-5 h-5 text-gold" />,
@@ -170,7 +170,6 @@ export default function EResidencyPage() {
                 </div>
                 <div className="border-t border-parchment/[0.07] pt-4 space-y-3">
                   <div className="text-3xl font-bold text-parchment">{t("150 AEY")}{' '}<span className="text-[14px] text-parchment/40 font-normal">{t("/ year")}</span></div>
-                  <div className="text-xs text-parchment/60">{t("Equal to €150 at the statutory parity of 1 AEY = 1 EUR")}</div>
                   <div className="space-y-2">
                     {[
                       'Digital identity credential (StableChain NFT)',

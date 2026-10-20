@@ -29,7 +29,7 @@ export const NATIVE_ASSETS = [
     code: 'AEY',
     name: 'Aletheian Guilder',
     decimals: 18,
-    role: 'Legal tender of the Sovereign Covenant State, in banknotes and on StableChain; 1 AEY = 1 EUR.',
+    role: 'The national currency of the Sovereign Covenant State, in banknotes and on StableChain, issued by the Reserve Bank of Aletheia.',
   },
   {
     code: 'ALnT',

@@ -104,7 +104,7 @@ export default function CitizenshipApplyPage() {
               </li>
             ))}
           </ol>
-          <p className="text-xs text-navy/50 max-w-3xl">{t("Governed by Constitution Article 8 and the Aletheian Nationality & Citizenship Act. Investment amounts are denominated in AEY (1 AEY = 1 EUR). Nothing on this page is an offer of securities; bond subscriptions are made under a formal prospectus.")}</p>
+          <p className="text-xs text-navy/50 max-w-3xl">{t("Governed by Constitution Article 8 and the Aletheian Nationality & Citizenship Act. Investment amounts are stated in Aletheian Guilders (AEY). Nothing on this page is an offer of securities; bond subscriptions are made under a formal prospectus.")}</p>
         </div>
       </section>
     </div>

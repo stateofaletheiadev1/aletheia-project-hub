@@ -93,7 +93,7 @@ export function NetworkDetails() {
         <h4 className="text-[11px] font-bold tracking-[0.2em] uppercase text-gold/80 mb-2">{t('Native assets')}</h4>
         <div className={row}>
           <span className={label}>AEY</span>
-          <span className={value}>{t('Aletheian Guilder · 18 decimals · legal tender, 1 AEY = 1 EUR')}</span>
+          <span className={value}>{t('Aletheian Guilder · 18 decimals · issued by the Reserve Bank of Aletheia')}</span>
         </div>
         <div className={row}>
           <span className={label}>ALnT</span>

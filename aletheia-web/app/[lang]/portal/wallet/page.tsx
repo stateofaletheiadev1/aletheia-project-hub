@@ -65,9 +65,9 @@ export default function PortalAeyWalletPage() {
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-bold text-navy">{t("Aletheian Guilder (AEY) Wallet")}</h1>
-              <span className="px-2 py-0.5 rounded-sm text-[10px] font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">{t("1 AEY = 1.00 EUR (100% Reserve Parity)")}</span>
+              <span className="px-2 py-0.5 rounded-sm text-[10px] font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">{t("Aletheian Guilder (AEY)")}</span>
             </div>
-            <p className="text-[12px] text-navy/50 mt-0.5">{t("Fixed-fee transaction rails governed by Aletheian Reserve Bank Invariants § 12")}</p>
+            <p className="text-[12px] text-navy/50 mt-0.5">{t("Fixed-fee transaction rails overseen by the Reserve Bank of Aletheia")}</p>
           </div>
 
           <div className="flex items-center gap-2">

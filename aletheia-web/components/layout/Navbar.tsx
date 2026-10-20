@@ -54,7 +54,7 @@ const EDITORIAL: Record<string, { title: string; desc: string; href: string; tag
   },
   Economy: {
     title: 'The Aletheian Guilder (AEY)',
-    desc: '100% reserve-backed sovereign unit of account governed by supply invariants.',
+    desc: 'The national currency, issued by the Reserve Bank of Aletheia.',
     href: '/aey',
     tag: 'MONETARY FRAMEWORK',
   },

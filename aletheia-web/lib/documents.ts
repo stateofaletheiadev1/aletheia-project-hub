@@ -66,13 +66,13 @@ export const REGISTER: RegisterDocument[] = [
   },
   {
     id: 'monetary-framework',
-    title: 'Monetary Architecture & Reserve Backing Act',
+    title: 'Monetary Architecture Act',
     category: 'Statute',
     code: 'ACT-2026-06',
     date: '2026-04-18',
-    hash: 'aa18902ef34b890123ca78091ecb87201948ba209ef182049ec8720914be8721',
-    status: 'Operational',
-    description: 'Defines the legal tender status of the Aletheian Guilder (AEY) and its reserve backing invariants.',
+    hash: 'bee5ed66b8935fd4ee0c11db3adb79337ed73bdd5299f54a9dbd0476991b8450',
+    status: 'Under Development',
+    description: 'Establishes the Aletheian Guilder (AEY) as the national currency and the rules governing its issue.',
     source: { kind: 'statute', slug: 'monetary-act' },
   },
   {
@@ -107,7 +107,7 @@ export const REGISTER: RegisterDocument[] = [
     body: {
       lead: 'This standard specifies the consensus, settlement and verification rules of StableChain, the national ledger of the Sovereign Covenant State. Draft for engineering review; normative language follows RFC 2119.',
       sections: [
-        { number: '1.', heading: 'Scope', paragraphs: ['APS-01 governs block production, finality, fee determination and the verification of state registry records. It does not govern the monetary policy of the AEY, which is set by the Monetary Architecture & Reserve Backing Act.'] },
+        { number: '1.', heading: 'Scope', paragraphs: ['APS-01 governs block production, finality, fee determination and the verification of state registry records. It does not govern the monetary policy of the AEY, which is set by the Monetary Architecture Act.'] },
         { number: '2.', heading: 'Validator set', paragraphs: ['Consensus SHALL be operated by state-authorised validators partitioned across at least three physically separate facilities. The validator set and each validator public key SHALL be published in the State Key Directory.', 'A change to the validator set REQUIRES a signed decree published in the Official Gazette at least one epoch before it takes effect.'] },
         { number: '3.', heading: 'Slots and finality', paragraphs: ['Time is divided into slots of 500 milliseconds. A block proposed in a slot is final once it has been attested by more than two thirds of the validator weight; there is no probabilistic finality and no reorganisation of final blocks.', 'An epoch comprises 86,400 slots (12 hours). Reserve attestations and the Auditor-General receipts digest are produced at each epoch boundary.'] },
         { number: '4.', heading: 'Fees', paragraphs: ['Settlement fees SHALL be fixed in AEY by statutory schedule and SHALL NOT vary with network demand. Fee revenue accrues to the Treasury and is reported in each epoch digest.'] },

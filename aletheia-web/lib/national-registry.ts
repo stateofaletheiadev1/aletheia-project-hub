@@ -15,7 +15,7 @@ export interface RegistrySnapshot {
     citizens: { founding: number; investor: number; naturalised: number; covenantAward: number };
     residencyInterest: number;
   };
-  /** Funds raised to date, in AEY (1 AEY = 1 EUR). */
+  /** Funds raised to date, in Aletheian Guilders (AEY). */
   revenue: { id: string; label: string; amount: number; note: string }[];
   /** How raised capital is committed. Shares sum to 1. */
   allocation: { label: string; share: number; href: string }[];

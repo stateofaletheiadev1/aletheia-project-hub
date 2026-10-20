@@ -196,17 +196,17 @@ export const CONSTITUTION_DATA: ConstitutionalArticle[] = [
     id: 'art-16',
     number: 16,
     part: 'Part IV: Monetary Architecture & Public Finance',
-    title: 'The Aletheian Guilder (AEY) & Reserve Invariants',
+    title: 'The Aletheian Guilder (AEY) & Monetary Integrity',
     status: 'Under Development',
-    summary: 'Mandates 100% reserve backing for the national currency and prohibits unbacked deficit printing.',
+    summary: 'Establishes the national currency and its single issuer, and prohibits financing deficits by creating money.',
     clauses: [
       {
         number: '16(1)',
-        text: 'The sovereign unit of account of the Sovereign Covenant State is the Aletheian Guilder (AEY), issued on the StableChain and redeemable against certified reserves.',
+        text: 'The sovereign unit of account of the Sovereign Covenant State is the Aletheian Guilder (AEY), issued by the Reserve Bank of Aletheia in banknotes and on the StableChain.',
       },
       {
         number: '16(2)',
-        text: 'The Aletheian Reserve Bank and Monetary Board shall maintain reserve invariants I1 through I12. The state node network shall halt block confirmation rather than validate unbacked currency issuance.',
+        text: 'The Reserve Bank of Aletheia shall issue currency only under published rules and shall not finance the deficits of the State. Every issue shall be recorded in a public register, and digital issuance on the StableChain shall be verifiable by any person.',
       },
       {
         number: '16(3)',
@@ -215,7 +215,7 @@ export const CONSTITUTION_DATA: ConstitutionalArticle[] = [
     ],
     crossReferences: ['art-1', 'art-30', 'art-32'],
     responsibleInstitution: {
-      name: 'Aletheian Reserve Bank & Treasury',
+      name: 'Reserve Bank of Aletheia & Treasury',
       href: '/treasury',
     },
     relatedLaw: {

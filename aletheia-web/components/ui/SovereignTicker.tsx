@@ -53,7 +53,7 @@ export function SovereignTicker() {
 
           <div className="hidden md:flex items-center gap-1.5 text-[#F4EEDF]/75">
             <Lock className="w-3 h-3 text-[#C49A4E]/80" />
-            <span>{t("Statutory Parity:")}{' '}<strong className="text-[#C49A4E]">{t("1 AEY = 1.00 EUR")}</strong></span>
+            <span>{t("Currency:")}{' '}<a href="https://rbaletheia.org" target="_blank" rel="noopener noreferrer" className="text-[#C49A4E] font-bold hover:underline">{t("AEY · Reserve Bank of Aletheia")}</a></span>
           </div>
 
           <div className="hidden lg:flex items-center gap-1.5 text-[#F4EEDF]/75">

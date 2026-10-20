@@ -80,7 +80,7 @@ export default function RegistryPage() {
             { icon: Users, label: 'Registered e-residents', node: <CountUp value={s.registrations.eResidents} />, sub: t('{count} applications in review', { count: s.registrations.eResidencyApplicationsPending.toLocaleString(intl) }) },
             { icon: Landmark, label: 'Citizens of the Covenant', node: <CountUp value={citizens} />, sub: 'All routes, Oath sworn' },
             { icon: Building2, label: 'Registered companies', node: <CountUp value={s.registrations.companies} />, sub: 'Corporate registry' },
-            { icon: Coins, label: 'Raised to date', node: <><CountUp value={raised} format="aey-compact" /> <span className="text-base">{t("AEY")}</span></>, sub: '1 AEY = 1 EUR' },
+            { icon: Coins, label: 'Raised to date', node: <><CountUp value={raised} format="aey-compact" /> <span className="text-base">{t("AEY")}</span></>, sub: 'Aletheian Guilders' },
           ].map(({ icon: Icon, label, node, sub }) => (
             <div key={label} className="py-8 px-4 sm:px-6 text-center space-y-1.5">
               <Icon className="w-4 h-4 text-gold mx-auto mb-2" />

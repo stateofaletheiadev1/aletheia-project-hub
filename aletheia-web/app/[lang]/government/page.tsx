@@ -407,7 +407,7 @@ export default function GovernmentDirectoryPage() {
                 <StatusBadge status="Under Development" size="sm" />
               </div>
               <h4 className="font-bold text-parchment text-sm">{t("The Monetary Board")}</h4>
-              <p className="text-xs text-parchment/65 leading-relaxed">{t("Independent overseers of 12 reserve invariants (I1–I12), auditing Aletheian Guilder (AEY) reserves and preventing unbacked currency expansion.")}</p>
+              <p className="text-xs text-parchment/65 leading-relaxed">{t("Independent overseers of the Aletheian Guilder (AEY) issuance rules, examining the public register and the accounts of the Reserve Bank of Aletheia.")}</p>
             </div>
           </div>
         </div>
