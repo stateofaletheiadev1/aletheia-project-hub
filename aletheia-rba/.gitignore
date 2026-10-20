@@ -11,3 +11,8 @@ vite.config.ts.timestamp-*
 
 # Internal working documents: kept on the build machine, never published.
 /docs/internal/
+
+# Vercel project link (local)
+.vercel
+
+.vercel
