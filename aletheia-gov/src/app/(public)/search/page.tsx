@@ -8,9 +8,10 @@ import { search } from "@/server/search";
 export const metadata: Metadata = {
   title: "Search the record",
   description: "Search institutions, programmes, pages and published records of the founding government of Aletheia.",
+  alternates: { canonical: "/search" },
 };
 
-const SUGGESTIONS = ["Monetary Authority", "StableChain", "proposed", "Treasury", "appointments", "Antioch"];
+const SUGGESTIONS = ["Reserve Bank", "StableChain", "proposed", "Treasury", "appointments", "Antioch"];
 
 export default async function SearchPage(props: PageProps<"/search">) {
   const raw = (await props.searchParams).q;
@@ -38,7 +39,7 @@ export default async function SearchPage(props: PageProps<"/search">) {
                 defaultValue={q}
                 maxLength={120}
                 autoComplete="off"
-                placeholder="For example: Monetary Authority"
+                placeholder="For example: Reserve Bank"
                 className="min-w-0 flex-1 bg-transparent py-4 text-[clamp(1.5rem,3vw,2.25rem)] font-light text-parchment-50 placeholder:text-navy-400 focus:outline-none"
               />
               <button type="submit" className="shrink-0 px-2 text-[0.9375rem] font-semibold uppercase tracking-[0.12em] text-gold-300 hover:text-parchment-50">

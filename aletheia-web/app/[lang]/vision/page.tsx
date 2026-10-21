@@ -43,25 +43,25 @@ const VISION_PILLARS = [
 
 const MILESTONES = [
   {
-    year: 'Phase 0',
+    year: '2026',
     title: 'Founding Community & Digital Institutions',
     desc: 'A founding community forming; this platform, the draft Constitution and the public record published; StableChain on testnet.',
     status: 'Under Development' as const,
   },
   {
-    year: 'Phases 1–2',
+    year: '2027–2028',
     title: 'Thesis, Counsel & Platform Design',
     desc: 'The Founding Thesis published, legal counsel engaged, and the design of the first platform.',
     status: 'Planned' as const,
   },
   {
-    year: 'Phases 3–4',
+    year: '2029–2031',
     title: 'Pilot Platform',
     desc: 'A pilot platform, built and owned by Aletheia; licensed AEY issuance and the APN on it; the first residents.',
     status: 'Planned' as const,
   },
   {
-    year: 'Vision',
+    year: 'From 2035',
     title: 'Antioch & the Maritime Districts',
     desc: 'The long-term national design: a concentric capital, a deepwater port and coastal districts, built at sea, platform by platform.',
     status: 'Vision' as const,

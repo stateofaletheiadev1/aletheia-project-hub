@@ -78,7 +78,7 @@ export const faq: z.input<typeof Faq>[] = [
 		group: 'banknotes',
 		question: 'Can I use images of the banknotes?',
 		answer: [
-			'Yes, within the reproduction rules: use the specimen images published on this website, do not alter them, and never reproduce a note in a way that could be mistaken for money.'
+			'Yes, within the reproduction rules: use the images published on this website, do not alter them, and never reproduce a note in a way that could be mistaken for money.'
 		],
 		relatedLinks: [{ href: '/banknotes/reproduction', label: 'Using banknote images' }]
 	},

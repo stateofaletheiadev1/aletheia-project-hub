@@ -78,7 +78,7 @@ export function LiveChainCard() {
       <div className="text-center space-y-1">
         <SourceBadge status={status} />
         <p className="pt-2 text-[10px] font-bold tracking-[0.22em] uppercase text-gold/80">{t('Latest finalized block')}</p>
-        {onExplorer ? (
+        {onExplorer && STABLECHAIN.explorerLive ? (
           <a href={explorerUrl.block(status.height)} target="_blank" rel="noopener noreferrer" className="metric-display block hover:text-gold-tint">
             #{num(status.height)}
           </a>
@@ -102,7 +102,7 @@ export function LiveChainCard() {
           </div>
         ))}
       </div>
-      {onExplorer && (
+      {onExplorer && STABLECHAIN.explorerLive && (
         <a
           href={STABLECHAIN.explorer}
           target="_blank"

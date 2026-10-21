@@ -62,6 +62,10 @@ export default function GovernmentPage() {
             <p>
               It holds no territory and claims none. It issues no passports, collects no taxes and conducts no diplomatic relations. It does not describe any institution as functioning unless that is verified and the evidence is on the record.
             </p>
+            <p>
+              Aletheia will not lease land from another state, because a lease can be taken back. Its territory is to be a seastead: platforms that Aletheia designs, builds and owns, beginning with a single pilot platform. The plan, and how it would be financed, is set out on{" "}
+              <a href="https://stateofaletheia.org/development#seastead">stateofaletheia.org</a>.
+            </p>
 
             <h2>How it is organised</h2>
             <p>

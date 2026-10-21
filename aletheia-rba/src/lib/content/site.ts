@@ -174,8 +174,8 @@ export const LEGAL_NAV: NavLink[] = [
 ];
 
 export const CONTACT: Contact = {
-	email: null,
+	email: 'info@stateofaletheia.org',
 	postal: null,
 	enquiryNote:
-		'Official contact details for the Bank will be published here. General enquiries can be made through the State of Aletheia.'
+		'Enquiries about the Bank are answered by the founding team of the Sovereign Covenant State of Aletheia. Journalists can write to press@stateofaletheia.org, and security reports go to security@aletheiagov.org. The Bank never asks for payment, passwords or identity documents by email.'
 };

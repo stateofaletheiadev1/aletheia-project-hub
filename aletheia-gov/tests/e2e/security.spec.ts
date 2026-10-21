@@ -36,8 +36,10 @@ test("health reports liveness and honest readiness", async ({ request }) => {
   expect(JSON.stringify(body)).not.toMatch(/stack|localhost|127\.0\.0\.1/);
 });
 
-test("security.txt is absent without a configured contact", async ({ request }) => {
-  expect((await request.get("/.well-known/security.txt")).status()).toBe(404);
+test("security.txt names the published security contact", async ({ request }) => {
+  const res = await request.get("/.well-known/security.txt");
+  expect(res.status()).toBe(200);
+  expect(await res.text()).toContain("Contact: mailto:security@aletheiagov.org");
 });
 
 test("non-production builds are not indexed", async ({ request }) => {

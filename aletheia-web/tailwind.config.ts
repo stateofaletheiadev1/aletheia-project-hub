@@ -26,9 +26,9 @@ const config: Config = {
         },
         gold: {
           DEFAULT: '#C49A4E',
-          shadow: '#8F6A2A',
+          shadow: '#7A5A22',
           tint: '#E4C689',
-          ink: '#A87D34',
+          ink: '#7F5E25',
           subtle: 'rgba(196, 154, 78, 0.12)',
           border: 'rgba(196, 154, 78, 0.35)',
         },

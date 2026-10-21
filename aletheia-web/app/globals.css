@@ -22,10 +22,10 @@
   --color-parchment-light:  #FAF7F0;
   --color-parchment-dark:   #E8DECA;
   --color-gold:          #C49A4E;
-  --color-gold-shadow:   #8F6A2A;
+  --color-gold-shadow:   #7A5A22;
   --color-gold-tint:     #E4C689;
   --color-gold-bright:   #F5D78E;
-  --color-gold-ink:      #A87D34; /* gold that still reads on cream */
+  --color-gold-ink:      #7F5E25; /* gold that reads on cream at 4.5:1 or better */
   --color-laurel:        #2F6B4F;
   --color-laurel-deep:   #214C38;
   --color-burgundy:      #701824;
@@ -1224,7 +1224,7 @@ body { overflow-x: clip; }
 .constitution-article-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
 .constitution-article-head h4 { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.35rem 0.75rem; font-size: 1.125rem; font-weight: 700; line-height: 1.35; }
 .constitution-article-num { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.82rem; font-weight: 700; color: var(--color-gold-shadow); white-space: nowrap; }
-.constitution-permalink { color: color-mix(in srgb, var(--color-navy) 35%, transparent); font-weight: 700; padding: 0 0.35rem; border-radius: 2px; }
+.constitution-permalink { color: color-mix(in srgb, var(--color-navy) 62%, transparent); font-weight: 700; padding: 0 0.35rem; border-radius: 2px; }
 .constitution-permalink:hover, .constitution-permalink:focus-visible { color: var(--color-gold-shadow); }
 .constitution-clauses { margin-top: 0.85rem; display: grid; gap: 0.7rem; }
 .constitution-clause { display: grid; grid-template-columns: 2.4rem 1fr; gap: 0.5rem; font-size: 0.975rem; line-height: 1.75; color: color-mix(in srgb, var(--color-navy) 92%, transparent); }
@@ -1235,7 +1235,7 @@ body { overflow-x: clip; }
 .constitution-ref { color: var(--color-navy); text-decoration: underline; text-decoration-color: var(--color-gold); text-underline-offset: 2px; font-weight: 600; }
 .constitution-ref:hover, .constitution-ref:focus-visible { color: var(--color-gold-shadow); }
 .constitution-prevnext { display: flex; justify-content: space-between; margin-top: 1rem; font-size: 0.75rem; font-weight: 600; }
-.constitution-prevnext a { color: color-mix(in srgb, var(--color-navy) 55%, transparent); }
+.constitution-prevnext a { color: color-mix(in srgb, var(--color-navy) 74%, transparent); }
 .constitution-prevnext a:hover, .constitution-prevnext a:focus-visible { color: var(--color-gold-shadow); }
 .constitution-basis { margin-top: 0.5rem; font-size: 0.8rem; color: color-mix(in srgb, var(--color-navy) 65%, transparent); }
 .constitution-schedule-section h5 { margin-top: 1.25rem; font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--color-navy); }
@@ -1254,3 +1254,27 @@ body { overflow-x: clip; }
   .constitution-ref { text-decoration: none; font-weight: 400; }
   .constitution-doc [hidden] { display: block !important; }
 }
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   CONTRAST FLOOR — faint text tints are lifted to meet WCAG AA (4.5:1) on the
+   parchment, white and navy grounds they are used on. Hierarchy is kept: these are
+   still the quietest tones, just readable.
+   ═══════════════════════════════════════════════════════════════════════ */
+html .text-navy\/40, html .text-navy\/45, html .text-navy\/50, html .text-navy\/55,
+html .text-navy\/58, html .text-navy\/60, html .text-navy\/62 {
+  color: color-mix(in srgb, var(--color-navy) 72%, transparent);
+}
+html .text-parchment\/30, html .text-parchment\/35, html .text-parchment\/40, html .text-parchment\/45,
+html .text-parchment\/50, html .text-parchment\/55 {
+  color: color-mix(in srgb, var(--color-parchment) 72%, transparent);
+}
+html .text-gold\/60, html .text-gold\/65, html .text-gold\/70 { color: var(--color-gold); }
+
+/* Gold text on light grounds is set in the deeper gold so small labels stay readable; gold on
+   the navy grounds keeps the brighter Seal Gold. */
+html :is(.bg-white, .bg-parchment, .bg-parchment-canvas, .bg-parchment-light, .sovereign-card, .sovereign-card-premium)
+  :is(.text-gold, .text-gold\/70, .text-gold\/80):not(:is(.bg-navy, .bg-navy-deep, .bg-navy-subtle, .guilloche-hero, .cta-banner, [class*="bg-[#0"], [class*="bg-[#1"], [class*="bg-navy"]) *) {
+  color: #7A5A22;
+}
+html :is(.bg-navy, .bg-navy-deep, .bg-navy-subtle, [class*="bg-[#0"], [class*="bg-[#1"]) .text-laurel { color: #7CC6A0; }

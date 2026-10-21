@@ -59,8 +59,7 @@
 		['Policy rate', 'The interest rate a central bank sets to steer borrowing and saving.'],
 		['Purchasing power', 'The amount of goods and services a unit of money can buy.'],
 		['Reserves', 'Assets a central bank holds, often in foreign currencies.'],
-		['Settlement', 'The final transfer of money that completes a payment.'],
-		['Specimen', 'A sample of a banknote design, marked so it cannot be used as money.']
+		['Settlement', 'The final transfer of money that completes a payment.']
 	];
 </script>
 

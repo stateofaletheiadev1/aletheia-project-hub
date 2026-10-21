@@ -5,7 +5,6 @@ import React from 'react';
 import Link from '@/components/i18n/Link';
 import { StarOfTruth } from '@/components/brand/Logo';
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import { Placeholder } from '@/components/ui/Placeholder';
 import { Mail, Newspaper, Handshake, Landmark, Users, ArrowRight } from 'lucide-react';
 import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
 
@@ -74,10 +73,21 @@ export default function ContactPage() {
               <span className="text-[10px] font-mono uppercase text-gold">{t("Write to us")}</span>
               <h3 className="text-lg font-bold text-parchment">{t("The Founding Team")}</h3>
               <div className="space-y-3 text-xs text-parchment/75">
-                <div className="flex items-start gap-2">
-                  <Mail className="w-4 h-4 text-gold shrink-0 mt-0.5" aria-hidden="true" />
-                  <Placeholder>contact email address</Placeholder>
-                </div>
+                <dl className="space-y-2.5">
+                  {[
+                    ['General enquiries', 'info@stateofaletheia.org'],
+                    ['Press', 'press@stateofaletheia.org'],
+                    ['Security reports', 'security@aletheiagov.org'],
+                  ].map(([label, email]) => (
+                    <div key={email} className="grid grid-cols-[1rem_1fr] gap-x-2">
+                      <dt className="col-start-2 text-parchment/55">{tx(label)}</dt>
+                      <dd className="col-span-2 flex items-start gap-2">
+                        <Mail className="w-4 h-4 text-gold shrink-0 mt-0.5" aria-hidden="true" />
+                        <a href={`mailto:${email}`} className="text-parchment font-semibold underline underline-offset-4 decoration-gold">{email}</a>
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
                 <p className="leading-relaxed">{t("We aim to reply within a few working days. Government enquiries are treated as confidential.")}</p>
               </div>
             </div>

@@ -81,13 +81,13 @@ export default function FolioSpecimen() {
           <CustodySection title="Countersignatures" aside={<span className="text-meta text-ink-3">Version 3</span>}>
             <div className="grid gap-4">
               <Countersignature
-                s={{ name: "Marie-Thérèse N’Diaye", role: "Approving officer", institution: "Council of the States", decision: "adopted", at: "2026-10-15T10:31:00Z", version: 3, versionHash: HASH }}
+                s={{ name: "Marie-Thérèse N’Diaye", role: "Approving officer", institution: "Council of States", decision: "adopted", at: "2026-10-15T10:31:00Z", version: 3, versionHash: HASH }}
               />
               <Countersignature
                 s={{
                   name: "Ilse van der Westhuizen",
                   role: "Reviewer",
-                  institution: "Council of the States",
+                  institution: "Council of States",
                   decision: "revision_requested",
                   at: "2026-10-14T08:20:00Z",
                   version: 2,
@@ -101,7 +101,7 @@ export default function FolioSpecimen() {
             <Eligibility conditions={publicationEligibility(def, facts)} />
           </CustodySection>
           <CustodySection title="Attachments">
-            <AttachmentRow a={{ id: "a1", name: "Minutes of the founding session of the Council of the States, 9 October 2026.pdf", type: "pdf", bytes: 1_482_112, scan: "unscanned" }} />
+            <AttachmentRow a={{ id: "a1", name: "Minutes of the founding session of the Council of States, 9 October 2026.pdf", type: "pdf", bytes: 1_482_112, scan: "unscanned" }} />
             <AttachmentRow a={{ id: "a2", name: "Quorum options note.pdf", type: "pdf", bytes: 88_064, scan: "clean" }} />
           </CustodySection>
           <CustodySection title="Comments">

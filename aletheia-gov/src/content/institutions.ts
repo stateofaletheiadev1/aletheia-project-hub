@@ -50,18 +50,18 @@ export const institutions: Institution[] = [
       "The framework proposes a single primary chamber of 61 members, elected every four years by open-list proportional representation across the capital district and the four states.",
       "No elections have been held and no members sit. The Assembly exists as a design in the draft framework.",
     ],
-    responsibilities: ["Pass legislation", "Elect the Chancellor", "Approve the budget", "Receive reports of the independent bodies"],
+    responsibilities: ["Pass legislation", "Confirm the ministers", "Approve the budget", "Receive reports of the independent bodies"],
     basis: BLUEPRINT,
   },
   {
     slug: "council-of-the-states",
-    name: "Council of the States",
+    name: "Council of States",
     kind: "Territorial chamber",
     status: "proposed",
     mandate: "A review chamber of 15 members with suspensive review of land, energy and currency acts.",
     summary: [
-      "A territorial review chamber of 15 members: three from each State Council and three from the capital district.",
-      "It may delay, but not block, acts touching land, energy and currency.",
+      "A territorial review chamber of 15 members: three elected by the citizens of each constituent state and three by the citizens of the capital district, for six-year terms.",
+      "It may delay, but not block, ordinary acts, including those touching land, energy and currency. Its consent is needed for acts that change the powers or boundaries of the states.",
     ],
     responsibilities: ["Suspensive review of land, energy and currency acts", "Represent the states in federal legislation"],
     basis: BLUEPRINT,
@@ -74,7 +74,7 @@ export const institutions: Institution[] = [
     featured: true,
     mandate: "Executive authority, constitutionally capped at nine ministries.",
     summary: [
-      "The Chancellor is to be elected by the Covenant Assembly and leads a cabinet whose size is fixed by the constitution at no more than nine ministries.",
+      "The Chancellor is to be elected directly by the citizens for a five-year term, at most twice, and leads a cabinet whose size is fixed by the constitution at no more than nine ministries.",
       "The cap is deliberate: it keeps the executive small, legible and expensive to expand.",
     ],
     responsibilities: ["Lead the executive", "Direct the nine ministries", "Answer to the Covenant Assembly"],
@@ -87,7 +87,7 @@ export const institutions: Institution[] = [
     status: "proposed",
     mandate: "Constitutional review, administrative review, and maritime and commercial disputes.",
     summary: [
-      "The proposed judiciary is headed by the High Court, with a Constitutional Chamber, an Appellate Chamber and a Court of Maritime and Commercial Disputes.",
+      "The proposed judiciary is headed by a High Court of nine Justices serving single twelve-year terms. Below it sit a Court of Appeal, District Courts and a Court of Maritime and Commercial Disputes.",
     ],
     responsibilities: ["Constitutional review", "Administrative review of public bodies", "Maritime and commercial disputes"],
     basis: BLUEPRINT,
@@ -107,17 +107,17 @@ export const institutions: Institution[] = [
   },
   {
     slug: "monetary-authority",
-    name: "Aletheia Monetary Authority",
+    name: "Reserve Bank of Aletheia",
     kind: "Independent body",
     status: "proposed",
     featured: true,
-    mandate: "Issues the Aletheian Guilder (AEY) under published reserve rules, overseen by a Monetary Board.",
+    mandate: "Issues the Aletheian Guilder (AEY) under published rules, with monetary policy set by an independent Monetary Policy Committee.",
     summary: [
-      "The Monetary Authority is to issue the Aletheian Guilder and hold the reserve rules that back it. A Monetary Board oversees those rules.",
-      "It is deliberately separate from the Treasury: the body that issues money does not spend it.",
+      "The Reserve Bank of Aletheia is to issue the Aletheian Guilder under published rules, and keep a public register of every issue. Its Monetary Policy Committee decides monetary policy independently of the government.",
+      "It is deliberately separate from the Treasury: the body that issues money does not spend it, and may not lend to the State.",
       "No reserves, pegs, payment rails or banking relationships are operational. Any that become operational will be published here with evidence.",
     ],
-    responsibilities: ["Issue the AEY under published rules", "Maintain and report reserve invariants", "Supervise the StableChain monetary layer"],
+    responsibilities: ["Issue the AEY under published rules", "Publish the issuance register", "Oversee payment systems, including the StableChain monetary layer"],
     basis: BLUEPRINT,
   },
   {
@@ -158,14 +158,14 @@ export const institutions: Institution[] = [
   ...(
     [
       ["ministry-treasury-finance", "Ministry of Treasury and Finance", "Public accounts and fiscal policy."],
-      ["ministry-digital-state", "Ministry of Digital State", "StableChain governance, registries and digital services."],
-      ["ministry-security-civil-defence", "Ministry of Security and Civil Defence", "Civilian authority over security and emergency services."],
-      ["ministry-health-social", "Ministry of Health and Social Services", "Healthcare and social provision."],
+      ["ministry-digital-state", "Ministry of Digital State and Registries", "Digital government, the national registers, digital identity and e-residency."],
+      ["ministry-security-civil-defence", "Ministry of Resilience and Civil Protection", "Civilian command of the ADSS, the police and civil protection."],
+      ["ministry-health-social", "Ministry of Health and Social Well-being", "Public health, health care and social care."],
       ["ministry-education-science", "Ministry of Education and Science", "Schools, universities and research."],
-      ["ministry-maritime-ports", "Ministry of Maritime Affairs and Ports", "Waters, ports, shipping and fisheries."],
+      ["ministry-maritime-ports", "Ministry of Maritime Affairs, Ports and Environment", "Ports, shipping, the platforms, fisheries and the marine environment."],
       ["ministry-infrastructure-energy", "Ministry of Infrastructure and Energy", "Energy, water and transport networks."],
       ["ministry-foreign-affairs-justice", "Ministry of Foreign Affairs and Justice", "Diplomacy, treaties and the justice system."],
-      ["ministry-agriculture-environment", "Ministry of Agriculture and Environment", "Food security and environmental stewardship."],
+      ["ministry-agriculture-environment", "Ministry of Economy, Trade, Agriculture and Labour", "Economic and trade policy, food security and labour standards."],
     ] as const
   ).map(
     ([slug, name, mandate]): Institution => ({

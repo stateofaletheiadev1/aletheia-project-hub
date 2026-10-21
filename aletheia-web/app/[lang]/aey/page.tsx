@@ -265,7 +265,7 @@ export default function AeyCurrencyPage() {
             <p className="text-xs text-navy/70">{t("The planned instruments for paying in AEY, under the oversight of the Reserve Bank of Aletheia.")}</p>
           </div>
 
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto" tabIndex={0} role="region" aria-label={t("National Payment Instruments")}>
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="bg-navy text-parchment font-mono uppercase tracking-wider text-[11px] border-b border-navy/20">

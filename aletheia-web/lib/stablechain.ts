@@ -12,7 +12,9 @@ export const STABLECHAIN = {
   rest: 'https://rpc.stateofaletheia.org/api/v1',
   /** JSON-RPC 2.0 interface (Section 37.2). */
   jsonRpc: 'https://rpc.stateofaletheia.org/rpc/v1',
-  explorer: 'https://explorer.mainnet.stateofaletheia.org',
+  explorer: 'https://explorer.stateofaletheia.org',
+  /** The explorer is linked only once it is deployed; until then every explorer link is hidden. */
+  explorerLive: false,
   network: 'mainnet',
   /** APS-0001: the mainnet chain ID is assigned in the genesis ceremony, not before. */
   chainId: null as number | null,

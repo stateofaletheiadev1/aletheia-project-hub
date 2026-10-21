@@ -33,7 +33,7 @@ export const ALETHEIA_TOKENS = {
       DEFAULT: '#C49A4E',
       rgb: 'rgb(196, 154, 78)',
       hsl: 'hsl(39, 52%, 54%)',
-      shadow: '#8F6A2A',
+      shadow: '#7A5A22',
       tint: '#E4C689',
       subtle: 'rgba(196, 154, 78, 0.12)',
       border: 'rgba(196, 154, 78, 0.35)',

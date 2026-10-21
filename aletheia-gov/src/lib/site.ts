@@ -4,6 +4,7 @@ export const site = {
   commonName: "Aletheia",
   url: "https://aletheiagov.org",
   nationalSite: "https://stateofaletheia.org",
+  contact: { general: "info@stateofaletheia.org", press: "press@stateofaletheia.org", security: "security@aletheiagov.org" },
   capital: "Antioch",
   motto: { latin: "Veritas in Foedere", english: "Truth in Covenant" },
   principle: "Build the institutional operating system before the physical state.",

@@ -5,7 +5,10 @@ import { database } from "@/server/aletheiadb/client";
 import { env } from "@/lib/config/env";
 import { parseKeys, verify } from "@/server/publication/signature";
 import { audit } from "./audit";
-import { readCv, registrations } from "./interest";
+import { after } from "next/server";
+import { mailConfigured, sendMail } from "@/server/mail/mailer";
+import { statusChanged } from "@/server/mail/templates";
+import { decryptRegistration, readCv, registrations } from "./interest";
 import { getRegistration, listRegistrations, type RegistrationRow } from "./workbench";
 
 // Applications are kept here, on aletheiagov.org, and nowhere else. This site's staff area and
@@ -34,6 +37,14 @@ export async function changeStatus(reference: string, status: string, expectedRe
     throw e;
   }
   await audit({ actorId: `${actor.via}:${actor.id}`, action: "interest.status", target: { type: "interest", id: reference }, outcome: "success", details: { from: reg.status, to: status, via: actor.via } });
+  if (status !== reg.status && mailConfigured()) {
+    // The person hears of the steps that concern them (templates.ts); internal steps send nothing.
+    after(async () => {
+      const pii = await decryptRegistration(db, reg).catch(() => null);
+      const mail = pii?.email ? statusChanged({ fullName: pii.fullName, email: pii.email }, reference, status) : null;
+      if (mail) await sendMail(mail);
+    });
+  }
   return (await getRegistration(reference))!;
 }
 

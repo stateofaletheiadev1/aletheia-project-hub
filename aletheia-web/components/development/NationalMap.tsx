@@ -222,10 +222,11 @@ export function NationalMap({ active, onActiveChange }: NationalMapProps) {
     <svg
       viewBox={`${k(VIEW.x)} ${k(VIEW.y)} ${k(VIEW.w)} ${k(VIEW.h)}`}
       className="w-full h-auto block select-none"
-      role="img"
+      role="group"
+      aria-labelledby="national-map-title"
       style={{ fontFamily: 'inherit' }}
     >
-      <title>{t("The Sovereign Covenant State of Aletheia")}</title>
+      <title id="national-map-title">{t("The Sovereign Covenant State of Aletheia")}</title>
       <desc>{t("Proposed national map: the Antioch Federal District at the centre, St. Barbara State to the north, St. Brendan State to the east, Benedict State to the south and Augustine State to the west.")}</desc>
 
       {/* Sea, km grid and continental shelf */}

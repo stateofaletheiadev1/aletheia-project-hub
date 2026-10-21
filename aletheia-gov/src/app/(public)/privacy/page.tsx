@@ -55,7 +55,10 @@ export default function PrivacyPage() {
         <li>
           To erase your data we destroy your key. Every stored copy, including any in backups or history, then becomes unreadable.
         </li>
-        <li>No email is sent to you: email delivery is not set up yet.</li>
+        <li>
+          We email you to confirm your registration and when the status of an application changes. These emails are sent from no-reply@stateofaletheia.org through our
+          email provider, Zoho Mail, and contain only your name, your reference and what you registered for.
+        </li>
       </ul>
 
       <h2>Officers&apos; sign-in</h2>
@@ -79,7 +82,10 @@ export default function PrivacyPage() {
       </p>
 
       <h2>Contact</h2>
-      <p>A contact address for privacy requests, including erasure, will be published here before registrations open on the public site.</p>
+      <p>
+        Until the founding entity is registered, the founder, Emeka Iwuagwu, is responsible for this data on behalf of the founding team. For any request about your
+        data, including erasure, write to <a className="link-ledger" href="mailto:info@stateofaletheia.org">info@stateofaletheia.org</a>.
+      </p>
     </ProsePage>
   );
 }

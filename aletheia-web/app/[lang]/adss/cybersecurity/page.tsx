@@ -5,7 +5,6 @@ import React from 'react';
 import Link from '@/components/i18n/Link';
 import { StarOfTruth } from '@/components/brand/Logo';
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import { Placeholder } from '@/components/ui/Placeholder';
 import { ServerCrash, KeyRound, Cpu, Bug, ArrowRight } from 'lucide-react';
 import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
 
@@ -82,8 +81,7 @@ export default function CybersecurityPage() {
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-parchment">{t("Coordinated Vulnerability Disclosure")}</h2>
           <p className="text-sm text-parchment/70 leading-relaxed">{t("If you find a security problem in this website or the StableChain testnet, please tell us privately and give us reasonable time to fix it before publishing. We will acknowledge your report and credit you if you wish. There is no paid bug bounty.")}</p>
           <div className="space-y-2 text-sm">
-            <div className="flex flex-wrap items-center gap-2"><span className="text-gold font-semibold">{t("Report to:")}</span> <Placeholder>security contact address</Placeholder></div>
-            <div className="flex flex-wrap items-center gap-2"><span className="text-gold font-semibold">{t("Encryption key:")}</span> <Placeholder>PGP key, if any</Placeholder></div>
+            <div className="flex flex-wrap items-center gap-2"><span className="text-gold font-semibold">{t("Report to:")}</span> <a href="mailto:security@aletheiagov.org" className="text-parchment underline underline-offset-4 decoration-gold">security@aletheiagov.org</a></div>
           </div>
           <Link href="/contact" className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gold hover:text-gold-tint transition-colors">{t("Contact the Founding Team")}{' '}<ArrowRight className="w-3.5 h-3.5" /></Link>
         </div>

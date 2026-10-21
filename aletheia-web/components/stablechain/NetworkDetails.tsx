@@ -42,16 +42,20 @@ export function NetworkDetails() {
         <div className={row}>
           <span className={label}>{t('Block explorer')}</span>
           <span className={value}>
-            <a
-              href={STABLECHAIN.explorer}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 font-mono text-gold hover:text-gold-tint break-all"
-             translate="no" data-i18n-skip=""
-            >
-              {STABLECHAIN.explorer}
-              <ArrowUpRight className="w-3.5 h-3.5 shrink-0" />
-            </a>
+            {STABLECHAIN.explorerLive ? (
+              <a
+                href={STABLECHAIN.explorer}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 font-mono text-gold hover:text-gold-tint break-all"
+                translate="no" data-i18n-skip=""
+              >
+                {STABLECHAIN.explorer}
+                <ArrowUpRight className="w-3.5 h-3.5 shrink-0" />
+              </a>
+            ) : (
+              t('Published when the testnet opens to the public')
+            )}
           </span>
         </div>
       </div>

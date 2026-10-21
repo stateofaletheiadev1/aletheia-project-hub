@@ -49,7 +49,7 @@ export default function DesignReference() {
       <Specimen n="01" title="Type" note="Manrope only. No italic. Tabular figures in data.">
         <div className="grid gap-4">
           <p className="text-display text-ink">Thursday 15 October 2026</p>
-          <p className="text-h1 text-ink">Decisions of the Council of the States</p>
+          <p className="text-h1 text-ink">Decisions of the Council of States</p>
           <p className="text-h2 text-ink">Requires your action</p>
           <p className="text-h3 text-ink">Countersignatures on version 3</p>
           <p className="text-body font-normal text-ink measure">

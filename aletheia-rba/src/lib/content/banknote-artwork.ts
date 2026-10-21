@@ -1,5 +1,5 @@
 /**
- * Banknote artwork: the overprinted specimen images built by scripts/specimen.ts.
+ * Banknote artwork: the images built by scripts/banknotes.ts.
  * `picture` is the responsive set from enhanced-img; `original` is the full-size file, loaded only
  * by the zoom viewer. Dimensions come from the files, never from constants.
  */
@@ -44,6 +44,6 @@ export const artwork: Record<string, Artwork> = Object.fromEntries(
 
 export function artworkFor(key: string): Artwork {
 	const art = artwork[key];
-	if (!art) throw new Error(`Missing banknote artwork: ${key}. Run scripts/specimen.ts.`);
+	if (!art) throw new Error(`Missing banknote artwork: ${key}. Run scripts/banknotes.ts.`);
 	return art;
 }

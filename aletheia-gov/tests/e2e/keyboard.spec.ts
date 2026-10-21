@@ -66,10 +66,10 @@ test("mobile drawer contains focus, closes on Escape and returns focus", async (
 
 test("search works from the keyboard", async ({ page }) => {
   await page.goto("/search");
-  await page.getByLabel(/Institutions, programmes/).fill("monetary authority");
+  await page.getByLabel(/Institutions, programmes/).fill("reserve bank");
   await page.keyboard.press("Enter");
-  await expect(page).toHaveURL(/q=monetary/);
-  await expect(page.getByRole("link", { name: /Aletheia Monetary Authority/ }).first()).toBeVisible();
+  await expect(page).toHaveURL(/q=reserve/);
+  await expect(page.getByRole("link", { name: /Reserve Bank of Aletheia/ }).first()).toBeVisible();
 });
 
 test("programme rail scrolls with its buttons", async ({ page, isMobile }) => {

@@ -40,7 +40,7 @@
 				<Guilloche kind="rosette" seed={14} size={300} layers={3} />
 			</div>
 			<header class="sheet__head">
-				<p class="t-meta">Specimen sheet</p>
+				<p class="t-meta">Currency sheet</p>
 				<h2 id="sheet-title" class="t-h2">AEY</h2>
 			</header>
 			<dl class="sheet__rows">

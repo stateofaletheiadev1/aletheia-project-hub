@@ -61,7 +61,7 @@
 			.map((f) =>
 				imageObject({
 					url: f.art.original,
-					name: `${n.denomination} AEY banknote design (specimen)`,
+					name: `${n.denomination} AEY banknote design`,
 					caption: f.alt
 				})
 			)

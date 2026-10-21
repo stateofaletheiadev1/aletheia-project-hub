@@ -8,7 +8,7 @@ import { MONTEVIDEO, NATIONAL_ASSETS, STATUS_REGISTER } from '@/lib/status';
 export function StatusRegisterTable() {
   const { t, tx } = useI18n();
   return (
-    <div className="overflow-x-auto bg-white border border-navy/15 rounded-sm shadow-sm">
+    <div className="overflow-x-auto bg-white border border-navy/15 rounded-sm shadow-sm" tabIndex={0} role="region" aria-label={t("Public status register")}>
       <table className="w-full text-left text-sm border-collapse">
         <caption className="sr-only">{t('Status register')}</caption>
         <thead>
@@ -36,7 +36,7 @@ export function StatusRegisterTable() {
 export function MontevideoTable() {
   const { t, tx } = useI18n();
   return (
-    <div className="overflow-x-auto bg-white border border-navy/15 rounded-sm shadow-sm">
+    <div className="overflow-x-auto bg-white border border-navy/15 rounded-sm shadow-sm" tabIndex={0} role="region" aria-label={t("The four Montevideo criteria")}>
       <table className="w-full text-left text-sm border-collapse">
         <caption className="sr-only">{t('The four Montevideo criteria')}</caption>
         <thead>

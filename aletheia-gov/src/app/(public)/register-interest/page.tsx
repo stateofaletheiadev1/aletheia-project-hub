@@ -9,6 +9,7 @@ import { getPublished } from "@/server/records/public-records";
 export const metadata: Metadata = {
   title: "Register your interest",
   description: "Register your interest in founding roles and other positions in the institutions of the Sovereign Covenant State of Aletheia, or apply for a published position.",
+  alternates: { canonical: "/register-interest" },
 };
 
 /** The position being applied for, if the address names one that is published and open. */

@@ -280,7 +280,7 @@
 			/>
 		</div>
 
-		<p class="viewer__help t-fine">Specimen. ← → change note · F turn over · + − zoom</p>
+		<p class="viewer__help t-fine">← → change note · F turn over · + − zoom</p>
 		<p class="visually-hidden" aria-live="polite">{announcement}</p>
 	{/if}
 </dialog>

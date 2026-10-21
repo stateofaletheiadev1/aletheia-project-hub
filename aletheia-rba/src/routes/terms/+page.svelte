@@ -50,8 +50,8 @@
 
 			<h2>The banknote designs</h2>
 			<p>
-				The banknote designs are published as specimens. They must not be reproduced in a way that
-				could be mistaken for currency, or presented as notes that have been issued.
+				The banknote designs are published for information. They must not be reproduced in a way
+				that could be mistaken for currency, or presented as notes that have been issued.
 			</p>
 
 			<h2>Intellectual property</h2>

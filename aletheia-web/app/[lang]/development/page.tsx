@@ -104,11 +104,11 @@ const STATES: State[] = [
 ];
 
 const ROADMAP: { year: string; title: string; status: ManualStatus }[] = [
-  { year: 'Phase 0', title: 'Founding community, digital institutions & StableChain testnet', status: 'Under Development' },
-  { year: 'Phase 1', title: 'Founding Thesis, legal counsel & seastead engineering research', status: 'Planned' },
-  { year: 'Phase 2', title: 'Platform design, site survey & seed funding', status: 'Planned' },
-  { year: 'Phase 3', title: 'A pilot platform, built and owned by Aletheia', status: 'Planned' },
-  { year: 'Vision', title: 'Antioch & the maritime districts', status: 'Vision' },
+  { year: '2026', title: 'Founding community, digital institutions & StableChain testnet', status: 'Under Development' },
+  { year: '2027', title: 'Founding entity, legal counsel & seastead engineering research', status: 'Planned' },
+  { year: '2027–2028', title: 'Platform design, site survey & seed funding', status: 'Planned' },
+  { year: '2029–2030', title: 'A pilot platform, built and owned by Aletheia', status: 'Planned' },
+  { year: 'From 2035', title: 'Antioch & the maritime districts', status: 'Vision' },
 ];
 
 export default function DevelopmentPage() {

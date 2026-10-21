@@ -47,7 +47,7 @@ export const programmes: Programme[] = [
     scope: ["Node software", "Monetary layer for the AEY", "Public explorer"],
     image: "deep-water",
     imageAlt: "Light falling through deep blue water",
-    lead: "Aletheia Monetary Authority (proposed)",
+    lead: "Reserve Bank of Aletheia (proposed)",
     external: { href: "https://stateofaletheia.org/stablechain", label: "About StableChain on stateofaletheia.org" },
   },
   {
@@ -132,8 +132,8 @@ export const programmes: Programme[] = [
     ],
     scope: ["Series design", "Security features", "Issuance rules"],
     image: null,
-    lead: "Aletheia Monetary Authority (proposed)",
-    external: { href: "https://stateofaletheia.org", label: "The Aletheian Guilder on stateofaletheia.org" },
+    lead: "Reserve Bank of Aletheia (proposed)",
+    external: { href: "https://stateofaletheia.org/aey", label: "The Aletheian Guilder on stateofaletheia.org" },
   },
 ];
 

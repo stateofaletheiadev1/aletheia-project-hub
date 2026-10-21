@@ -66,13 +66,13 @@ describe('banknotes', () => {
 		}
 	});
 
-	it('say in every alt text that the image is a specimen', () => {
+	it('describe every side of every note in its alt text', () => {
 		for (const b of banknotes) {
-			for (const side of [b.front, b.back]) if (side) expect(side.alt).toMatch(/specimen/i);
+			for (const side of [b.front, b.back]) if (side) expect(side.alt).toMatch(/AEY note design/);
 		}
 	});
 
-	it('have overprinted artwork on disk, front and back, read for its real dimensions', async () => {
+	it('have artwork on disk, front and back, read for its real dimensions', async () => {
 		for (const b of banknotes) {
 			for (const side of [b.front, b.back]) {
 				if (!side) continue;

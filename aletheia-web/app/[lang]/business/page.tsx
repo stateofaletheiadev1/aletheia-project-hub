@@ -132,11 +132,7 @@ export default function BusinessPage() {
           {ENTITY_TYPES.map((entity) => (
             <div
               key={entity.id}
-              role="button"
-              tabIndex={0}
-              aria-pressed={selectedEntity === entity.id}
               onClick={() => setSelectedEntity(entity.id)}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedEntity(entity.id); } }}
               className={`sovereign-card cursor-pointer rounded-sm p-7 flex flex-col justify-between transition-all bg-white relative overflow-hidden group ${
                 selectedEntity === entity.id
                   ? 'border-gold shadow-xl ring-1 ring-gold/40'

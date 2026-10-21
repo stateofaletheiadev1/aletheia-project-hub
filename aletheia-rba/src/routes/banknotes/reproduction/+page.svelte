@@ -8,8 +8,8 @@
 		money.
 	</p>
 	<ul>
-		<li>Use the images published on this website, which carry the word “Specimen”.</li>
-		<li>Do not remove or obscure the specimen overprint.</li>
+		<li>Use the images published on this website, and do not alter them.</li>
+		<li>Never print a reproduction on paper or material resembling banknote paper.</li>
 		<li>
 			Reproduce a note at less than three quarters, or more than one and a half times, its size.
 		</li>

@@ -42,7 +42,8 @@ export function CountUp({ value, format = 'number', durationMs = 1600 }: CountUp
   }, [value, durationMs]);
 
   return (
-    <span ref={ref} className="tabular-nums" aria-label={render(value, format, intl)}>
+    <span ref={ref} className="tabular-nums">
+      <span className="sr-only">{render(value, format, intl)}</span>
       <span aria-hidden="true">{render(shown, format, intl)}</span>
     </span>
   );

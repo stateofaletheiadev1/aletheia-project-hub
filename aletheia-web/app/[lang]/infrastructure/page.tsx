@@ -56,7 +56,7 @@ export default function InfrastructurePage() {
       <section className="guilloche-hero relative text-parchment overflow-hidden pt-24 pb-20 lg:pt-32 lg:pb-28 border-b border-gold/30">
         <div className="absolute inset-0">
           <Image
-            src="/images/autonomous_harbor.jpg"
+            src="/images/maritime_port.jpg"
             alt=""
             fill
             className="object-cover opacity-20 mix-blend-luminosity"

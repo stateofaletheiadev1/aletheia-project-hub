@@ -1,10 +1,15 @@
 "use server";
 
+import { after } from "next/server";
 import { headers } from "next/headers";
 import { clientKey, createLimiter } from "@/server/security/rate-limit";
 import { checkPdf } from "@/server/security/pdf";
 import { registerInterest } from "@/server/services/interest";
-import { CV_MAX_BYTES, InterestInput, type InterestState, type InterestValues } from "./schema";
+import { mailConfigured, notifyAddress, sendMail } from "@/server/mail/mailer";
+import { registrationNotice, registrationReceived } from "@/server/mail/templates";
+import { getPublished } from "@/server/records/public-records";
+import { positionName } from "@/content/positions";
+import { CV_MAX_BYTES, InterestInput, institutionName, type InterestState, type InterestValues } from "./schema";
 
 // 5 registrations per hour per client address. In memory: correct for one server
 // process (ADR 0004); a shared store is needed for multi-instance hosting.
@@ -76,6 +81,28 @@ export async function submitInterest(_prev: InterestState, form: FormData): Prom
       fieldErrors: {},
       values,
     };
+  }
+  if (mailConfigured()) {
+    const data = parsed.data;
+    const { reference, positionTypes, institutions } = outcome;
+    // After the response, so a slow mail server never holds up the person on the form.
+    after(async () => {
+      let position: { title: string; reference: string } | undefined;
+      if (data.opportunity) {
+        const record = await getPublished("opportunity", data.opportunity.toLowerCase()).catch(() => null);
+        if (record && record !== "unavailable") position = { title: record.title, reference: record.reference };
+      }
+      const summary = {
+        fullName: data.fullName,
+        email: data.email,
+        reference,
+        position,
+        institutions: institutions.map(institutionName),
+        positionTypes: positionTypes.map(positionName),
+      };
+      await sendMail(registrationReceived(summary));
+      await sendMail(registrationNotice(summary, notifyAddress()));
+    });
   }
   return { status: "saved", reference: outcome.reference, positionTypes: outcome.positionTypes, institutions: outcome.institutions, cv: outcome.cv };
 }

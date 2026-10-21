@@ -11,7 +11,7 @@ import { listPublished } from "@/server/records/public-records";
 export const metadata: Metadata = {
   title: "Public finance",
   description:
-    "Public finance of the founding government of Aletheia: the Monetary Authority and the Treasury, kept apart. Figures appear only from published records.",
+    "Public finance of the founding government of Aletheia: the Reserve Bank and the Treasury, kept apart. Figures appear only from published records.",
 };
 
 const RECORD_TYPES = ["Budgets", "Receipts", "Expenditure", "Procurement notices", "Contracts", "Funding commitments", "Audited statements", "Reports"];
@@ -28,9 +28,9 @@ export default async function PublicFinancePage() {
   const sides = [
     {
       id: "monetary",
-      name: "Aletheia Monetary Authority",
-      role: "Issues the Aletheian Guilder (AEY) under published reserve rules.",
-      note: "No reserves, pegs, payment rails or banking relationships are operational. If any becomes operational it will be shown here with its evidence.",
+      name: "Reserve Bank of Aletheia",
+      role: "Issues the Aletheian Guilder (AEY) under published rules. Its reserves are never spent on construction or lent to the State.",
+      note: "The Bank is being established. Its monetary framework will be published before any currency is issued.",
     },
     {
       id: "treasury",

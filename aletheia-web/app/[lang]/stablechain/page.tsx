@@ -65,12 +65,14 @@ export default function StableChainPage() {
                   href="/transparency"
                   className="btn-sovereign-ghost px-6 py-3.5 rounded-sm text-sm"
                 >{t("Status & Disclaimers")}</Link>
-                <a
-                  href={STABLECHAIN.explorer}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn-sovereign-ghost px-6 py-3.5 rounded-sm text-sm"
-                >{t("Testnet Explorer")}</a>
+                {STABLECHAIN.explorerLive && (
+                  <a
+                    href={STABLECHAIN.explorer}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-sovereign-ghost px-6 py-3.5 rounded-sm text-sm"
+                  >{t("Testnet Explorer")}</a>
+                )}
               </div>
             </div>
 
@@ -148,8 +150,12 @@ export default function StableChainPage() {
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
             <span className="text-parchment/20">·</span>
-            <a href={STABLECHAIN.explorer} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-parchment/60 hover:text-parchment transition-colors">{t("Block Explorer")}</a>
-            <span className="text-parchment/20">·</span>
+            {STABLECHAIN.explorerLive && (
+              <>
+                <a href={STABLECHAIN.explorer} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-parchment/60 hover:text-parchment transition-colors">{t("Block Explorer")}</a>
+                <span className="text-parchment/20">·</span>
+              </>
+            )}
             <Link href="/transparency" className="text-sm font-semibold text-parchment/60 hover:text-parchment transition-colors">{t("Status & Disclaimers")}</Link>
             <span className="text-parchment/20">·</span>
             <Link href="/government" className="text-sm font-semibold text-parchment/60 hover:text-parchment transition-colors">{t("Digital State (proposed)")}</Link>

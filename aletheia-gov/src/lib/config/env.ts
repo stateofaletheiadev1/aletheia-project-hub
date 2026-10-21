@@ -26,6 +26,13 @@ const schema = z.object({
   PUBLICATION_HMAC_KEYS: optional,
   /** Shared secret for scheduled jobs (Vercel Cron sends it as a Bearer token). */
   CRON_SECRET: optional.pipe(z.union([z.string().min(32, "CRON_SECRET must be at least 32 characters"), z.undefined()])),
+  /** Outgoing email (Zoho Mail). Without SMTP_USER and SMTP_PASS no email is sent. */
+  SMTP_HOST: optional,
+  SMTP_PORT: z.coerce.number().int().positive().default(465),
+  SMTP_USER: optional,
+  SMTP_PASS: optional,
+  MAIL_FROM: optional,
+  MAIL_NOTIFY: optional.pipe(z.union([z.email(), z.undefined()])),
   /** 32 random bytes, base64. Wraps the per-person keys that encrypt personal data (brief §8.4). */
   DATA_ENCRYPTION_MASTER_KEY: optional.pipe(
     z.union([

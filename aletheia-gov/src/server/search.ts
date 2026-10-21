@@ -24,7 +24,7 @@ const PAGES: Entry[] = [
   ["/development", "The development framework", "What can be built before there is a place, and what must wait for one."],
   ["/build-aletheia", "Build Aletheia", "Ways to contribute: founding roles and other positions, scrutiny of the record, following the programmes."],
   ["/opportunities", "Opportunities", "Founding roles, permanent, fixed-term, advisory and volunteer positions, jobs, vacancies, recruitment process, two reviewers, published rubric, applications."],
-  ["/public-finance", "Public finance", "Monetary Authority and Treasury, budgets, receipts, expenditure, procurement, rules for figures."],
+  ["/public-finance", "Public finance", "Reserve Bank and Treasury, budgets, receipts, expenditure, procurement, rules for figures."],
   ["/documents", "Documents", "Document library: founding texts, frameworks, specifications, reports, versions and hashes."],
   ["/decisions", "Decisions", "Published institutional decisions with references and change history."],
   ["/dispatches", "Dispatches", "Announcements and notices from the founding government."],

@@ -54,6 +54,11 @@ export async function Colophon() {
             <span>Capital (proposed): {site.capital}</span>
           </p>
           <p className="flex flex-wrap gap-x-6 gap-y-2">
+            <span>Contact: <a href={`mailto:${site.contact.general}`} className="draw-link text-parchment-200 hover:text-parchment-50">{site.contact.general}</a></span>
+            <span>Press: <a href={`mailto:${site.contact.press}`} className="draw-link text-parchment-200 hover:text-parchment-50">{site.contact.press}</a></span>
+            <span>Security: <a href={`mailto:${site.contact.security}`} className="draw-link text-parchment-200 hover:text-parchment-50">{site.contact.security}</a></span>
+          </p>
+          <p className="flex flex-wrap gap-x-6 gap-y-2">
             <a href={site.nationalSite} className="draw-link text-parchment-200 hover:text-parchment-50" rel="noopener">
               The State: stateofaletheia.org ↗
             </a>

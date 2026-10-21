@@ -187,7 +187,7 @@ export function Navbar() {
               />
               <div className="flex flex-col leading-none">
                 <span className="text-[16px] font-extrabold tracking-[0.16em] uppercase text-[#15294A] whitespace-nowrap">{t("ALETHEIA")}</span>
-                <span className="text-[9px] font-bold tracking-[0.14em] uppercase text-[#A87D34] whitespace-nowrap mt-1">{t("Sovereign Covenant State")}</span>
+                <span className="text-[9px] font-bold tracking-[0.14em] uppercase text-[#7A5A22] whitespace-nowrap mt-1">{t("Sovereign Covenant State")}</span>
               </div>
             </Link>
 
@@ -252,7 +252,7 @@ export function Navbar() {
                           <div className="col-span-8 p-5 grid grid-cols-2 gap-x-5 gap-y-0.5">
                             {item.children?.map(group => (
                               <div key={group.group}>
-                                <p className="text-[10.5px] font-bold tracking-[0.12em] uppercase text-[#A87D34] mb-2.5 mt-1">
+                                <p className="text-[10.5px] font-bold tracking-[0.12em] uppercase text-[#7A5A22] mb-2.5 mt-1">
                                   {tx(group.group)}
                                 </p>
                                 {group.items.map(sub => (

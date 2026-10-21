@@ -2,7 +2,6 @@
 
 import { useI18n } from '@/components/i18n/I18nProvider';
 import Link from '@/components/i18n/Link';
-import { Placeholder } from '@/components/ui/Placeholder';
 import { LegalDocument } from '@/components/ui/LegalDocument';
 
 export default function PrivacyPage() {
@@ -20,8 +19,10 @@ export default function PrivacyPage() {
           heading: 'Who is responsible',
           body: (
             <>
-              <p>{t("This platform is run by the founding team of Aletheia, a new-country project. Aletheia is not a recognised state; the data controller is the legal entity named below.")}</p>
-              <p><Placeholder>data controller (legal entity, registered address) and privacy contact email</Placeholder></p>
+              <p>{t("This platform is run by the founding team of Aletheia, a new-country project. Aletheia is not a recognised state.")}</p>
+              <p>{t("The founding entity is being registered. Until it is, the founder, Emeka Iwuagwu, is responsible for personal data on behalf of the founding team. The entity’s name and registered address will be published here when it is registered.")}</p>
+              <p>{t("For any request about your data, including access, correction and erasure, write to")}{' '}<a href="mailto:info@stateofaletheia.org" className="font-semibold underline underline-offset-2 decoration-gold">info@stateofaletheia.org</a>.</p>
+              <p>{t("When you register interest, we send you a confirmation email from no-reply@stateofaletheia.org through our email provider, Zoho Mail.")}</p>
             </>
           ),
         },

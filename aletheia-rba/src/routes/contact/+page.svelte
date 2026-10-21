@@ -11,7 +11,7 @@
 
 <Seo
 	title="Contact"
-	description="How to contact the Reserve Bank of Aletheia. Official enquiry channels are being established."
+	description="How to contact the Reserve Bank of Aletheia: email, press enquiries and security reports."
 	path="/contact"
 />
 

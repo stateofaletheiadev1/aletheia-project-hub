@@ -1,5 +1,6 @@
 'use client';
 
+import { RESERVE_BANK } from '@/lib/reserve-bank';
 import { useI18n } from '@/components/i18n/I18nProvider';
 import Link from '@/components/i18n/Link';
 import { Activity, Lock, Layers } from 'lucide-react';
@@ -35,10 +36,10 @@ export function SovereignTicker() {
             {live ? (
               <>
                 {t('Block height')}{' '}<span className="text-[#C49A4E] font-semibold">{live.height.toLocaleString(intl)}</span>
-                {live.network !== 'mainnet' && <span className="text-[#F4EEDF]/45">{' · '}<span translate="no" data-i18n-skip="">{live.network}</span></span>}
+                {live.network !== 'mainnet' && <span className="text-[#F4EEDF]/70">{' · '}<span translate="no" data-i18n-skip="">{live.network}</span></span>}
               </>
             ) : null}
-            <span className="text-[#F4EEDF]/40">{live ? ' · ' : ''}{sourceLabel}</span>
+            <span className="text-[#F4EEDF]/70">{live ? ' · ' : ''}{sourceLabel}</span>
           </span>
         </div>
 
@@ -51,7 +52,7 @@ export function SovereignTicker() {
 
           <div className="hidden md:flex items-center gap-1.5 text-[#F4EEDF]/75">
             <Lock className="w-3 h-3 text-[#C49A4E]/80" />
-            <span>{t("Proposed currency:")}{' '}<a href="https://rbaletheia.org" target="_blank" rel="noopener noreferrer" className="text-[#C49A4E] font-bold hover:underline">{t("AEY · Reserve Bank of Aletheia")}</a></span>
+            <span>{t("Proposed currency:")}{' '}<a href={RESERVE_BANK.url} target="_blank" rel="noopener noreferrer" className="text-[#C49A4E] font-bold hover:underline">{t("AEY · Reserve Bank of Aletheia")}</a></span>
           </div>
 
           <div className="hidden lg:flex items-center gap-1.5 text-[#F4EEDF]/75">

@@ -112,7 +112,7 @@
 				<BanknoteStage
 					art={heroArt}
 					alt={hundred.front.alt}
-					caption="100 AEY, front. Specimen."
+					caption="100 AEY, front."
 					eager
 					seed={11}
 				/>

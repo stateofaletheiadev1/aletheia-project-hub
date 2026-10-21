@@ -241,7 +241,7 @@ export default function AletheiaPage() {
 
               <div className="lg:col-span-6 relative h-[380px] rounded-sm overflow-hidden border border-navy/20 shadow-lg">
                 <Image
-                  src="/images/autonomous_harbor.jpg"
+                  src="/images/maritime_port.jpg"
                   alt={t("Design study of a harbour")}
                   fill
                   className="object-cover"

@@ -1,5 +1,6 @@
 'use client';
 
+import { RESERVE_BANK } from '@/lib/reserve-bank';
 import { FoundingPhaseStatement } from '@/components/layout/FoundingPhaseNotice';
 
 import { useI18n } from '@/components/i18n/I18nProvider';
@@ -99,7 +100,7 @@ export function Footer() {
                 <a href="https://www.aletheiagov.org" target="_blank" rel="noopener noreferrer" className="hover:text-gold transition-colors">{t("Government Website (aletheiagov.org)")}</a>
               </li>
               <li>
-                <a href="https://rbaletheia.org" target="_blank" rel="noopener noreferrer" className="hover:text-gold transition-colors">{t("Reserve Bank of Aletheia (rbaletheia.org)")}</a>
+                <a href={RESERVE_BANK.url} target="_blank" rel="noopener noreferrer" className="hover:text-gold transition-colors">{t("Reserve Bank of Aletheia")}</a>
               </li>
             </ul>
           </div>
@@ -141,9 +142,11 @@ export function Footer() {
               <li>
                 <Link href="/stablechain" className="hover:text-gold transition-colors">{t("StableChain (testnet)")}</Link>
               </li>
-              <li>
-                <a href={STABLECHAIN.explorer} target="_blank" rel="noopener noreferrer" className="hover:text-gold transition-colors">{t("StableChain Testnet Explorer")}</a>
-              </li>
+              {STABLECHAIN.explorerLive && (
+                <li>
+                  <a href={STABLECHAIN.explorer} target="_blank" rel="noopener noreferrer" className="hover:text-gold transition-colors">{t("StableChain Testnet Explorer")}</a>
+                </li>
+              )}
             </ul>
           </div>
 

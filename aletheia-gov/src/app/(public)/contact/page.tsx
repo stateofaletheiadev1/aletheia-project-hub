@@ -9,11 +9,11 @@ export const metadata: Metadata = {
 };
 
 const OFFICES = [
-  ["General enquiries", "Questions about the founding government and this record."],
-  ["Recruitment", "Questions about a published position."],
-  ["Press", "Requests from journalists."],
-  ["Privacy and data", "Requests about personal data."],
-  ["Security", "Reports of vulnerabilities in this platform."],
+  ["General enquiries", "Questions about the founding government and this record.", site.contact.general],
+  ["Recruitment", "Questions about a published position or your application.", site.contact.general],
+  ["Press", "Requests from journalists.", site.contact.press],
+  ["Privacy and data", "Requests about personal data, including erasure.", site.contact.general],
+  ["Security", "Reports of vulnerabilities in this platform.", site.contact.security],
 ] as const;
 
 export default function ContactPage() {
@@ -21,22 +21,25 @@ export default function ContactPage() {
     <ProsePage
       mark={{ n: "C", label: "Contact" }}
       title="Contact"
-      lede="Enquiries will be routed to the office responsible. The enquiry channels are not open yet; this page says so rather than offer an address no one reads."
+      lede="Write to the office responsible. Every message is read by the founding team, and we aim to reply within a few working days."
       margin={[
-        { label: "Enquiry channels", value: "Not yet published" },
+        { label: "General enquiries", value: <a className="link-ledger" href={`mailto:${site.contact.general}`}>{site.contact.general}</a> },
         { label: "National website", value: <a className="link-ledger" href={site.nationalSite}>stateofaletheia.org</a> },
       ]}
     >
       <h2>Offices</h2>
       <ul>
-        {OFFICES.map(([name, text]) => (
+        {OFFICES.map(([name, text, email]) => (
           <li key={name}>
-            <strong className="font-semibold">{name}.</strong> {text} <span className="text-ink-500">Channel not yet published.</span>
+            <strong className="font-semibold">{name}.</strong> {text}{" "}
+            <a className="link-ledger" href={`mailto:${email}`}>
+              {email}
+            </a>
           </li>
         ))}
       </ul>
       <p>
-        Each channel will be published on this page when it is staffed. Until then, the founding government makes no contact through any other channel claiming to represent it. Positions, founding or otherwise, are recruited only through the <Link href="/opportunities">register of opportunities</Link>.
+        The founding government writes only from these addresses and from no-reply@stateofaletheia.org, which sends confirmations and does not receive replies. Positions, founding or otherwise, are recruited only through the <Link href="/opportunities">register of opportunities</Link>.
       </p>
     </ProsePage>
   );

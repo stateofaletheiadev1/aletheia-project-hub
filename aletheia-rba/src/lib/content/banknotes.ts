@@ -19,11 +19,11 @@ const note = (
 	words,
 	front: {
 		src: `aey-${denomination}-front`,
-		alt: `Front of the ${denomination} AEY note design in ${colour.toLowerCase()}: ${front}, shown as a specimen.`
+		alt: `Front of the ${denomination} AEY note design in ${colour.toLowerCase()}: ${front}.`
 	},
 	back: {
 		src: `aey-${denomination}-back`,
-		alt: `Back of the ${denomination} AEY note design in ${colour.toLowerCase()}: ${back}, shown as a specimen.`
+		alt: `Back of the ${denomination} AEY note design in ${colour.toLowerCase()}: ${back}.`
 	},
 	dominantColour: colour,
 	designNotes: [`Front: ${front}.`, `Back: ${back}.`],

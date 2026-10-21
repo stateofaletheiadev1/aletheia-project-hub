@@ -5,6 +5,7 @@
  */
 export const RESERVE_BANK = {
   name: 'Reserve Bank of Aletheia',
-  url: 'https://rbaletheia.org',
-  host: 'rbaletheia.org',
+  // Until rbaletheia.org is registered and connected, links go to the Bank's working address.
+  url: 'https://aletheia-rba.vercel.app',
+  host: 'aletheia-rba.vercel.app',
 } as const;

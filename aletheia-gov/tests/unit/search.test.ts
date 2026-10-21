@@ -5,7 +5,7 @@ const { search } = await import("@/server/search");
 
 describe("search", () => {
   it("ranks a title match first", () => {
-    expect(search("monetary authority")[0]?.title).toBe("Aletheia Monetary Authority");
+    expect(search("reserve bank")[0]?.title).toBe("Reserve Bank of Aletheia");
   });
 
   it("requires every term to match", () => {

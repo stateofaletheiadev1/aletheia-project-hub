@@ -5,9 +5,9 @@ import { openFields, sealFields, type Sealed } from './envelope';
 
 // Email copies of portal notifications. A message is written to the outbox first (sealed
 // under the person's key, like the notification itself) and sent from there, so a failed
-// send is retried instead of lost. Sending is on when SMTP_URL is set, e.g.
-//   SMTP_URL=smtps://user:password@smtp.example.org:465   MAIL_FROM="Aletheia <no-reply@stateofaletheia.org>"
-// Without SMTP_URL messages wait in the outbox and are sent once it is configured.
+// send is retried instead of lost. Sending is on when SMTP_USER and SMTP_PASS are set (Zoho Mail:
+// SMTP_HOST defaults to smtp.zoho.com, SMTP_PORT to 465), or when a full SMTP_URL is set.
+// MAIL_FROM sets the sender. Without them messages wait in the outbox until mail is configured.
 
 type Outbox = {
   accountId: string;
@@ -24,9 +24,39 @@ const MAX_ATTEMPTS = 5;
 const outbox = () => collection<Outbox>('outbox');
 
 let transport: Transporter | null | undefined;
-function transporter(): Transporter | null {
-  if (transport === undefined) transport = process.env.SMTP_URL ? nodemailer.createTransport(process.env.SMTP_URL) : null;
+export function transporter(): Transporter | null {
+  if (transport !== undefined) return transport;
+  const { SMTP_URL, SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = process.env;
+  if (SMTP_URL) transport = nodemailer.createTransport(SMTP_URL);
+  else if (SMTP_USER && SMTP_PASS) {
+    const port = Number(SMTP_PORT || 465);
+    transport = nodemailer.createTransport({
+      host: SMTP_HOST || 'smtp.zoho.com',
+      port,
+      secure: port === 465,
+      auth: { user: SMTP_USER, pass: SMTP_PASS },
+      connectionTimeout: 15_000,
+      greetingTimeout: 15_000,
+      socketTimeout: 20_000,
+    });
+  } else transport = null;
   return transport;
+}
+
+/** Sends one message now, outside the outbox (for people without an account). Retries once; never throws. */
+export async function sendNow(mail: { to: string; subject: string; text: string; html: string }): Promise<boolean> {
+  const t = transporter();
+  if (!t) return false;
+  const from = process.env.MAIL_FROM ?? 'Sovereign Covenant State of Aletheia <no-reply@stateofaletheia.org>';
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      await t.sendMail({ from, replyTo: 'info@stateofaletheia.org', ...mail });
+      return true;
+    } catch (e) {
+      if (attempt === 2) console.error(`[mail] could not send "${mail.subject}": ${String(e).slice(0, 200)}`);
+    }
+  }
+  return false;
 }
 
 export async function enqueueEmail(accountId: string, subject: string, title: string, message: string, linkHref: string | null): Promise<void> {
