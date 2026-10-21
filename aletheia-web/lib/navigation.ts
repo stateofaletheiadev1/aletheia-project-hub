@@ -69,7 +69,7 @@ export const MAIN_NAVIGATION: NavItem[] = [
         items: [
           { title: 'The Constitution', href: '/constitution', desc: 'The draft Covenant: searchable articles, permalinks and diffs', asset: 'constitution' },
           { title: 'The Covenant Assembly', href: '/government#assembly', desc: 'A proposed 61-member parliament elected by PR', asset: 'institutions' },
-          { title: 'Council of the States', href: '/government#council', desc: 'A proposed 15-member territorial review chamber', asset: 'institutions' },
+          { title: 'Council of States', href: '/government#council', desc: 'A proposed 15-member territorial review chamber', asset: 'institutions' },
           { title: 'The Chancellor & Cabinet', href: '/government#cabinet', desc: 'A proposed executive capped at nine ministries', asset: 'institutions' },
           { title: 'The Judiciary & High Court', href: '/government#judiciary', desc: 'Proposed constitutional, civil and dispute-resolution courts', asset: 'institutions' },
         ],

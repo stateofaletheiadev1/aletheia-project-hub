@@ -1,11 +1,11 @@
 /**
  * Single source of truth for citizenship criteria: by birth or naturalisation only, never for payment.
  * Used by /citizenship, /citizenship/apply, the FAQ and the registry, so the
- * rules can never drift between pages. Grounded in Constitution Art. 8 and the
+ * rules can never drift between pages. Grounded in Constitution Part IV and the
  * Nationality & Citizenship Act.
  */
 
-/** Years of lawful, continuous physical residence required for naturalisation (Art. 8(1)). */
+/** Years of lawful, continuous physical residence required for naturalisation (Art. 44(1)). */
 export const NATURALISATION_RESIDENCE_YEARS = 5;
 
 export const MINIMUM_AGE = 18;

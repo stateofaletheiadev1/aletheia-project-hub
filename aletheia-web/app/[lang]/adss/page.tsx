@@ -38,7 +38,7 @@ const DIRECTORATES: { id: string; code: string; title: string; subtitle: string;
       'Protection of offshore installations',
       'Cooperation with neighbouring coastguards',
     ],
-    commandBasis: 'Draft Constitution Art. 46; proposed Maritime Safety Act',
+    commandBasis: 'Draft Constitution Art. 188; proposed Maritime Safety Act',
   },
   {
     id: 'police',
@@ -55,7 +55,7 @@ const DIRECTORATES: { id: string; code: string; title: string; subtitle: string;
       'Court order enforcement',
       'Independent civilian complaint authority',
     ],
-    commandBasis: 'Draft Constitution Art. 46; proposed Civil Policing Act',
+    commandBasis: 'Draft Constitution Art. 189; proposed Civil Policing Act',
   },
   {
     id: 'immigration',
@@ -72,7 +72,7 @@ const DIRECTORATES: { id: string; code: string; title: string; subtitle: string;
       'E-residency compliance',
       'Cooperation with neighbouring states',
     ],
-    commandBasis: 'Draft Constitution Art. 46; proposed Border Administration Act',
+    commandBasis: 'Draft Constitution Art. 181, 188; proposed Border Administration Act',
   },
   {
     id: 'cyber',
@@ -89,7 +89,7 @@ const DIRECTORATES: { id: string; code: string; title: string; subtitle: string;
       'Infrastructure monitoring',
       'Coordinated vulnerability disclosure',
     ],
-    commandBasis: 'Draft Constitution Art. 53; proposed Cyber Resilience Act',
+    commandBasis: 'Draft Constitution Art. 196; proposed Cyber Resilience Act',
   },
 ];
 
@@ -168,7 +168,7 @@ export default function ADSSPage() {
             <div className="flex flex-wrap gap-4 pt-2">
               <Link href="/adss/cybersecurity" className="btn-sovereign-gold px-7 py-3.5 rounded-sm flex items-center gap-2.5 group text-sm">{t("Cybersecurity Department")}{' '}<ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
-              <Link href="/constitution#art-46" className="btn-sovereign-ghost px-6 py-3.5 rounded-sm flex items-center gap-2 text-sm">{t("Draft Constitutional Mandate")}</Link>
+              <Link href="/constitution#article-188" className="btn-sovereign-ghost px-6 py-3.5 rounded-sm flex items-center gap-2 text-sm">{t("Draft Constitutional Mandate")}</Link>
             </div>
           </div>
 

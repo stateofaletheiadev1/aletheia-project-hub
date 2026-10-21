@@ -1173,3 +1173,84 @@ body { overflow-x: clip; }
 .bg-parchment-dark .eyebrow,
 .bg-white .eyebrow,
 .guilloche-parchment .eyebrow { color: var(--color-gold-ink); }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   CONSTITUTION — long-form reading of the draft Constitution
+   ═══════════════════════════════════════════════════════════════════════ */
+.constitution-doc { color: var(--color-navy); }
+.constitution-preamble,
+.constitution-part {
+  background: #fff;
+  border: 1px solid color-mix(in srgb, var(--color-navy) 14%, transparent);
+  border-radius: 2px;
+  padding: 2rem 1.25rem;
+  margin-bottom: 2rem;
+}
+@media (min-width: 640px) {
+  .constitution-preamble, .constitution-part { padding: 2.5rem 2.75rem; }
+}
+.constitution-preamble p {
+  font-size: 1.0625rem;
+  line-height: 1.85;
+  margin-top: 0.9rem;
+  color: color-mix(in srgb, var(--color-navy) 88%, transparent);
+}
+.constitution-motto { font-style: italic; font-weight: 600; color: var(--color-gold-shadow) !important; }
+.constitution-preamble-note {
+  font-size: 0.875rem !important;
+  border-top: 1px solid color-mix(in srgb, var(--color-gold) 40%, transparent);
+  padding-top: 0.9rem;
+  margin-top: 1.4rem !important;
+  color: color-mix(in srgb, var(--color-navy) 70%, transparent) !important;
+}
+.constitution-part-title {
+  display: flex; flex-direction: column; gap: 0.25rem;
+  font-size: 1.6rem; font-weight: 800; line-height: 1.2; letter-spacing: -0.01em;
+  padding-bottom: 1rem; margin-bottom: 0.5rem;
+  border-bottom: 2px solid var(--color-gold);
+}
+.constitution-part-num {
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--color-gold-shadow);
+}
+.constitution-chapter-title {
+  font-size: 0.78rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--color-gold-shadow);
+  margin: 2rem 0 0.25rem;
+}
+.constitution-article { padding: 1.5rem 0 1.25rem; border-bottom: 1px solid color-mix(in srgb, var(--color-navy) 9%, transparent); }
+.constitution-article:last-child { border-bottom: 0; }
+.constitution-article:target { background: color-mix(in srgb, var(--color-gold) 9%, transparent); box-shadow: -1.25rem 0 0 color-mix(in srgb, var(--color-gold) 9%, transparent), 1.25rem 0 0 color-mix(in srgb, var(--color-gold) 9%, transparent); }
+.constitution-article-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
+.constitution-article-head h4 { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.35rem 0.75rem; font-size: 1.125rem; font-weight: 700; line-height: 1.35; }
+.constitution-article-num { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.82rem; font-weight: 700; color: var(--color-gold-shadow); white-space: nowrap; }
+.constitution-permalink { color: color-mix(in srgb, var(--color-navy) 35%, transparent); font-weight: 700; padding: 0 0.35rem; border-radius: 2px; }
+.constitution-permalink:hover, .constitution-permalink:focus-visible { color: var(--color-gold-shadow); }
+.constitution-clauses { margin-top: 0.85rem; display: grid; gap: 0.7rem; }
+.constitution-clause { display: grid; grid-template-columns: 2.4rem 1fr; gap: 0.5rem; font-size: 0.975rem; line-height: 1.75; color: color-mix(in srgb, var(--color-navy) 92%, transparent); }
+.constitution-clause-num { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.8rem; font-weight: 700; color: var(--color-gold-shadow); padding-top: 0.2rem; }
+.constitution-items { margin-top: 0.5rem; display: grid; gap: 0.35rem; }
+.constitution-items li { display: grid; grid-template-columns: 1.8rem 1fr; }
+.constitution-item-num { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.8rem; color: var(--color-gold-shadow); padding-top: 0.2rem; }
+.constitution-ref { color: var(--color-navy); text-decoration: underline; text-decoration-color: var(--color-gold); text-underline-offset: 2px; font-weight: 600; }
+.constitution-ref:hover, .constitution-ref:focus-visible { color: var(--color-gold-shadow); }
+.constitution-prevnext { display: flex; justify-content: space-between; margin-top: 1rem; font-size: 0.75rem; font-weight: 600; }
+.constitution-prevnext a { color: color-mix(in srgb, var(--color-navy) 55%, transparent); }
+.constitution-prevnext a:hover, .constitution-prevnext a:focus-visible { color: var(--color-gold-shadow); }
+.constitution-basis { margin-top: 0.5rem; font-size: 0.8rem; color: color-mix(in srgb, var(--color-navy) 65%, transparent); }
+.constitution-schedule-section h5 { margin-top: 1.25rem; font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--color-navy); }
+.constitution-legacy-anchor { position: relative; top: -7rem; display: block; height: 0; }
+.constitution-doc a:focus-visible { outline: 2px solid var(--color-gold); outline-offset: 2px; }
+
+@media print {
+  .guilloche-hero { color: #000 !important; }
+  .guilloche-hero .heading-hero, .guilloche-hero .text-gold-metallic { color: #15294A !important; -webkit-text-fill-color: #15294A !important; }
+  .orb-gold, .orb-burgundy { display: none !important; }
+  .constitution-preamble, .constitution-part { border: 0; padding: 0; margin-bottom: 1.5rem; }
+  .constitution-part { break-before: page; }
+  .constitution-article { break-inside: avoid-page; padding: 0.6rem 0; }
+  .constitution-part-title, .constitution-chapter-title, .constitution-article-head { break-after: avoid-page; }
+  .constitution-clause { font-size: 10.5pt; line-height: 1.5; }
+  .constitution-ref { text-decoration: none; font-weight: 400; }
+  .constitution-doc [hidden] { display: block !important; }
+}

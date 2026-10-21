@@ -84,7 +84,7 @@ export default function CitizenshipApplyPage() {
               </li>
             ))}
           </ol>
-          <p className="text-xs text-navy/50 max-w-3xl">{t("Governed by Constitution Article 8 and the Aletheian Nationality & Citizenship Act. Citizenship is never granted for investment or payment.")}</p>
+          <p className="text-xs text-navy/50 max-w-3xl">{t("Governed by Part IV of the draft Constitution and the Aletheian Nationality & Citizenship Act. Citizenship is never granted for investment or payment.")}</p>
         </div>
       </section>
     </div>

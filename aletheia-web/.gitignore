@@ -27,3 +27,6 @@ Thumbs.db
 *.tsbuildinfo
 next-env.d.ts
 .vercel
+
+# Internal working documents: kept on the build machine, never published.
+/docs/internal/

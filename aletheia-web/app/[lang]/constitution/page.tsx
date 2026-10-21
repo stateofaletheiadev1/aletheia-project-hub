@@ -1,295 +1,136 @@
-'use client';
-
-import { useI18n } from '@/components/i18n/I18nProvider';
-import React, { useState } from 'react';
-import Link from '@/components/i18n/Link';
-import { CONSTITUTION_DATA } from '@/lib/constitution-data';
-import { StatusBadge } from '@/components/ui/StatusBadge';
+import { Download, ScrollText } from 'lucide-react';
+import { CONSTITUTION, CHANGELOG, EDITION, articleByKey, constitutionJsonLd } from '@/lib/constitution';
+import { isLocale, DEFAULT_LOCALE } from '@/lib/i18n/config';
+import { getTranslator } from '@/lib/i18n/server';
 import { StarOfTruth } from '@/components/brand/Logo';
-import {
-  Search,
-  BookOpen,
-  Share2,
-  Printer,
-  Download,
-  Check,
-  ArrowRight,
-} from 'lucide-react';
 import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
+import { ConstitutionText } from '@/components/constitution/ConstitutionText';
+import { ConstitutionNav, type TocPart } from '@/components/constitution/ConstitutionNav';
+import { PrintButton } from '@/components/constitution/PrintButton';
 
-export default function ConstitutionPage() {
-  const { t, tx } = useI18n();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedPart, setSelectedPart] = useState<string>('All');
-  const [copiedId, setCopiedId] = useState<string | null>(null);
+function longDate(iso: string, intl: string) {
+  return new Date(`${iso}T12:00:00Z`).toLocaleDateString(intl, { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+}
 
-  const parts = ['All', ...Array.from(new Set(CONSTITUTION_DATA.map((a) => a.part)))];
+export default async function ConstitutionPage({ params }: PageProps<'/[lang]/constitution'>) {
+  const { lang } = await params;
+  const locale = isLocale(lang) ? lang : DEFAULT_LOCALE;
+  const { t } = await getTranslator(locale);
+  const intl = locale === 'en' ? 'en-GB' : locale;
 
-  const filteredArticles = CONSTITUTION_DATA.filter((article) => {
-    const matchesSearch =
-      article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      article.summary.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      article.clauses.some((c) => c.text.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      article.number.toString() === searchQuery.trim();
+  const { parts, articles, schedules, legacy } = CONSTITUTION;
+  const effect = articleByKey('effect');
+  const toc: TocPart[] = parts.map((p) => ({
+    id: p.id,
+    numeral: p.numeral,
+    title: p.title,
+    articles: p.chapters.flatMap((c) => c.articles.map((a) => ({ id: a.id, number: a.number, title: a.title }))),
+  }));
 
-    const matchesPart = selectedPart === 'All' || article.part === selectedPart;
-    return matchesSearch && matchesPart;
-  });
-
-  const handleCopyLink = (id: string) => {
-    navigator.clipboard.writeText(`${window.location.origin}/constitution#${id}`);
-    setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 2000);
-  };
 
   return (
-    <div className="min-h-screen bg-parchment-canvas text-navy">
-      {/* 1. Constitutional Hero Banner */}
-      {/* 1. Constitutional Hero Banner */}
-      <section className="guilloche-hero relative text-parchment py-24 lg:py-32 border-b border-gold/30 overflow-hidden">
-        <HeroBackdrop image="lawLibrary" />
-        {/* Ambient orbs */}
-        <div className="orb-gold w-[500px] h-[500px] -top-28 -left-36 opacity-50 animate-orb-float-1" />
-        <div className="orb-burgundy w-[360px] h-[360px] bottom-0 right-8 opacity-45 animate-orb-float-2" />
+    <div id="top" className="min-h-screen bg-parchment-canvas text-navy">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(constitutionJsonLd()) }} />
 
-        {/* Multi-ring hex watermark */}
-        <div className="absolute inset-0 opacity-[0.045] pointer-events-none flex items-center justify-center">
-          <svg width="900" height="900" viewBox="0 0 100 100" fill="none">
-            <polygon points="50,2 95,27 95,73 50,98 5,73 5,27" stroke="#C49A4E" strokeWidth="0.5" />
-            <polygon points="50,12 85,32 85,68 50,88 15,68 15,32" stroke="#C49A4E" strokeWidth="0.35" />
-            <polygon points="50,22 75,37 75,63 50,78 25,63 25,37" stroke="#C49A4E" strokeWidth="0.22" />
-            <circle cx="50" cy="50" r="45" stroke="#C49A4E" strokeWidth="0.18" />
-            <circle cx="50" cy="50" r="5" stroke="#C49A4E" strokeWidth="0.55" />
-          </svg>
-        </div>
+      {/* Hero */}
+      <section className="guilloche-hero relative text-parchment py-20 lg:py-28 border-b border-gold/30 overflow-hidden print:py-6 print:text-navy print:bg-white print:border-navy/20">
+        <HeroBackdrop image="lawLibrary" />
+        <div className="orb-gold w-[500px] h-[500px] -top-28 -left-36 opacity-50 animate-orb-float-1" aria-hidden="true" />
+        <div className="orb-burgundy w-[360px] h-[360px] bottom-0 right-8 opacity-45 animate-orb-float-2" aria-hidden="true" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-7">
-          <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 bg-navy-deep/80 border border-gold/40 rounded-sm backdrop-blur-sm">
+          <div className="inline-flex flex-wrap items-center gap-2.5 px-3.5 py-1.5 bg-navy-deep/80 border border-gold/40 rounded-sm backdrop-blur-sm">
             <StarOfTruth size={16} />
             <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-gold">{t("Draft Constitution")}</span>
-            <span className="text-parchment/30">|</span>
-            <span className="text-[11px] text-parchment/70 font-serif italic">{t("Edition 2026.3")}</span>
+            <span className="text-parchment/30" aria-hidden="true">|</span>
+            <span className="text-[11px] text-parchment/75 font-serif italic">{t("Edition {edition}", { edition: EDITION.edition })}</span>
           </div>
 
-          <div className="max-w-3xl space-y-4 animate-fade-in-up">
+          <div className="max-w-3xl space-y-4">
             <h1 className="heading-hero">{t("The Covenant")}<br />
               <span className="text-gold-metallic">{t("of Aletheia")}</span>
             </h1>
-            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("The draft constitution of the Sovereign Covenant State of Aletheia, published for review. It has no legal force; it would bind government, the states and citizens only once ratified.")}</p>
+            <p className="text-base sm:text-lg text-parchment/75 leading-[1.85] font-light">{t("The proposed Constitution of the Sovereign Covenant State of Aletheia: a Preamble, {parts} Parts, {articles} Articles and {schedules} Schedules, published for consultation.", { parts: parts.length, articles: articles.length, schedules: schedules.length })}</p>
           </div>
 
-          {/* Action Row */}
-          <div className="flex flex-wrap items-center gap-4 animate-fade-in-up delay-200">
-            <button
-              onClick={() => window.print()}
-              className="px-5 py-2.5 bg-navy-deep/80 backdrop-blur-sm border border-gold/35 text-parchment hover:text-gold hover:border-gold/60 rounded-sm flex items-center gap-2 transition-all text-xs font-semibold uppercase tracking-wider"
-            >
-              <Printer className="w-3.5 h-3.5 text-gold" />
-              <span>{t("Print the Draft")}</span>
-            </button>
-            <a
-              href="/pdf/constitution"
-              target="_blank"
-              rel="noopener"
-              className="btn-sovereign-gold px-5 py-2.5 rounded-sm flex items-center gap-2 text-xs font-bold uppercase tracking-wider"
-            >
-              <Download className="w-3.5 h-3.5" />
+          <div className="flex flex-wrap items-center gap-4" data-print-hide>
+            <a href="/pdf/constitution" target="_blank" rel="noopener" className="btn-sovereign-gold px-5 py-2.5 rounded-sm flex items-center gap-2 text-xs font-bold uppercase tracking-wider">
+              <Download className="w-3.5 h-3.5" aria-hidden="true" />
               <span>{t("Download PDF")}</span>
             </a>
-            <span className="text-parchment/30">|</span>
-            <span className="text-parchment/60 font-mono text-xs">{t("Status: Working draft. A proposal without legal force.")}</span>
+            <PrintButton label={t("Print the Draft")} />
           </div>
         </div>
       </section>
 
-      {/* 2. Interactive Search & Article Engine */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Left Column: Persistent Table of Contents (Col 4) */}
-          <div className="lg:col-span-4 space-y-6">
-            <div className="bg-white border border-navy/15 rounded-sm p-6 space-y-4 shadow-subtle sticky top-28">
-              <div className="flex items-center justify-between border-b border-navy/10 pb-3">
-                <span className="text-xs font-semibold tracking-eyebrow uppercase text-gold">{t("TABLE OF CONTENTS")}</span>
-                <span className="text-xs font-mono text-navy/50">
-                  {tx(filteredArticles.length)}{' '}{t("Provisions")}</span>
-              </div>
-
-              {/* Search Bar */}
-              <div className="relative">
-                <Search className="w-4 h-4 text-navy/40 absolute left-3 top-2.5" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder={t("Search articles, keywords...")}
-                  className="w-full pl-9 pr-3 py-2 text-xs bg-parchment-light border border-navy/20 rounded-sm text-navy placeholder:text-navy/40 focus:outline-none focus:border-gold"
-                />
-              </div>
-
-              {/* Part Filter Tabs */}
-              <div className="space-y-1 pt-2">
-                <span className="text-[11px] font-semibold text-navy/60 uppercase tracking-wider block mb-1">{t("Filter by Part")}</span>
-                <div className="space-y-1">
-                  {parts.map((p) => (
-                    <button
-                      key={p}
-                      onClick={() => setSelectedPart(p)}
-                      className={`w-full text-left px-2.5 py-1.5 text-xs rounded-sm transition-colors ${
-                        selectedPart === p
-                          ? 'bg-navy text-parchment font-semibold'
-                          : 'text-navy/80 hover:bg-parchment-canvas'
-                      }`}
-                    >
-                      {tx(p)}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Quick Jump List */}
-              <div className="pt-3 border-t border-navy/10 max-h-60 overflow-y-auto space-y-1">
-                {CONSTITUTION_DATA.map((art) => (
-                  <a
-                    key={art.id}
-                    href={`#${art.id}`}
-                    className="block px-2 py-1 text-[11px] text-navy/70 hover:text-gold hover:bg-parchment-canvas rounded-sm truncate"
-                  >{t("Art.")}{' '}{tx(art.number)}: {tx(art.title)}
-                  </a>
-                ))}
-              </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-14 space-y-10">
+        {/* Status */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div role="note" className="lg:col-span-8 bg-navy text-parchment rounded-sm border border-gold/30 p-6 sm:p-7 space-y-3">
+            <div className="flex items-center gap-2.5">
+              <ScrollText className="w-5 h-5 text-gold" aria-hidden="true" />
+              <h2 className="text-sm font-bold uppercase tracking-wider text-gold">{t("A proposed Constitution without legal force")}</h2>
             </div>
+            <p className="text-sm leading-relaxed text-parchment/85">{t("This is a draft for consultation. It describes the State that Aletheia intends to become; it is not the law of any place, and the institutions it names do not yet exist or exercise authority. It will enter into force only when the conditions of Article {article} are met: ratification by referendum, at least one permanently inhabited platform lawfully established as national territory, and an established register of citizens.", { article: effect.number })}</p>
+            {locale !== 'en' && (
+              <p className="text-sm leading-relaxed text-gold-tint/90 border-t border-gold/20 pt-3">{t("The text of the draft is published in English, its authoritative language. Official translations will be published once the text is settled.")}</p>
+            )}
           </div>
+          <dl className="lg:col-span-4 bg-white border border-navy/15 rounded-sm p-6 grid grid-cols-2 gap-x-4 gap-y-3 text-sm shadow-subtle">
+            <dt className="text-navy/55 text-xs uppercase tracking-wider">{t("Edition")}</dt>
+            <dd className="font-semibold">{EDITION.edition}</dd>
+            <dt className="text-navy/55 text-xs uppercase tracking-wider">{t("Status")}</dt>
+            <dd className="font-semibold">{t("Draft for consultation")}</dd>
+            <dt className="text-navy/55 text-xs uppercase tracking-wider">{t("Revised")}</dt>
+            <dd className="font-semibold">{longDate(EDITION.date, intl)}</dd>
+            <dt className="text-navy/55 text-xs uppercase tracking-wider">{t("Reference")}</dt>
+            <dd className="font-mono text-xs pt-0.5">{EDITION.code}</dd>
+            <dt className="text-navy/55 text-xs uppercase tracking-wider">{t("Contents")}</dt>
+            <dd className="font-semibold">{t("{articles} Articles · {schedules} Schedules", { articles: articles.length, schedules: schedules.length })}</dd>
+          </dl>
+        </div>
 
-          {/* Right Column: Searchable Article Cards & Linking Spine (Col 8) */}
-          <div className="lg:col-span-8 space-y-8">
-            {tx(filteredArticles.length === 0 ? (
-              <div className="bg-white p-12 text-center rounded-sm border border-navy/15 space-y-3">
-                <BookOpen className="w-8 h-8 text-gold mx-auto" />
-                <h3 className="text-lg font-bold text-navy">{t("No Constitutional Articles Found")}</h3>
-                <p className="text-xs text-navy/60">{t("Try adjusting your search terms or clearing the part filter.")}</p>
-                <button
-                  onClick={() => {
-                    setSearchQuery('');
-                    setSelectedPart('All');
-                  }}
-                  className="px-4 py-2 bg-navy text-parchment text-xs font-semibold rounded-sm uppercase tracking-wider"
-                >{t("Reset Filters")}</button>
-              </div>
-            ) : (
-              filteredArticles.map((art) => (
-                <article
-                  key={art.id}
-                  id={art.id}
-                  className="bg-white border border-navy/15 rounded-sm p-6 sm:p-8 shadow-subtle hover:shadow-institutional transition-all space-y-6 scroll-mt-28"
-                >
-                  {/* Article Header */}
-                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 border-b border-navy/10 pb-4">
-                    <div className="space-y-1">
-                      <span className="text-[11px] font-mono text-gold-shadow uppercase tracking-wider block">
-                        {tx(art.part)}
-                      </span>
-                      <h2 className="text-2xl font-bold text-navy">{t("Article")}{' '}{tx(art.number)}. {tx(art.title)}
-                      </h2>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <aside className="lg:col-span-4">
+            <ConstitutionNav
+              parts={toc}
+              schedules={schedules.map((s) => ({ id: s.id, number: s.number, title: s.title }))}
+              legacy={legacy}
+              labels={{
+                contents: t("Table of Contents"),
+                search: t("Search the Constitution"),
+                searchPlaceholder: t("Keyword or article number"),
+                filter: t("Filter by Part"),
+                allParts: t("All Parts"),
+                schedules: t("Schedules"),
+                preamble: t("Preamble"),
+                results: t("{count} provisions match"),
+                noResults: t("No provisions match. Try other words."),
+                clear: t("Clear search"),
+                backToTop: t("Back to top"),
+                part: t("Part"),
+                article: t("Article"),
+              }}
+            />
+          </aside>
+
+          <div role="region" className="lg:col-span-8 min-w-0" aria-label={t("Text of the draft Constitution")}>
+            <ConstitutionText />
+
+            <section id="history" className="mt-12 bg-white border border-navy/15 rounded-sm p-6 sm:p-8 shadow-subtle scroll-mt-28" aria-labelledby="history-h">
+              <h2 id="history-h" className="text-lg font-bold text-navy mb-4">{t("Edition history")}</h2>
+              <ol className="space-y-4">
+                {CHANGELOG.map((c) => (
+                  <li key={c.edition} className="grid grid-cols-[6.5rem_1fr] gap-4 text-sm">
+                    <div>
+                      <div className="font-mono font-semibold text-gold-shadow">{c.edition}</div>
+                      <div className="text-xs text-navy/55">{longDate(c.date, intl)}</div>
                     </div>
-
-                    <div className="flex items-center gap-2 shrink-0">
-                      <StatusBadge status={art.status} size="sm" />
-                      <button
-                        onClick={() => handleCopyLink(art.id)}
-                        className="p-1.5 border border-navy/15 text-navy/60 hover:text-navy hover:bg-parchment-light rounded-sm transition-colors"
-                        title={t("Copy clause permalink")}
-                      >
-                        {tx(copiedId === art.id ? (
-                          <Check className="w-4 h-4 text-laurel" />
-                        ) : (
-                          <Share2 className="w-4 h-4" />
-                        ))}
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Summary Lead */}
-                  <p className="text-sm text-navy/80 italic bg-parchment-light p-3 rounded-sm border-l-2 border-gold">
-                    {tx(art.summary)}
-                  </p>
-
-                  {/* Clauses */}
-                  <div className="space-y-4">
-                    {art.clauses.map((clause) => (
-                      <div key={clause.number} className="flex items-start gap-3">
-                        <span className="font-mono text-xs font-bold text-gold-shadow bg-parchment-canvas px-1.5 py-0.5 rounded-sm border border-navy/10 shrink-0">
-                          {tx(clause.number)}
-                        </span>
-                        <p className="text-sm text-navy/90 leading-relaxed font-normal">
-                          {tx(clause.text)}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Cross References */}
-                  {tx(art.crossReferences.length > 0 && (
-                    <div className="pt-2 flex flex-wrap items-center gap-2 text-xs">
-                      <span className="text-navy/50 font-medium">{t("Cross References:")}</span>
-                      {art.crossReferences.map((ref) => (
-                        <a
-                          key={ref}
-                          href={`#${ref}`}
-                          className="px-2 py-0.5 bg-parchment-canvas text-navy/80 hover:text-gold border border-navy/10 rounded-sm font-mono text-[11px] transition-colors"
-                        >
-                          § {ref.toUpperCase()}
-                        </a>
-                      ))}
-                    </div>
-                  ))}
-
-                  {/* ─────────────────────────────────────────────────────────
-                      THE LINKING SPINE (§10.5):
-                      Constitution → Law → Institution → Service
-                  ────────────────────────────────────────────────────────── */}
-                  <div className="pt-4 border-t border-navy/10 bg-parchment-canvas/40 -mx-6 -mb-6 sm:-mx-8 sm:-mb-8 p-4 sm:p-6 rounded-b-sm space-y-2">
-                    <span className="text-[10px] font-mono tracking-wider uppercase text-gold-shadow block font-bold">{t("THE CIVIC LINKING SPINE (§10.5)")}</span>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                      {/* Related Law */}
-                      <div className="p-2.5 bg-white border border-navy/10 rounded-sm space-y-1">
-                        <span className="text-[10px] text-navy/50 uppercase tracking-wider block">{t("Statutory Enactment")}</span>
-                        <span className="font-semibold text-navy line-clamp-1">
-                          {tx(art.relatedLaw.title)}
-                        </span>
-                      </div>
-
-                      {/* Responsible Institution */}
-                      <div className="p-2.5 bg-white border border-navy/10 rounded-sm space-y-1">
-                        <span className="text-[10px] text-navy/50 uppercase tracking-wider block">{t("Responsible Body")}</span>
-                        <Link
-                          href={art.responsibleInstitution.href}
-                          className="font-semibold text-navy hover:text-gold transition-colors line-clamp-1"
-                        >
-                          {tx(art.responsibleInstitution.name)}
-                        </Link>
-                      </div>
-
-                      {/* Connected Public Service */}
-                      <div className="p-2.5 bg-white border border-navy/10 rounded-sm space-y-1">
-                        <span className="text-[10px] text-navy/50 uppercase tracking-wider block">{t("Government Service")}</span>
-                        {tx(art.relatedService ? (
-                          <Link
-                            href={art.relatedService.href}
-                            className="font-semibold text-gold-shadow hover:text-navy transition-colors flex items-center gap-1 line-clamp-1"
-                          >
-                            <span>{tx(art.relatedService.title)}</span>
-                            <ArrowRight className="w-3 h-3 shrink-0" />
-                          </Link>
-                        ) : (
-                          <span className="text-navy/40 italic">{t("Statutory foundation")}</span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </article>
-              ))
-            ))}
+                    <p className="text-navy/80 leading-relaxed" lang="en">{c.summary}</p>
+                  </li>
+                ))}
+              </ol>
+            </section>
           </div>
         </div>
       </div>

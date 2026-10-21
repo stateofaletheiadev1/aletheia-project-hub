@@ -26,19 +26,19 @@ const SEARCH_DATABASE: SearchItem[] = [
   { title: 'The Seastead', category: 'Founding', href: '/development#seastead', desc: 'A territory at sea that Aletheia builds and owns.', asset: 'territory' },
 
   // Constitution
-  { title: 'Article 1: Founding Promises & Provable State', category: 'Constitution', href: '/constitution#art-1', desc: 'Truth in records, honest money, and lean constitutional government.' },
-  { title: 'Article 8: Citizenship by Descent & Naturalisation', category: 'Constitution', href: '/constitution#art-8', desc: 'Proposed eligibility, Covenant Oath, and rights of citizens.' },
-  { title: 'Article 11: E-Residency & Digital Identity', category: 'Constitution', href: '/constitution#art-11', desc: 'Proposed remote commercial rights and digital identity.' },
-  { title: 'Article 16: The Aletheian Guilder & Monetary Integrity', category: 'Constitution', href: '/constitution#art-16', desc: 'The proposed currency and the rules for its issue.' },
-  { title: 'Article 46: ADSS & Unified Security Architecture', category: 'Constitution', href: '/constitution#art-46', desc: 'Proposed civilian command and the separation of the police.' },
-  { title: 'Article 53: Aletheian Cybersecurity Department', category: 'Constitution', href: '/constitution#art-53', desc: 'A proposed department to protect digital infrastructure.' },
+  { title: 'Article 1: Nature of the Sovereign Covenant State', category: 'Constitution', href: '/constitution#article-1', desc: 'A federal democratic republic and maritime nation, founded on truth and covenant.' },
+  { title: 'Part IV: Citizenship and Dual Citizenship', category: 'Constitution', href: '/constitution#part-iv', desc: 'Citizenship by birth, descent and naturalisation; dual citizenship permitted.' },
+  { title: 'Article 185: E-Residency', category: 'Constitution', href: '/constitution#article-185', desc: 'Proposed digital identity and commercial standing; not citizenship.' },
+  { title: 'Part XII: The Reserve Bank and the Guilder', category: 'Constitution', href: '/constitution#part-xii', desc: 'The proposed currency, its single issuer and the rules for its issue.' },
+  { title: 'Article 188: The Aletheian Defence & Security Service', category: 'Constitution', href: '/constitution#article-188', desc: 'Proposed civilian command and the separation of the police.' },
+  { title: 'Article 196: Aletheian Cybersecurity Department', category: 'Constitution', href: '/constitution#article-196', desc: 'A proposed department to protect digital infrastructure.' },
 
   // Government & Ministries
   { title: 'Ministry of Treasury & Finance', category: 'Government', href: '/treasury', desc: 'The proposed Covenant Endowment and revenue model.' },
   { title: 'Ministry of Digital State & Registries', category: 'Government', href: '/technology', desc: 'StableChain testnet, identity design and registries.' },
   { title: 'Ministry of Resilience & Civil Protection', category: 'Government', href: '/security', desc: 'Proposed civil oversight of resilience and emergency response.' },
   { title: 'The Covenant Assembly', category: 'Government', href: '/government#assembly', desc: 'A proposed 61-member parliament elected by open-list PR.', asset: 'institutions' },
-  { title: 'Council of the States', category: 'Government', href: '/government#council', desc: 'A proposed 15-member territorial chamber.', asset: 'institutions' },
+  { title: 'Council of States', category: 'Government', href: '/government#council', desc: 'A proposed 15-member territorial chamber.', asset: 'institutions' },
   { title: 'The High Court of Aletheia', category: 'Government', href: '/government#judiciary', desc: 'A proposed constitutional court and dispute arbitration.', asset: 'institutions' },
 
   // Services

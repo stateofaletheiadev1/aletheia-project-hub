@@ -245,7 +245,7 @@ export default function DesignSystemSpecimenPage() {
                   placeholder={t("e.g. citizenship, maritime zone, treasury...")}
                   className="w-full px-3.5 py-2 bg-parchment-light border border-navy/20 rounded-sm text-sm text-navy placeholder:text-navy/40 focus:border-gold focus:outline-none"
                   readOnly
-                  value="Article 8: Citizenship by Covenant"
+                  value="Article 41: Citizenship and its Foundations"
                 />
                 <span className="absolute right-3 top-2.5 text-[11px] font-mono text-navy/40">{t("ESC")}</span>
               </div>

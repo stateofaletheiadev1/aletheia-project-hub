@@ -131,7 +131,7 @@ export default function CitizenshipPage() {
               <p className="text-sm text-parchment/80 font-light">
                 <span className="font-bold text-parchment">{t("The Covenant Principle:")}</span>{' '}{t("Under the draft Constitution, citizenship rights would be enforceable before the High Court of Aletheia, and no emergency decree could suspend them.")}</p>
             </div>
-            <Link href="/constitution#art-7" className="text-[11px] font-bold uppercase tracking-wider text-gold hover:text-gold-tint transition-colors whitespace-nowrap flex items-center gap-1.5">{t("Constitution Art. 7–15")}{' '}<ArrowRight className="w-3 h-3" />
+            <Link href="/constitution#part-iv" className="text-[11px] font-bold uppercase tracking-wider text-gold hover:text-gold-tint transition-colors whitespace-nowrap flex items-center gap-1.5">{t("Constitution, Part IV")}{' '}<ArrowRight className="w-3 h-3" />
             </Link>
           </div>
         </div>
@@ -198,7 +198,7 @@ export default function CitizenshipPage() {
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-parchment">{t("Constitutional Rights")}</h3>
-                  <p className="text-[11px] text-parchment/45 mt-0.5">{t("Proposed in the draft Constitution · Art. 7–15")}</p>
+                  <p className="text-[11px] text-parchment/45 mt-0.5">{t("Proposed in the draft Constitution · Part V")}</p>
                 </div>
               </div>
               <div className="space-y-3">
@@ -222,7 +222,7 @@ export default function CitizenshipPage() {
                   </div>
                   <div>
                     <h3 className="text-base font-bold text-parchment">{t("Civic Obligations")}</h3>
-                    <p className="text-[11px] text-parchment/45 mt-0.5">{t("Draft Constitution Art. 16–20")}</p>
+                    <p className="text-[11px] text-parchment/45 mt-0.5">{t("Draft Constitution Art. 82")}</p>
                   </div>
                 </div>
                 <div className="space-y-3">

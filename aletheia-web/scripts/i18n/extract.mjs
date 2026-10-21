@@ -24,7 +24,7 @@ function walk(dir, out = []) {
 const UI_FILES = [...walk(path.join(ROOT, 'app')), ...walk(path.join(ROOT, 'components'))]
   .filter((f) => !/[\\/](admin|officer|pdf)[\\/]/.test(f) && !/sitemap|robots|AdminShell/.test(f));
 const DATA_FILES = [
-  'lib/navigation.ts', 'lib/gazette.ts', 'lib/statutes.ts', 'lib/constitution-data.ts', 'lib/citizenship.ts',
+  'lib/navigation.ts', 'lib/gazette.ts', 'lib/statutes.ts', 'lib/citizenship.ts',
   'lib/national-registry.ts', 'lib/documents.ts', 'lib/status.ts', 'lib/routes.ts', 'lib/auth.ts',
 ].map((f) => path.join(ROOT, f));
 

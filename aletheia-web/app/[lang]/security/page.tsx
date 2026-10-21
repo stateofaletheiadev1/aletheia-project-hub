@@ -145,7 +145,7 @@ export default function SecurityPage() {
           <p className="text-xs sm:text-sm text-parchment/70 max-w-xl mx-auto leading-relaxed">{t("Read the limits the draft Covenant would place on every security service.")}</p>
           <div className="flex flex-wrap justify-center gap-4 pt-2">
             <Link href="/adss" className="px-6 py-2.5 bg-gold text-navy font-bold text-xs uppercase tracking-wider rounded-sm hover:bg-gold-tint transition-all">{t("Resilience Overview")}</Link>
-            <Link href="/constitution#art-46" className="px-6 py-2.5 border border-gold/30 text-parchment font-semibold text-xs uppercase tracking-wider rounded-sm hover:border-gold/60 transition-colors">{t("Draft Covenant, Article 46")}</Link>
+            <Link href="/constitution#article-188" className="px-6 py-2.5 border border-gold/30 text-parchment font-semibold text-xs uppercase tracking-wider rounded-sm hover:border-gold/60 transition-colors">{t("Draft Constitution, Article 188")}</Link>
           </div>
         </div>
       </section>

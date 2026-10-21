@@ -100,7 +100,7 @@ export default function TransparencyPage() {
           <div className="max-w-3xl space-y-3">
             <div className="eyebrow">{t("Transparency by Design")}</div>
             <h2 className="text-3xl font-bold text-navy tracking-tight">{t("How a future Aletheia would stay open")}</h2>
-            <p className="text-sm text-navy/70 leading-relaxed">{t("Article 12 of the draft Covenant proposes that public spending, reserves and procurement contracts may never be kept secret. These are design commitments for a future state, not current operations.")}</p>
+            <p className="text-sm text-navy/70 leading-relaxed">{t("Articles 7, 133 and 171 of the draft Constitution propose that public spending, reserves and procurement contracts may never be kept secret. These are design commitments for a future state, not current operations.")}</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[

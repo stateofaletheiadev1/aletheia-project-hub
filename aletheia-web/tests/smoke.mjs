@@ -39,6 +39,20 @@ await expect('/faq', { status: 307, location: '/nl/faq', headers: { cookie: 'NEX
 await expect('/no-such-page', { status: 404 });
 await expect('/de/no-such-page', { status: 404 });
 
+// The full Constitution is server-rendered: every Part, Article and Schedule, and the anchors of edition 2026.3.
+{
+  const html = await (await fetch(BASE + '/constitution')).text();
+  const count = (re) => (html.match(re) || []).length;
+  const problems = [];
+  if (count(/id="part-[ivx]+"/g) !== 23) problems.push(`parts ${count(/id="part-[ivx]+"/g)} ≠ 23`);
+  if (count(/<article id="article-\d+"/g) < 200) problems.push(`only ${count(/<article id="article-\d+"/g)} articles`);
+  if (count(/id="schedule-\d+"/g) !== 10) problems.push(`schedules ${count(/id="schedule-\d+"/g)} ≠ 10`);
+  for (const old of ['art-1', 'art-2', 'art-7', 'art-8', 'art-11', 'art-16', 'art-23', 'art-46', 'art-53']) if (!html.includes(`id="${old}"`)) problems.push(`missing legacy anchor ${old}`);
+  if (/\[\[[a-z-]+(\(\d+\))?\]\]/.test(html)) problems.push('unresolved cross-reference token');
+  if (problems.length) failures.push(`/constitution text: ${problems.join(', ')}`);
+  else console.log('✓ /constitution full text');
+}
+
 // Official PDFs
 await expect('/pdf/constitution', { status: 200, type: 'application/pdf' });
 for (const s of ids('lib/statutes.ts', 'slug')) await expect(`/pdf/statutes/${s}`, { status: 200, type: 'application/pdf' });

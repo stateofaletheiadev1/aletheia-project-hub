@@ -48,7 +48,7 @@ const MINISTRIES: Ministry[] = [
       'Public balance-sheet reporting',
       'Tax-free state revenue model coordination',
     ],
-    legalBasis: 'Draft Constitution Art. 16; Public Finance & Endowment Act',
+    legalBasis: 'Draft Constitution Art. 163–173; Public Finance & Endowment Act',
     status: 'Planned',
     icon: <Coins className="w-5 h-5 text-gold" />,
     serviceHref: '/treasury',
@@ -65,7 +65,7 @@ const MINISTRIES: Ministry[] = [
       'E-Residency digital incorporation rail',
       'Data sovereignty and public API infrastructure',
     ],
-    legalBasis: 'Draft Constitution Art. 11; StableChain Governance Act',
+    legalBasis: 'Draft Constitution Art. 185, 196–202; StableChain Governance Act',
     status: 'Planned',
     icon: <Cpu className="w-5 h-5 text-gold" />,
     serviceHref: '/e-residency',
@@ -82,7 +82,7 @@ const MINISTRIES: Ministry[] = [
       'Critical infrastructure physical hardening',
       'Civilian police oversight and accountability',
     ],
-    legalBasis: 'Draft Constitution Art. 46; ADSS Governance Act',
+    legalBasis: 'Draft Constitution Art. 188–195; ADSS Governance Act',
     status: 'Planned',
     icon: <Shield className="w-5 h-5 text-gold" />,
     serviceHref: '/adss',
@@ -99,7 +99,7 @@ const MINISTRIES: Ministry[] = [
       'Judicial appointments and arbitral chamber support',
       'Consular affairs, once lawfully established',
     ],
-    legalBasis: 'Draft Constitution Art. 2, 8; Diplomatic Relations Act',
+    legalBasis: 'Draft Constitution Art. 203–209; Diplomatic Relations Act',
     status: 'Planned',
     icon: <Scale className="w-5 h-5 text-gold" />,
     serviceHref: '/development#seastead',
@@ -116,7 +116,7 @@ const MINISTRIES: Ministry[] = [
       'Universal primary medical access for residents',
       'Public health monitoring and emergency medical response',
     ],
-    legalBasis: 'Draft Constitution Art. 41; Health & Medical Standards Act',
+    legalBasis: 'Draft Constitution Art. 74, 84; Health & Medical Standards Act',
     status: 'Planned',
     icon: <HeartPulse className="w-5 h-5 text-gold" />,
     serviceHref: '/healthcare',
@@ -133,7 +133,7 @@ const MINISTRIES: Ministry[] = [
       'Sovereign research grant administration',
       'Five-language civic education standards',
     ],
-    legalBasis: 'Draft Constitution Art. 40; Education & Research Charter',
+    legalBasis: 'Draft Constitution Art. 73, 87–89; Education & Research Charter',
     status: 'Planned',
     icon: <GraduationCap className="w-5 h-5 text-gold" />,
     serviceHref: '/education',
@@ -150,7 +150,7 @@ const MINISTRIES: Ministry[] = [
       'Fisheries and marine conservation oversight',
       'Aviation and maritime navigation safety standards',
     ],
-    legalBasis: 'Draft Constitution Art. 7; Maritime Administration Act',
+    legalBasis: 'Draft Constitution Art. 28–40; Maritime Administration Act',
     status: 'Planned',
     icon: <Anchor className="w-5 h-5 text-gold" />,
     serviceHref: '/infrastructure',
@@ -167,7 +167,7 @@ const MINISTRIES: Ministry[] = [
       'Antioch concentric transport ring management',
       'Subsea power and telecommunication cable links',
     ],
-    legalBasis: 'Draft Constitution Art. 39; National Energy Grid Act',
+    legalBasis: 'Draft Constitution Art. 38, 170; National Energy Grid Act',
     status: 'Planned',
     icon: <Building className="w-5 h-5 text-gold" />,
     serviceHref: '/energy',
@@ -175,16 +175,16 @@ const MINISTRIES: Ministry[] = [
   },
   {
     id: 'agriculture',
-    name: 'Ministry of Agriculture & Environment',
-    portfolio: 'Controlled Agriculture & Aquaculture',
-    mandate: 'Would promote food security through vertical farming, hydroponics, sustainable aquaculture and environmental stewardship.',
+    name: 'Ministry of Economy, Trade, Agriculture & Labour',
+    portfolio: 'Enterprise, Trade, Food Security & Labour',
+    mandate: 'Would set economic and trade policy, protect fair competition and workers, and promote food security through controlled-environment agriculture and sustainable aquaculture.',
     responsibilities: [
       'Hydroponic and vertical farm facilities in Benedict State',
       'Sustainable offshore aquaculture farming',
-      'Environmental impact assessments and coastal preservation',
-      'Zero-waste circular economy enforcement',
+      'Foreign trade, investment screening and concessions policy',
+      'Labour standards and consumer protection',
     ],
-    legalBasis: 'Draft Constitution Art. 43; Environmental Protection Act',
+    legalBasis: 'Draft Constitution Art. 174–180; Economy & Labour Act',
     status: 'Planned',
     icon: <Leaf className="w-5 h-5 text-gold" />,
     serviceHref: '/development#agriculture',
@@ -221,7 +221,7 @@ export default function GovernmentDirectoryPage() {
             <h1 className="heading-hero">{t("Organs of")}{' '}
               <span className="text-gold-metallic">{t("Government")}</span>
             </h1>
-            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("The draft Constitution caps executive authority at nine ministries under a Chancellor, and divides power among a Covenant Assembly, a Council of the States, a High Court and an Auditor-General. None of these institutions exists yet or exercises any authority.")}</p>
+            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("The draft Constitution caps executive authority at nine ministries under a Chancellor, and divides power among a Covenant Assembly, a Council of States, a High Court and an Auditor-General. None of these institutions exists yet or exercises any authority.")}</p>
           </div>
 
           <div className="flex flex-wrap items-center gap-3 pt-2 text-xs animate-fade-in-up delay-200">
@@ -250,7 +250,7 @@ export default function GovernmentDirectoryPage() {
               <div className="text-[11px] font-mono text-gold-shadow pt-2 border-t border-navy/10 font-semibold">{t("61 Seats · 4-Year Term · Min 5 per State")}</div>
             </div>
 
-            {/* Council of the States */}
+            {/* Council of States */}
             <div id="council" className="feature-card rounded-sm p-6 space-y-3 group">
               <div className="flex items-center justify-between">
                 <div className="icon-sovereign">
@@ -258,7 +258,7 @@ export default function GovernmentDirectoryPage() {
                 </div>
                 <StatusBadge asset="institutions" size="sm" />
               </div>
-              <h3 className="text-base font-bold text-navy">{t("Council of the States")}</h3>
+              <h3 className="text-base font-bold text-navy">{t("Council of States")}</h3>
               <p className="text-xs text-navy/70 leading-relaxed">{t("A proposed territorial review chamber of 15 members, with suspensive review of land, energy and currency acts.")}</p>
               <div className="text-[11px] font-mono text-gold-shadow pt-2 border-t border-navy/10 font-semibold">{t("15 Members · Suspensive Veto: 90 Days")}</div>
             </div>

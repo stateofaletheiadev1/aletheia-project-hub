@@ -146,7 +146,7 @@ export default function AletheiaPage() {
                   <blockquote className="text-base font-serif italic text-parchment/90 leading-relaxed border-l-2 border-gold pl-4">{t("“We, the people of Aletheia, in solemn recognition of the immutable dignity of every human being, establish this Covenant to guarantee inviolable liberty, impartial justice, and common prosperity under the rule of law.”")}</blockquote>
                   <div className="pt-4 border-t border-navy-subtle flex items-center justify-between text-xs font-mono text-parchment/60">
                     <span>{t("Article 1 § 1")}</span>
-                    <Link href="/constitution#art-1" className="text-gold hover:underline flex items-center gap-1">{t("Full Article")}{' '}<ChevronRight className="w-3 h-3" />
+                    <Link href="/constitution#article-1" className="text-gold hover:underline flex items-center gap-1">{t("Full Article")}{' '}<ChevronRight className="w-3 h-3" />
                     </Link>
                   </div>
                 </div>
@@ -341,7 +341,7 @@ export default function AletheiaPage() {
 
               <div className="p-5 bg-white border border-navy/10 rounded-sm space-y-3">
                 <Shield className="w-6 h-6 text-navy" />
-                <h3 className="font-bold text-navy text-base">{t("Council of the States")}</h3>
+                <h3 className="font-bold text-navy text-base">{t("Council of States")}</h3>
                 <p className="text-xs text-navy/70 leading-relaxed">{t("A proposed 15-member senate, safeguarding the autonomy of the states and their equal representation.")}</p>
                 <Link href="/government#council" className="text-xs text-navy font-bold hover:text-gold flex items-center gap-1">{t("Senate Overview")}{' '}<ChevronRight className="w-3 h-3" />
                 </Link>
