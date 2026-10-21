@@ -12,6 +12,8 @@ import { unsplash, type PhotoKey } from '@/lib/imagery';
 import type { ManualStatus } from '@/lib/status';
 import { MontevideoTable } from '@/components/ui/StatusTables';
 import { SeasteadPrinciples } from '@/components/development/SeasteadPrinciples';
+import { LeaseLessons } from '@/components/development/LeaseLessons';
+import { BuildFinancing } from '@/components/development/BuildFinancing';
 import { Anchor, ArrowRight, Building2, CheckCircle, Cpu, Fish, Globe, GraduationCap, Shield, Sprout, TreePine, Wheat, Zap } from 'lucide-react';
 
 const DISTRICTS = [
@@ -154,6 +156,7 @@ export default function DevelopmentPage() {
             <p className="text-navy/65 leading-[1.85] font-light">{t("Land leased from an existing state can be taken back, and a nation built on it would live under its landlord’s law. Aletheia will instead be a seastead: platforms that it designs, builds and owns outright, sited beyond any state’s exclusive economic zone under the freedoms of the high seas. It begins with a single pilot platform and grows platform by platform. Recognition as a state is not automatic; it must be earned, openly, from other nations.")}</p>
           </div>
           <SeasteadPrinciples />
+          <LeaseLessons />
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             <div className="lg:col-span-7 space-y-4">
               <h3 className="text-2xl font-bold text-navy">{t("The path to statehood")}</h3>
@@ -166,6 +169,13 @@ export default function DevelopmentPage() {
               <Link href="/roadmap" className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gold hover:text-gold-tint transition-colors group">{t("See the roadmap")}{' '}<ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" /></Link>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* ── FINANCING THE BUILD ── */}
+      <section id="financing" className="section-xl border-b border-navy/08 bg-parchment-light scroll-mt-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <BuildFinancing />
         </div>
       </section>
 

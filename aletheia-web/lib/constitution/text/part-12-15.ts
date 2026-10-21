@@ -58,6 +58,7 @@ export const PARTS_XII_XV: PartSource[] = [
           'The Reserve Bank shall not finance the deficits of the State. It shall not grant overdrafts or any other credit facility to the federation, a constituent unit or any public undertaking, and shall not purchase debt instruments directly from them.',
           'The Reserve Bank may provide banking services to the Treasury on commercial terms, including the holding of deposits and the management of payments.',
           'Clause (1) may not be suspended during a state of emergency.',
+          'The official reserves held by the Reserve Bank shall not be used to finance the construction of platforms, public works or any other expenditure of the State. The building of the national territory shall be financed from the sources set out in Part XIII.',
         ]),
         art('monetary-framework', 'The Monetary Framework', [
           'The Reserve Bank shall adopt and publish a monetary framework, stating its quantified policy objective, the instruments it will use, the rules for the issue of currency, any exchange-rate arrangement and the policy on reserves and redemption.',

@@ -1,5 +1,6 @@
 'use client';
 
+import { BuildFinancing } from '@/components/development/BuildFinancing';
 import { useI18n } from '@/components/i18n/I18nProvider';
 import React from 'react';
 import Link from '@/components/i18n/Link';
@@ -90,6 +91,13 @@ export default function TreasuryPage() {
             <h3 className="text-base font-bold text-navy">{t("4. Renewable Grid Exports")}</h3>
             <p className="text-xs text-navy/70 leading-relaxed">{t("In the long-term design, surplus clean energy and hydrogen sold to neighbouring grids.")}</p>
           </div>
+        </div>
+      </section>
+
+      {/* ── FINANCING THE BUILD ── */}
+      <section id="financing" className="py-16 lg:py-24 border-t border-navy/08 bg-parchment-light">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <BuildFinancing />
         </div>
       </section>
 

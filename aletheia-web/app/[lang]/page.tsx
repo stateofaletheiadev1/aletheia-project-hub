@@ -498,6 +498,7 @@ export default function HomePage() {
                   <h3 className="text-lg font-bold">{t("Why a seastead")}</h3>
                 </div>
                 <p className="text-sm text-parchment/72 leading-relaxed font-light flex-1">{t("A territory held on lease depends on the goodwill of its landlord: when the lease ends or a government changes its mind, the land can be taken back, and the people living on it lose their home. A seastead that Aletheia builds and owns cannot be reclaimed in that way. Its ground is its own.")}</p>
+                <p className="text-sm text-parchment/60 leading-relaxed font-light">{t("History bears this out: Hong Kong’s 99-year lease ran out in 1997, Madagascar cancelled a 99-year land lease within months in 2009, and Honduras struck down its self-governing zones in 2024.")}</p>
                 <Link href="/development#seastead" className="btn-sovereign-gold px-6 py-3 rounded-sm text-xs font-bold uppercase tracking-wider inline-flex items-center gap-2 self-start group">
                   <span>{t("Read the seastead plan")}</span>
                   <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />

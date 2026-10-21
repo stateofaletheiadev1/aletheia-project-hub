@@ -13,14 +13,19 @@ import { SCHEDULES } from './text/schedules';
  */
 
 export const EDITION = {
-  code: 'CONST-2026-04',
-  edition: '2026.4',
+  code: 'CONST-2026-05',
+  edition: '2026.5',
   status: 'Draft for consultation',
   date: '2026-10-21',
   summary: 'The complete text: a Preamble, twenty-three Parts and ten Schedules.',
 };
 
 export const CHANGELOG: { edition: string; date: string; summary: string }[] = [
+  {
+    edition: '2026.5',
+    date: '2026-10-21',
+    summary: 'A clause is added to the Article on the prohibition of monetary financing: the official reserves of the Reserve Bank may not be used to finance the construction of platforms, public works or any other expenditure of the State.',
+  },
   {
     edition: '2026.4',
     date: '2026-10-21',

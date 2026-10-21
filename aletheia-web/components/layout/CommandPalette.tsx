@@ -23,6 +23,7 @@ const SEARCH_DATABASE: SearchItem[] = [
   { title: 'Founding Team', category: 'Founding', href: '/about', desc: 'Who is building Aletheia, and how to reach them.' },
   { title: 'Roadmap', category: 'Founding', href: '/roadmap', desc: 'The path, phase by phase, to a pilot platform.' },
   { title: 'Founding Thesis', category: 'Founding', href: '/thesis', desc: 'Legal structure, governance, economics, host regions and diplomacy.' },
+  { title: 'Financing the Build', category: 'Founding', href: '/development#financing', desc: 'How the platforms would be paid for, with the reserves kept apart.' },
   { title: 'The Seastead', category: 'Founding', href: '/development#seastead', desc: 'A territory at sea that Aletheia builds and owns.', asset: 'territory' },
 
   // Constitution
