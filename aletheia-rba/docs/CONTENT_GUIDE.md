@@ -41,7 +41,7 @@ title: Monetary Policy Framework, Consultation Paper
 category: consultation # monetary-policy-statement | annual-report | currency-notice | statistical-release | institutional-policy | research-paper | consultation
 publishedAt: 2026-11-02
 summary: A short summary, up to 320 characters.
-documentUrl: https://rbaletheia.org/documents/framework-consultation.pdf # optional PDF
+documentUrl: https://rba.aletheiagov.org/documents/framework-consultation.pdf # optional PDF
 documentSizeBytes: 482113 # required with a PDF, so the link can show its size
 hasHtmlVersion: true
 status: published # draft | published | superseded | withdrawn

@@ -88,7 +88,7 @@
 			<Eyebrow folio="§ 00">Development only</Eyebrow>
 			<Heading level={1} size="display">Styleguide</Heading>
 			<Text size="lead" muted measure>
-				Tokens, type, primitives and motion for rbaletheia.org. This page is not built for
+				Tokens, type, primitives and motion for rba.aletheiagov.org. This page is not built for
 				production.
 			</Text>
 		</Container>

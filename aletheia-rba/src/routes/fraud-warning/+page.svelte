@@ -54,8 +54,8 @@
 		/>
 		<DisclosureNotice label="Official website">
 			<p>
-				The Bank’s official information is published only at rbaletheia.org. If in doubt, do not
-				pay, do not share your details, and check this website.
+				The Bank’s official information is published only at rba.aletheiagov.org. If in doubt, do
+				not pay, do not share your details, and check this website.
 			</p>
 		</DisclosureNotice>
 	</div>

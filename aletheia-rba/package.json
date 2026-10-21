@@ -1,6 +1,6 @@
 {
 	"name": "aletheia-rba",
-	"description": "Public website of the Reserve Bank of Aletheia (rbaletheia.org)",
+	"description": "Public website of the Reserve Bank of Aletheia (rba.aletheiagov.org)",
 	"version": "0.1.0",
 	"private": true,
 	"type": "module",

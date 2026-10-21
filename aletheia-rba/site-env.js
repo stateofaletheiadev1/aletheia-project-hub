@@ -8,10 +8,10 @@ import { loadEnv } from 'vite';
 /** @param {string} mode */
 export function siteDefines(mode) {
 	const env = { ...loadEnv(mode, process.cwd(), 'PUBLIC_'), ...process.env };
-	const url = (env.PUBLIC_SITE_URL || 'https://rbaletheia.org').replace(/\/+$/, '');
+	const url = (env.PUBLIC_SITE_URL || 'https://rba.aletheiagov.org').replace(/\/+$/, '');
 	if (!/^https?:\/\/[^/]+$/.test(url)) {
 		throw new Error(
-			`PUBLIC_SITE_URL must be an origin such as https://rbaletheia.org (got ${url})`
+			`PUBLIC_SITE_URL must be an origin such as https://rba.aletheiagov.org (got ${url})`
 		);
 	}
 	return {

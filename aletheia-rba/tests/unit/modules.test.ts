@@ -45,8 +45,8 @@ describe('seo', () => {
 	});
 
 	it('builds canonical URLs without trailing slashes, except home', () => {
-		expect(canonical('/')).toBe('https://rbaletheia.org/');
-		expect(canonical('/about/')).toBe('https://rbaletheia.org/about');
-		expect(canonical('/faq')).toBe('https://rbaletheia.org/faq');
+		expect(canonical('/')).toBe('https://rba.aletheiagov.org/');
+		expect(canonical('/about/')).toBe('https://rba.aletheiagov.org/about');
+		expect(canonical('/faq')).toBe('https://rba.aletheiagov.org/faq');
 	});
 });

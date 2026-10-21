@@ -12,7 +12,7 @@ const checker = new LinkChecker();
 const result = await checker.check({
 	path: `http://127.0.0.1:${port}/`,
 	recurse: true,
-	linksToSkip: ['^https://rbaletheia[.]org']
+	linksToSkip: ['^https://rba[.]aletheiagov[.]org']
 });
 server.close();
 

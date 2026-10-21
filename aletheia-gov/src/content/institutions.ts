@@ -15,6 +15,8 @@ export type Institution = {
   basis: string;
   parent?: string;
   featured?: boolean;
+  /** The institution's own website, where it has one. */
+  website?: { href: string; label: string };
 };
 
 const BLUEPRINT = "National Blueprint, Edition 2026.3 (draft framework)";
@@ -111,6 +113,7 @@ export const institutions: Institution[] = [
     kind: "Independent body",
     status: "proposed",
     featured: true,
+    website: { href: "https://rba.aletheiagov.org", label: "rba.aletheiagov.org" },
     mandate: "Issues the Aletheian Guilder (AEY) under published rules, with monetary policy set by an independent Monetary Policy Committee.",
     summary: [
       "The Reserve Bank of Aletheia is to issue the Aletheian Guilder under published rules, and keep a public register of every issue. Its Monetary Policy Committee decides monetary policy independently of the government.",

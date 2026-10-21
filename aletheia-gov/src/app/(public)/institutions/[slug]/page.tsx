@@ -46,6 +46,9 @@ export default async function InstitutionPage(props: PageProps<"/institutions/[s
                 { label: "Kind", value: inst.kind },
                 ...(parent ? [{ label: "Part of", value: <Link className="link-ledger" href={`/institutions/${parent.slug}`}>{parent.name}</Link> }] : []),
                 { label: "Basis", value: inst.basis },
+                ...(inst.website
+                  ? [{ label: "Website", value: <a className="link-ledger" href={inst.website.href} rel="noopener">{inst.website.label} ↗</a> }]
+                  : []),
                 { label: "Leadership", value: "No published appointments" },
                 { label: "Public contact", value: "None approved yet" },
               ]}

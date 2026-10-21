@@ -11,7 +11,7 @@
 
 <Seo
 	title="Accessibility"
-	description="Accessibility statement for rbaletheia.org, which aims to meet WCAG 2.2 at level AA."
+	description="Accessibility statement for rba.aletheiagov.org, which aims to meet WCAG 2.2 at level AA."
 	path="/accessibility"
 />
 

@@ -10,7 +10,7 @@
 
 <Seo
 	title="Privacy"
-	description="How rbaletheia.org handles personal data: no cookies, no analytics, no forms. The only processing is the hosting provider's server logs."
+	description="How rba.aletheiagov.org handles personal data: no cookies, no analytics, no forms. The only processing is the hosting provider's server logs."
 	path="/privacy"
 />
 

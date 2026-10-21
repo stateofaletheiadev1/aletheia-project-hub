@@ -11,7 +11,7 @@
 
 <Seo
 	title="Terms of Use"
-	description="Terms of use for rbaletheia.org: an informational website that offers no financial products and is not a basis for financial decisions."
+	description="Terms of use for rba.aletheiagov.org: an informational website that offers no financial products and is not a basis for financial decisions."
 	path="/terms"
 />
 

@@ -1,4 +1,4 @@
-# Reserve Bank of Aletheia: rbaletheia.org
+# Reserve Bank of Aletheia: rba.aletheiagov.org
 
 The public website of the Reserve Bank of Aletheia, the proposed monetary institution of the Sovereign Covenant State of Aletheia, and of its proposed currency, the Aletheian Guilder (AEY).
 

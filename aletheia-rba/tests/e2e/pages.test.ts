@@ -31,7 +31,7 @@ for (const path of ROUTES) {
 			await page.goto(path);
 			const canonical = await page.locator('link[rel="canonical"]').getAttribute('href');
 			expect(canonical).toBe(
-				path === '/' ? 'https://rbaletheia.org/' : `https://rbaletheia.org${path}`
+				path === '/' ? 'https://rba.aletheiagov.org/' : `https://rba.aletheiagov.org${path}`
 			);
 			if (path !== '/') {
 				const crumbs = page.locator('nav[aria-label="Breadcrumb"] ol li');
@@ -79,7 +79,7 @@ test('Open Graph images and the logo exist in the build', async ({ request }) =>
 	for (const path of ROUTES) {
 		const html = await (await request.get(path)).text();
 		const og = /<meta property="og:image" content="([^"]*)"/.exec(html)?.[1] ?? '';
-		expect(og, path).toMatch(/^https:\/\/rbaletheia\.org\/og\/[\w-]+\.png$/);
+		expect(og, path).toMatch(/^https:\/\/rba\.aletheiagov\.org\/og\/[\w-]+\.png$/);
 		const local = new URL(og).pathname;
 		expect((await request.get(local)).status(), local).toBe(200);
 	}
