@@ -50,6 +50,9 @@ node_key_file = "/etc/aletheia/node.key"
 [rpc]
 # Keep RPC on loopback; publish it through a reverse proxy (TLS, connection limits).
 listen = "127.0.0.1:7781"
+# Behind a proxy on the same host every client arrives from 127.0.0.1 and shares this per-IP
+# budget (default 50): limit visitors in the proxy and raise it, e.g. 2000.
+#requests_per_second = 2000
 
 # Optional. Without it the node sizes itself from the memory it may use (see section 4).
 #[storage]
