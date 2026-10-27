@@ -138,15 +138,15 @@ Finalized        #${SAMPLE_HEIGHT.toLocaleString("en")}   ${SAMPLE_BLOCK}`;
         <table class="scan">
           <thead><tr><th>Network</th><th>Purpose</th><th>RPC</th><th>Address prefix</th></tr></thead>
           <tbody>
-            <tr><td><strong>Mainnet</strong></td><td>The national ledger</td><td class="mono">{PUBLIC.rpc}</td><td class="mono">alt: · checksum al</td></tr>
+            <tr><td><strong>Mainnet Beta</strong></td><td>The national ledger · chain 7770</td><td class="mono">{PUBLIC.rpc}</td><td class="mono">alt: · checksum al</td></tr>
             <tr><td><strong>Private validation</strong></td><td>Multi-operator rehearsal before mainnet</td><td class="faint">Operators only</td><td class="mono">checksum alt</td></tr>
             <tr><td><strong>Devnet</strong></td><td>Development and testing</td><td class="mono">{PUBLIC.localRpc}</td><td class="mono">checksum ald</td></tr>
           </tbody>
         </table>
       </div>
       <p class="note">
-        An address carries its network inside its checksum, so an address from one network is refused by another. The mainnet
-        chain ID is assigned at the genesis ceremony.
+        An address carries its network inside its checksum, so an address from one network is refused by another. Mainnet Beta
+        runs as chain ID 7770.
       </p>
     </section>
 

@@ -9,7 +9,7 @@
     ["The protocol", "StableChain's rules: transaction validity, fees, the AEY supply invariants, governance, registries, the payment network and the bridge."],
     ["The public RPC", "The REST and JSON-RPC interfaces at rpc.stateofaletheia.org, including input handling and rate limits."],
     ["Wallet and CLI", "aletheia-cli and the wallet library: key derivation, the encrypted keystore, signing and network checks."],
-    ["This explorer", "explorer.mainnet.stateofaletheia.org: what it displays, how it reads the node, and its browser security."],
+    ["This explorer", "aletheiascan.mainnet.stateofaletheia.org: what it displays, how it reads the node, and its browser security."],
     ["The State's platform", "stateofaletheia.org and its citizen and officer portals."],
   ];
   const outOfScope = [

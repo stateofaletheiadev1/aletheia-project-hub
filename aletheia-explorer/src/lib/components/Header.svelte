@@ -24,6 +24,14 @@
   const active = (href: string) => (href === "/" ? page.url.pathname === "/" : page.url.pathname.startsWith(href));
   const live = $derived(connected && (stats?.online ?? false));
   const feed = $derived(`${page.url.origin}/api/stream`);
+  // The badge follows the node: StableChain Mainnet Beta on a mainnet chain, a testnet otherwise.
+  const mainnet = $derived(stats?.network === "mainnet");
+  const badge = $derived(mainnet ? "MAINNET BETA" : "TESTNET");
+  const badgeTitle = $derived(
+    mainnet
+      ? `StableChain Mainnet Beta · chain ${stats?.chainId ?? ""}`
+      : `StableChain testnet: balances carry no real value. Node network: ${stats?.network ?? "devnet"}`,
+  );
 </script>
 
 <svelte:window onkeydown={(e) => e.key === "Escape" && ((setupOpen = false), (menuOpen = false))} />
@@ -36,7 +44,7 @@
         <span class="word">Aletheia<span class="sub">Explorer</span></span>
       </a>
       <span class="flag" title="Sovereign Covenant State of Aletheia"><FlagNational width={27} label="" /></span>
-      <span class="network" title={`StableChain testnet: balances carry no real value. Node network: ${stats?.network ?? "devnet"}`}>TESTNET</span>
+      <span class="network" title={badgeTitle}>{badge}</span>
       <button type="button" class="setup" onclick={() => (setupOpen = !setupOpen)} aria-expanded={setupOpen} aria-label="Network setup" title="Network setup">
         <Icon name="network" size={15} />
         <span class="setup-words">Network Setup</span>
@@ -68,7 +76,7 @@
           </a>
         {/each}
         <button type="button" class="mobile-setup" onclick={() => ((menuOpen = false), (setupOpen = true))}>
-          <Icon name="network" size={15} /> Network Setup · TESTNET
+          <Icon name="network" size={15} /> Network Setup · {badge}
         </button>
       </nav>
     </div>
