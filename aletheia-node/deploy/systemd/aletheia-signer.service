@@ -1,0 +1,56 @@
+# systemd unit for the aletheia-signer daemon (ADR-063, docs/operations/vps.md section 2B).
+# Install to /etc/systemd/system/, then: systemctl daemon-reload && systemctl enable --now aletheia-signer
+[Unit]
+Description=Aletheia StableChain consensus signer
+Documentation=file:///usr/share/doc/aletheia/vps.md
+Before=aletheiad.service
+StartLimitIntervalSec=600
+StartLimitBurst=3
+
+[Service]
+Type=simple
+User=aletheia-signer
+Group=aletheia-signer
+# The keystore password, readable by this service only (/run/credentials/aletheia-signer.service).
+LoadCredential=consensus-key-password:/etc/aletheia-signer/consensus-key-password
+StateDirectory=aletheia-signer
+StateDirectoryMode=0700
+RuntimeDirectory=aletheia-signer
+RuntimeDirectoryMode=0750
+ExecStart=/usr/local/bin/aletheia-signer run \
+    --keystore /etc/aletheia-signer/consensus-key.json \
+    --password-file ${CREDENTIALS_DIRECTORY}/consensus-key-password \
+    --state-dir /var/lib/aletheia-signer \
+    --socket /run/aletheia-signer/signer.sock
+# 70: the state could not be made durable; 64 and 78 cannot be fixed by restarting.
+Restart=on-failure
+RestartSec=2
+RestartPreventExitStatus=64 78
+OOMScoreAdjust=-900
+
+# The signer has no network at all: only its Unix socket.
+PrivateNetwork=yes
+RestrictAddressFamilies=AF_UNIX
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+SystemCallArchitectures=native
+CapabilityBoundingSet=
+AmbientCapabilities=
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

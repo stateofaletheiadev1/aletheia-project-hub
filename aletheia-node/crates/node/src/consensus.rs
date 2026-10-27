@@ -22,14 +22,14 @@ use aletheia_core::block::{Proposal, QuorumCertificate, TimeoutCertificate};
 use aletheia_core::{AletheiaError, Epoch, ErrorCode, Hash32, NetworkIdentity, Slot};
 use aletheia_crypto::bls::{BlsPublicKey, BlsSignature};
 use aletheia_execution::model::ValidatorRecord;
-use aletheia_signer::LocalSigner;
+use aletheia_signer::Backend;
 use tokio::time::Instant;
 
 /// The node's signer. Shared so the engine can be rebuilt (after block sync moves the
 /// finalized tip) without giving up the signer and its high-water marks.
 #[derive(Clone)]
 pub(crate) enum NodeSigner {
-    Validator(Arc<Mutex<LocalSigner>>),
+    Validator(Arc<Mutex<Backend>>),
     /// A node outside the validator set; the engine never asks it to sign.
     Observer,
 }
@@ -50,7 +50,7 @@ fn signer_error(detail: &str) -> AletheiaError {
 impl NodeSigner {
     fn with<T>(
         &self,
-        sign: impl FnOnce(&mut LocalSigner) -> Result<T, AletheiaError>,
+        sign: impl FnOnce(&mut Backend) -> Result<T, AletheiaError>,
     ) -> Result<T, AletheiaError> {
         match self {
             NodeSigner::Validator(signer) => {
@@ -63,13 +63,12 @@ impl NodeSigner {
         }
     }
 
-    /// The signer's high-water marks as safety data rounds, for the start-up max-merge.
-    pub(crate) fn floor(&self, epoch: Epoch) -> SafetyData {
+    /// The signer's high-water marks as safety data rounds, for the start-up max-merge. A
+    /// remote signer that cannot be asked stops start-up: the floor must not be guessed.
+    pub(crate) fn floor(&self, epoch: Epoch) -> Result<SafetyData, AletheiaError> {
         let mut floor = SafetyData::genesis(epoch);
-        if let NodeSigner::Validator(signer) = self
-            && let Ok(guard) = signer.lock()
-        {
-            let state = guard.state();
+        if let NodeSigner::Validator(_) = self {
+            let state = self.with(Backend::state)?;
             if let Some(vote) = state.vote {
                 floor.last_voted_round = vote.round;
             }
@@ -77,7 +76,7 @@ impl NodeSigner {
                 floor.last_timeout_round = timeout.round;
             }
         }
-        floor
+        Ok(floor)
     }
 }
 

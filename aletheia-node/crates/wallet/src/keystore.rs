@@ -121,3 +121,41 @@ pub fn open(file: &Value, password: &[u8]) -> Result<Secret<[u8; 32]>, WalletErr
     plain.zeroize();
     Ok(Secret::new(seed))
 }
+
+/// Opens the keystore file at `keystore` with the password in `password_file`, for daemons
+/// (`aletheiad`'s node key, the signer's consensus key) that cannot ask for it. One trailing
+/// newline is ignored. On Unix a password file that its group or others may read is refused.
+pub fn open_with_password_file(
+    keystore: &std::path::Path,
+    password_file: &std::path::Path,
+) -> Result<Secret<[u8; 32]>, WalletError> {
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let mode = std::fs::metadata(password_file)
+            .map_err(|e| WalletError(format!("{}: {e}", password_file.display())))?
+            .permissions()
+            .mode();
+        if mode & 0o077 != 0 {
+            return Err(WalletError(format!(
+                "{} may be read by others (mode {:o}); allow only its owner (chmod 600)",
+                password_file.display(),
+                mode & 0o777
+            )));
+        }
+    }
+    let text = std::fs::read_to_string(keystore)
+        .map_err(|e| WalletError(format!("{}: {e}", keystore.display())))?;
+    let file: Value = serde_json::from_str(&text)
+        .map_err(|e| WalletError(format!("{}: not a keystore: {e}", keystore.display())))?;
+    let mut password = std::fs::read(password_file)
+        .map_err(|e| WalletError(format!("{}: {e}", password_file.display())))?;
+    let length = password
+        .strip_suffix(b"\r\n")
+        .or_else(|| password.strip_suffix(b"\n"))
+        .map_or(password.len(), <[u8]>::len);
+    let opened = open(&file, password.get(..length).unwrap_or_default())
+        .map_err(|WalletError(detail)| WalletError(format!("{}: {detail}", keystore.display())));
+    password.zeroize();
+    opened
+}

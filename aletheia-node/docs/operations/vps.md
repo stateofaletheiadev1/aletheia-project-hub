@@ -7,9 +7,10 @@ memory pressure, with or without swap. Everything here was exercised by
 ## Before you start: which network
 
 `aletheiad` refuses plaintext node and consensus keys on every network except `devnet` and
-`regtest` (spec Section 19.2). Until the remote signer is wired in (spec phase 5), a node on
-this VPS runs a devnet or regtest chain. This is deliberate: it is what stops a production
-validator key from ever sitting in a file.
+`regtest` (spec Section 19.2). On `mainnet` and `private-validation` the node key sits in an
+encrypted keystore and a validator's consensus key in the `aletheia-signer` daemon (section 2B,
+ADR-063). This is deliberate: it is what stops a production validator key from ever sitting in
+a file the node can read.
 
 ## 1. Build
 
@@ -55,6 +56,53 @@ listen = "127.0.0.1:7781"
 #block_cache_mb = 128
 #write_buffer_mb = 128
 ```
+
+## 2B. Validators on mainnet: the signer daemon and encrypted keys
+
+Build `aletheia-signer` with the node (`cargo build --release --locked -p aletheia-signerd`)
+and install it to `/usr/local/bin/`. Then, as root:
+
+```sh
+useradd --system --no-create-home --shell /usr/sbin/nologin aletheia-signer
+usermod -aG aletheia-signer aletheia          # the node's service user
+install -d -o root -g aletheia-signer -m 0750 /etc/aletheia-signer
+# Long random passwords, one per key, readable by root only (systemd hands them over):
+head -c 32 /dev/urandom | base64 > /etc/aletheia-signer/consensus-key-password
+head -c 32 /dev/urandom | base64 > /etc/aletheia/node-key-password
+chmod 0600 /etc/aletheia-signer/consensus-key-password /etc/aletheia/node-key-password
+# Keys, made on the host that will use them; only public values are printed:
+aletheia-signer keygen --kind consensus --chain-id <id> --network mainnet   --out /etc/aletheia-signer/consensus-key.json   --password-file /etc/aletheia-signer/consensus-key-password
+aletheia-signer keygen --kind node --out /etc/aletheia/node-key.json   --password-file /etc/aletheia/node-key-password
+chown root:aletheia-signer /etc/aletheia-signer/consensus-key.json
+chmod 0640 /etc/aletheia-signer/consensus-key.json
+chown root:aletheia /etc/aletheia/node-key.json && chmod 0640 /etc/aletheia/node-key.json
+```
+
+The printed `consensus_key`, `proof_of_possession` and `node_key` go into the genesis
+`[[validators]]` entry. Back up both keystores and both password files offline: the signer's
+state (`/var/lib/aletheia-signer`) must move with the key, never be copied to a second host.
+
+In `node.toml`, replace `node_key_file` and add the signer:
+
+```toml
+[node]
+node_keystore = "/etc/aletheia/node-key.json"
+node_key_password_file = "/run/credentials/aletheiad.service/node-key-password"
+
+[signer]
+socket = "/run/aletheia-signer/signer.sock"
+```
+
+```sh
+install -m 0644 deploy/systemd/aletheia-signer.service /etc/systemd/system/
+install -d /etc/systemd/system/aletheiad.service.d
+install -m 0644 deploy/systemd/aletheiad.service.d/validator.conf /etc/systemd/system/aletheiad.service.d/
+systemctl daemon-reload && systemctl enable --now aletheia-signer
+```
+
+The signer runs with no network, and the node reaches it only through its socket. The node
+refuses to start when the signer is missing or holds a key other than the registered one. If
+the signer restarts, the node reconnects and misses at most the votes of those seconds.
 
 ## 3. systemd and kernel settings
 

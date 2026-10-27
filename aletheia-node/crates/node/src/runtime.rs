@@ -38,9 +38,12 @@ pub struct NodeConfig {
     /// Devnet and regtest only, with the `devnet-producer` feature, on a genesis without
     /// validators: produce a block this often.
     pub produce_every: Option<Duration>,
-    /// The BLS consensus key of a validator; its node key must be in the validator set. A node
-    /// without one follows consensus as an observer.
+    /// The BLS consensus key of a validator, held in process (devnet and regtest); its node
+    /// key must be in the validator set. A node without a key here or in `remote_signer`
+    /// follows consensus as an observer.
     pub consensus_key: Option<BlsSecretKey>,
+    /// A validator whose consensus key lives in the `aletheia-signer` daemon (ADR-063).
+    pub remote_signer: Option<aletheia_signer::RemoteSigner>,
 }
 
 impl core::fmt::Debug for NodeConfig {
@@ -51,7 +54,11 @@ impl core::fmt::Debug for NodeConfig {
             .field("peers", &self.peers.len())
             .field("node_key", &self.node_key.public_key())
             .field("produce_every", &self.produce_every)
-            .field("validator", &self.consensus_key.is_some())
+            .field(
+                "validator",
+                &(self.consensus_key.is_some() || self.remote_signer.is_some()),
+            )
+            .field("remote_signer", &self.remote_signer.is_some())
             .finish_non_exhaustive()
     }
 }
@@ -105,8 +112,23 @@ fn check_producer(config: &NodeConfig) -> Result<(), AletheiaError> {
 fn consensus_driver<S: KvStore>(
     config: &NodeConfig,
     consensus_key: Option<BlsSecretKey>,
+    remote_signer: Option<aletheia_signer::RemoteSigner>,
     ledger: &Ledger<S>,
 ) -> Result<Option<ConsensusDriver>, AletheiaError> {
+    enum Key {
+        Local(BlsSecretKey),
+        Remote(aletheia_signer::RemoteSigner),
+    }
+    let consensus_key = match (consensus_key, remote_signer) {
+        (Some(_), Some(_)) => {
+            return Err(config_error(
+                "a consensus key and a remote signer were both given; use one".to_owned(),
+            ));
+        }
+        (Some(key), None) => Some(Key::Local(key)),
+        (None, Some(remote)) => Some(Key::Remote(remote)),
+        (None, None) => None,
+    };
     let epoch = aletheia_core::Epoch::new(0);
     let Some(records) = ledger.validator_records(epoch.get())? else {
         if consensus_key.is_some() {
@@ -127,12 +149,21 @@ fn consensus_driver<S: KvStore>(
     let (me, signer) = match (index, consensus_key) {
         (Some(index), Some(key)) => {
             let registered = set.member(index).map(|m| m.consensus_key.to_bytes());
-            if registered != Some(key.public_key().to_bytes()) {
+            let public_key = match &key {
+                Key::Local(key) => key.public_key().to_bytes(),
+                Key::Remote(remote) => remote.public_key(),
+            };
+            if registered != Some(public_key) {
                 return Err(config_error(format!(
                     "the consensus key is not the one registered for validator {index}"
                 )));
             }
-            let signer = aletheia_signer::LocalSigner::open(key, &config.data_dir.join("signer"))?;
+            let signer = match key {
+                Key::Local(key) => aletheia_signer::Backend::Local(
+                    aletheia_signer::LocalSigner::open(key, &config.data_dir.join("signer"))?,
+                ),
+                Key::Remote(remote) => aletheia_signer::Backend::Remote(remote),
+            };
             (
                 Some(index),
                 NodeSigner::Validator(std::sync::Arc::new(std::sync::Mutex::new(signer))),
@@ -154,7 +185,7 @@ fn consensus_driver<S: KvStore>(
     let safety = ledger
         .safety()
         .unwrap_or_else(|| aletheia_consensus::SafetyData::genesis(epoch))
-        .max_merge(&signer.floor(epoch));
+        .max_merge(&signer.floor(epoch)?);
     let finalized = aletheia_consensus::FinalizedTip {
         hash: ledger.tip().hash,
         height: ledger.tip().height,
@@ -187,7 +218,8 @@ impl Node {
         let tip = ledger.tip();
         let network = *ledger.network();
         let consensus_key = config.consensus_key.take();
-        let consensus = consensus_driver(&config, consensus_key, &ledger)?;
+        let remote_signer = config.remote_signer.take();
+        let consensus = consensus_driver(&config, consensus_key, remote_signer, &ledger)?;
         let (chain, chain_thread) = chain::spawn(ledger)?;
         let chain_handle = chain.clone();
 

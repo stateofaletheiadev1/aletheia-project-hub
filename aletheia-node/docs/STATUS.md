@@ -51,7 +51,7 @@ partly written; see the end of this file.
 | --- | --- | --- |
 | Strict TOML config, plaintext keys refused outside devnet/regtest | 46A.2, 19.2 | Implemented; exit 78 on refusal |
 | Start-up order and operator log lines | 46A.2, 46A.4 | Implemented for the components that exist (no RPC yet) |
-| Validator consensus key (`consensus_key_file`) | 19.2 | Implemented for devnet and regtest (plaintext key material); production uses the signer daemon, not yet built |
+| Validator consensus key (`consensus_key_file`, `[signer]`) | 19.2 | Plaintext key material on devnet and regtest; every network through the `aletheia-signer` daemon (ADR-063); node key in an encrypted keystore (`node_keystore`) |
 | Exit codes 0 / 64 / 70 / 75 / 78 | 46A.1, 44.4 | Implemented; `docs/operations/exit-codes.md` |
 | Crash recovery on real RocksDB | 24.3 | Verified by hand: killed at height 8, restarted at height 8 and continued |
 | Graceful SIGTERM shutdown order | 46A.3 | Implemented; not yet exercised on Linux (Windows `timeout` kills without a signal) |
@@ -112,7 +112,8 @@ partly written; see the end of this file.
 | Pacemaker (`pacemaker.rs`) | 19.4 | yes | yes | unit | n/a | rustdoc | n/a |
 | Engine, 2-chain finality, evidence (`engine.rs`, `finality.rs`) | 19 | yes | yes | Byzantine simulator | n/a | rustdoc | no |
 | Local signer with persistent high-water marks (`signer`) | 19.2, R.10 | yes | yes | equivocation, lower round, restart, crash, lock, corruption | n/a | rustdoc | n/a |
-| Signer daemon, remote protocol, HSM counter check | 19.2 | yes | **no** | no | no | no | no |
+| Signer daemon and remote protocol, software backend (`apps/signerd`, `signer::protocol`) | 19.2 | yes (+ ADR-063) | yes | protocol round trip, refusals over the socket, restart, reconnect, bad signature, node with remote key finalizes, wrong key refused | no | rustdoc | no |
+| HSM backend and monotonic-counter check | 19.2 | yes | **no** | no | no | no | no |
 | Activation at an epoch boundary, readiness signalling | 62.1 | yes | **no** | no | no | no | no |
 
 ## Phase 5 exit criteria (spec Sections 62, 62.1)

@@ -28,6 +28,7 @@ members = [
   "apps/arno",
   "apps/arno-exec",
   "apps/devnet-traffic",
+  "apps/signerd",
   "tests/conformance",
   "tests/harness",
   "tests/paynet-reference",

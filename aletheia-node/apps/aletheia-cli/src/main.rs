@@ -4,6 +4,7 @@
 //! aletheia-cli [--rpc 127.0.0.1:7781] [--output text|json] [--network devnet] <command>
 //!   status
 //!   keys new  --keystore wallet.json        create a key (password asked without echo)
+//!   keys new  --keystore k.json --network mainnet --chain-id 7770   offline, before genesis
 //!   keys show --keystore wallet.json        the address, no password needed
 //!   account <alt:…>                         nonce and existence
 //!   balance <alt:…> [--asset AEY]
@@ -110,6 +111,11 @@ enum Keys {
     New {
         #[arg(long)]
         keystore: PathBuf,
+        /// Make the key offline for this chain id (with --network) instead of asking the node,
+        /// e.g. founder keys before genesis exists. Addresses depend only on chain id and
+        /// network kind.
+        #[arg(long)]
+        chain_id: Option<u32>,
     },
     /// Show the address in a keystore (no password needed).
     Show {
@@ -287,7 +293,11 @@ async fn run(cli: Cli) -> Result<(), WalletError> {
             );
         }
         Command::Keys {
-            action: Keys::New { keystore: path },
+            action:
+                Keys::New {
+                    keystore: path,
+                    chain_id,
+                },
         } => {
             if path.exists() {
                 return Err(fail(format!(
@@ -295,7 +305,18 @@ async fn run(cli: Cli) -> Result<(), WalletError> {
                     path.display()
                 )));
             }
-            let network = checked_network(&rpc, expected).await?;
+            let network = match (chain_id, expected) {
+                (Some(chain_id), Some(kind)) => aletheia_core::NetworkIdentity::new(
+                    aletheia_core::ChainId::new(chain_id),
+                    aletheia_core::NetworkKind::ALL
+                        .into_iter()
+                        .find(|k| k.to_string() == kind)
+                        .ok_or_else(|| fail(format!("\"{kind}\" is not a network")))?,
+                    aletheia_core::Hash32::ZERO,
+                ),
+                (Some(_), None) => return Err(fail("--chain-id needs --network")),
+                (None, _) => checked_network(&rpc, expected).await?,
+            };
             let mut seed = [0u8; 32];
             getrandom::fill(&mut seed).map_err(|e| fail(format!("no randomness: {e}")))?;
             let seed = Secret::new(seed);
@@ -303,6 +324,11 @@ async fn run(cli: Cli) -> Result<(), WalletError> {
             let address = Account::new(derived.key(), network)
                 .address()
                 .to_text(network.network_kind());
+            let public_key = aletheia_core::base16::encode(
+                &aletheia_crypto::Ed25519SigningKey::from_seed(derived.key())
+                    .public_key()
+                    .to_bytes(),
+            );
             let first = password("New keystore password: ")?;
             let second = password("Repeat the password: ")?;
             if first.expose() != second.expose() {
@@ -319,6 +345,7 @@ async fn run(cli: Cli) -> Result<(), WalletError> {
                     json!(network.network_kind().to_string()),
                 );
                 map.insert("chainId".to_owned(), json!(network.chain_id().get()));
+                map.insert("publicKey".to_owned(), json!(public_key));
                 map.insert(
                     "path".to_owned(),
                     json!(format!("m/44'/{PROVISIONAL_COIN_TYPE}'/0'/0'/0'")),
@@ -330,9 +357,14 @@ async fn run(cli: Cli) -> Result<(), WalletError> {
             )
             .map_err(|e| fail(format!("cannot write {}: {e}", path.display())))?;
             print(
-                &json!({ "address": address, "keystore": path.display().to_string() }),
+                &json!({
+                    "address": address,
+                    "publicKey": public_key,
+                    "keystore": path.display().to_string(),
+                }),
                 rows(&[
                     ("Address", address.clone()),
+                    ("Public key", public_key.clone()),
                     ("Keystore", path.display().to_string()),
                 ]),
             );

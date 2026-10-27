@@ -57,6 +57,7 @@ async fn start(
         node_key: Ed25519SigningKey::from_seed(&Secret::new([100 + index; 32])),
         produce_every: produce.then_some(BLOCK_EVERY),
         consensus_key: None,
+        remote_signer: None,
     };
     Node::start(config, Arc::new(MemoryKvStore::new()))
         .await
@@ -177,6 +178,7 @@ async fn a_node_restarts_from_its_data_directory_and_keeps_following() {
         node_key: Ed25519SigningKey::from_seed(&Secret::new([42; 32])),
         produce_every: None,
         consensus_key: None,
+        remote_signer: None,
     };
     let mut follower = Node::start(
         follower_config(dial(&[producer.local_addr()])),
@@ -219,6 +221,7 @@ async fn the_devnet_producer_is_refused_on_mainnet() {
         node_key: Ed25519SigningKey::from_seed(&Secret::new([1; 32])),
         produce_every: Some(BLOCK_EVERY),
         consensus_key: None,
+        remote_signer: None,
     };
     let error = Node::start(config, Arc::new(MemoryKvStore::new()))
         .await

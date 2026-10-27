@@ -7,8 +7,14 @@
 //! genesis = "/etc/aletheia/genesis.toml"
 //! listen = "0.0.0.0:7771"
 //! node_key_file = "/etc/aletheia/node.key"   # 64 lowercase hex digits; devnet/regtest only
+//! node_keystore = "/etc/aletheia/node-key.json"       # or: the node key in an encrypted
+//! node_key_password_file = "/run/credentials/aletheiad.service/node-key-password"  # keystore
 //! consensus_key_file = "/etc/aletheia/consensus.key"  # validators: 64 hex digits of BLS key
 //!                                             # material; devnet/regtest only
+//!
+//! [signer]                             # validators on every other network (ADR-063, Unix)
+//! socket = "/run/aletheia-signer/signer.sock"
+//! timeout_ms = 2000                    # per request; default 2000
 //!
 //! [[peers]]
 //! address = "10.0.0.2:7771"
@@ -54,6 +60,25 @@ struct FileConfig {
     execution: Option<ExecutionSection>,
     storage: Option<StorageSection>,
     rpc: Option<RpcSection>,
+    signer: Option<SignerSection>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct SignerSection {
+    socket: PathBuf,
+    timeout_ms: Option<u64>,
+}
+
+/// The `aletheia-signer` daemon that holds this validator's consensus key.
+#[derive(Debug, Clone)]
+pub(crate) struct SignerSettings {
+    pub(crate) socket: PathBuf,
+    #[cfg_attr(
+        not(unix),
+        allow(dead_code, reason = "the signer daemon runs on Unix only")
+    )]
+    pub(crate) timeout: Duration,
 }
 
 #[derive(Debug, Deserialize)]
@@ -160,7 +185,9 @@ struct NodeSection {
     data_dir: PathBuf,
     genesis: PathBuf,
     listen: SocketAddr,
-    node_key_file: PathBuf,
+    node_key_file: Option<PathBuf>,
+    node_keystore: Option<PathBuf>,
+    node_key_password_file: Option<PathBuf>,
     consensus_key_file: Option<PathBuf>,
 }
 
@@ -186,6 +213,7 @@ pub(crate) struct Settings {
     pub(crate) node_key: Ed25519SigningKey,
     pub(crate) produce_every: Option<Duration>,
     pub(crate) consensus_key: Option<BlsSecretKey>,
+    pub(crate) signer: Option<SignerSettings>,
     pub(crate) executor: Executor,
     pub(crate) storage: StorageSettings,
     pub(crate) rpc: Option<RpcSettings>,
@@ -205,21 +233,62 @@ pub(crate) fn load(path: &std::path::Path) -> Result<Settings, String> {
         .map_err(|e| format!("{}: {}", file.node.genesis.display(), e.detail()))?;
 
     // High-value keys never exist as plaintext config outside devnet and regtest (19.2).
-    if !genesis.network_kind.allows_development_keys() {
+    let development = genesis.network_kind.allows_development_keys();
+    let node_key = match (
+        &file.node.node_key_file,
+        &file.node.node_keystore,
+        &file.node.node_key_password_file,
+    ) {
+        (Some(_), None, None) if !development => {
+            return Err(format!(
+                "node_key_file holds a plaintext key, which is refused on {}; use node_keystore",
+                genesis.network_kind
+            ));
+        }
+        (Some(path), None, None) => {
+            let key_text = read(path, "node key")?;
+            let seed = base16::decode_fixed::<32>(key_text.trim()).map_err(|e| {
+                format!(
+                    "{}: node key must be 64 lowercase hex digits ({})",
+                    path.display(),
+                    e.detail()
+                )
+            })?;
+            Ed25519SigningKey::from_seed(&Secret::new(seed))
+        }
+        (None, Some(keystore), Some(password)) => {
+            let seed = aletheia_wallet::keystore::open_with_password_file(keystore, password)
+                .map_err(|e| format!("node key: {e}"))?;
+            Ed25519SigningKey::from_seed(&seed)
+        }
+        _ => {
+            return Err(
+                "[node] needs node_key_file, or node_keystore with node_key_password_file"
+                    .to_owned(),
+            );
+        }
+    };
+    if file.node.consensus_key_file.is_some() && !development {
         return Err(format!(
-            "node_key_file holds a plaintext key, which is refused on {}; use the signer (Phase 5)",
+            "consensus_key_file holds a plaintext key, which is refused on {}; use [signer]",
             genesis.network_kind
         ));
     }
-    let key_text = read(&file.node.node_key_file, "node key")?;
-    let seed = base16::decode_fixed::<32>(key_text.trim()).map_err(|e| {
-        format!(
-            "{}: node key must be 64 lowercase hex digits ({})",
-            file.node.node_key_file.display(),
-            e.detail()
-        )
-    })?;
-    let node_key = Ed25519SigningKey::from_seed(&Secret::new(seed));
+    let signer = file.signer.map(|section| SignerSettings {
+        socket: section.socket,
+        timeout: Duration::from_millis(section.timeout_ms.unwrap_or(2_000)),
+    });
+    if let Some(signer) = &signer {
+        if file.node.consensus_key_file.is_some() {
+            return Err("give consensus_key_file or [signer], not both".to_owned());
+        }
+        if !cfg!(unix) {
+            return Err(format!(
+                "[signer] socket {} needs a Unix host; the signer daemon runs on Linux",
+                signer.socket.display()
+            ));
+        }
+    }
     let consensus_key = file
         .node
         .consensus_key_file
@@ -328,6 +397,7 @@ pub(crate) fn load(path: &std::path::Path) -> Result<Settings, String> {
             .devnet
             .map(|devnet| Duration::from_millis(devnet.produce_every_ms)),
         consensus_key,
+        signer,
         executor,
         storage,
     })

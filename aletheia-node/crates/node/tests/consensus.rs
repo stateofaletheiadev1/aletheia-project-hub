@@ -101,6 +101,7 @@ fn config(
         node_key: node_key(index),
         produce_every: None,
         consensus_key: validator.then(|| consensus_key(index)),
+        remote_signer: None,
     }
 }
 
@@ -308,4 +309,82 @@ async fn misconfigured_validators_are_refused_at_start() {
         error.detail().contains("not in the validator set"),
         "{error}"
     );
+}
+
+/// An `aletheia-signer` daemon on loopback holding `key` (ADR-063); production uses a Unix
+/// socket, the exchange is the same.
+fn signer_daemon(key: BlsSecretKey, name: &str) -> aletheia_signer::protocol::Connector {
+    let signer = aletheia_signer::LocalSigner::open(key, &scratch(name)).unwrap();
+    let signer = Arc::new(std::sync::Mutex::new(signer));
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+    let address = listener.local_addr().unwrap();
+    std::thread::spawn(move || {
+        for stream in listener.incoming() {
+            let mut stream = stream.unwrap();
+            let signer = Arc::clone(&signer);
+            std::thread::spawn(move || {
+                let _ = aletheia_signer::protocol::serve_connection(&signer, &mut stream);
+            });
+        }
+    });
+    Box::new(move || {
+        let stream: Box<dyn aletheia_signer::protocol::Transport> =
+            Box::new(std::net::TcpStream::connect(address)?);
+        Ok(stream)
+    })
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn a_validator_whose_key_lives_in_the_signer_daemon_finalizes_alone() {
+    let genesis = genesis(1);
+    let member = Member {
+        data_dir: scratch("remote-one"),
+        store: Arc::new(MemoryKvStore::new()),
+    };
+    let mut remote = config(&member, &genesis, 0, Vec::new(), false);
+    remote.remote_signer = Some(
+        aletheia_signer::RemoteSigner::connect(signer_daemon(
+            consensus_key(0),
+            "remote-one-signer",
+        ))
+        .unwrap(),
+    );
+    let mut node = Node::start(remote, member.store.clone()).await.unwrap();
+    node.wait_for_height(Height::new(5), WAIT).await.unwrap();
+    let block = node.block_at(Height::new(3)).await.unwrap().unwrap();
+    assert_ne!(block.proposer_signature, [0; 96]);
+    node.shutdown().await.unwrap();
+}
+
+#[tokio::test]
+async fn a_signer_daemon_with_the_wrong_key_or_beside_a_local_key_is_refused() {
+    let genesis = genesis(1);
+    let member = |name: &str| Member {
+        data_dir: scratch(name),
+        store: Arc::new(MemoryKvStore::new()),
+    };
+
+    let m = member("remote-wrong");
+    let mut wrong = config(&m, &genesis, 0, Vec::new(), false);
+    wrong.remote_signer = Some(
+        aletheia_signer::RemoteSigner::connect(signer_daemon(
+            consensus_key(1),
+            "remote-wrong-signer",
+        ))
+        .unwrap(),
+    );
+    let error = Node::start(wrong, m.store.clone()).await.unwrap_err();
+    assert!(error.detail().contains("not the one registered"), "{error}");
+
+    let m = member("remote-both");
+    let mut both = config(&m, &genesis, 0, Vec::new(), true);
+    both.remote_signer = Some(
+        aletheia_signer::RemoteSigner::connect(signer_daemon(
+            consensus_key(0),
+            "remote-both-signer",
+        ))
+        .unwrap(),
+    );
+    let error = Node::start(both, m.store.clone()).await.unwrap_err();
+    assert!(error.detail().contains("both given"), "{error}");
 }

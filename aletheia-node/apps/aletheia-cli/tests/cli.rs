@@ -61,6 +61,7 @@ async fn a_key_receives_and_sends_aey_through_the_cli() {
         node_key: Ed25519SigningKey::from_seed(&Secret::new([5; 32])),
         produce_every: Some(Duration::from_millis(100)),
         consensus_key: None,
+        remote_signer: None,
     };
     let node = Node::start(config, Arc::new(MemoryKvStore::new()))
         .await

@@ -36,6 +36,7 @@ async fn start_node(devnet: &Devnet, test: &str) -> Node {
         node_key: Ed25519SigningKey::from_seed(&Secret::new([77; 32])),
         produce_every: Some(Duration::from_millis(100)),
         consensus_key: None,
+        remote_signer: None,
     };
     Node::start(config, Arc::new(MemoryKvStore::new()))
         .await

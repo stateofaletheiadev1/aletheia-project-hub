@@ -287,6 +287,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "aletheia-signerd"
+version = "0.1.0"
+dependencies = [
+ "aletheia-core",
+ "aletheia-crypto",
+ "aletheia-signer",
+ "aletheia-wallet",
+ "clap",
+ "getrandom 0.3.4",
+]
+
+[[package]]
 name = "aletheia-sim"
 version = "0.1.0"
 dependencies = [
@@ -375,7 +387,9 @@ dependencies = [
  "aletheia-node",
  "aletheia-p2p",
  "aletheia-rpc",
+ "aletheia-signer",
  "aletheia-storage",
+ "aletheia-wallet",
  "serde",
  "tokio",
  "toml",

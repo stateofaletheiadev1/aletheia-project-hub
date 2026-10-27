@@ -66,6 +66,35 @@ fn open_store(
     Ok(aletheia_storage::MemoryKvStore::new())
 }
 
+/// Reaches the signer daemon before the node starts, so a missing or wrong signer is a
+/// configuration error rather than a validator that silently never votes.
+#[cfg(unix)]
+fn connect_signer(
+    signer: Option<&config::SignerSettings>,
+) -> Result<Option<aletheia_signer::RemoteSigner>, String> {
+    let Some(signer) = signer else {
+        return Ok(None);
+    };
+    let remote = aletheia_signer::RemoteSigner::unix(signer.socket.clone(), signer.timeout)
+        .map_err(|e| format!("signer: {}", e.detail()))?;
+    oplog::line(&format!(
+        "consensus key held by the signer at {} public_key={}",
+        signer.socket.display(),
+        aletheia_core::base16::encode(&remote.public_key())
+    ));
+    Ok(Some(remote))
+}
+
+#[cfg(not(unix))]
+fn connect_signer(
+    signer: Option<&config::SignerSettings>,
+) -> Result<Option<aletheia_signer::RemoteSigner>, String> {
+    match signer {
+        None => Ok(None),
+        Some(_) => Err("the signer daemon needs a Unix host".to_owned()),
+    }
+}
+
 fn exit_for(error: &AletheiaError) -> ExitCode {
     if error.code() == ErrorCode::ProtocolUpgradeRequired {
         oplog::line(&format!("stopped cleanly: {}", error.detail()));
@@ -139,6 +168,13 @@ async fn main() -> ExitCode {
         Ok(store) => store,
         Err(error) => return exit_for(&error),
     };
+    let remote_signer = match connect_signer(settings.signer.as_ref()) {
+        Ok(remote) => remote,
+        Err(reason) => {
+            oplog::error(&format!("configuration refused: {reason}"));
+            return ExitCode::from(EXIT_CONFIG);
+        }
+    };
     let config = NodeConfig {
         data_dir: settings.data_dir.clone(),
         genesis: settings.genesis,
@@ -147,6 +183,7 @@ async fn main() -> ExitCode {
         node_key: settings.node_key,
         produce_every: settings.produce_every,
         consensus_key: settings.consensus_key,
+        remote_signer,
     };
     let mut node = match Node::start(config, store).await {
         Ok(node) => node,

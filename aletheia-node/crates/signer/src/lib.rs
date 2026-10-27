@@ -15,9 +15,14 @@
 //! between the two leaves a mark for a signature that never left the process, which is safe.
 //!
 //! `LocalSigner` holds a software key and is for devnet, regtest and the signer daemon's
-//! software backend. Production keys live in an HSM behind the `aletheia-signer` daemon; that
-//! backend also refuses to start when its state file is older than the HSM's monotonic
-//! counter, which needs the HSM and arrives with it.
+//! software backend. On every other network the key lives in the `aletheia-signer` daemon and
+//! the node reaches it through [`RemoteSigner`] ([`protocol`], ADR-063). An HSM backend, which
+//! also refuses to start when its state file is older than the HSM's monotonic counter, arrives
+//! with the HSM.
+
+pub mod protocol;
+
+pub use protocol::RemoteSigner;
 
 use std::fs::File;
 use std::path::{Path, PathBuf};
@@ -155,6 +160,10 @@ impl LocalSigner {
         self.state
     }
 
+    pub fn public_key(&self) -> [u8; 48] {
+        self.key.public_key().to_bytes()
+    }
+
     fn sign(
         &mut self,
         class: Class,
@@ -206,5 +215,59 @@ impl ConsensusSigner for LocalSigner {
 
     fn sign_timeout(&mut self, round: Slot, digest: &Hash32) -> Result<[u8; 96], AletheiaError> {
         self.sign(Class::Timeout, round, digest)
+    }
+}
+
+/// Where a validator's consensus key lives: in this process (devnet, regtest) or in the
+/// `aletheia-signer` daemon (every other network).
+pub enum Backend {
+    Local(LocalSigner),
+    Remote(RemoteSigner),
+}
+
+impl core::fmt::Debug for Backend {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            Backend::Local(_) => f.write_str("Backend::Local"),
+            Backend::Remote(signer) => f.debug_tuple("Backend::Remote").field(signer).finish(),
+        }
+    }
+}
+
+impl Backend {
+    /// The current high-water marks (a round trip for the daemon).
+    pub fn state(&mut self) -> Result<SignerState, AletheiaError> {
+        match self {
+            Backend::Local(signer) => Ok(signer.state()),
+            Backend::Remote(signer) => signer.state(),
+        }
+    }
+}
+
+impl ConsensusSigner for Backend {
+    fn sign_proposal(&mut self, round: Slot, digest: &Hash32) -> Result<[u8; 96], AletheiaError> {
+        match self {
+            Backend::Local(signer) => signer.sign_proposal(round, digest),
+            Backend::Remote(signer) => signer.sign_proposal(round, digest),
+        }
+    }
+
+    fn sign_vote(
+        &mut self,
+        round: Slot,
+        block_hash: &Hash32,
+        digest: &Hash32,
+    ) -> Result<[u8; 96], AletheiaError> {
+        match self {
+            Backend::Local(signer) => signer.sign_vote(round, block_hash, digest),
+            Backend::Remote(signer) => signer.sign_vote(round, block_hash, digest),
+        }
+    }
+
+    fn sign_timeout(&mut self, round: Slot, digest: &Hash32) -> Result<[u8; 96], AletheiaError> {
+        match self {
+            Backend::Local(signer) => signer.sign_timeout(round, digest),
+            Backend::Remote(signer) => signer.sign_timeout(round, digest),
+        }
     }
 }
