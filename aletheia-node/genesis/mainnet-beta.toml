@@ -1,0 +1,50 @@
+# StableChain Mainnet Beta genesis (spec Section 43). Network kind mainnet, chain id 7770.
+# Single validator at launch; further validators join through governance. Public values only.
+[chain]
+chain_id = 7770
+network = "mainnet"
+protocol_version = 1
+genesis_time_ms = 1793132580000
+slot_duration_ms = 500
+
+[fees]
+eu_price_aey = "1000000000"
+eu_price_alnt = "1"
+
+# The whole ALnT supply (spec 18.7: no minting after genesis): 1,000,000,000 ALnT in Mites.
+[[allocations]]
+address = "alt:56CB50d83DD2F56b4F57599110139C37cC38655a"
+asset = "ALnT"
+units = "1000000000000"
+
+[[validators]]
+consensus_key = "8bf2af6ee68fbdde37cb46aa338e8a1286ea61fadf4ad039e4b9f47a3fb927947c519fc0d7a07c840d9bc6a76af7ab0e"
+proof_of_possession = "98eeb177740ba2f4ce559eaf3caac0cd5085ca131097817fc785e5ed07e170720d1897e7a5b380e5bd0f495d0fff94fd0165ea2f600dce8b2d66ba6886ba0f78b347b2f0872713c5b71091deff70af4e9d253d370b3ece4cf62445a818a2fce3"
+node_key = "44fd466a9b450e9a417177fd84ac7d748f5cb8ec03490f0d286de71112e5c049"
+
+[monetary]
+authority_keys = ["5e600820b647362c3dc02fc5f58a80d3d2f71df8f1e8de0412b26dd2000a1d7d"]
+authority_threshold = 1
+redemption_agents = ["e9fdd222c6eb53b1fb6847f6e762fd6e86ce709488c9d66638e3e87ad17380c7"]
+attestors = ["95669a8818dd213d594d73adaee6fb2042189d6c9112e9185af718c764f3ee44"]
+attestor_threshold = 1
+attestor_threshold_large_deviation = 1
+max_deviation_bps = 500
+# 24 hours of 500 ms slots.
+max_attestation_age_slots = 172800
+reserve_feed_id = 1
+# AEY is fully reserved: no mint beyond attested reserves.
+enforce_reserve_ratio = true
+min_reserve_ratio_bps = 10000
+# 10,000,000 AEY authorised; at most 1,000,000 AEY issued per epoch.
+aey_authorized_capacity = "10000000000000000000000000"
+aey_epoch_issuance_cap = "1000000000000000000000000"
+
+[governance]
+council = ["alt:2E048193fbEa39391a79Ef734F943EffF58A3129"]
+threshold = 1
+# One-hour governance epochs; a day to vote, three days to execute.
+epoch_slots = 7200
+voting_epochs = 24
+execution_window_epochs = 72
+max_aey_capacity_increase = "10000000000000000000000000"
