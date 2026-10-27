@@ -71,7 +71,7 @@ export default function StableChainPage() {
                     target="_blank"
                     rel="noopener noreferrer"
                     className="btn-sovereign-ghost px-6 py-3.5 rounded-sm text-sm"
-                  >{t("Testnet Explorer")}</a>
+                  >{t("Mainnet Beta Explorer")}</a>
                 )}
               </div>
             </div>

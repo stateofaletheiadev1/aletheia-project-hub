@@ -144,7 +144,7 @@ export function Footer() {
               </li>
               {STABLECHAIN.explorerLive && (
                 <li>
-                  <a href={STABLECHAIN.explorer} target="_blank" rel="noopener noreferrer" className="hover:text-gold transition-colors">{t("StableChain Testnet Explorer")}</a>
+                  <a href={STABLECHAIN.explorer} target="_blank" rel="noopener noreferrer" className="hover:text-gold transition-colors">{t("StableChain Explorer")}</a>
                 </li>
               )}
             </ul>

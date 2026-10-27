@@ -550,7 +550,6 @@
   "Block Height: #01,482,900 | Epoch: 2,896 | Slot: 488/512": "Висина блока: #01.482.900 | Епоха: 2.896 | Слот: 488/512",
   "Block ID": "ID блока",
   "Block Slot": "Слот блока",
-  "Blocks, transactions and accounts on the testnet": "Блокови, трансакције и рачуни на тестној мрежи",
   "Boat on a turquoise mountain lake": "Чамац на тиркизном планинском језеру",
   "Body Lead (1.125rem / 1.6 leading)": "Уводни текст (1,125 rem / проред 1,6)",
   "Bonded free-port zone": "Слободна царинска зона",
@@ -2527,7 +2526,6 @@
   "StableChain Testnet": "Тестна мрежа StableChain",
   "StableChain testnet · mainnet not launched": "Тестна мрежа StableChain · главна мрежа није покренута",
   "StableChain testnet & registries": "Тестна мрежа StableChain и регистри",
-  "StableChain Testnet Explorer": "Претраживач тестне мреже StableChain",
   "StableChain testnet, digital identity design and registries": "Тестна мрежа StableChain, решење дигиталног идентитета и регистри",
   "StableChain testnet, identity design and registries.": "Тестна мрежа StableChain, решење идентитета и регистри.",
   "StableChain Validator Protection": "Заштита валидатора StableChain-а",
@@ -2621,7 +2619,6 @@
   "Testnet — Reference Implementation": "Тестна мрежа — референтна имплементација",
   "Testnet · reference implementation": "Тестна мрежа · референтна имплементација",
   "Testnet and reference implementation.": "Тестна мрежа и референтна имплементација.",
-  "Testnet Explorer": "Претраживач тестне мреже",
   "Testnet ledger infrastructure (500 ms slots, fixed fee schedule)": "Инфраструктура главне књиге на тестној мрежи (слотови од 500 ms, фиксни ценовник)",
   "Text alternatives for informative images; decorative photography is hidden from screen readers;": "текстуалне алтернативе за информативне слике; декоративне фотографије скривене су од читача екрана;",
   "Text Hash:": "Хеш текста:",
@@ -3140,5 +3137,8 @@
   "Zero-knowledge age checks": "Провере узраста без откривања знања",
   "Zero-Knowledge Civil Privacy (ZKP)": "Грађанска приватност без откривања знања (ZKP)",
   "Zero-trust architecture": "Архитектура без подразумеваног поверења",
-  "Zero-Trust by Design": "Без подразумеваног поверења, по замисли"
+  "Zero-Trust by Design": "Без подразумеваног поверења, по замисли",
+  "StableChain Explorer": "Претраживач StableChain",
+  "Mainnet Beta Explorer": "Претраживач Mainnet Beta",
+  "Blocks, transactions and accounts on Mainnet Beta": "Блокови, трансакције и рачуни на Mainnet Beta"
 }

@@ -550,7 +550,6 @@
   "Block Height: #01,482,900 | Epoch: 2,896 | Slot: 488/512": "Altezza del blocco: #01.482.900 | Epoca: 2.896 | Slot: 488/512",
   "Block ID": "ID del blocco",
   "Block Slot": "Slot del blocco",
-  "Blocks, transactions and accounts on the testnet": "Blocchi, transazioni e account sul testnet",
   "Boat on a turquoise mountain lake": "Barca su un lago di montagna turchese",
   "Body Lead (1.125rem / 1.6 leading)": "Testo introduttivo (1,125 rem / interlinea 1,6)",
   "Bonded free-port zone": "Zona franca doganale",
@@ -2527,7 +2526,6 @@
   "StableChain Testnet": "Testnet StableChain",
   "StableChain testnet · mainnet not launched": "Testnet StableChain · mainnet non avviata",
   "StableChain testnet & registries": "Testnet StableChain e registri",
-  "StableChain Testnet Explorer": "Explorer del testnet StableChain",
   "StableChain testnet, digital identity design and registries": "Testnet StableChain, progetto di identità digitale e registri",
   "StableChain testnet, identity design and registries.": "Testnet StableChain, progetto di identità e registri.",
   "StableChain Validator Protection": "Protezione dei validatori StableChain",
@@ -2621,7 +2619,6 @@
   "Testnet — Reference Implementation": "Testnet — Implementazione di riferimento",
   "Testnet · reference implementation": "Testnet · implementazione di riferimento",
   "Testnet and reference implementation.": "Testnet e implementazione di riferimento.",
-  "Testnet Explorer": "Explorer del testnet",
   "Testnet ledger infrastructure (500 ms slots, fixed fee schedule)": "Infrastruttura del registro in testnet (slot da 500 ms, tariffario fisso)",
   "Text alternatives for informative images; decorative photography is hidden from screen readers;": "alternative testuali per le immagini informative; la fotografia decorativa è nascosta ai lettori di schermo;",
   "Text Hash:": "Hash del testo:",
@@ -3140,5 +3137,8 @@
   "Zero-knowledge age checks": "Verifiche dell’età a conoscenza zero",
   "Zero-Knowledge Civil Privacy (ZKP)": "Privacy civica a conoscenza zero (ZKP)",
   "Zero-trust architecture": "Architettura zero-trust",
-  "Zero-Trust by Design": "Zero trust per progetto"
+  "Zero-Trust by Design": "Zero trust per progetto",
+  "StableChain Explorer": "Explorer di StableChain",
+  "Mainnet Beta Explorer": "Explorer della Mainnet Beta",
+  "Blocks, transactions and accounts on Mainnet Beta": "Blocchi, transazioni e account sulla Mainnet Beta"
 }

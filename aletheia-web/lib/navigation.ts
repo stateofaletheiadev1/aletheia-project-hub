@@ -156,7 +156,7 @@ export const MAIN_NAVIGATION: NavItem[] = [
           { title: 'The Aletheian Guilder (AEY)', href: '/aey', desc: 'The proposed national currency. Not issued to the public', asset: 'aey' },
           { title: 'AEY Paper Currency', href: '/aey/paper-currency', desc: 'Banknote design concepts, 1 to 100 AEY', status: 'Proposed' },
           { title: 'Aletheia StableChain', href: '/stablechain', desc: 'Testnet ledger infrastructure (500 ms slots, fixed fee schedule)', asset: 'stablechain' },
-          ...(STABLECHAIN.explorerLive ? [{ title: 'StableChain Testnet Explorer', href: STABLECHAIN.explorer, desc: 'Blocks, transactions and accounts on the testnet', asset: 'stablechain' as const }] : []),
+          ...(STABLECHAIN.explorerLive ? [{ title: 'StableChain Explorer', href: STABLECHAIN.explorer, desc: 'Blocks, transactions and accounts on Mainnet Beta', asset: 'stablechain' as const }] : []),
         ],
       },
       {

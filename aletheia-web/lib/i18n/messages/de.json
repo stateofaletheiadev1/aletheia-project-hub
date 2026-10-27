@@ -550,7 +550,6 @@
   "Block Height: #01,482,900 | Epoch: 2,896 | Slot: 488/512": "Blockhöhe: #01.482.900 | Epoche: 2.896 | Slot: 488/512",
   "Block ID": "Block-ID",
   "Block Slot": "Block-Slot",
-  "Blocks, transactions and accounts on the testnet": "Blöcke, Transaktionen und Konten im Testnetz",
   "Boat on a turquoise mountain lake": "Boot auf einem türkisfarbenen Bergsee",
   "Body Lead (1.125rem / 1.6 leading)": "Einleitungstext (1,125 rem / 1,6 Zeilenhöhe)",
   "Bonded free-port zone": "Zollfreizone",
@@ -2527,7 +2526,6 @@
   "StableChain Testnet": "StableChain-Testnetz",
   "StableChain testnet · mainnet not launched": "StableChain-Testnetz · Hauptnetz nicht gestartet",
   "StableChain testnet & registries": "StableChain-Testnetz & Register",
-  "StableChain Testnet Explorer": "StableChain-Testnetz-Explorer",
   "StableChain testnet, digital identity design and registries": "StableChain-Testnetz, Entwurf der digitalen Identität und Register",
   "StableChain testnet, identity design and registries.": "StableChain-Testnetz, Identitätsentwurf und Register.",
   "StableChain Validator Protection": "Schutz der StableChain-Validatoren",
@@ -2621,7 +2619,6 @@
   "Testnet — Reference Implementation": "Testnetz — Referenzimplementierung",
   "Testnet · reference implementation": "Testnetz · Referenzimplementierung",
   "Testnet and reference implementation.": "Testnetz und Referenzimplementierung.",
-  "Testnet Explorer": "Testnetz-Explorer",
   "Testnet ledger infrastructure (500 ms slots, fixed fee schedule)": "Hauptbuch-Infrastruktur im Testnetz (500-ms-Slots, fester Gebührenplan)",
   "Text alternatives for informative images; decorative photography is hidden from screen readers;": "Textalternativen für informative Bilder; dekorative Fotografie ist für Screenreader ausgeblendet;",
   "Text Hash:": "Text-Hash:",
@@ -3140,5 +3137,8 @@
   "Zero-knowledge age checks": "Zero-Knowledge-Altersprüfungen",
   "Zero-Knowledge Civil Privacy (ZKP)": "Zero-Knowledge-Privatsphäre für Bürger (ZKP)",
   "Zero-trust architecture": "Zero-Trust-Architektur",
-  "Zero-Trust by Design": "Zero Trust nach Entwurf"
+  "Zero-Trust by Design": "Zero Trust nach Entwurf",
+  "StableChain Explorer": "StableChain-Explorer",
+  "Mainnet Beta Explorer": "Mainnet-Beta-Explorer",
+  "Blocks, transactions and accounts on Mainnet Beta": "Blöcke, Transaktionen und Konten im Mainnet Beta"
 }

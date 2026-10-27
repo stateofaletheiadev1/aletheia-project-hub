@@ -5,19 +5,19 @@
  * docs/spec/MASTER.md, Sections 10, 12, 18, 19, 23, 29, 37) and the State's endpoints.
  */
 
-/** Public endpoints of the mainnet. The RPC answers once mainnet is on air. */
+/** Public endpoints of StableChain Mainnet Beta (on air since 27 October 2026). */
 export const STABLECHAIN = {
   rpc: 'https://rpc.stateofaletheia.org',
   /** REST interface (Section 37.1). */
   rest: 'https://rpc.stateofaletheia.org/api/v1',
   /** JSON-RPC 2.0 interface (Section 37.2). */
   jsonRpc: 'https://rpc.stateofaletheia.org/rpc/v1',
-  explorer: 'https://explorer.stateofaletheia.org',
-  /** The explorer is linked only once it is deployed; until then every explorer link is hidden. */
-  explorerLive: false,
+  explorer: 'https://aletheiascan.mainnet.stateofaletheia.org',
+  /** The explorer is linked only while it is deployed; when false every explorer link is hidden. */
+  explorerLive: true,
   network: 'mainnet',
-  /** APS-0001: the mainnet chain ID is assigned in the genesis ceremony, not before. */
-  chainId: null as number | null,
+  /** APS-0001: assigned at genesis; Mainnet Beta (genesis/mainnet-beta.toml) is chain 7770. */
+  chainId: 7770 as number | null,
   networkKind: 1,
   protocolVersion: 1,
   slotMs: 500,

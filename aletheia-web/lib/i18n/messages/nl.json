@@ -550,7 +550,6 @@
   "Block Height: #01,482,900 | Epoch: 2,896 | Slot: 488/512": "Blokhoogte: #01.482.900 | Epoch: 2.896 | Slot: 488/512",
   "Block ID": "Blok-ID",
   "Block Slot": "Blokslot",
-  "Blocks, transactions and accounts on the testnet": "Blokken, transacties en accounts op het testnet",
   "Boat on a turquoise mountain lake": "Boot op een turquoise bergmeer",
   "Body Lead (1.125rem / 1.6 leading)": "Inleidende tekst (1,125 rem / regelafstand 1,6)",
   "Bonded free-port zone": "Douane-entrepotzone",
@@ -2527,7 +2526,6 @@
   "StableChain Testnet": "StableChain-testnet",
   "StableChain testnet · mainnet not launched": "StableChain-testnet · mainnet niet gelanceerd",
   "StableChain testnet & registries": "StableChain-testnet & registers",
-  "StableChain Testnet Explorer": "StableChain-testnetverkenner",
   "StableChain testnet, digital identity design and registries": "StableChain-testnet, ontwerp van digitale identiteit en registers",
   "StableChain testnet, identity design and registries.": "StableChain-testnet, identiteitsontwerp en registers.",
   "StableChain Validator Protection": "Bescherming van StableChain-validators",
@@ -2621,7 +2619,6 @@
   "Testnet — Reference Implementation": "Testnet — Referentie-implementatie",
   "Testnet · reference implementation": "Testnet · referentie-implementatie",
   "Testnet and reference implementation.": "Testnet en referentie-implementatie.",
-  "Testnet Explorer": "Testnetverkenner",
   "Testnet ledger infrastructure (500 ms slots, fixed fee schedule)": "Grootboekinfrastructuur op testnet (slots van 500 ms, vast tarievenschema)",
   "Text alternatives for informative images; decorative photography is hidden from screen readers;": "tekstalternatieven voor informatieve afbeeldingen; decoratieve fotografie is verborgen voor schermlezers;",
   "Text Hash:": "Teksthash:",
@@ -3140,5 +3137,8 @@
   "Zero-knowledge age checks": "Leeftijdscontrole met zero-knowledge",
   "Zero-Knowledge Civil Privacy (ZKP)": "Zero-knowledge burgerprivacy (ZKP)",
   "Zero-trust architecture": "Zero-trustarchitectuur",
-  "Zero-Trust by Design": "Zero trust volgens ontwerp"
+  "Zero-Trust by Design": "Zero trust volgens ontwerp",
+  "StableChain Explorer": "StableChain-verkenner",
+  "Mainnet Beta Explorer": "Mainnet Beta-verkenner",
+  "Blocks, transactions and accounts on Mainnet Beta": "Blokken, transacties en accounts op Mainnet Beta"
 }
