@@ -104,7 +104,7 @@ const STATES: State[] = [
 ];
 
 const ROADMAP: { year: string; title: string; status: ManualStatus }[] = [
-  { year: '2026', title: 'Founding community, digital institutions & StableChain testnet', status: 'Under Development' },
+  { year: '2026', title: 'Founding community, digital institutions & StableChain Mainnet Beta', status: 'Under Development' },
   { year: '2027', title: 'Founding entity, legal counsel & seastead engineering research', status: 'Planned' },
   { year: '2027–2028', title: 'Platform design, site survey & seed funding', status: 'Planned' },
   { year: '2029–2030', title: 'A pilot platform, built and owned by Aletheia', status: 'Planned' },

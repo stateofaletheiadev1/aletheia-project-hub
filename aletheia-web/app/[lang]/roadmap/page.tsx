@@ -12,7 +12,7 @@ const PHASES: { phase: string; title: string; when: string; now?: boolean; visio
     title: 'Now',
     when: '2026',
     now: true,
-    items: ['A founding community forming', 'Digital institutions: this platform, the draft Constitution and the public record', 'StableChain on testnet'],
+    items: ['A founding community forming', 'Digital institutions: this platform, the draft Constitution and the public record', 'StableChain on Mainnet Beta'],
   },
   {
     phase: 'Phase 1',

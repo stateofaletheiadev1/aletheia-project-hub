@@ -130,7 +130,7 @@ export function LiveChainStrip() {
         }
       : { value: `v${STABLECHAIN.protocolVersion}`, label: t('Protocol version'), sub: t('Reference values') },
     { value: `${STABLECHAIN.slotMs} ms`, label: t('Slot time'), sub: t('Final two slots later') },
-    { value: 'AEY · ALnT', label: t('Native assets'), sub: t('Proposed currency · testnet utility asset') },
+    { value: 'AEY · ALnT', label: t('Native assets'), sub: t('Proposed currency · network utility asset') },
     { value: `${(2000).toLocaleString(intl)} EU`, label: t('Transfer cost'), sub: t('Execution units × EU price') },
   ];
   return (

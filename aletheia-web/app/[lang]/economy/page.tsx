@@ -129,7 +129,7 @@ export default function EconomyPage() {
             {[
               { label: 'Monetary Model', value: 'Fiat', sub: 'Published rules', asset: 'aey' as const },
               { label: 'Proposed Issuer', value: 'RBA', sub: 'Reserve Bank of Aletheia', asset: 'reserveBank' as const },
-              { label: 'Target: Ledger Finality', value: '≈ 1 s', sub: 'Two 500 ms slots, on testnet', asset: 'finality' as const },
+              { label: 'Target: Ledger Finality', value: '≈ 1 s', sub: 'Two 500 ms slots, on Mainnet Beta', asset: 'finality' as const },
               { label: 'Proposed: Personal Tax', value: 'None', sub: 'A constitutional proposal', asset: 'incomeTax' as const },
             ].map((m) => (
               <div key={m.label} className="stat-card rounded-sm p-5 space-y-2">
@@ -212,12 +212,12 @@ export default function EconomyPage() {
         <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div className="space-y-6">
-              <span className="label-parchment block">{t("Ledger Infrastructure · Testnet")}</span>
+              <span className="label-parchment block">{t("Ledger Infrastructure · Mainnet Beta")}</span>
               <h2 className="text-4xl sm:text-5xl font-bold tracking-tight text-parchment leading-tight">{t("Aletheia")}{' '}
                 <span className="text-gold-metallic">{t("StableChain")}</span>
               </h2>
               <div className="rule-gold max-w-xs" />
-              <p className="text-parchment/65 leading-relaxed">{t("A Byzantine-fault-tolerant ledger designed for state operations, now running as a testnet: 500 ms slots, deterministic finality, a fixed fee schedule and published validator governance. Not a fork: its own protocol.")}</p>
+              <p className="text-parchment/65 leading-relaxed">{t("A Byzantine-fault-tolerant ledger designed for state operations, now running as Mainnet Beta: 500 ms slots, deterministic finality, a fixed fee schedule and published validator governance. Not a fork: its own protocol.")}</p>
 
               <div className="grid grid-cols-2 gap-4">
                 {[
@@ -236,7 +236,7 @@ export default function EconomyPage() {
 
               <div className="flex items-center gap-2 pt-2">
                 <StatusBadge asset="stablechain" size="sm" />
-                <span className="text-[11px] text-parchment/50">{t("Testnet · reference implementation")}</span>
+                <span className="text-[11px] text-parchment/50">{t("Mainnet Beta · reference implementation")}</span>
               </div>
 
               <Link href="/stablechain" className="inline-flex items-center gap-2 px-5 py-2.5 border border-gold/30 text-parchment font-semibold text-[12px] uppercase tracking-wider rounded-[3px] hover:border-gold/60 transition-colors group">{t("StableChain Technical Docs")}{' '}<ArrowRight className="w-3.5 h-3.5 text-gold group-hover:translate-x-0.5 transition-transform" />

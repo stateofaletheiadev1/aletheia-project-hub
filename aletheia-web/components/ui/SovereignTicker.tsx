@@ -8,7 +8,7 @@ import { useChainStatus } from '@/components/stablechain/useChainStatus';
 import { STABLECHAIN } from '@/lib/stablechain';
 
 /**
- * The testnet strip above every page. It shows the StableChain testnet as the website's
+ * The network strip above every page. It shows StableChain Mainnet Beta as the website's
  * server last saw it (online RPC, else a local node in development, else the reference
  * values) and says which. No figure here is simulated.
  */
@@ -29,7 +29,7 @@ export function SovereignTicker() {
               {live && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-300 opacity-75" />}
               <span className={`relative inline-flex rounded-full h-2 w-2 ${live ? 'bg-emerald-300' : 'bg-[#C49A4E]'}`} />
             </span>
-            <span className="font-bold tracking-[0.1em] text-[10.5px] uppercase">{t("StableChain Testnet")}</span>
+            <span className="font-bold tracking-[0.1em] text-[10.5px] uppercase">{t("StableChain Mainnet Beta")}</span>
           </div>
           <span className="hidden sm:inline text-white/20">|</span>
           <span className="hidden sm:inline text-[#F4EEDF]/60">

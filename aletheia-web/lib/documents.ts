@@ -104,9 +104,9 @@ export const REGISTER: RegisterDocument[] = [
     date: '2026-06-12',
     hash: 'cc694a2b7459f5a5d61d836714262feb816517b6223aada35f4dc9d54bcea968',
     status: 'Under Development',
-    description: 'Draft technical standard for 500 ms slots with 2-chain finality, deterministic fees, and registry verification, as run on the StableChain testnet.',
+    description: 'Draft technical standard for 500 ms slots with 2-chain finality, deterministic fees, and registry verification, as run on StableChain Mainnet Beta.',
     body: {
-      lead: 'This draft standard specifies the consensus, settlement and verification rules of StableChain, the ledger Aletheia is developing, now running as a testnet. Draft for engineering review; normative language follows RFC 2119.',
+      lead: 'This draft standard specifies the consensus, settlement and verification rules of StableChain, the ledger Aletheia is developing, now running as Mainnet Beta. Draft for engineering review; normative language follows RFC 2119.',
       sections: [
         { number: '1.', heading: 'Scope', paragraphs: ['APS-01 governs block production, finality, fee determination and the verification of registry records. It does not govern the issue of any currency; the AEY is not issued to the public.'] },
         { number: '2.', heading: 'Validator set', paragraphs: ['Consensus SHALL be operated by authorised validators across at least three physically separate facilities. The validator set and each validator public key SHALL be published in the public key directory.', 'A change to the validator set SHALL be published at least one epoch before it takes effect.'] },

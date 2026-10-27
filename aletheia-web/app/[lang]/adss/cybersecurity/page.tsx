@@ -36,7 +36,7 @@ export default function CybersecurityPage() {
 
             <h1 className="heading-hero">{t("Protecting Digital Infrastructure")}</h1>
 
-            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("A planned department to protect Aletheia’s digital infrastructure: the StableChain validators, the registries and, in future, the networks of its platforms. Today, the founding team looks after the security of this website and the testnet.")}</p>
+            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("A planned department to protect Aletheia’s digital infrastructure: the StableChain validators, the registries and, in future, the networks of its platforms. Today, the founding team looks after the security of this website and StableChain Mainnet Beta.")}</p>
 
             <div className="flex flex-wrap gap-4 pt-2">
               <a
@@ -79,7 +79,7 @@ export default function CybersecurityPage() {
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5">
           <StarOfTruth size={36} />
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-parchment">{t("Coordinated Vulnerability Disclosure")}</h2>
-          <p className="text-sm text-parchment/70 leading-relaxed">{t("If you find a security problem in this website or the StableChain testnet, please tell us privately and give us reasonable time to fix it before publishing. We will acknowledge your report and credit you if you wish. There is no paid bug bounty.")}</p>
+          <p className="text-sm text-parchment/70 leading-relaxed">{t("If you find a security problem in this website or StableChain Mainnet Beta, please tell us privately and give us reasonable time to fix it before publishing. We will acknowledge your report and credit you if you wish. There is no paid bug bounty.")}</p>
           <div className="space-y-2 text-sm">
             <div className="flex flex-wrap items-center gap-2"><span className="text-gold font-semibold">{t("Report to:")}</span> <a href="mailto:security@aletheiagov.org" className="text-parchment underline underline-offset-4 decoration-gold">security@aletheiagov.org</a></div>
           </div>

@@ -10,7 +10,7 @@ import { EXAMPLE, STABLECHAIN } from '@/lib/stablechain';
 /**
  * The network's public details, as a wallet, exchange or auditor needs them: endpoints,
  * chain identity, native assets and how identifiers are written. Values come from
- * lib/stablechain.ts; the chain ID appears once mainnet genesis assigns it.
+ * lib/stablechain.ts; the chain ID is the one genesis assigned (7770 for Mainnet Beta).
  */
 export function NetworkDetails() {
   const { t } = useI18n();
@@ -54,7 +54,7 @@ export function NetworkDetails() {
                 <ArrowUpRight className="w-3.5 h-3.5 shrink-0" />
               </a>
             ) : (
-              t('Published when the testnet opens to the public')
+              t('Published when the explorer opens to the public')
             )}
           </span>
         </div>
@@ -67,7 +67,7 @@ export function NetworkDetails() {
         </div>
         <div className={row}>
           <span className={label}>{t('Network')}</span>
-          <span className={value}>{live && live.network !== 'mainnet' ? (<><span translate="no" data-i18n-skip="">{live.network}</span>{` · ${t('local node')}`}</>) : t('StableChain testnet · mainnet not launched')}</span>
+          <span className={value}>{live && live.network !== 'mainnet' ? (<><span translate="no" data-i18n-skip="">{live.network}</span>{` · ${t('local node')}`}</>) : t('StableChain Mainnet Beta · chain 7770')}</span>
         </div>
         <div className={row}>
           <span className={label}>{t('Chain ID')}</span>
@@ -101,7 +101,7 @@ export function NetworkDetails() {
         </div>
         <div className={row}>
           <span className={label}>ALnT</span>
-          <span className={value}>{t('Aletheia Talent · 3 decimals · testnet utility asset; not offered or sold')}</span>
+          <span className={value}>{t('Aletheia Talent · 3 decimals · network utility asset; not offered or sold')}</span>
         </div>
         <div className={row}>
           <span className={label}>{t('Transaction fee')}</span>

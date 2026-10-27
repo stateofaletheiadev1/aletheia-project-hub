@@ -42,7 +42,7 @@ export default function StableChainPage() {
               <div className="flex items-center gap-3">
                 <div className="inline-flex items-center gap-2 px-3.5 py-1.5 border border-gold/40 bg-navy-deep/80 rounded-sm backdrop-blur-sm">
                   <StarOfTruth size={14} />
-                  <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-gold">{t("Layer 1 · Testnet")}</span>
+                  <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-gold">{t("Layer 1 · Mainnet Beta")}</span>
                 </div>
                 <StatusBadge asset="stablechain" size="sm" />
               </div>
@@ -51,7 +51,7 @@ export default function StableChainPage() {
                 <span className="text-gold-metallic">{t("StableChain")}</span>
               </h1>
 
-              <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light max-w-2xl">{t("The ledger Aletheia is developing, now running as a testnet and reference implementation. It is designed for 500 ms slots with deterministic finality, a fixed fee schedule, and native registries for statutes, companies and public spending.")}</p>
+              <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light max-w-2xl">{t("The ledger Aletheia is developing, now running as Mainnet Beta and reference implementation. It is designed for 500 ms slots with deterministic finality, a fixed fee schedule, and native registries for statutes, companies and public spending.")}</p>
 
               <div className="flex flex-wrap gap-4 pt-2">
                 <Link
@@ -124,12 +124,12 @@ export default function StableChainPage() {
           </div>
         </div>
 
-        {/* -- TESTNET NOTICE -- */}
+        {/* -- MAINNET BETA NOTICE -- */}
         <div className="mt-16 bg-navy text-parchment rounded-sm border border-gold/30 p-8 shadow-xl space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-parchment/10 pb-4">
             <div className="flex items-center gap-3">
               <Lock className="w-6 h-6 text-gold" />
-              <h3 className="text-lg font-bold text-parchment">{t("Testnet — Reference Implementation")}</h3>
+              <h3 className="text-lg font-bold text-parchment">{t("Mainnet Beta — Reference Implementation")}</h3>
             </div>
             <span className="text-xs font-mono text-gold">{t("Protocol version {version}", { version: STABLECHAIN.protocolVersion })}</span>
           </div>
@@ -137,7 +137,7 @@ export default function StableChainPage() {
           <div className="bg-navy-deep border border-burgundy/30 rounded-sm px-5 py-4 flex items-start gap-3">
             <ShieldCheck className="w-5 h-5 text-gold shrink-0 mt-0.5" />
             <p className="text-sm text-parchment/80 leading-relaxed">
-              <strong className="text-parchment">{t("StableChain runs today as a testnet and reference implementation.")}</strong>{' '}{t("It carries no real value. No AEY or other asset is issued, sold or offered to the public, and no mainnet has launched. Read-only access is provided for transparency and review.")}</p>
+              <strong className="text-parchment">{t("StableChain runs today as Mainnet Beta, its reference implementation.")}</strong>{' '}{t("It carries no real value. No AEY or other asset is issued, sold or offered to the public. Read-only access is provided for transparency and review.")}</p>
           </div>
 
           <AeyNotice tone="dark" />

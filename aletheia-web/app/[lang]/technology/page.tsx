@@ -79,7 +79,7 @@ export default function TechnologyPage() {
 
             <h1 className="heading-hero">{t("Digital State & National Registries")}</h1>
 
-            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("A paperless state, by design: every law, company charter, identity and title would be signed, timestamped and verifiable on the Aletheia StableChain, now on testnet. The registries hold no records today.")}</p>
+            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("A paperless state, by design: every law, company charter, identity and title would be signed, timestamped and verifiable on the Aletheia StableChain, now on Mainnet Beta. The registries hold no records today.")}</p>
 
             <div className="flex flex-wrap gap-4 pt-2">
               <Link

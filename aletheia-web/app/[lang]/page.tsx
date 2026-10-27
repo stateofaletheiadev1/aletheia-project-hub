@@ -34,7 +34,7 @@ const FOCUS: { href: string; title: string; kicker: string; desc?: string; image
   { href: '/energy', title: 'Clean energy', kicker: 'Benedict State · Vision', image: 'offshoreWind', span: 'md:col-span-1' },
   { href: '/education', title: 'Schools & university', kicker: 'Augustine State', image: 'libraryAisle', span: 'md:col-span-1' },
   { href: '/healthcare', title: 'Covenant healthcare', kicker: 'Health & Social Care', image: 'clinician', span: 'md:col-span-1' },
-  { href: '/stablechain', title: 'The digital state', kicker: 'StableChain testnet & registries', image: 'earthNight', span: 'md:col-span-1' },
+  { href: '/stablechain', title: 'The digital state', kicker: 'StableChain Mainnet Beta & registries', image: 'earthNight', span: 'md:col-span-1' },
 ];
 
 export default function HomePage() {
@@ -183,7 +183,7 @@ export default function HomePage() {
                       { label: 'Territory', value: 'A seastead Aletheia owns' },
                       { label: 'Draft Constitution', value: '67 Proposed Articles' },
                       { label: 'Proposed Cabinet', value: 'Nine Ministries Max' },
-                      { label: 'StableChain Testnet', value: 'Target: ≈ 1 s Finality' },
+                      { label: 'StableChain Mainnet Beta', value: 'Target: ≈ 1 s Finality' },
                     ].map(({ label, value }) => (
                       <div key={label} className="stat-tile p-3 rounded-sm text-left space-y-1">
                         <span className="text-[10px] font-bold tracking-[0.14em] uppercase text-gold/70 block">{tx(label)}</span>
@@ -216,7 +216,7 @@ export default function HomePage() {
             {[
               { value: 'AEY', label: 'Proposed National Currency', sub: 'Not issued to the public', asset: 'aey' as const },
               { value: '5', label: 'Banknote Design Concepts', sub: '1 to 100 AEY', asset: 'aey' as const },
-              { value: '≈ 1 s', label: 'Target: Ledger Finality', sub: 'Two 500 ms slots, on testnet', asset: 'finality' as const },
+              { value: '≈ 1 s', label: 'Target: Ledger Finality', sub: 'Two 500 ms slots, on Mainnet Beta', asset: 'finality' as const },
               { value: '0%', label: 'Proposed: Personal Income Tax', sub: 'A constitutional proposal', asset: 'incomeTax' as const },
             ].map(({ value, label, sub, asset }) => (
               <div key={label} className="py-6 px-6 text-center space-y-1.5">
@@ -255,7 +255,7 @@ export default function HomePage() {
               {
                 num: '02', title: 'StableChain Protocol & APN', asset: 'stablechain' as const,
                 color: 'bg-gold',
-                desc: 'A Byzantine-fault-tolerant ledger on testnet, designed for 500 ms slots, published supply rules and fixed-fee settlement.',
+                desc: 'A Byzantine-fault-tolerant ledger on Mainnet Beta, designed for 500 ms slots, published supply rules and fixed-fee settlement.',
               },
               {
                 num: '03', title: 'A Sovereign Seastead', asset: 'territory' as const,
@@ -583,12 +583,12 @@ export default function HomePage() {
             <div className="eyebrow" style={{ color: '#E4C689' }}>{t("Part IV: The Financial Operating System")}</div>
             <h2 className="text-4xl lg:text-5xl font-bold tracking-tight text-parchment leading-[1.1]">{t("Critical national payment")}<br />{t("infrastructure, not a crypto")}<br /><span className="text-gold-metallic">{t("experiment.")}</span>
             </h2>
-            <p className="text-parchment/68 text-base leading-relaxed font-light max-w-2xl">{t("Aletheia rejects volatile token speculation. It is developing StableChain, now on testnet: a Byzantine-fault-tolerant ledger designed for 500 ms slots, finality in about a second, and fixed settlement fees.")}</p>
+            <p className="text-parchment/68 text-base leading-relaxed font-light max-w-2xl">{t("Aletheia rejects volatile token speculation. It is developing StableChain, now on Mainnet Beta: a Byzantine-fault-tolerant ledger designed for 500 ms slots, finality in about a second, and fixed settlement fees.")}</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {[
-              { val: '500 ms', label: 'Block Slot', desc: 'Designed for a block every 500 ms, final two slots later. Running today on testnet.' },
+              { val: '500 ms', label: 'Block Slot', desc: 'Designed for a block every 500 ms, final two slots later. Running today on Mainnet Beta.' },
               { val: 'AEY', label: 'The Aletheian Guilder', desc: 'The proposed national currency. Not issued to the public.' },
               { val: '0%', label: 'Proposed: Personal Income Tax', desc: 'A constitutional proposal: revenue from land leasehold dividends, APN fees and the Covenant Endowment.' },
               { val: 'APN Rail', label: 'Payment Network', desc: 'In development: instant merchant settlement, with planned gateways to SEPA and SWIFT.' },

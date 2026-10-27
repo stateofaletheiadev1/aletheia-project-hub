@@ -78,7 +78,7 @@ export const MAIN_NAVIGATION: NavItem[] = [
         group: 'The Nine Ministries',
         items: [
           { title: 'Treasury & Finance', href: '/treasury', desc: 'The Covenant Endowment design and public balance-sheet model' },
-          { title: 'Digital State & Registries', href: '/technology', desc: 'StableChain testnet, digital identity design and registries' },
+          { title: 'Digital State & Registries', href: '/technology', desc: 'StableChain Mainnet Beta, digital identity design and registries' },
           { title: 'Resilience & Civil Protection', href: '/security', desc: 'Planned civil oversight of resilience and cyber protection' },
           { title: 'Foreign Affairs & Justice', href: '/government/ministry-of-foreign-affairs', desc: 'Diplomatic relations, treaties and the travel-document design' },
           { title: 'All Ministries Directory', href: '/government', desc: 'The proposed ministries and their mandates' },
@@ -155,7 +155,7 @@ export const MAIN_NAVIGATION: NavItem[] = [
           { title: 'Reserve Bank of Aletheia', href: '/central-bank', desc: 'The proposed monetary institution', asset: 'reserveBank' },
           { title: 'The Aletheian Guilder (AEY)', href: '/aey', desc: 'The proposed national currency. Not issued to the public', asset: 'aey' },
           { title: 'AEY Paper Currency', href: '/aey/paper-currency', desc: 'Banknote design concepts, 1 to 100 AEY', status: 'Proposed' },
-          { title: 'Aletheia StableChain', href: '/stablechain', desc: 'Testnet ledger infrastructure (500 ms slots, fixed fee schedule)', asset: 'stablechain' },
+          { title: 'Aletheia StableChain', href: '/stablechain', desc: 'Mainnet Beta ledger infrastructure (500 ms slots, fixed fee schedule)', asset: 'stablechain' },
           ...(STABLECHAIN.explorerLive ? [{ title: 'StableChain Explorer', href: STABLECHAIN.explorer, desc: 'Blocks, transactions and accounts on Mainnet Beta', asset: 'stablechain' as const }] : []),
         ],
       },

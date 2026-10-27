@@ -140,7 +140,7 @@ export function Footer() {
                 <Link href="/aey" className="hover:text-gold transition-colors">{t("The Aletheian Guilder (AEY)")}</Link>
               </li>
               <li>
-                <Link href="/stablechain" className="hover:text-gold transition-colors">{t("StableChain (testnet)")}</Link>
+                <Link href="/stablechain" className="hover:text-gold transition-colors">{t("StableChain (Mainnet Beta)")}</Link>
               </li>
               {STABLECHAIN.explorerLive && (
                 <li>

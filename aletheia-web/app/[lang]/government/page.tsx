@@ -58,7 +58,7 @@ const MINISTRIES: Ministry[] = [
     id: 'digital-state',
     name: 'Ministry of Digital State & Registries',
     portfolio: 'StableChain, Digital ID & E-Residency',
-    mandate: 'Would run the State’s validators, supervise the identity registry, coordinate e-residency and keep civil records. Today StableChain runs as a testnet.',
+    mandate: 'Would run the State’s validators, supervise the identity registry, coordinate e-residency and keep civil records. Today StableChain runs as Mainnet Beta.',
     responsibilities: [
       'StableChain node governance and validator uptime',
       'National Identity Registry',

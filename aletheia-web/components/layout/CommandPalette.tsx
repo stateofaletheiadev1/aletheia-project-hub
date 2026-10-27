@@ -36,7 +36,7 @@ const SEARCH_DATABASE: SearchItem[] = [
 
   // Government & Ministries
   { title: 'Ministry of Treasury & Finance', category: 'Government', href: '/treasury', desc: 'The proposed Covenant Endowment and revenue model.' },
-  { title: 'Ministry of Digital State & Registries', category: 'Government', href: '/technology', desc: 'StableChain testnet, identity design and registries.' },
+  { title: 'Ministry of Digital State & Registries', category: 'Government', href: '/technology', desc: 'StableChain Mainnet Beta, identity design and registries.' },
   { title: 'Ministry of Resilience & Civil Protection', category: 'Government', href: '/security', desc: 'Proposed civil oversight of resilience and emergency response.' },
   { title: 'The Covenant Assembly', category: 'Government', href: '/government#assembly', desc: 'A proposed 61-member parliament elected by open-list PR.', asset: 'institutions' },
   { title: 'Council of States', category: 'Government', href: '/government#council', desc: 'A proposed 15-member territorial chamber.', asset: 'institutions' },

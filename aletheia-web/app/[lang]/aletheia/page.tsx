@@ -132,7 +132,7 @@ export default function AletheiaPage() {
                   <div className="p-4 bg-white border border-navy/10 rounded-sm space-y-2">
                     <div className="flex items-center gap-2 text-navy font-bold text-sm">
                       <Lock className="w-4 h-4 text-laurel" />{t("Verifiable State Ledger")}</div>
-                    <p className="text-xs text-navy/70 leading-relaxed">{t("Public laws, company registrations and land titles would be timestamped permanently on the Aletheia StableChain, now on testnet.")}</p>
+                    <p className="text-xs text-navy/70 leading-relaxed">{t("Public laws, company registrations and land titles would be timestamped permanently on the Aletheia StableChain, now on Mainnet Beta.")}</p>
                   </div>
                 </div>
               </div>

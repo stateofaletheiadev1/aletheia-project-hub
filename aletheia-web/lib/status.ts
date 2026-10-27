@@ -61,8 +61,8 @@ export const STATUS_ORDER: NationalStatus[] = ['Operational', 'Under Development
  */
 export const NATIONAL_ASSETS = {
   platform: { label: 'Digital platform & public registry', status: 'Operational', note: 'This website, its published documents and the founding-phase record.' },
-  stablechain: { label: 'StableChain protocol', status: 'Under Development', note: 'Testnet and reference implementation.' },
-  finality: { label: 'Ledger finality ≈ 1 s', status: 'Under Development', note: 'A design target of the StableChain testnet.' },
+  stablechain: { label: 'StableChain protocol', status: 'Under Development', note: 'Mainnet Beta and reference implementation.' },
+  finality: { label: 'Ledger finality ≈ 1 s', status: 'Under Development', note: 'A design target of StableChain Mainnet Beta.' },
   apn: { label: 'Aletheian PayNet (APN)', status: 'Under Development', note: 'Payment rails in design and testing.' },
   aey: { label: 'The Aletheian Guilder (AEY)', status: 'Planned', note: 'Not issued to the public. Any future issuance only through a licensed issuer.' },
   reserveBank: { label: 'Reserve Bank of Aletheia', status: 'Planned', note: 'The proposed monetary institution.' },
