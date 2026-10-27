@@ -124,7 +124,9 @@ pub fn open(file: &Value, password: &[u8]) -> Result<Secret<[u8; 32]>, WalletErr
 
 /// Opens the keystore file at `keystore` with the password in `password_file`, for daemons
 /// (`aletheiad`'s node key, the signer's consensus key) that cannot ask for it. One trailing
-/// newline is ignored. On Unix a password file that its group or others may read is refused.
+/// newline is ignored. On Unix a password file that others may read, or its group may write,
+/// is refused (systemd `LoadCredential=` hands credentials over as 0440 in a directory only the
+/// service can open).
 pub fn open_with_password_file(
     keystore: &std::path::Path,
     password_file: &std::path::Path,
@@ -136,9 +138,9 @@ pub fn open_with_password_file(
             .map_err(|e| WalletError(format!("{}: {e}", password_file.display())))?
             .permissions()
             .mode();
-        if mode & 0o077 != 0 {
+        if mode & 0o027 != 0 {
             return Err(WalletError(format!(
-                "{} may be read by others (mode {:o}); allow only its owner (chmod 600)",
+                "{} is open to others (mode {:o}); allow only its owner (chmod 600)",
                 password_file.display(),
                 mode & 0o777
             )));

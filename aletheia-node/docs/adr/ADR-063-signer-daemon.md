@@ -25,8 +25,9 @@ Decision:
      connects first and refuses to start (exit 78) when the signer is absent, holds a key
      other than the one registered, or is configured beside a plaintext consensus key.
   4. Software backend: the key is stored in the wallet keystore format (Argon2id 64 MiB, 3
-     passes; XChaCha20-Poly1305). The daemon reads the password from a file that its group
-     and others cannot read, delivered by systemd `LoadCredential=`. The node key, which
+     passes; XChaCha20-Poly1305). The daemon reads the password from a file that others cannot
+     read and its group cannot write, delivered by systemd `LoadCredential=` (0440 in a
+     directory only the service can open). The node key, which
      19.2 allows as an "encrypted file", uses the same format (`node_keystore`,
      `node_key_password_file`). Plaintext `node_key_file` and `consensus_key_file` stay
      devnet/regtest only.
