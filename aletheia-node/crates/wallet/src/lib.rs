@@ -22,7 +22,7 @@ pub mod uri;
 
 pub use flow::{Account, Rpc, Sent, Summary, TransferRequest, node_network, transfer};
 pub use http::HttpRpc;
-pub use uri::{PaymentUri, format_amount, parse_amount};
+pub use uri::{PaymentUri, asset_decimals, format_amount, parse_amount};
 
 /// What went wrong, in plain words. Never carries key material.
 #[derive(Debug, Clone, PartialEq, Eq)]

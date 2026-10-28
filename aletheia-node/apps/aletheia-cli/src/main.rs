@@ -446,10 +446,11 @@ async fn run(cli: Cli) -> Result<(), WalletError> {
             }
             let recipient = Address::parse(&to, network.network_kind())
                 .map_err(|e| fail(format!("recipient: {}", e.detail())))?;
+            let asset_id = asset(&asset_name)?;
             let request = TransferRequest {
                 recipient,
-                asset: asset(&asset_name)?,
-                amount: parse_amount(&amount, 18)?,
+                asset: asset_id,
+                amount: parse_amount(&amount, aletheia_wallet::asset_decimals(asset_id))?,
                 fee_asset: asset(&fee_asset)?,
                 max_fee,
                 eu_limit,

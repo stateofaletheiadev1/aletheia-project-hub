@@ -17,7 +17,7 @@ use aletheia_crypto::{Ed25519SigningKey, Secret};
 use serde_json::{Value, json};
 
 use crate::WalletError;
-use crate::uri::format_amount;
+use crate::uri::{asset_decimals, format_amount};
 
 /// One JSON-RPC call by method name with named parameters; returns `result` or the error.
 pub trait Rpc: Send + Sync {
@@ -243,7 +243,7 @@ pub async fn transfer(
         from: from.to_text(kind),
         recipient: request.recipient.to_text(kind),
         asset: asset_name(request.asset),
-        amount: format_amount(request.amount, 18),
+        amount: format_amount(request.amount, asset_decimals(request.asset)),
         fee_estimate: simulated
             .get("fee")
             .and_then(|f| f.get("display"))

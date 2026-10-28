@@ -310,3 +310,25 @@ fn payment_uris_round_trip_and_check_the_network() {
     let fine = text.replace("125.000000000000000005", "1.0000000000000000001");
     assert!(PaymentUri::parse(&fine, NetworkKind::Devnet, 18).is_err());
 }
+
+#[test]
+fn amounts_use_each_assets_own_decimals() {
+    use aletheia_wallet::{asset_decimals, format_amount, parse_amount};
+    // 1 ALnT is 1,000 Mites; reading it with AEY's 18 decimals asked for more than the supply.
+    assert_eq!(asset_decimals(AssetId::ALNT), 3);
+    assert_eq!(asset_decimals(AssetId::AEY), 18);
+    assert_eq!(
+        parse_amount("1000", asset_decimals(AssetId::ALNT)).unwrap(),
+        1_000_000
+    );
+    assert_eq!(
+        parse_amount("1.5", asset_decimals(AssetId::ALNT)).unwrap(),
+        1_500
+    );
+    assert!(parse_amount("0.0001", asset_decimals(AssetId::ALNT)).is_err());
+    assert_eq!(
+        parse_amount("1", asset_decimals(AssetId::AEY)).unwrap(),
+        1_000_000_000_000_000_000
+    );
+    assert_eq!(format_amount(1_500, asset_decimals(AssetId::ALNT)), "1.500");
+}

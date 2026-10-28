@@ -15,6 +15,16 @@ pub struct PaymentUri {
     pub memo: Option<String>,
 }
 
+/// Display decimals of an asset (Section 18.3): AEY 18, ALnT 3 (1 ALnT = 1,000 Mites). Other
+/// assets are written in base units.
+pub fn asset_decimals(asset: AssetId) -> u8 {
+    match asset {
+        AssetId::AEY => 18,
+        AssetId::ALNT => 3,
+        _ => 0,
+    }
+}
+
 /// `"125.5"` with 18 decimals → base units, exactly.
 pub fn parse_amount(text: &str, decimals: u8) -> Result<u128, WalletError> {
     let bad = || {
