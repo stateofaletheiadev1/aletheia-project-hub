@@ -9,13 +9,13 @@
 
 <svelte:head>
   <title>Arno Contracts · Aletheia Explorer</title>
-  <meta name="description" content="Arno, the contract language of Aletheia StableChain: readable code, money that cannot be copied or lost, declared effects and metered execution." />
+  <meta name="description" content="Arno, the contract language of AletheiaChain: readable code, money that cannot be copied or lost, declared effects and metered execution." />
 </svelte:head>
 
 <TopicHero
   eyebrow="Assets & Payments"
   title="Arno Contracts"
-  lede="Arno is StableChain's own contract language, written to read like plain English with the shape of Java. It is built for public money: coins in an Arno contract can be moved but never copied or silently lost, and every contract states up front what it is allowed to do."
+  lede="Arno is AletheiaChain's own contract language, written to read like plain English with the shape of Java. It is built for public money: coins in an Arno contract can be moved but never copied or silently lost, and every contract states up front what it is allowed to do."
   keys={[
     { icon: "shield", label: "Money safety", value: "Coins move; they never duplicate" },
     { icon: "layers", label: "Effects", value: "Declared on every function" },

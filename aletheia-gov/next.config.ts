@@ -69,6 +69,10 @@ const nextConfig: NextConfig = {
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
+  async redirects() {
+    // The ledger was named AletheiaChain (formerly StableChain).
+    return [{ source: "/projects/stablechain", destination: "/projects/aletheiachain", permanent: true }];
+  },
 };
 
 export default nextConfig;

@@ -4,7 +4,7 @@ Date: 2026-10-27
 Context: Spec Section 19.2 keeps high-value keys out of plaintext configuration on every
 network except devnet and regtest, and puts the consensus key in an HSM behind
 `aletheia-signer`. Until now only the in-process `LocalSigner` existed (Phase 5), so a
-`mainnet` or `private-validation` genesis could not run a validator at all. StableChain
+`mainnet` or `private-validation` genesis could not run a validator at all. AletheiaChain
 Mainnet Beta starts as a single validator on a Linux VPS without an HSM, expanding to several
 validators later.
 

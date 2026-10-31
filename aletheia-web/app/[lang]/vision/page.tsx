@@ -45,7 +45,7 @@ const MILESTONES = [
   {
     year: '2026',
     title: 'Founding Community & Digital Institutions',
-    desc: 'A founding community forming; this platform, the draft Constitution and the public record published; StableChain on Mainnet Beta.',
+    desc: 'A founding community forming; this platform, the draft Constitution and the public record published; AletheiaChain on Mainnet Beta.',
     status: 'Under Development' as const,
   },
   {

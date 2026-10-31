@@ -27,7 +27,7 @@
 
   const NAMES: Record<string, string> = { AEY: "Aletheian Guilder", ALnT: "Aletheia Talent" };
   const ROLES: Record<string, string> = {
-    AEY: "Legal tender of the Sovereign Covenant State of Aletheia, in banknotes and on StableChain.",
+    AEY: "Legal tender of the Sovereign Covenant State of Aletheia, in banknotes and on AletheiaChain.",
     ALnT: "The network's utility and staking asset; it pays transaction fees.",
   };
 

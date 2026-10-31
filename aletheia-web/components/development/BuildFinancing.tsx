@@ -23,8 +23,8 @@ export const FUNDING_SOURCES = [
   },
   {
     icon: Link2,
-    title: 'StableChain',
-    desc: 'Every contribution, payment and contract for the build recorded on StableChain, so that anyone can follow the money from receipt to the steel in the water. Once the network is live, its fixed fees would be paid to the Treasury.',
+    title: 'AletheiaChain',
+    desc: 'Every contribution, payment and contract for the build recorded on AletheiaChain, so that anyone can follow the money from receipt to the steel in the water. Once the network is live, its fixed fees would be paid to the Treasury.',
   },
 ];
 

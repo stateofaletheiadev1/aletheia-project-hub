@@ -31,11 +31,11 @@ export const faq: z.input<typeof Faq>[] = [
 		relatedLinks: [{ href: '/monetary-policy', label: 'Monetary policy' }]
 	},
 	{
-		id: 'what-is-the-relationship-between-aey-and-stablechain',
+		id: 'what-is-the-relationship-between-aey-and-aletheiachain',
 		group: 'currency',
-		question: 'What is the relationship between AEY and StableChain?',
+		question: 'What is the relationship between AEY and AletheiaChain?',
 		answer: [
-			'Aletheia StableChain is intended to carry the Guilder in digital form, alongside banknotes.'
+			'AletheiaChain is intended to carry the Guilder in digital form, alongside banknotes.'
 		],
 		relatedLinks: [{ href: '/currency#forms', label: 'Forms of the Guilder' }]
 	},

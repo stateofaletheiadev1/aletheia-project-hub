@@ -44,7 +44,7 @@ const REGISTRIES = [
     subtitle: 'Immutable Land Titles & Deepwater Concessions',
     status: 'Planned' as const,
     desc: 'Would record title deeds and leases on Aletheia’s platforms.',
-    specs: ['Coordinates anchored on StableChain', 'Lease records on the ledger', 'Fast title transfers', 'Lower title-insurance costs'],
+    specs: ['Coordinates anchored on AletheiaChain', 'Lease records on the ledger', 'Fast title transfers', 'Lower title-insurance costs'],
   },
 ];
 
@@ -79,13 +79,13 @@ export default function TechnologyPage() {
 
             <h1 className="heading-hero">{t("Digital State & National Registries")}</h1>
 
-            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("A paperless state, by design: every law, company charter, identity and title would be signed, timestamped and verifiable on the Aletheia StableChain, now on Mainnet Beta. The registries hold no records today.")}</p>
+            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("A paperless state, by design: every law, company charter, identity and title would be signed, timestamped and verifiable on the AletheiaChain, now on Mainnet Beta. The registries hold no records today.")}</p>
 
             <div className="flex flex-wrap gap-4 pt-2">
               <Link
-                href="/stablechain"
+                href="/aletheiachain"
                 className="px-6 py-2.5 bg-gold text-navy font-bold text-xs uppercase tracking-wider rounded-sm hover:bg-gold-tint transition-all flex items-center gap-2 shadow-lg shadow-gold/10"
-              >{t("StableChain Protocol Specs")}{' '}<ArrowRight className="w-3.5 h-3.5" />
+              >{t("AletheiaChain Protocol Specs")}{' '}<ArrowRight className="w-3.5 h-3.5" />
               </Link>
               <Link
                 href="/founding-members"
@@ -180,7 +180,7 @@ export default function TechnologyPage() {
               {tx(queryResult === 'none' && (
                 <div className="p-4 bg-navy/5 border border-navy/20 rounded-sm space-y-2 text-xs text-navy">
                   <div className="font-bold">{t("No record found")}</div>
-                  <div className="text-[11px] text-navy/70">{t("The State Registry has not published any records on the ledger yet. Records will be verifiable here once StableChain mainnet is running.")}</div>
+                  <div className="text-[11px] text-navy/70">{t("The State Registry has not published any records on the ledger yet. Records will be verifiable here once AletheiaChain mainnet is running.")}</div>
                 </div>
               ))}
             </form>

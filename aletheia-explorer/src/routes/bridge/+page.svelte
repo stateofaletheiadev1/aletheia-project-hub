@@ -7,7 +7,7 @@
 
 <svelte:head>
   <title>Cross-Chain Bridge · Aletheia Explorer</title>
-  <meta name="description" content="How AEY and bridged assets move between Aletheia StableChain and other chains: escrow, guardian quorums, limits, delays and pauses." />
+  <meta name="description" content="How AEY and bridged assets move between AletheiaChain and other chains: escrow, guardian quorums, limits, delays and pauses." />
 </svelte:head>
 
 <TopicHero

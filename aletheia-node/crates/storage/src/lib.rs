@@ -1,4 +1,4 @@
-//! Persistent storage for Aletheia StableChain (spec Sections 24, 42, 44.5): the `KvStore`
+//! Persistent storage for AletheiaChain (spec Sections 24, 42, 44.5): the `KvStore`
 //! contract and its backends, the consensus WAL, the block archive and the data-directory
 //! manifest. Every failure here is reported with the path or record involved; corruption
 //! and wrong-chain conditions are fail-stop.

@@ -1,4 +1,4 @@
-// Public endpoints of Aletheia StableChain (the same values the State's website publishes).
+// Public endpoints of AletheiaChain (the same values the State's website publishes).
 export const PUBLIC = {
   rpc: "https://rpc.stateofaletheia.org",
   rest: "https://rpc.stateofaletheia.org/api/v1",

@@ -93,7 +93,7 @@ export default function FoundingProgrammePage() {
             </h2>
             <div className="prose-ledger mt-8">
               <p>
-                Phases I and II are in development. The founding framework exists as a draft, the National Blueprint, and is being turned into versioned documents for this record. The StableChain node software and AletheiaDB are being written. This platform is the first public part of phase II.
+                Phases I and II are in development. The founding framework exists as a draft, the National Blueprint, and is being turned into versioned documents for this record. The AletheiaChain node software and AletheiaDB are being written. This platform is the first public part of phase II.
               </p>
               <p>
                 Phases III and IV are planned and have not started. Phase V is proposed. No date has been set for any phase to finish, and none will be published until it is decided.

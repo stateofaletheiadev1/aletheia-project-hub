@@ -88,7 +88,7 @@ export default function CentralBankPage() {
               </div>
               <div className="p-4 bg-white border border-navy/10 rounded-sm space-y-1">
                 <strong className="text-navy block font-bold">{t("Modern Payments:")}</strong>
-                <span>{t("Settlement in central bank money, the digital Guilder on the Aletheia StableChain, and payment standards aligned with European practice.")}</span>
+                <span>{t("Settlement in central bank money, the digital Guilder on the AletheiaChain, and payment standards aligned with European practice.")}</span>
               </div>
             </div>
           </div>

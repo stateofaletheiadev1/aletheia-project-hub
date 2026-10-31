@@ -67,7 +67,7 @@ export function NetworkDetails() {
         </div>
         <div className={row}>
           <span className={label}>{t('Network')}</span>
-          <span className={value}>{live && live.network !== 'mainnet' ? (<><span translate="no" data-i18n-skip="">{live.network}</span>{` · ${t('local node')}`}</>) : t('StableChain Mainnet Beta · chain 7770')}</span>
+          <span className={value}>{live && live.network !== 'mainnet' ? (<><span translate="no" data-i18n-skip="">{live.network}</span>{` · ${t('local node')}`}</>) : t('AletheiaChain Mainnet Beta · chain 7770')}</span>
         </div>
         <div className={row}>
           <span className={label}>{t('Chain ID')}</span>

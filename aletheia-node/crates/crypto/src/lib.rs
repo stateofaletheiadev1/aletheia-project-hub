@@ -1,4 +1,4 @@
-//! Wrapped cryptographic primitives for Aletheia StableChain (Section 17, APS-0037).
+//! Wrapped cryptographic primitives for AletheiaChain (Section 17, APS-0037).
 //!
 //! No custom primitives: Ed25519 comes from `ed25519-dalek`, BLS12-381 from `blst`, hashing
 //! from `blake3`. This crate fixes how they are used - strict verification, subgroup and

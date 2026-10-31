@@ -10,7 +10,7 @@ const ROUTES = only.length
   ? only
   : [
       "/", "/government", "/institutions", "/institutions/monetary-authority", "/founding-programme", "/projects",
-      "/projects/stablechain", "/opportunities", "/appointments", "/directory", "/documents", "/decisions",
+      "/projects/aletheiachain", "/opportunities", "/appointments", "/directory", "/documents", "/decisions",
       "/dispatches", "/public-finance", "/events", "/development", "/build-aletheia", "/search", "/contact",
       "/privacy", "/terms", "/accessibility", "/image-credits", "/sign-in", "/this-page-does-not-exist",
     ];

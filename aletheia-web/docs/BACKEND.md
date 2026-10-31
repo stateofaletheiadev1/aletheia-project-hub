@@ -79,7 +79,7 @@ The schema (collections and indexes) is `lib/server/schema.json`.
 - Writes must come from the site itself (Origin / Sec-Fetch-Site check).
 - Administrators only: console settings, creating officers, executing or dismissing rescissions.
 - Identity keys are Ed25519 pairs made in the browser with WebCrypto. Only the public key is sent; the private key is downloaded by the person.
-- AEY balances live in AletheiaDB (not on StableChain). Only administrators can issue AEY (Treasury); otherwise balances only move between accounts. A transfer debits and marks the sender in one atomic update, so a transfer interrupted by a crash is finished or marked failed on the next wallet read.
+- AEY balances live in AletheiaDB (not on AletheiaChain). Only administrators can issue AEY (Treasury); otherwise balances only move between accounts. A transfer debits and marks the sender in one atomic update, so a transfer interrupted by a crash is finished or marked failed on the next wallet read.
 
 ## API
 

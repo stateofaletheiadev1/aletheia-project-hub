@@ -34,7 +34,7 @@ const FOCUS: { href: string; title: string; kicker: string; desc?: string; image
   { href: '/energy', title: 'Clean energy', kicker: 'Benedict State · Vision', image: 'offshoreWind', span: 'md:col-span-1' },
   { href: '/education', title: 'Schools & university', kicker: 'Augustine State', image: 'libraryAisle', span: 'md:col-span-1' },
   { href: '/healthcare', title: 'Covenant healthcare', kicker: 'Health & Social Care', image: 'clinician', span: 'md:col-span-1' },
-  { href: '/stablechain', title: 'The digital state', kicker: 'StableChain Mainnet Beta & registries', image: 'earthNight', span: 'md:col-span-1' },
+  { href: '/aletheiachain', title: 'The digital state', kicker: 'AletheiaChain Mainnet Beta & registries', image: 'earthNight', span: 'md:col-span-1' },
 ];
 
 export default function HomePage() {
@@ -142,7 +142,7 @@ export default function HomePage() {
                   { label: 'Economy & AEY', href: '/economy' },
                   { label: 'The Seastead', href: '/development#seastead' },
                   { label: 'Roadmap', href: '/roadmap' },
-                  { label: 'StableChain', href: '/stablechain' },
+                  { label: 'AletheiaChain', href: '/aletheiachain' },
                 ].map(({ label, href }) => (
                   <Link
                     key={label}
@@ -183,7 +183,7 @@ export default function HomePage() {
                       { label: 'Territory', value: 'A seastead Aletheia owns' },
                       { label: 'Draft Constitution', value: '67 Proposed Articles' },
                       { label: 'Proposed Cabinet', value: 'Nine Ministries Max' },
-                      { label: 'StableChain Mainnet Beta', value: 'Target: ≈ 1 s Finality' },
+                      { label: 'AletheiaChain Mainnet Beta', value: 'Target: ≈ 1 s Finality' },
                     ].map(({ label, value }) => (
                       <div key={label} className="stat-tile p-3 rounded-sm text-left space-y-1">
                         <span className="text-[10px] font-bold tracking-[0.14em] uppercase text-gold/70 block">{tx(label)}</span>
@@ -253,7 +253,7 @@ export default function HomePage() {
                 desc: 'This website, the draft Constitution, the founding documents and the public record are published and open to inspection.',
               },
               {
-                num: '02', title: 'StableChain Protocol & APN', asset: 'stablechain' as const,
+                num: '02', title: 'AletheiaChain Protocol & APN', asset: 'stablechain' as const,
                 color: 'bg-gold',
                 desc: 'A Byzantine-fault-tolerant ledger on Mainnet Beta, designed for 500 ms slots, published supply rules and fixed-fee settlement.',
               },
@@ -583,7 +583,7 @@ export default function HomePage() {
             <div className="eyebrow" style={{ color: '#E4C689' }}>{t("Part IV: The Financial Operating System")}</div>
             <h2 className="text-4xl lg:text-5xl font-bold tracking-tight text-parchment leading-[1.1]">{t("Critical national payment")}<br />{t("infrastructure, not a crypto")}<br /><span className="text-gold-metallic">{t("experiment.")}</span>
             </h2>
-            <p className="text-parchment/68 text-base leading-relaxed font-light max-w-2xl">{t("Aletheia rejects volatile token speculation. It is developing StableChain, now on Mainnet Beta: a Byzantine-fault-tolerant ledger designed for 500 ms slots, finality in about a second, and fixed settlement fees.")}</p>
+            <p className="text-parchment/68 text-base leading-relaxed font-light max-w-2xl">{t("Aletheia rejects volatile token speculation. It is developing AletheiaChain, now on Mainnet Beta: a Byzantine-fault-tolerant ledger designed for 500 ms slots, finality in about a second, and fixed settlement fees.")}</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -607,12 +607,12 @@ export default function HomePage() {
             <div className="flex items-center gap-4">
               <Database className="w-5 h-5 text-gold flex-shrink-0" />
               <div>
-                <span className="text-sm font-semibold text-parchment block">{t("StableChain Core Specification v2.5")}</span>
+                <span className="text-sm font-semibold text-parchment block">{t("AletheiaChain Core Specification v2.5")}</span>
                 <span className="text-xs text-parchment/50">{t("Available for engineering audit — full technical specification.")}</span>
               </div>
             </div>
-            <Link href="/stablechain" className="btn-sovereign-gold px-6 py-3 rounded-sm text-xs font-bold uppercase tracking-wider flex items-center gap-2 group shrink-0">
-              <span>{t("Explore StableChain")}</span>
+            <Link href="/aletheiachain" className="btn-sovereign-gold px-6 py-3 rounded-sm text-xs font-bold uppercase tracking-wider flex items-center gap-2 group shrink-0">
+              <span>{t("Explore AletheiaChain")}</span>
               <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
@@ -649,7 +649,7 @@ export default function HomePage() {
                   <h3 className="font-bold text-navy">{t("Aletheian Cybersecurity Department")}</h3>
                   <span className="text-xs text-gold font-medium">{t("Protecting Digital Infrastructure")}</span>
                 </div>
-                <p className="text-xs text-navy/62 leading-relaxed flex-1">{t("A planned department to protect government networks, digital identity registries and StableChain validators.")}</p>
+                <p className="text-xs text-navy/62 leading-relaxed flex-1">{t("A planned department to protect government networks, digital identity registries and AletheiaChain validators.")}</p>
                 <Link href="/adss/cybersecurity" className="text-xs font-bold text-navy hover:text-gold flex items-center gap-1 transition-colors group">
                   <span>{t("Department Mandate & Disclosure")}</span>
                   <ChevronRight className="w-3.5 h-3.5 text-gold group-hover:translate-x-0.5 transition-transform" />

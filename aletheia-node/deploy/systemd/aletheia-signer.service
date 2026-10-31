@@ -1,7 +1,7 @@
 # systemd unit for the aletheia-signer daemon (ADR-063, docs/operations/vps.md section 2B).
 # Install to /etc/systemd/system/, then: systemctl daemon-reload && systemctl enable --now aletheia-signer
 [Unit]
-Description=Aletheia StableChain consensus signer
+Description=AletheiaChain consensus signer
 Documentation=file:///usr/share/doc/aletheia/vps.md
 Before=aletheiad.service
 StartLimitIntervalSec=600

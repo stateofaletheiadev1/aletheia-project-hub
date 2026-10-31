@@ -24,13 +24,13 @@
   const active = (href: string) => (href === "/" ? page.url.pathname === "/" : page.url.pathname.startsWith(href));
   const live = $derived(connected && (stats?.online ?? false));
   const feed = $derived(`${page.url.origin}/api/stream`);
-  // The badge follows the node: StableChain Mainnet Beta on a mainnet chain, a testnet otherwise.
+  // The badge follows the node: AletheiaChain Mainnet Beta on a mainnet chain, a testnet otherwise.
   const mainnet = $derived(stats?.network === "mainnet");
   const badge = $derived(mainnet ? "MAINNET BETA" : "TESTNET");
   const badgeTitle = $derived(
     mainnet
-      ? `StableChain Mainnet Beta · chain ${stats?.chainId ?? ""}`
-      : `StableChain testnet: balances carry no real value. Node network: ${stats?.network ?? "devnet"}`,
+      ? `AletheiaChain Mainnet Beta · chain ${stats?.chainId ?? ""}`
+      : `AletheiaChain testnet: balances carry no real value. Node network: ${stats?.network ?? "devnet"}`,
   );
 </script>
 

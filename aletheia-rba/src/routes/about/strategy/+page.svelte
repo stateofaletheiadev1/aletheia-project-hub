@@ -16,7 +16,7 @@
 		},
 		{
 			title: 'Payments that work',
-			body: 'Build safe settlement and payment infrastructure, with the digital Guilder on Aletheia StableChain.'
+			body: 'Build safe settlement and payment infrastructure, with the digital Guilder on AletheiaChain.'
 		},
 		{
 			title: 'Sound policy',

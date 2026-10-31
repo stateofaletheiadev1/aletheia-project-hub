@@ -8,7 +8,7 @@ import * as chromeLauncher from "chrome-launcher";
 import lighthouse from "lighthouse";
 
 const base = process.argv[2] ?? "http://localhost:3200";
-const PAGES = ["/", "/government", "/institutions", "/projects/stablechain", "/opportunities", "/search?q=treasury"];
+const PAGES = ["/", "/government", "/institutions", "/projects/aletheiachain", "/opportunities", "/search?q=treasury"];
 
 const BUDGET = {
   performance: 0.95,

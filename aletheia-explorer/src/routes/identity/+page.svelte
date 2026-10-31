@@ -7,7 +7,7 @@
 
 <svelte:head>
   <title>Identity & Residence · Aletheia Explorer</title>
-  <meta name="description" content="Identity, credentials and residence on StableChain: what issuers record, what never goes on chain, and how anyone can verify a credential." />
+  <meta name="description" content="Identity, credentials and residence on AletheiaChain: what issuers record, what never goes on chain, and how anyone can verify a credential." />
 </svelte:head>
 
 <TopicHero

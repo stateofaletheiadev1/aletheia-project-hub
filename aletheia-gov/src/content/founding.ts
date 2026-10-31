@@ -20,7 +20,7 @@ export const phases: Phase[] = [
     name: "Infrastructure",
     status: "in_development",
     aim: "Build the systems institutions will run on, before the institutions exist.",
-    work: ["Aletheia StableChain", "AletheiaDB", "This government platform and its workbench"],
+    work: ["AletheiaChain", "AletheiaDB", "This government platform and its workbench"],
   },
   {
     numeral: "III",

@@ -38,7 +38,7 @@ enum Output {
 }
 
 #[derive(Debug, Parser)]
-#[command(name = "aletheia-cli", version, about = "Aletheia StableChain client")]
+#[command(name = "aletheia-cli", version, about = "AletheiaChain client")]
 struct Cli {
     /// The node's RPC address (host:port).
     #[arg(long, global = true, default_value = "127.0.0.1:7781")]

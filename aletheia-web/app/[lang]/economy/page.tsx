@@ -28,7 +28,7 @@ const INVARIANTS = [
   { id: '2', label: 'Single Issuer', rule: 'Only the Reserve Bank of Aletheia may issue the Guilder, in banknotes or in digital form.' },
   { id: '3', label: 'Public Register', rule: 'Every issue and withdrawal is entered in a public register with its date and source document.' },
   { id: '4', label: 'No Budget Financing', rule: 'The Reserve Bank does not create money to finance the State’s budget.' },
-  { id: '5', label: 'Ledger Record', rule: 'Digital issuance is recorded on the Aletheia StableChain, where anyone can verify it.' },
+  { id: '5', label: 'Ledger Record', rule: 'Digital issuance is recorded on the AletheiaChain, where anyone can verify it.' },
   { id: '6', label: 'Independent Audit', rule: 'The register and the Bank’s accounts are examined by an independent auditor.' },
   { id: '7', label: 'Regular Reporting', rule: 'The Reserve Bank reports on a fixed calendar and publishes its statistics.' },
   { id: '8', label: 'Decided in Public', rule: 'Monetary policy is consulted on, adopted and published with its reasons.' },
@@ -38,7 +38,7 @@ const REVENUE_STREAMS = [
   {
     id: 'tx',
     title: 'Transaction Settlement Fees',
-    desc: 'Small fixed fees on StableChain settlement, under a published schedule.',
+    desc: 'Small fixed fees on AletheiaChain settlement, under a published schedule.',
     amount: 'Proposed',
     icon: <Zap className="w-4 h-4 text-gold" />,
   },
@@ -116,8 +116,8 @@ export default function EconomyPage() {
                 <span>{t("Explore the Aletheian Guilder (AEY)")}</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
-              <Link href="/stablechain" className="btn-sovereign-ghost px-8 py-3.5 rounded-sm text-sm flex items-center gap-2">
-                <span>{t("StableChain Protocol")}</span>
+              <Link href="/aletheiachain" className="btn-sovereign-ghost px-8 py-3.5 rounded-sm text-sm flex items-center gap-2">
+                <span>{t("AletheiaChain Protocol")}</span>
                 <Cpu className="w-4 h-4 text-gold" />
               </Link>
             </div>
@@ -180,7 +180,7 @@ export default function EconomyPage() {
             <div className="lg:col-span-7">
               <div className="mb-4">
                 <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-gold/80 block mb-1">{t("Eight Principles of Issuance")}</span>
-                <p className="text-[12px] text-navy/50">{t("Set by the Reserve Bank of Aletheia. Digital issuance is recorded on the Aletheia StableChain.")}</p>
+                <p className="text-[12px] text-navy/50">{t("Set by the Reserve Bank of Aletheia. Digital issuance is recorded on the AletheiaChain.")}</p>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {INVARIANTS.map((inv) => (
@@ -214,7 +214,7 @@ export default function EconomyPage() {
             <div className="space-y-6">
               <span className="label-parchment block">{t("Ledger Infrastructure · Mainnet Beta")}</span>
               <h2 className="text-4xl sm:text-5xl font-bold tracking-tight text-parchment leading-tight">{t("Aletheia")}{' '}
-                <span className="text-gold-metallic">{t("StableChain")}</span>
+                <span className="text-gold-metallic">{t("AletheiaChain")}</span>
               </h2>
               <div className="rule-gold max-w-xs" />
               <p className="text-parchment/65 leading-relaxed">{t("A Byzantine-fault-tolerant ledger designed for state operations, now running as Mainnet Beta: 500 ms slots, deterministic finality, a fixed fee schedule and published validator governance. Not a fork: its own protocol.")}</p>
@@ -239,13 +239,13 @@ export default function EconomyPage() {
                 <span className="text-[11px] text-parchment/50">{t("Mainnet Beta · reference implementation")}</span>
               </div>
 
-              <Link href="/stablechain" className="inline-flex items-center gap-2 px-5 py-2.5 border border-gold/30 text-parchment font-semibold text-[12px] uppercase tracking-wider rounded-[3px] hover:border-gold/60 transition-colors group">{t("StableChain Technical Docs")}{' '}<ArrowRight className="w-3.5 h-3.5 text-gold group-hover:translate-x-0.5 transition-transform" />
+              <Link href="/aletheiachain" className="inline-flex items-center gap-2 px-5 py-2.5 border border-gold/30 text-parchment font-semibold text-[12px] uppercase tracking-wider rounded-[3px] hover:border-gold/60 transition-colors group">{t("AletheiaChain Technical Docs")}{' '}<ArrowRight className="w-3.5 h-3.5 text-gold group-hover:translate-x-0.5 transition-transform" />
               </Link>
             </div>
 
             <div className="relative">
               <div className="bg-navy-deep/60 border border-gold/20 rounded-[4px] p-6 font-mono text-[11px] leading-6 text-parchment/70 space-y-1">
-                <span className="text-gold/60 block mb-3">{t("# StableChain Epoch Report — Slot #1,847,392")}</span>
+                <span className="text-gold/60 block mb-3">{t("# AletheiaChain Epoch Report — Slot #1,847,392")}</span>
                 <span className="text-parchment/40 block">{t("ledger_snapshot:")}</span>
                 <span className="pl-4 text-laurel block">{' '}{t("finality: 2 slots (≈ 1 s)")}</span>
                 <span className="pl-4 text-laurel block">{' '}{t("validators_signing: 4 of 4")}</span>
@@ -315,13 +315,13 @@ export default function EconomyPage() {
             <div className="space-y-6">
               <span className="text-[10px] font-bold tracking-[0.22em] uppercase text-gold block">{t("Business Platform · Proposed")}</span>
               <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-navy leading-tight">{t("Company formation, designed to take minutes.")}</h2>
-              <p className="text-navy/65 leading-relaxed">{t("A proposed digital company registry, anchored to StableChain: no paper filing, with each company record verifiable by anyone. It is not open; no company can be registered today.")}</p>
+              <p className="text-navy/65 leading-relaxed">{t("A proposed digital company registry, anchored to AletheiaChain: no paper filing, with each company record verifiable by anyone. It is not open; no company can be registered today.")}</p>
               <div className="space-y-3">
                 {[
                   { step: '01', label: 'Digital application', desc: 'A formation form completed online.' },
                   { step: '02', label: 'Compliance check', desc: 'Statutory screening, with reasons for any refusal.' },
                   { step: '03', label: 'Published fee', desc: 'A fee set by law and published in advance.' },
-                  { step: '04', label: 'Company charter', desc: 'The registration recorded on StableChain.' },
+                  { step: '04', label: 'Company charter', desc: 'The registration recorded on AletheiaChain.' },
                 ].map((s) => (
                   <div key={s.step} className="flex gap-4">
                     <span className="text-[10px] font-bold text-gold/70 font-mono pt-0.5 w-5 shrink-0">{tx(s.step)}</span>

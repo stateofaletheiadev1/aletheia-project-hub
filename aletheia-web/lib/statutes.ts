@@ -103,7 +103,7 @@ export const STATUTE_DATABASE: Record<string, StatuteDetail> = {
     hash: 'bee5ed66b8935fd4ee0c11db3adb79337ed73bdd5299f54a9dbd0476991b8450',
     preamble: 'An Act establishing the Aletheian Guilder (AEY) as the national currency and the Reserve Bank of Aletheia as its issuer, and prohibiting the monetary financing of the State.',
     sections: [
-      { number: 'Section 1', heading: 'The National Currency', text: 'The Aletheian Guilder (AEY) is the currency of the Sovereign Covenant State, issued by the Reserve Bank of Aletheia in banknotes and on the StableChain.' },
+      { number: 'Section 1', heading: 'The National Currency', text: 'The Aletheian Guilder (AEY) is the currency of the Sovereign Covenant State, issued by the Reserve Bank of Aletheia in banknotes and on the AletheiaChain.' },
       { number: 'Section 2', heading: 'Rules of Issuance', text: 'The Reserve Bank of Aletheia shall issue AEY only under rules it has adopted and published, and shall record every issue and withdrawal in a public register.' },
       { number: 'Section 3', heading: 'No Monetary Financing', text: 'The Reserve Bank of Aletheia shall not finance the expenditure of the State by issuing currency.' },
     ],

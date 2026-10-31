@@ -1,5 +1,5 @@
 // Security headers on every response. The site loads nothing from other origins except
-// photographs (images.unsplash.com) and StableChain status (rpc.stateofaletheia.org).
+// photographs (images.unsplash.com) and AletheiaChain status (rpc.stateofaletheia.org).
 const csp = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === 'production' ? '' : " 'unsafe-eval'"}`,
@@ -37,6 +37,9 @@ const nextConfig = {
       { source: '/host-nations', destination: '/development', permanent: true },
       { source: '/:lang(en|de|nl|sr|it)/host-nations', destination: '/:lang/development', permanent: true },
       { source: '/:lang(en|de|nl|sr|it)/passport', destination: '/:lang/design/travel-document', permanent: true },
+      // The ledger was named AletheiaChain (formerly StableChain).
+      { source: '/stablechain', destination: '/aletheiachain', permanent: true },
+      { source: '/:lang(en|de|nl|sr|it)/stablechain', destination: '/:lang/aletheiachain', permanent: true },
       // Gazette records renamed when they were rewritten as design and planning records (lib/gazette.ts).
       ...Object.entries({
         'icao-td3-passport-standard': 'travel-document-design-concept',

@@ -36,7 +36,7 @@ const ENGLISH = new RegExp(`\\b(${STOP.join('|')})\\b`, 'gi');
 // Serbian is written in Cyrillic, so any run of Latin words is suspect there
 // (acronyms, product names and codes excepted).
 const LATIN_WORDS = /\b[A-Za-z][a-z]{3,}\b/;
-const PROPER = /\b(StableChain|Aletheia|Manrope|Unsplash|Merkle|Groth16|Plonk|WebAuthn|Touch ID|Veritas in Foedere|Kaelen Vance Marine|Port Nicholas|Elena Vasquez)\b|did:aletheia:\S+/g;
+const PROPER = /\b(AletheiaChain|Aletheia|Manrope|Unsplash|Merkle|Groth16|Plonk|WebAuthn|Touch ID|Veritas in Foedere|Kaelen Vance Marine|Port Nicholas|Elena Vasquez)\b|did:aletheia:\S+/g;
 
 const translated = new Set(Object.values(messages).map((v) => v.trim()));
 

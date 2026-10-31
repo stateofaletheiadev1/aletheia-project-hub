@@ -29,7 +29,7 @@ const BENEFITS = [
   {
     icon: <Zap className="w-5 h-5 text-gold" />,
     title: 'Online Incorporation',
-    desc: 'Proposed: form a company online, with its charter recorded on StableChain.',
+    desc: 'Proposed: form a company online, with its charter recorded on AletheiaChain.',
   },
   {
     icon: <Shield className="w-5 h-5 text-gold" />,

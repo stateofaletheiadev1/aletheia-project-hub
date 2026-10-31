@@ -1,4 +1,4 @@
-//! Authenticated state for Aletheia StableChain (spec Sections 15, 16): state keys, the
+//! Authenticated state for AletheiaChain (spec Sections 15, 16): state keys, the
 //! copy-on-write overlay a block executes against, and the versioned Jellyfish Merkle Tree
 //! whose root every header commits to.
 

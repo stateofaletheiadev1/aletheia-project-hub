@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/search" },
 };
 
-const SUGGESTIONS = ["Reserve Bank", "StableChain", "proposed", "Treasury", "appointments", "Antioch"];
+const SUGGESTIONS = ["Reserve Bank", "AletheiaChain", "proposed", "Treasury", "appointments", "Antioch"];
 
 export default async function SearchPage(props: PageProps<"/search">) {
   const raw = (await props.searchParams).q;

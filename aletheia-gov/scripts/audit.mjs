@@ -7,7 +7,7 @@ import { chromium } from "playwright";
 const base = process.argv[2] ?? "http://localhost:3200";
 const ROUTES = [
   "/", "/government", "/institutions", "/institutions/monetary-authority", "/founding-programme", "/projects",
-  "/projects/stablechain", "/opportunities", "/appointments", "/directory", "/documents", "/decisions",
+  "/projects/aletheiachain", "/opportunities", "/appointments", "/directory", "/documents", "/decisions",
   "/dispatches", "/public-finance", "/events", "/development", "/build-aletheia", "/search", "/search?q=treasury",
   "/contact", "/privacy", "/terms", "/accessibility", "/image-credits", "/sign-in", "/no-such-page",
 ];

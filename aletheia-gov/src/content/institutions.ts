@@ -35,7 +35,7 @@ export const institutions: Institution[] = [
     ],
     responsibilities: [
       "Draft and maintain the founding constitutional and institutional framework",
-      "Build the State's digital infrastructure: StableChain, AletheiaDB and this platform",
+      "Build the State's digital infrastructure: AletheiaChain, AletheiaDB and this platform",
       "Recruit founding contributors and keep a public register of appointments",
       "Publish decisions, documents and public-finance records with official references",
     ],
@@ -102,7 +102,7 @@ export const institutions: Institution[] = [
     featured: true,
     mandate: "Audits public spending and publishes verifiable proofs against the public ledger.",
     summary: [
-      "An independent office reporting to the Covenant Assembly. Its task is to check that every public payment matches its authorisation, and to publish proofs anyone can verify against the StableChain ledger.",
+      "An independent office reporting to the Covenant Assembly. Its task is to check that every public payment matches its authorisation, and to publish proofs anyone can verify against the AletheiaChain ledger.",
     ],
     responsibilities: ["Audit public accounts", "Publish verifiable proofs of spending", "Report to the Covenant Assembly"],
     basis: BLUEPRINT,
@@ -120,7 +120,7 @@ export const institutions: Institution[] = [
       "It is deliberately separate from the Treasury: the body that issues money does not spend it, and may not lend to the State.",
       "No reserves, pegs, payment rails or banking relationships are operational. Any that become operational will be published here with evidence.",
     ],
-    responsibilities: ["Issue the AEY under published rules", "Publish the issuance register", "Oversee payment systems, including the StableChain monetary layer"],
+    responsibilities: ["Issue the AEY under published rules", "Publish the issuance register", "Oversee payment systems, including the AletheiaChain monetary layer"],
     basis: BLUEPRINT,
   },
   {

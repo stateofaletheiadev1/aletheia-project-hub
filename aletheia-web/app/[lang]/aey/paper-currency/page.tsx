@@ -68,7 +68,7 @@ const BANKNOTES: BanknoteSpec[] = [
     colourway: 'Covenant Violet',
     accent: '#5B4A8B',
     portrait: 'Civic portrait with the Antioch seal',
-    frontMotif: 'StableChain DAG lattice and entropy formula beside the Antioch crest, with a holographic stripe whose latent image is revealed at 45°.',
+    frontMotif: 'AletheiaChain DAG lattice and entropy formula beside the Antioch crest, with a holographic stripe whose latent image is revealed at 45°.',
     backMotif: 'The concentric hexagonal masterplan of Antioch with the Aletheian Covenant State Seal and the Open Public Ledger.',
     backInscription: 'Open public ledger · cryptographic proof',
   },
@@ -127,8 +127,8 @@ const TENDER_FORMS = [
   {
     icon: Zap,
     eyebrow: 'Digital',
-    title: 'StableChain AEY',
-    body: 'The same guilder as a digital balance on the Aletheia StableChain: final in about a second, citizen cards and wallets, and enterprise settlement.',
+    title: 'AletheiaChain AEY',
+    body: 'The same guilder as a digital balance on the AletheiaChain: final in about a second, citizen cards and wallets, and enterprise settlement.',
   },
   {
         icon: Globe,
@@ -187,7 +187,7 @@ export default function AeyPaperCurrencyPage() {
               <h1 className="heading-hero">{t("The AEY")}<br />
                 <span className="text-gold-metallic">{t("Paper Series")}</span></h1>
 
-              <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light max-w-xl">{t("The Aletheian Guilder in paper: five engraved denominations, designed to sit alongside digital AEY on the Aletheia StableChain as the currency of the Sovereign Covenant State.")}</p>
+              <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light max-w-xl">{t("The Aletheian Guilder in paper: five engraved denominations, designed to sit alongside digital AEY on the AletheiaChain as the currency of the Sovereign Covenant State.")}</p>
 
               <AeyNotice tone="dark" className="max-w-xl" />
 
@@ -237,7 +237,7 @@ export default function AeyPaperCurrencyPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 md:divide-x divide-gold/15 gap-y-2">
             {[
               { value: '5', label: 'Denominations', sublabel: '1 · 5 · 10 · 20 · 100 AEY' },
-              { value: '2', label: 'Forms', sublabel: 'Banknotes & StableChain AEY' },
+              { value: '2', label: 'Forms', sublabel: 'Banknotes & AletheiaChain AEY' },
               { value: '5', label: 'Banknote Designs', sublabel: '1 to 100 AEY' },
               { value: 'RBA', label: 'Issuer', sublabel: 'Reserve Bank of Aletheia' },
             ].map(({ value, label, sublabel }) => (
@@ -448,9 +448,9 @@ export default function AeyPaperCurrencyPage() {
       {/* ── PAPER OR STABLECHAIN ── */}
       <section className="py-16 lg:py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="text-center max-w-2xl mx-auto mb-12 space-y-3">
-          <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">{t("Paper or StableChain")}</span>
+          <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">{t("Paper or AletheiaChain")}</span>
           <h2 className="text-3xl font-bold text-navy tracking-tight">{t("One Guilder, Two Forms")}</h2>
-          <p className="text-xs sm:text-sm text-navy/70 leading-relaxed">{t("Many people still prefer physical money to crypto. The AEY banknote gives them a tangible guilder, while StableChain AEY serves instant digital settlement.")}</p>
+          <p className="text-xs sm:text-sm text-navy/70 leading-relaxed">{t("Many people still prefer physical money to crypto. The AEY banknote gives them a tangible guilder, while AletheiaChain AEY serves instant digital settlement.")}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -480,7 +480,7 @@ export default function AeyPaperCurrencyPage() {
             <ArrowLeftRight className="w-5 h-5 text-gold mx-auto rotate-90 md:rotate-0" aria-hidden="true" />
             <div className="stat-tile p-4 rounded-sm space-y-1">
               <span className="text-[10px] font-bold tracking-[0.14em] uppercase text-gold/70 block">{t("Digital")}</span>
-              <span className="text-sm font-bold text-parchment block">{t("StableChain AEY")}</span>
+              <span className="text-sm font-bold text-parchment block">{t("AletheiaChain AEY")}</span>
             </div>
             <ArrowRight className="w-5 h-5 text-gold mx-auto rotate-90 md:rotate-0" aria-hidden="true" />
             <div className="stat-tile p-4 rounded-sm space-y-1">
@@ -488,7 +488,7 @@ export default function AeyPaperCurrencyPage() {
               <span className="text-sm font-bold text-parchment block">{t("Reserve Bank of Aletheia")}</span>
             </div>
           </div>
-          <p className="mt-5 text-[11px] font-mono text-parchment/55 text-center leading-relaxed">{t("Banknotes and StableChain AEY are the same currency, issued by one institution and recorded in one register.")}</p>
+          <p className="mt-5 text-[11px] font-mono text-parchment/55 text-center leading-relaxed">{t("Banknotes and AletheiaChain AEY are the same currency, issued by one institution and recorded in one register.")}</p>
         </div>
       </section>
 
@@ -517,7 +517,7 @@ export default function AeyPaperCurrencyPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
           <Layers className="w-9 h-9 text-gold mx-auto" />
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-parchment">{t("One Guilder, Paper or Digital")}</h2>
-          <p className="text-xs sm:text-sm text-parchment/70 max-w-xl mx-auto leading-relaxed">{t("Every AEY, engraved or on the Aletheia StableChain, would be the same currency, issued by the Reserve Bank of Aletheia. Explore the proposed digital currency and the institution behind both.")}</p>
+          <p className="text-xs sm:text-sm text-parchment/70 max-w-xl mx-auto leading-relaxed">{t("Every AEY, engraved or on the AletheiaChain, would be the same currency, issued by the Reserve Bank of Aletheia. Explore the proposed digital currency and the institution behind both.")}</p>
           <div className="flex flex-wrap justify-center gap-4 pt-2">
             <Link
               href="/aey"

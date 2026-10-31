@@ -40,7 +40,7 @@ const PAYMENT_INSTRUMENTS = [
   {
     instrument: 'Aletheia Wallet',
     formFactor: 'Mobile & Desktop App with Hardware Enclave',
-    rail: 'StableChain Native Peer-to-Peer Routing',
+    rail: 'AletheiaChain Native Peer-to-Peer Routing',
     velocity: '500 ms Deterministic Slot',
     fee: 'Proposed: free person-to-person',
     security: 'Secure Enclave biometric unlock, multi-sig Covenant recovery, instant QR transfer',
@@ -48,7 +48,7 @@ const PAYMENT_INSTRUMENTS = [
   {
     instrument: 'Enterprise Core Settlement (B2B)',
     formFactor: 'REST & JSON-RPC 2.0 Ledger Interfaces',
-    rail: 'StableChain Smart Contract Clearing',
+    rail: 'AletheiaChain Smart Contract Clearing',
     velocity: 'Continuous Real-Time Batching',
     fee: 'Fixed Fee per Execution Unit',
     security: 'Multi-institutional HSM signers, programmable escrow, automated audit trails',
@@ -108,7 +108,7 @@ export default function AeyCurrencyPage() {
               <h1 className="heading-hero">{t("The Aletheian")}<br />
                 <span className="text-gold-metallic">{t("Guilder")}</span>{' '}{t("(AEY)")}</h1>
 
-              <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light max-w-2xl">{t("The proposed national currency of the Sovereign Covenant State of Aletheia, to be issued by the Reserve Bank of Aletheia in two forms: engraved AEY banknotes and digital AEY on the Aletheia StableChain.")}{' '}<strong className="text-parchment/90">{t("One currency. Paper or digital. One public record.")}</strong>
+              <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light max-w-2xl">{t("The proposed national currency of the Sovereign Covenant State of Aletheia, to be issued by the Reserve Bank of Aletheia in two forms: engraved AEY banknotes and digital AEY on the AletheiaChain.")}{' '}<strong className="text-parchment/90">{t("One currency. Paper or digital. One public record.")}</strong>
               </p>
 
               <AeyNotice tone="dark" className="max-w-2xl" />
@@ -171,7 +171,7 @@ export default function AeyCurrencyPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 md:divide-x divide-gold/15 gap-y-2">
             {[
               { value: '5', label: 'Banknote Denominations', sublabel: '1 · 5 · 10 · 20 · 100 AEY' },
-              { value: '2', label: 'Forms of the Currency', sublabel: 'Banknotes & StableChain' },
+              { value: '2', label: 'Forms of the Currency', sublabel: 'Banknotes & AletheiaChain' },
               { value: 'Fiat', label: 'Monetary Model', sublabel: 'Issued under published rules' },
               { value: '≈ 1 s', label: 'Block Finality', sublabel: 'Two 500 ms slots, 2-chain BFT' },
             ].map(({ value, label, sublabel }) => (
@@ -190,7 +190,7 @@ export default function AeyCurrencyPage() {
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
           <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">{t("Paper & Digital")}</span>
           <h2 className="text-3xl font-bold text-navy tracking-tight">{t("Digital Rails, by Design")}</h2>
-          <p className="text-xs sm:text-sm text-navy/70 leading-relaxed">{t("The AEY is designed to exist as engraved banknotes and as digital balances on the Aletheia StableChain: one unit, one issuer, one public register.")}</p>
+          <p className="text-xs sm:text-sm text-navy/70 leading-relaxed">{t("The AEY is designed to exist as engraved banknotes and as digital balances on the AletheiaChain: one unit, one issuer, one public register.")}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
@@ -225,7 +225,7 @@ export default function AeyCurrencyPage() {
             </div>
           </div>
 
-          {/* Digital StableChain Rail Card */}
+          {/* Digital AletheiaChain Rail Card */}
           <div className="bg-white border border-navy/15 rounded-sm p-8 space-y-6 hover:shadow-md transition-shadow">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-sm bg-navy text-gold flex items-center justify-center">
@@ -233,11 +233,11 @@ export default function AeyCurrencyPage() {
               </div>
               <div>
                 <span className="text-[11px] font-mono text-gold uppercase tracking-wider block">{t("Cryptographic State Rail")}</span>
-                <h3 className="text-lg font-bold text-navy">{t("Digital AEY (StableChain Native)")}</h3>
+                <h3 className="text-lg font-bold text-navy">{t("Digital AEY (AletheiaChain Native)")}</h3>
               </div>
             </div>
 
-            <p className="text-xs text-navy/70 leading-relaxed">{t("Designed as the native unit of settlement on the Aletheia StableChain. Payments would be final in about a second. Nothing is issued today.")}</p>
+            <p className="text-xs text-navy/70 leading-relaxed">{t("Designed as the native unit of settlement on the AletheiaChain. Payments would be final in about a second. Nothing is issued today.")}</p>
 
             <div className="space-y-3 pt-2 border-t border-navy/10 text-xs">
               <div className="flex items-start gap-2">

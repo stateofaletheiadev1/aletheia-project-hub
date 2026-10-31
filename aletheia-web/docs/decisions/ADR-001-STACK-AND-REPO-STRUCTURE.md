@@ -45,7 +45,7 @@ aletheia-web/
 │   ├── citizenship/           # Rights, naturalisation, Covenant Oath
 │   ├── e-residency/           # Digital state access, business registration
 │   ├── immigration/           # Public immigration service & application
-│   ├── economy/               # Treasury, Central Bank, AEY, StableChain
+│   ├── economy/               # Treasury, Central Bank, AEY, AletheiaChain
 │   ├── development/           # Architectural zones, map, infrastructure
 │   ├── portal/                # Citizen, E-Resident & Applicant Dashboards
 │   ├── admin/                 # High-density secure government administration

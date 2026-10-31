@@ -1,4 +1,4 @@
-//! Protocol foundation for Aletheia StableChain: strong types, protocol errors, canonical
+//! Protocol foundation for AletheiaChain: strong types, protocol errors, canonical
 //! encoding (ACE), network identity with domain-separated hashing, and the text forms of
 //! addresses, transaction IDs, block IDs and binary values.
 //!

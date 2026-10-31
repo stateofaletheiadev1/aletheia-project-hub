@@ -82,7 +82,7 @@ const DIRECTORATES: { id: string; code: string; title: string; subtitle: string;
     icon: <Lock className="w-6 h-6 text-gold" />,
     asset: 'cyber',
     href: '/adss/cybersecurity',
-    mandate: 'A planned standalone department to protect StableChain validators, government systems and critical networks from cyber threats.',
+    mandate: 'A planned standalone department to protect AletheiaChain validators, government systems and critical networks from cyber threats.',
     capabilities: [
       'Validator protection',
       'A computer emergency response team',
@@ -312,10 +312,10 @@ export default function ADSSPage() {
                 <StatusBadge asset="cyber" size="sm" />
               </div>
               <h2 className="text-3xl font-bold tracking-tight text-navy leading-tight">{t("Cybersecurity Department: protecting the ledger.")}</h2>
-              <p className="text-navy/65 leading-relaxed">{t("For a digital-first state, the StableChain validators would be critical national infrastructure. The planned Cybersecurity Department would be a standalone agency, independent of the ministries, to keep politics out of technical security decisions.")}</p>
+              <p className="text-navy/65 leading-relaxed">{t("For a digital-first state, the AletheiaChain validators would be critical national infrastructure. The planned Cybersecurity Department would be a standalone agency, independent of the ministries, to keep politics out of technical security decisions.")}</p>
               <div className="space-y-2">
                 {[
-                  { icon: <Cpu className="w-3.5 h-3.5 text-gold" />, label: 'StableChain Validator Protection' },
+                  { icon: <Cpu className="w-3.5 h-3.5 text-gold" />, label: 'AletheiaChain Validator Protection' },
                   { icon: <Zap className="w-3.5 h-3.5 text-gold" />, label: 'Computer Emergency Response Team (planned)' },
                   { icon: <Lock className="w-3.5 h-3.5 text-gold" />, label: 'Coordinated Vulnerability Disclosure' },
                   { icon: <Eye className="w-3.5 h-3.5 text-gold" />, label: 'National Infrastructure Threat Intelligence' },

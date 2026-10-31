@@ -1,4 +1,4 @@
-//! Execution for Aletheia StableChain (spec Sections 13, 20, 22, 23, 38, 43, 44): transaction
+//! Execution for AletheiaChain (spec Sections 13, 20, 22, 23, 38, 43, 44): transaction
 //! validation, versioned rule sets, deterministic ordering, the block executor, genesis and
 //! the protocol schedule.
 

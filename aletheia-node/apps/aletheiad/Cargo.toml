@@ -1,6 +1,6 @@
 [package]
 name = "aletheiad"
-description = "The Aletheia StableChain node daemon."
+description = "The AletheiaChain node daemon."
 version.workspace = true
 edition.workspace = true
 license.workspace = true

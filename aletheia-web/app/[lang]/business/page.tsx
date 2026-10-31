@@ -226,7 +226,7 @@ export default function BusinessPage() {
                 04
               </span>
               <h4 className="text-sm font-bold text-navy">{t("Registry Inscription")}</h4>
-              <p className="text-xs text-navy/70 leading-relaxed">{t("The charter is recorded on StableChain. Banking would depend on licensed partner institutions.")}</p>
+              <p className="text-xs text-navy/70 leading-relaxed">{t("The charter is recorded on AletheiaChain. Banking would depend on licensed partner institutions.")}</p>
             </div>
           </div>
         </div>

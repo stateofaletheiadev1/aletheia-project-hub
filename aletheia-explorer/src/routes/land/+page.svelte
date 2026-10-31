@@ -15,13 +15,13 @@
 
 <svelte:head>
   <title>Land Registry · Aletheia Explorer</title>
-  <meta name="description" content="The land registry of the Sovereign Covenant State on StableChain: parcels, transfers, encumbrances and a history that can never be rewritten." />
+  <meta name="description" content="The land registry of the Sovereign Covenant State on AletheiaChain: parcels, transfers, encumbrances and a history that can never be rewritten." />
 </svelte:head>
 
 <TopicHero
   eyebrow="Sovereign Services"
   title="Land Registry"
-  lede="Every parcel of the State is recorded on StableChain with its controller, its class, its charges and its complete history. Each change is a signed transaction in a final block, so the registry's history can be proven and never quietly rewritten."
+  lede="Every parcel of the State is recorded on AletheiaChain with its controller, its class, its charges and its complete history. Each change is a signed transaction in a final block, so the registry's history can be proven and never quietly rewritten."
   keys={[
     { icon: "shield", label: "Kept by", value: "Land authorities named by governance" },
     { icon: "layers", label: "History", value: "Append-only, provable entry by entry" },

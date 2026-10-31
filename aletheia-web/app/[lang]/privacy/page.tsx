@@ -50,7 +50,7 @@ export default function PrivacyPage() {
           id: 'ledger',
           heading: 'What never goes on the ledger',
           body: (
-            <p>{t("Personal data, identity documents, biometrics and medical records are never written to StableChain. The ledger stores only cryptographic hashes and receipts that prove a record exists, or that consent was given, without revealing its content. This makes erasure possible: deleting the underlying record leaves an unreadable hash behind.")}</p>
+            <p>{t("Personal data, identity documents, biometrics and medical records are never written to AletheiaChain. The ledger stores only cryptographic hashes and receipts that prove a record exists, or that consent was given, without revealing its content. This makes erasure possible: deleting the underlying record leaves an unreadable hash behind.")}</p>
           ),
         },
         {

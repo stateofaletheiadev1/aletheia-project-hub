@@ -38,7 +38,7 @@ export async function generateMetadata({ params }: LayoutProps<'/[lang]'>): Prom
     },
     description: t('The founding-phase platform of the Sovereign Covenant State of Aletheia, a seasteading new-country project. Veritas in Foedere.'),
     metadataBase: new URL(SITE_URL),
-    keywords: ['Aletheia', 'Sovereign Covenant State', 'new country project', 'seasteading', 'Constitution', 'StableChain', 'founding members'],
+    keywords: ['Aletheia', 'Sovereign Covenant State', 'new country project', 'seasteading', 'Constitution', 'AletheiaChain', 'founding members'],
     openGraph: {
       title: name,
       description: t('The founding-phase platform of the Sovereign Covenant State of Aletheia, a seasteading new-country project. Veritas in Foedere.'),

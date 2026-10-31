@@ -6,7 +6,7 @@
 
   const inScope = [
     ["The node", "aletheiad: consensus, block execution, the mempool, peer-to-peer networking, storage and recovery."],
-    ["The protocol", "StableChain's rules: transaction validity, fees, the AEY supply invariants, governance, registries, the payment network and the bridge."],
+    ["The protocol", "AletheiaChain's rules: transaction validity, fees, the AEY supply invariants, governance, registries, the payment network and the bridge."],
     ["The public RPC", "The REST and JSON-RPC interfaces at rpc.stateofaletheia.org, including input handling and rate limits."],
     ["Wallet and CLI", "aletheia-cli and the wallet library: key derivation, the encrypted keystore, signing and network checks."],
     ["This explorer", "aletheiascan.mainnet.stateofaletheia.org: what it displays, how it reads the node, and its browser security."],
@@ -53,14 +53,14 @@
 
 <svelte:head>
   <title>Security Policy · Aletheia Explorer</title>
-  <meta name="description" content="How to report a vulnerability in Aletheia StableChain, its RPC, wallet, explorer or platform, and how reports are handled." />
+  <meta name="description" content="How to report a vulnerability in AletheiaChain, its RPC, wallet, explorer or platform, and how reports are handled." />
 </svelte:head>
 
 <section class="hero container">
   <p class="eyebrow">Protocol resources</p>
   <h1>Security Policy</h1>
   <p class="lede">
-    Aletheia StableChain carries the legal tender of the Sovereign Covenant State. If you find a weakness in the chain, its
+    AletheiaChain carries the legal tender of the Sovereign Covenant State. If you find a weakness in the chain, its
     software or the State's platform, please tell us privately so it can be fixed before anyone can misuse it. Reports go to the
     State's computer security incident response team, CSIRT-ALE.
   </p>

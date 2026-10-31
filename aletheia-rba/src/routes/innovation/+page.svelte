@@ -25,7 +25,7 @@
 	<dl>
 		<div>
 			<dt>Digital money</dt>
-			<dd>The digital Guilder on Aletheia StableChain, issued only by the Bank.</dd>
+			<dd>The digital Guilder on AletheiaChain, issued only by the Bank.</dd>
 		</div>
 		<div>
 			<dt>Payments</dt>

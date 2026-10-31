@@ -93,7 +93,7 @@ describe('FAQ', () => {
 			'what-is-the-aletheian-guilder',
 			'what-does-fiat-currency-mean',
 			'what-are-the-banknote-denominations',
-			'what-is-the-relationship-between-aey-and-stablechain',
+			'what-is-the-relationship-between-aey-and-aletheiachain',
 			'who-will-issue-the-guilder'
 		]) {
 			expect(ids).toContain(id);

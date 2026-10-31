@@ -20,9 +20,9 @@
 
 <section class="hero container">
   <div class="title">
-    <p class="eyebrow">Sovereign Covenant State of Aletheia · StableChain</p>
+    <p class="eyebrow">Sovereign Covenant State of Aletheia · AletheiaChain</p>
     <h1>Consensus & Ledger Dashboard</h1>
-    <p class="lede">Real-time finalized block stream and network health of Aletheia StableChain.</p>
+    <p class="lede">Real-time finalized block stream and network health of AletheiaChain.</p>
   </div>
   <SearchBox />
 </section>

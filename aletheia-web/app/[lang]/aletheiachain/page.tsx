@@ -18,7 +18,7 @@ import { LiveChainCard, LiveChainStrip } from '@/components/stablechain/LiveChai
 import { NetworkDetails } from '@/components/stablechain/NetworkDetails';
 import { STABLECHAIN } from '@/lib/stablechain';
 
-export default function StableChainPage() {
+export default function AletheiaChainPage() {
   const { t } = useI18n();
 
   return (
@@ -47,11 +47,11 @@ export default function StableChainPage() {
                 <StatusBadge asset="stablechain" size="sm" />
               </div>
 
-              <h1 className="heading-hero">{t("Aletheia")}<br />
-                <span className="text-gold-metallic">{t("StableChain")}</span>
+              <h1 className="heading-hero">
+                Aletheia<span className="text-gold-metallic">Chain</span>
               </h1>
 
-              <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light max-w-2xl">{t("The ledger Aletheia is developing, now running as Mainnet Beta and reference implementation. It is designed for 500 ms slots with deterministic finality, a fixed fee schedule, and native registries for statutes, companies and public spending.")}</p>
+              <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light max-w-2xl">{t("AletheiaChain is Aletheia’s public ledger, the stablechain that holds its currencies. It runs today as Mainnet Beta and reference implementation, designed for 500 ms slots with deterministic finality, a fixed fee schedule, and native registries for statutes, companies and public spending.")}</p>
 
               <div className="flex flex-wrap gap-4 pt-2">
                 <Link
@@ -101,7 +101,7 @@ export default function StableChainPage() {
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
           <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">{t("Protocol Engineering")}</span>
           <h2 className="text-3xl font-bold text-navy tracking-tight">{t("Built for Constitutional Governance")}</h2>
-          <p className="text-xs sm:text-sm text-navy/70 leading-relaxed">{t("Unlike speculative public blockchains, StableChain is designed as a high-integrity public utility with no congestion pricing.")}</p>
+          <p className="text-xs sm:text-sm text-navy/70 leading-relaxed">{t("Unlike speculative public blockchains, AletheiaChain is designed as a high-integrity public utility with no congestion pricing.")}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -137,7 +137,7 @@ export default function StableChainPage() {
           <div className="bg-navy-deep border border-burgundy/30 rounded-sm px-5 py-4 flex items-start gap-3">
             <ShieldCheck className="w-5 h-5 text-gold shrink-0 mt-0.5" />
             <p className="text-sm text-parchment/80 leading-relaxed">
-              <strong className="text-parchment">{t("StableChain runs today as Mainnet Beta, its reference implementation.")}</strong>{' '}{t("It carries no real value. No AEY or other asset is issued, sold or offered to the public. Read-only access is provided for transparency and review.")}</p>
+              <strong className="text-parchment">{t("AletheiaChain runs today as Mainnet Beta, its reference implementation.")}</strong>{' '}{t("It carries no real value. No AEY or other asset is issued, sold or offered to the public. Read-only access is provided for transparency and review.")}</p>
           </div>
 
           <AeyNotice tone="dark" />

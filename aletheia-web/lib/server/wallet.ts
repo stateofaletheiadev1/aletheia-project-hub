@@ -8,7 +8,7 @@ import { accountPii, accounts, type StoredAccount } from './accounts';
 import type { StoredOfficer } from './officers';
 import { audit, nextReference, notify } from './records';
 
-// AEY balances of portal accounts, kept in AletheiaDB (not on StableChain).
+// AEY balances of portal accounts, kept in AletheiaDB (not on AletheiaChain).
 //
 // AEY enters only by Treasury issuance: an administrator credits an account, with a stated
 // reason, and the issuance is audited. Otherwise AEY only moves between accounts.

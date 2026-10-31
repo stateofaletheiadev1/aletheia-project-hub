@@ -40,7 +40,7 @@ export function LiveChainCard() {
   const num = (n: number) => n.toLocaleString(intl);
 
   if (status === null) {
-    return <div className="relative z-10 text-center py-6 text-xs text-parchment/50 font-mono">{t('Contacting the StableChain RPC…')}</div>;
+    return <div className="relative z-10 text-center py-6 text-xs text-parchment/50 font-mono">{t('Contacting the AletheiaChain RPC…')}</div>;
   }
 
   if (!status.live) {
@@ -48,7 +48,7 @@ export function LiveChainCard() {
       <div className="relative z-10 space-y-5">
         <div className="text-center space-y-2">
           <SourceBadge status={status} />
-          <div className="text-2xl font-bold text-parchment">{t('Aletheia StableChain Mainnet')}</div>
+          <div className="text-2xl font-bold text-parchment">{t('AletheiaChain Mainnet')}</div>
           <p className="text-xs text-parchment/60 leading-relaxed max-w-xs mx-auto">
             {t('Live block figures appear here when the online RPC or a local node answers.')}
           </p>

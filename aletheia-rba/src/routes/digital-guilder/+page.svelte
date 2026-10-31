@@ -5,7 +5,7 @@
 {#snippet what()}
 	<p class="t-lead">The same Guilder as the banknote, held and paid in digital form.</p>
 	<p>
-		The digital Guilder is intended to be carried on Aletheia StableChain, the State’s settlement
+		The digital Guilder is intended to be carried on AletheiaChain, the State’s settlement
 		ledger, and issued only by the Reserve Bank of Aletheia.
 	</p>
 {/snippet}
@@ -42,7 +42,7 @@
 <SimplePage
 	title="The Digital Guilder"
 	headTitle="The digital Guilder."
-	description="The Aletheian Guilder in digital form, intended to be carried on Aletheia StableChain and issued by the Reserve Bank of Aletheia."
+	description="The Aletheian Guilder in digital form, intended to be carried on AletheiaChain and issued by the Reserve Bank of Aletheia."
 	path="/digital-guilder"
 	trail={[
 		{ href: '/currency', label: 'The Guilder' },

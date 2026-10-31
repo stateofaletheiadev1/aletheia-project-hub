@@ -13,7 +13,7 @@
 		},
 		{
 			label: 'Infrastructure',
-			title: 'Aletheia StableChain',
+			title: 'AletheiaChain',
 			body: 'The State’s settlement ledger, intended to carry the Guilder in digital form and to keep a public record. It is designed for fast finality and an open, verifiable history.'
 		},
 		{
@@ -72,7 +72,7 @@
 			id="ledger-title"
 		/>
 		<p class="t-lead measure">
-			Issuance in digital form is intended to be recorded on Aletheia StableChain, so that the
+			Issuance in digital form is intended to be recorded on AletheiaChain, so that the
 			register of the Guilder can be checked by anyone.
 		</p>
 	</div>

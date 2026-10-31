@@ -1,7 +1,7 @@
-# Aletheia StableChain --- Master Engineering Specification & Claude Code Handoff (v4.0 --- Rust)
+# AletheiaChain --- Master Engineering Specification & Claude Code Handoff (v4.0 --- Rust)
 
 **Project:** Sovereign Covenant State of Aletheia
-**System:** Aletheia StableChain
+**System:** AletheiaChain
 **National currency:** AEY --- the **Aletheian Guilder**
 **Document:** Master Engineering Prompt v4.0 --- Rust Core + APS Foundation + DSP v0.1 + Arno v0.1 + APN + Aletheian PayNet Integration + External Rail Interoperability + Chain Continuity + AEY Monetary & Physical Cash Architecture
 **Core Implementation Language:** Rust (stable toolchain, pinned per repository)
@@ -282,13 +282,13 @@ not a mechanical language substitution. The protocol intent and sound
 consensus/monetary decisions from v2.5 are retained unless explicitly
 changed below.
 
-1.  **Rust replaces C++23** for the StableChain node, validator,
+1.  **Rust replaces C++23** for the AletheiaChain node, validator,
     consensus engine, state machine, storage layer, P2P stack, RPC
     services, monetary modules, Arno VM, signer, gateway and protocol
     tooling where Rust is appropriate.
 2.  **Arno remains the native smart-contract language.** Quorlin is not
     substituted for Arno. Arno remains Pascal/Delphi-style and is part
-    of Aletheia StableChain's identity.
+    of AletheiaChain's identity.
 3.  **No EVM, Solidity, Ethereum execution model, Cosmos SDK, Substrate
     or imported blockchain consensus implementation.**
 4.  **A Cargo workspace replaces the C++ build system.** Dependency versions are
@@ -305,16 +305,16 @@ changed below.
     Mainnet is launched once the private validation, audit, recovery and
     readiness gates are satisfied.
 7.  **AEY has two physical forms of the same monetary unit:** digital
-    AEY on StableChain and physical AEY banknotes issued by the Aletheia
+    AEY on AletheiaChain and physical AEY banknotes issued by the Aletheia
     Monetary Authority. Converting between forms does not create or
     destroy monetary value. Physical cash is represented in the monetary
     accounting model without placing personal cash transactions
     on-chain.
 8.  **Financial interoperability is a first-class subsystem.**
-    StableChain exposes standards-compatible interfaces for ISO 20022
+    AletheiaChain exposes standards-compatible interfaces for ISO 20022
     and external-rail gateways. SWIFT, SEPA, Fedwire, instant-payment
     systems, correspondent banks and PSPs are reached through authorized
-    institutions and rail adapters; StableChain does not claim direct
+    institutions and rail adapters; AletheiaChain does not claim direct
     membership in a rail merely because an adapter exists.
 9.  **The Aletheia Payment Network (APN) remains distinct from external
     rails.** APN is Aletheia's internal participant, payment, messaging,
@@ -335,7 +335,7 @@ Aletheia applications / national portal / wallets / banks / enterprises
                        REST / JSON-RPC
                               │
                  ┌────────────▼────────────┐
-                 │      StableChain        │
+                 │      AletheiaChain        │
                  │      Rust node          │
                  ├─────────────────────────┤
                  │ DSP BFT consensus       │
@@ -640,7 +640,7 @@ monetary unit and are reconciled by the Monetary Authority.
           bonds                                Bonds** issued as       
                                                native AEY-denominated  
                                                instruments on the      
-                                               StableChain; coupons    
+                                               AletheiaChain; coupons    
                                                and principal paid      
                                                automatically from      
                                                Treasury accounts       
@@ -721,7 +721,7 @@ be copied into the repository root as `CLAUDE.md`.
 ## 1.1 `CLAUDE.md` (place at repo root)
 
 ``` markdown
-# CLAUDE.md — Aletheia StableChain
+# CLAUDE.md — AletheiaChain
 
 ## Prime directives
 1. The spec at docs/spec/MASTER.md is authoritative. Do not silently change protocol decisions.
@@ -822,7 +822,7 @@ A PR that leaves any of the four blank is not reviewed.
 
 # 2. Product and System Vision
 
-Aletheia StableChain is the foundational digital financial and state
+AletheiaChain is the foundational digital financial and state
 infrastructure layer for the Aletheia project.
 
 The chain must support:
@@ -2631,7 +2631,7 @@ rotated via governance, and listed in state (namespace 65 parameters).
 ## 18.6 Physical AEY Banknotes --- Same Monetary Unit, Separate Settlement Form
 
 AEY is a **dual-form monetary unit**: digital AEY exists as balances on
-StableChain; physical AEY exists as banknotes issued by the Aletheia
+AletheiaChain; physical AEY exists as banknotes issued by the Aletheia
 Monetary Authority. There is no second currency and no independent
 paper-money supply.
 
@@ -2639,7 +2639,7 @@ Physical banknotes are bearer instruments and MUST NOT contain personal
 identity data. The protocol does not record the identity of a person
 spending cash. The Monetary Authority maintains the authoritative
 off-chain note inventory and production/custody controls, while
-StableChain maintains the monetary liability and aggregate
+AletheiaChain maintains the monetary liability and aggregate
 cash-outstanding accounting needed for supply reconciliation.
 
 ### Physical-cash model
@@ -2677,7 +2677,7 @@ These operations are privileged Monetary Authority operations and
 require the same authorization, audit and fail-safe standards as other
 monetary operations.
 
-Counterfeit detection is an off-chain physical control. StableChain MUST
+Counterfeit detection is an off-chain physical control. AletheiaChain MUST
 never claim that a note is genuine merely because its serial appears in
 a ledger. A note-status query can report issuance/retirement state
 without becoming a substitute for physical authentication.
@@ -5126,7 +5126,7 @@ ISO 20022 → protocol mapping (pacs.008 excerpt, versioned in
 
 ### Rail-access principle
 
-StableChain is **rail-neutral and institution-mediated**. The existence
+AletheiaChain is **rail-neutral and institution-mediated**. The existence
 of an adapter does not grant Aletheia, APN or any participant membership
 in SWIFT, SEPA, Fedwire or another regulated payment system. Production
 connectivity requires the applicable legal entity, account,
@@ -5790,13 +5790,13 @@ rail, not against mocks that return 200.
 ## 40D.1 What PayNet Is, and Where the Boundary Runs
 
 **Aletheian PayNet** is the payment rail that runs on Aletheia
-StableChain: the operator and platform that onboards participants,
+AletheiaChain: the operator and platform that onboards participants,
 exposes participant and customer APIs, runs APN messaging nodes, the
 ISO 20022 gateway and the external rail adapters, keeps the
 customer-facing payment ledger, screens, enforces limits, and supports
 wallets, merchants and government disbursements. APN (Section 40B) is
 the **scheme** --- rules, identifiers, message flows. PayNet is the
-**operator and platform** that runs it. StableChain is the **settlement
+**operator and platform** that runs it. AletheiaChain is the **settlement
 layer** and the authority for everything on-chain.
 
 PayNet is a separate deployable system with its own repository,
@@ -5806,7 +5806,7 @@ chain never depends on PayNet: if PayNet is down, the chain keeps
 finalizing and every other participant keeps settling.
 
   ------------------------------------------------------------------------------------------
-  Concern                               Owned by StableChain             Owned by PayNet
+  Concern                               Owned by AletheiaChain             Owned by PayNet
   ------------------------------------- -------------------------------- -------------------
   Final settlement of AEY               ✓ (finality = settlement)
 
@@ -7053,7 +7053,7 @@ independent builders comparing hashes.
 
 # 44. Chain Continuity and Protocol Evolution (APS-0036, APS-0054, APS-0055) **\[CONSENSUS-CRITICAL\] \[DECISION ADR-029, ADR-030\]**
 
-Aletheia StableChain is national monetary infrastructure. It will gain
+AletheiaChain is national monetary infrastructure. It will gain
 features for decades. Every one of those features must arrive without
 stopping the chain's history: **the chain is born once, at genesis, and
 never again.**
@@ -8883,7 +8883,7 @@ systemd unit:
 ``` ini
 # deployments/systemd/aletheiad.service
 [Unit]
-Description=Aletheia StableChain node
+Description=AletheiaChain node
 After=network-online.target ptp4l.service
 Wants=network-online.target
 
@@ -9546,7 +9546,7 @@ custom cryptography, recoverability over fragile performance tricks,
 stability over peak throughput, and measured performance over
 theoretical claims.**
 
-The final result must be a genuine native Aletheia StableChain
+The final result must be a genuine native AletheiaChain
 implemented in Rust, with Arno as its native contract language, the
 Aletheian Guilder (AEY) as the national currency of the Sovereign
 Covenant State of Aletheia in both digital and physical form, APN as its integrated payment/settlement layer operated through

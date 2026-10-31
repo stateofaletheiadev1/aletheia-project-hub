@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 };
 
 const AREAS: { name: string; status: InstitutionalStatus; text: string }[] = [
-  { name: "Digital infrastructure", status: "in_development", text: "StableChain, AletheiaDB and this platform. Built now, because they need no place." },
+  { name: "Digital infrastructure", status: "in_development", text: "AletheiaChain, AletheiaDB and this platform. Built now, because they need no place." },
   { name: "Institutions and law", status: "in_development", text: "The founding framework and the institutions it creates, drafted and published as versioned documents." },
   { name: "Monetary and fiscal rules", status: "planned", text: "Issuance rules for the Aletheian Guilder and standards for Treasury reporting." },
   { name: "Energy and water", status: "proposed", text: "A framework for clean generation and desalination, prepared as technical and legal drafts." },

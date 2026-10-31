@@ -16,13 +16,13 @@
 
 <svelte:head>
   <title>Payment Network · Aletheia Explorer</title>
-  <meta name="description" content="The Aletheia Payment Network: how bank payments settle in AEY on StableChain, who may send what, limits, de-duplication and external legs." />
+  <meta name="description" content="The Aletheia Payment Network: how bank payments settle in AEY on AletheiaChain, who may send what, limits, de-duplication and external legs." />
 </svelte:head>
 
 <TopicHero
   eyebrow="Assets & Payments"
   title="Payment Network"
-  lede="The Aletheia Payment Network lets banks and payment institutions settle their customers' payments in AEY directly on StableChain. A payment is final when its block is final, about a second after it is sent: no clearing house, no settlement cycle, no end-of-day batch."
+  lede="The Aletheia Payment Network lets banks and payment institutions settle their customers' payments in AEY directly on AletheiaChain. A payment is final when its block is final, about a second after it is sent: no clearing house, no settlement cycle, no end-of-day batch."
   keys={[
     { icon: "swap", label: "Settles in", value: "AEY, final in about a second" },
     { icon: "shield", label: "Participants", value: "Admitted by governance" },
@@ -81,7 +81,7 @@
   <Topic n={5} title="Payments to and from other systems" wide>
     <p>
       When one side of a payment is outside Aletheia, for example a SEPA Instant transfer to a European bank, the AEY is locked in
-      an escrow on StableChain while a licensed gateway completes the external leg. The escrow then either <strong>settles</strong>
+      an escrow on AletheiaChain while a licensed gateway completes the external leg. The escrow then either <strong>settles</strong>
       (the external payment succeeded) or is <strong>released</strong> back to the payer (it did not). It can never do both, and it
       never resolves by time alone. The chain checks after every block that the escrowed AEY matches the escrow account exactly.
     </p>

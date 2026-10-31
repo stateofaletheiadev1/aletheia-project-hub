@@ -74,7 +74,7 @@ export default function PortalResidencyStatusPage() {
             {[
               {
                 title: 'Remote Company Formation',
-                desc: 'Establish and administer 100% tax-free SARL or AG corporations within 15 minutes on StableChain.',
+                desc: 'Establish and administer 100% tax-free SARL or AG corporations within 15 minutes on AletheiaChain.',
                 active: true,
               },
               {

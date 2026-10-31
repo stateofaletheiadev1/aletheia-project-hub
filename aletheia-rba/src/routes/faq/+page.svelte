@@ -13,7 +13,7 @@
 
 <Seo
 	title="Frequently Asked Questions · Aletheian Guilder"
-	description="Plain answers about the Aletheian Guilder: whether it has been issued, fiat currency, euro reserves and conversion, banknote designs and StableChain."
+	description="Plain answers about the Aletheian Guilder: whether it has been issued, fiat currency, euro reserves and conversion, banknote designs and AletheiaChain."
 	path="/faq"
 	jsonLd={[faqPage(faq)]}
 />

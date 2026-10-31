@@ -88,9 +88,9 @@
 			</article>
 			<article class="form">
 				<p class="t-meta form__label">Digital</p>
-				<h3 class="t-h3">Aletheia StableChain</h3>
+				<h3 class="t-h3">AletheiaChain</h3>
 				<p>
-					The Guilder is intended to be carried in digital form on Aletheia StableChain, with the
+					The Guilder is intended to be carried in digital form on AletheiaChain, with the
 					same value as the banknote and the same single issuer.
 				</p>
 			</article>

@@ -7,7 +7,7 @@ export const PUBLIC_ROUTES = [
   "/institutions/ministry-digital-state",
   "/founding-programme",
   "/projects",
-  "/projects/stablechain",
+  "/projects/aletheiachain",
   "/projects/aletheiadb",
   "/opportunities",
   "/appointments",

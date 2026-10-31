@@ -8,7 +8,7 @@ import { ArrowRight, Building2, Landmark, Users, FileCheck2, KeyRound, EyeOff } 
 
 const DESIGN = [
   { icon: FileCheck2, title: 'What it would record', desc: 'Citizens, lawful residents, e-residents and companies, each entered with the date and the document that created the entry.' },
-  { icon: KeyRound, title: 'How it would be checked', desc: 'Each entry would be hashed onto StableChain, so its existence can be proved without publishing anything personal.' },
+  { icon: KeyRound, title: 'How it would be checked', desc: 'Each entry would be hashed onto AletheiaChain, so its existence can be proved without publishing anything personal.' },
   { icon: EyeOff, title: 'What it would never publish', desc: 'Personal data stays off the ledger and encrypted. Only counts and hashes would be public.' },
 ];
 

@@ -59,7 +59,7 @@
 
 <svelte:head>
   <title>Network Analytics · Aletheia Explorer</title>
-  <meta name="description" content="Block production, transactions and execution units on Aletheia StableChain, minute by minute and hour by hour." />
+  <meta name="description" content="Block production, transactions and execution units on AletheiaChain, minute by minute and hour by hour." />
 </svelte:head>
 
 <PageHead

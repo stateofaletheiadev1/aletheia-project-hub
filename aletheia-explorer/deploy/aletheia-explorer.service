@@ -1,7 +1,7 @@
 # systemd unit for the Aletheia explorer (SvelteKit, adapter-node). It reads a full node's RPC
 # on loopback and serves on 127.0.0.1:3000 behind nginx. Install to /etc/systemd/system/.
 [Unit]
-Description=Aletheia StableChain explorer
+Description=AletheiaChain explorer
 After=network-online.target aletheiad.service
 Wants=network-online.target
 

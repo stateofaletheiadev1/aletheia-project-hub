@@ -20,13 +20,13 @@
 
 <svelte:head>
   <title>Governance · Aletheia Explorer</title>
-  <meta name="description" content="How the Sovereign Covenant State governs StableChain: the council, proposals, votes, timelocks and the closed list of actions." />
+  <meta name="description" content="How the Sovereign Covenant State governs AletheiaChain: the council, proposals, votes, timelocks and the closed list of actions." />
 </svelte:head>
 
 <TopicHero
   eyebrow="Consensus & Staking"
   title="Governance"
-  lede="StableChain changes only by open, recorded decisions of the council. Every proposal, every vote and every change is a transaction on the ledger, and every change waits out a public notice period before it takes effect."
+  lede="AletheiaChain changes only by open, recorded decisions of the council. Every proposal, every vote and every change is a transaction on the ledger, and every change waits out a public notice period before it takes effect."
   keys={[
     { icon: "shield", label: "Decided by", value: "A council of 1 to 32 members, M of N" },
     { icon: "clock", label: "Notice before a change", value: "From immediate to 8 epochs" },

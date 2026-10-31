@@ -66,14 +66,14 @@ One unified force under strict civilian command, eliminating inter-service frict
 4. **Police Directorate:** Civilian community policing, criminal investigations, road and harbor safety (institutionally distinct from military command).
 5. **Immigration Directorate:** Border control, visa issuance, biometric verification, compliance monitoring (directly integrates with public Immigration Portal & Officer Admin).
 6. **Intelligence Directorate:** Strategic situational awareness, constitutional accountability, counter-espionage (strictly limited by privacy statutes).
-7. **Aletheian Cybersecurity Department (MANDATORY):** Critical national infrastructure security, StableChain validator defense, government communication protection, CERT/CSIRT, vulnerability disclosure.
+7. **Aletheian Cybersecurity Department (MANDATORY):** Critical national infrastructure security, AletheiaChain validator defense, government communication protection, CERT/CSIRT, vulnerability disclosure.
 8. **Emergency & Civil Protection:** Fire, maritime rescue, flood/storm mitigation, emergency broadcast system.
 
 ---
 
 ## 5. Economic & Monetary Architecture
 
-- **Sovereign Ledger (StableChain):**
+- **Sovereign Ledger (AletheiaChain):**
   - High-performance, Byzantine Fault Tolerant distributed ledger (500 ms slots, 512-slot epochs).
   - Native settlement rail for all public finance, identity verification, and land registry.
   - Zero gas speculation or volatile tokens for gas; fixed fee schedule in micro-cents.
@@ -99,7 +99,7 @@ One unified force under strict civilian command, eliminating inter-service frict
 - Format: ICAO Doc 9303 compliant electronic machine-readable passport (eMRTD).
 - Cover: **Covenant Burgundy (`#701824`)** with gold-foil arms and chip symbol.
 - Five languages on all field labels (English, German, Dutch, Serbian, Italian).
-- Contactless chip with status verifiable against the StableChain Identity Registry (zero PII on-chain).
+- Contactless chip with status verifiable against the AletheiaChain Identity Registry (zero PII on-chain).
 
 ---
 

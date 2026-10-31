@@ -18,7 +18,7 @@ import { Anchor, ArrowRight, Building2, CheckCircle, Cpu, Fish, Globe, Graduatio
 
 const DISTRICTS = [
   { name: 'Civic Core', ring: 'Ring 0 — Central', desc: 'The Constitutional Plaza, Covenant Assembly Hall, High Court and Chancellery, arranged around the Star of Truth.', icon: Building2 },
-  { name: 'Financial Quarter', ring: 'Ring 1 — Inner', desc: 'Treasury, the Reserve Bank of Aletheia, the StableChain validator cluster and licensed financial institutions.', icon: Cpu },
+  { name: 'Financial Quarter', ring: 'Ring 1 — Inner', desc: 'Treasury, the Reserve Bank of Aletheia, the AletheiaChain validator cluster and licensed financial institutions.', icon: Cpu },
   { name: 'Maritime & Port District', ring: 'Ring 2 — Coastal', desc: 'A coastguard station, customs and immigration facilities and a free-trade processing zone.', icon: Anchor },
   { name: 'Energy & Industrial Zone', ring: 'Ring 3 — Perimeter', desc: 'Offshore wind substation, SMR facility, hydrogen production and desalination infrastructure.', icon: Zap },
   { name: 'Residential Cantons', ring: 'Rings 1–2 — Interspersed', desc: 'Four mixed-use cantons with mandatory green coverage, woven between civic and commercial zones.', icon: TreePine },
@@ -28,7 +28,7 @@ const DISTRICTS = [
 const PRINCIPLES = [
   { label: 'Six Radial Avenues', desc: 'Emanating from the Constitutional Plaza, each named after a founding covenant principle.' },
   { label: 'Hexagonal Block Grid', desc: 'Consistent with the Star of Truth motif — efficiency, symmetry and civic legibility.' },
-  { label: 'Ledger-First Infrastructure', desc: 'Land titles, building permits and utility connections recorded immutably on StableChain.' },
+  { label: 'Ledger-First Infrastructure', desc: 'Land titles, building permits and utility connections recorded immutably on AletheiaChain.' },
   { label: '40% Green Coverage', desc: 'A proposed constitutional floor on residential and civic zones, with no development without tree offsets.' },
   { label: 'Underground Utility Spine', desc: 'Power, water, fibre and waste routed below grade to protect the street-level civic realm.' },
   { label: 'Walkable 15-Minute City', desc: 'Every residence within a 15-minute walk of work, school, healthcare and transit.' },
@@ -104,7 +104,7 @@ const STATES: State[] = [
 ];
 
 const ROADMAP: { year: string; title: string; status: ManualStatus }[] = [
-  { year: '2026', title: 'Founding community, digital institutions & StableChain Mainnet Beta', status: 'Under Development' },
+  { year: '2026', title: 'Founding community, digital institutions & AletheiaChain Mainnet Beta', status: 'Under Development' },
   { year: '2027', title: 'Founding entity, legal counsel & seastead engineering research', status: 'Planned' },
   { year: '2027–2028', title: 'Platform design, site survey & seed funding', status: 'Planned' },
   { year: '2029–2030', title: 'A pilot platform, built and owned by Aletheia', status: 'Planned' },

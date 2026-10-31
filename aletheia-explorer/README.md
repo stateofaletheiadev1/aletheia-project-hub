@@ -1,6 +1,6 @@
 # Aletheia Explorer
 
-The public explorer of Aletheia StableChain, the ledger of the Sovereign Covenant State of
+The public explorer of AletheiaChain, the ledger of the Sovereign Covenant State of
 Aletheia. Design and data path: ADR-060 in `../aletheia-node/docs/adr/`.
 
 ## Run it

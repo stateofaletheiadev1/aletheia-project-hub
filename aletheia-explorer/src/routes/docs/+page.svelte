@@ -82,14 +82,14 @@ Finalized        #${SAMPLE_HEIGHT.toLocaleString("en")}   ${SAMPLE_BLOCK}`;
 
 <svelte:head>
   <title>Developer Docs · Aletheia Explorer</title>
-  <meta name="description" content="The Aletheia StableChain RPC: REST and JSON-RPC reference, identifiers, amounts, transactions, errors and the CLI." />
+  <meta name="description" content="The AletheiaChain RPC: REST and JSON-RPC reference, identifiers, amounts, transactions, errors and the CLI." />
 </svelte:head>
 
 <section class="hero container">
   <p class="eyebrow">Protocol resources</p>
   <h1>Developer Docs</h1>
   <p class="lede">
-    Everything needed to read Aletheia StableChain and to send transactions to it: the public RPC, its REST and JSON-RPC
+    Everything needed to read AletheiaChain and to send transactions to it: the public RPC, its REST and JSON-RPC
     interfaces, how identifiers and amounts are written, and the command-line client. Every example on this page is a real
     response from a running node.
   </p>

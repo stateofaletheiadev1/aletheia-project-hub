@@ -1,7 +1,7 @@
 # systemd unit for aletheiad (docs/operations/vps.md). Install to
 # /etc/systemd/system/aletheiad.service, then: systemctl daemon-reload && systemctl enable --now aletheiad
 [Unit]
-Description=Aletheia StableChain node
+Description=AletheiaChain node
 Documentation=file:///usr/share/doc/aletheia/vps.md
 After=network-online.target
 Wants=network-online.target

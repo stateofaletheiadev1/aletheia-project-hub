@@ -7,10 +7,10 @@ Tick each item when reviewed. Source for structural content: National Blueprint,
 
 | Item | Status shown | Why | Reviewed |
 |---|---|---|---|
-| The Founding Government | In formation | Work is assigned and under way (StableChain, AletheiaDB, this platform) | ☐ |
+| The Founding Government | In formation | Work is assigned and under way (AletheiaChain, AletheiaDB, this platform) | ☐ |
 | All other institutions (9) and all nine ministries | Proposed | Described in the draft framework only | ☐ |
 | Programme: Constitutional and institutional framework | In development | Blueprint draft exists and is being turned into documents | ☐ |
-| Programme: Aletheia StableChain | In development | Node software being written; no public network | ☐ |
+| Programme: AletheiaChain | In development | Node software being written; no public network | ☐ |
 | Programme: Government platform | In development | This site | ☐ |
 | Programme: AletheiaDB | In development | Phases 0 to 1 complete locally | ☐ |
 | Programme: Maritime and ports framework | Proposed | | ☐ |
@@ -33,7 +33,7 @@ Tick each item when reviewed. Source for structural content: National Blueprint,
 - [ ] `/build-aletheia`: "Every position states whether it is paid; founding and volunteer roles are unpaid unless the role states approved compensation."
 - [ ] Kinds of position offered (`src/content/positions.ts`): founding, permanent, fixed-term, advisory, volunteer. Confirm the list and the descriptions.
 - [ ] `/contact`: no enquiry channels published yet. Add real addresses when staffed.
-- [ ] Outbound links: `https://stateofaletheia.org/stablechain`.
+- [ ] Outbound links: `https://stateofaletheia.org/aletheiachain`.
 
 ## Production data
 

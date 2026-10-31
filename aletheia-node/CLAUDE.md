@@ -1,4 +1,4 @@
-# CLAUDE.md — Aletheia StableChain
+# CLAUDE.md — AletheiaChain
 
 ## Prime directives
 1. The spec at docs/spec/MASTER.md is authoritative. Do not silently change protocol decisions.

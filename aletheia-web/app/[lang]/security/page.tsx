@@ -39,7 +39,7 @@ const DIRECTORATES: { id: string; title: string; tag: string; asset?: AssetKey; 
     title: 'Cybersecurity Department',
     tag: 'Digital Infrastructure',
     asset: 'cyber',
-    mandate: 'Would protect the StableChain validators, identity registries, power grids and telecommunications from cyber attack.',
+    mandate: 'Would protect the AletheiaChain validators, identity registries, power grids and telecommunications from cyber attack.',
     assets: ['Computer emergency response team', 'Hardware-held keys', 'Threat intelligence', 'Zero-trust architecture'],
   },
 ];

@@ -50,7 +50,7 @@
         <h2>Sovereign Covenant State of Aletheia</h2>
         <p class="motto">Veritas in Foedere</p>
         <p class="line">
-          Aletheia StableChain carries the State's legal tender, the Aletheian Guilder. Every block here is final, and every
+          AletheiaChain carries the State's legal tender, the Aletheian Guilder. Every block here is final, and every
           figure is read from finalized state.
         </p>
       </div>
@@ -83,7 +83,7 @@
     <div class="base">
       <div class="mark">
         <Crest size={22} />
-        <span>© 2026 Sovereign Covenant State of Aletheia · Aletheia StableChain. All rights reserved.</span>
+        <span>© 2026 Sovereign Covenant State of Aletheia · AletheiaChain. All rights reserved.</span>
       </div>
       <span class="note">Every figure on this site is read from finalized blocks.</span>
     </div>

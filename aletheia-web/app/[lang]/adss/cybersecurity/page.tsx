@@ -9,7 +9,7 @@ import { ServerCrash, KeyRound, Cpu, Bug, ArrowRight } from 'lucide-react';
 import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
 
 const MANDATES = [
-  { icon: ServerCrash, title: 'Validator Protection', desc: 'DDoS protection, network failover and hardware security modules isolating the signing keys of StableChain validators.' },
+  { icon: ServerCrash, title: 'Validator Protection', desc: 'DDoS protection, network failover and hardware security modules isolating the signing keys of AletheiaChain validators.' },
   { icon: KeyRound, title: 'Post-Quantum Cryptography', desc: 'A planned move to standardised post-quantum algorithms, so records signed today stay safe in future.' },
   { icon: Cpu, title: 'Isolated Control Systems', desc: 'Industrial control systems in energy and port facilities kept off the public internet, by design.' },
   { icon: Bug, title: 'Coordinated Disclosure', desc: 'A clear way for researchers to report vulnerabilities, with acknowledgement and credit.' },
@@ -36,7 +36,7 @@ export default function CybersecurityPage() {
 
             <h1 className="heading-hero">{t("Protecting Digital Infrastructure")}</h1>
 
-            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("A planned department to protect Aletheia’s digital infrastructure: the StableChain validators, the registries and, in future, the networks of its platforms. Today, the founding team looks after the security of this website and StableChain Mainnet Beta.")}</p>
+            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("A planned department to protect Aletheia’s digital infrastructure: the AletheiaChain validators, the registries and, in future, the networks of its platforms. Today, the founding team looks after the security of this website and AletheiaChain Mainnet Beta.")}</p>
 
             <div className="flex flex-wrap gap-4 pt-2">
               <a
@@ -45,9 +45,9 @@ export default function CybersecurityPage() {
               >{t("Report a Vulnerability")}{' '}<Bug className="w-3.5 h-3.5" />
               </a>
               <Link
-                href="/stablechain"
+                href="/aletheiachain"
                 className="px-6 py-2.5 border border-gold/30 text-parchment font-semibold text-xs uppercase tracking-wider rounded-sm hover:border-gold/60 transition-colors"
-              >{t("About StableChain")}</Link>
+              >{t("About AletheiaChain")}</Link>
             </div>
           </div>
         </div>
@@ -79,7 +79,7 @@ export default function CybersecurityPage() {
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5">
           <StarOfTruth size={36} />
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-parchment">{t("Coordinated Vulnerability Disclosure")}</h2>
-          <p className="text-sm text-parchment/70 leading-relaxed">{t("If you find a security problem in this website or StableChain Mainnet Beta, please tell us privately and give us reasonable time to fix it before publishing. We will acknowledge your report and credit you if you wish. There is no paid bug bounty.")}</p>
+          <p className="text-sm text-parchment/70 leading-relaxed">{t("If you find a security problem in this website or AletheiaChain Mainnet Beta, please tell us privately and give us reasonable time to fix it before publishing. We will acknowledge your report and credit you if you wish. There is no paid bug bounty.")}</p>
           <div className="space-y-2 text-sm">
             <div className="flex flex-wrap items-center gap-2"><span className="text-gold font-semibold">{t("Report to:")}</span> <a href="mailto:security@aletheiagov.org" className="text-parchment underline underline-offset-4 decoration-gold">security@aletheiagov.org</a></div>
           </div>

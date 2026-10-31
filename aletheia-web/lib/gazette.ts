@@ -80,7 +80,7 @@ export const GAZETTE_POSTS: GazettePost[] = [
       'How Aletheia plans to publish the keys that sign its records, so anyone can check them.',
     body: [
       'This record describes a planned public directory of the keys that sign Aletheia’s published records.',
-      'In its first form it would publish the signing keys of the StableChain Mainnet Beta validators and of the Gazette, so anyone can check a published record independently. Keys for travel documents would be added only if such documents were ever lawfully issued.',
+      'In its first form it would publish the signing keys of the AletheiaChain Mainnet Beta validators and of the Gazette, so anyone can check a published record independently. Keys for travel documents would be added only if such documents were ever lawfully issued.',
     ],
     signatory: 'Founding Team',
     image: 'circuitGlow',

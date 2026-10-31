@@ -116,7 +116,7 @@ export default function HealthcarePage() {
             <h2 className="text-4xl font-bold tracking-tight text-navy leading-[1.15]">{t("Your record, your keys.")}{' '}<span className="text-navy/55 font-light">{t("The State keeps only the receipt.")}</span>
             </h2>
             <div className="space-y-4 text-navy/70 leading-[1.85] font-light">
-              <p>{t("Clinical data would never touch the public ledger. Records would stay encrypted with the patient's own keys; StableChain would store only a hash of each consent grant, so access is provable without anything sensitive ever being published.")}</p>
+              <p>{t("Clinical data would never touch the public ledger. Records would stay encrypted with the patient's own keys; AletheiaChain would store only a hash of each consent grant, so access is provable without anything sensitive ever being published.")}</p>
               <p>{t("Every view of a record by a clinician would generate an entry the patient could inspect, and challenge before an independent Health Ombudsman.")}</p>
             </div>
             <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">

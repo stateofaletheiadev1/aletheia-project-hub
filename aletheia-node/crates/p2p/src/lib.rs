@@ -1,4 +1,4 @@
-//! Peer-to-peer transport for Aletheia StableChain (spec Section 36, APS-0029, ADR-016).
+//! Peer-to-peer transport for AletheiaChain (spec Section 36, APS-0029, ADR-016).
 
 #![cfg_attr(
     test,

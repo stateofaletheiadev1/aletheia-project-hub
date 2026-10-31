@@ -57,15 +57,15 @@ const MINISTRIES: Ministry[] = [
   {
     id: 'digital-state',
     name: 'Ministry of Digital State & Registries',
-    portfolio: 'StableChain, Digital ID & E-Residency',
-    mandate: 'Would run the State’s validators, supervise the identity registry, coordinate e-residency and keep civil records. Today StableChain runs as Mainnet Beta.',
+    portfolio: 'AletheiaChain, Digital ID & E-Residency',
+    mandate: 'Would run the State’s validators, supervise the identity registry, coordinate e-residency and keep civil records. Today AletheiaChain runs as Mainnet Beta.',
     responsibilities: [
-      'StableChain node governance and validator uptime',
+      'AletheiaChain node governance and validator uptime',
       'National Identity Registry',
       'E-Residency digital incorporation rail',
       'Data sovereignty and public API infrastructure',
     ],
-    legalBasis: 'Draft Constitution Art. 185, 196–202; StableChain Governance Act',
+    legalBasis: 'Draft Constitution Art. 185, 196–202; AletheiaChain Governance Act',
     status: 'Planned',
     icon: <Cpu className="w-5 h-5 text-gold" />,
     serviceHref: '/e-residency',
@@ -385,7 +385,7 @@ export default function GovernmentDirectoryPage() {
                 <StatusBadge asset="institutions" size="sm" />
               </div>
               <h4 className="font-bold text-parchment text-sm">{t("Auditor-General")}</h4>
-              <p className="text-xs text-parchment/65 leading-relaxed">{t("Would publish proofs of public expenditure against finalised StableChain blocks every ledger epoch.")}</p>
+              <p className="text-xs text-parchment/65 leading-relaxed">{t("Would publish proofs of public expenditure against finalised AletheiaChain blocks every ledger epoch.")}</p>
             </div>
 
             <div className="sovereign-card-dark rounded-sm p-6 space-y-3">

@@ -52,7 +52,7 @@ export default function GovernmentPage() {
             <h2>What it does</h2>
             <ul>
               <li>Drafts the founding framework: the constitution, the institutions it creates, and the limits on each.</li>
-              <li>Builds the infrastructure institutions will run on: Aletheia StableChain, AletheiaDB, and this platform.</li>
+              <li>Builds the infrastructure institutions will run on: AletheiaChain, AletheiaDB, and this platform.</li>
               <li>Recruits founding contributors in the open and publishes every appointment.</li>
               <li>Prepares the monetary and fiscal frameworks, keeping issuance separate from spending.</li>
               <li>Publishes its documents, decisions and finances with official references.</li>

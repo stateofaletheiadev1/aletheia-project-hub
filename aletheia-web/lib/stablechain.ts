@@ -1,11 +1,11 @@
 /**
- * Aletheia StableChain: the one place the website states facts about the national ledger.
+ * AletheiaChain: the one place the website states facts about the national ledger.
  * Every page that names an endpoint, a format or a parameter imports it from here, so the
  * site cannot drift from the chain. Sources: the node specification (aletheia-node,
  * docs/spec/MASTER.md, Sections 10, 12, 18, 19, 23, 29, 37) and the State's endpoints.
  */
 
-/** Public endpoints of StableChain Mainnet Beta (on air since 27 October 2026). */
+/** Public endpoints of AletheiaChain Mainnet Beta (on air since 27 October 2026). */
 export const STABLECHAIN = {
   rpc: 'https://rpc.stateofaletheia.org',
   /** REST interface (Section 37.1). */
@@ -31,7 +31,7 @@ export const NATIVE_ASSETS = [
     code: 'AEY',
     name: 'Aletheian Guilder',
     decimals: 18,
-    role: 'The national currency of the Sovereign Covenant State, in banknotes and on StableChain, issued by the Reserve Bank of Aletheia.',
+    role: 'The national currency of the Sovereign Covenant State, in banknotes and on AletheiaChain, issued by the Reserve Bank of Aletheia.',
   },
   {
     code: 'ALnT',
