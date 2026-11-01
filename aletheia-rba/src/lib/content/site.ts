@@ -8,8 +8,8 @@ export const SITE = {
 	currency: { name: 'Aletheian Guilder', plural: 'Aletheian Guilders', code: 'AEY' },
 	description:
 		'The Reserve Bank of Aletheia is being established as the monetary institution of the Sovereign Covenant State of Aletheia, and the issuer of its currency, the Aletheian Guilder (AEY).',
-	stateUrl: 'https://www.stateofaletheia.org',
-	governmentUrl: 'https://www.aletheiagov.org',
+	stateUrl: 'https://stateofaletheia.org',
+	governmentUrl: 'https://aletheiagov.org',
 	locale: 'en_GB'
 } as const;
 

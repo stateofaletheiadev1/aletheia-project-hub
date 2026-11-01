@@ -25,7 +25,7 @@ const schema = z.object({
   EMAIL_INDEX_KEY: base64Key("EMAIL_INDEX_KEY"),
   /** "portal" publishes to aletheiagov.org; "development" simulates it (brief §31.6). */
   PUBLICATION_MODE: z.enum(["portal", "development"]).default("development"),
-  PORTAL_BASE_URL: z.url().default("https://www.aletheiagov.org"),
+  PORTAL_BASE_URL: z.url().default("https://aletheiagov.org"),
   PORTAL_HMAC_KEY_ID: optional,
   PORTAL_HMAC_SECRET: optional.pipe(z.union([z.string().min(32, "PORTAL_HMAC_SECRET must be at least 32 characters"), z.undefined()])),
   /**

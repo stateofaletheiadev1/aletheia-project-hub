@@ -2,7 +2,7 @@
   import Icon from "$lib/components/Icon.svelte";
   import Star from "$lib/components/Star.svelte";
 
-  const CSIRT = "https://www.stateofaletheia.org/adss/cybersecurity#disclosure";
+  const CSIRT = "https://stateofaletheia.org/adss/cybersecurity#disclosure";
 
   const inScope = [
     ["The node", "aletheiad: consensus, block execution, the mempool, peer-to-peer networking, storage and recovery."],

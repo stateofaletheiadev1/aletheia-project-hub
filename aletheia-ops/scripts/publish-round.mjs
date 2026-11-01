@@ -14,7 +14,7 @@ import { pathToFileURL } from "node:url";
 import { chromium } from "@playwright/test";
 
 const OPS = "https://ops.aletheiagov.org";
-const PORTAL = "https://www.aletheiagov.org";
+const PORTAL = "https://aletheiagov.org";
 const roundFile = path.resolve(process.argv[2] ?? "");
 const draftsOnly = process.argv.includes("--drafts-only");
 const { ROUND } = await import(pathToFileURL(roundFile).href);

@@ -105,7 +105,7 @@ export default function DesignReference() {
         <div className="grid gap-3 text-ui">
           <p className="flex flex-wrap items-center gap-6">
             <Reference value="AGV-DEC-2026-0007" />
-            <Reference value="AGV-DOC-2026-0003" href="https://www.aletheiagov.org/documents" />
+            <Reference value="AGV-DOC-2026-0003" href="https://aletheiagov.org/documents" />
             <Reference value="AGV-DEC-····-····" />
           </p>
           <p className="flex flex-wrap gap-6 text-ink-2">
@@ -179,7 +179,7 @@ export default function DesignReference() {
             <PublicationReceipt
               r={{
                 reference: "AGV-DOC-2026-0003",
-                url: "https://www.aletheiagov.org/documents/registry-ombudsman-framework",
+                url: "https://aletheiagov.org/documents/registry-ombudsman-framework",
                 publishedAt: "2026-10-14T12:41:00Z",
                 contentHash: "3b1f0e6c9a24d8b7e5c3a1f9d7b5e3c1a9f7d5b3e1c9a7f5d3b1e9c7a5f3d1b9",
               }}

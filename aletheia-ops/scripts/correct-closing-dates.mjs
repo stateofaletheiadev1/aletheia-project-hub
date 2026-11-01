@@ -9,7 +9,7 @@ import { readFileSync } from "node:fs";
 import { chromium } from "@playwright/test";
 
 const OPS = "https://ops.aletheiagov.org";
-const PORTAL = "https://www.aletheiagov.org";
+const PORTAL = "https://aletheiagov.org";
 const [resultFile, date, reason] = process.argv.slice(2);
 if (!resultFile || !/^\d{4}-\d{2}-\d{2}$/.test(date ?? "") || !reason) throw new Error("usage: <round>.result.json <YYYY-MM-DD> <reason>");
 // The records published in that round, by reference and workbench address.

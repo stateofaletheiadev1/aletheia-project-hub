@@ -1,6 +1,6 @@
 # Aletheia Government Operations
 
-The private workbench behind the public record at [aletheiagov.org](https://www.aletheiagov.org).
+The private workbench behind the public record at [aletheiagov.org](https://aletheiagov.org).
 Authorised officials draft, review, approve and version official records, and publish them to
 the public record under explicit authority. Production address (not yet live):
 `https://ops.aletheiagov.org`.

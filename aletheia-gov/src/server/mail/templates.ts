@@ -11,7 +11,7 @@ const SITE = {
   name: "The Government of Aletheia",
   url: "https://aletheiagov.org",
   host: "aletheiagov.org",
-  arms: "https://www.aletheiagov.org/brand/email-arms.png",
+  arms: "https://aletheiagov.org/brand/email-arms.png",
 };
 
 const SIGNATURE = { name: "The Founding Government", role: "Sovereign Covenant State of Aletheia" };

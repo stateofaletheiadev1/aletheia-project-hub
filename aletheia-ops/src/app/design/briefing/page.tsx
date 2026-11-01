@@ -42,7 +42,7 @@ export default async function BriefingSpecimen({ searchParams }: { searchParams:
         .map((r) => ({ id: r.id, href: "/design/folio", reference: r.reference, title: r.title, state: r.state, assignee: r.assignee, updatedAt: r.updatedAt }))}
       published={rows
         .filter((r) => r.state === "published")
-        .map((r) => ({ id: r.id, reference: r.reference, title: r.title, register: r.register, publicUrl: "https://www.aletheiagov.org/documents", publishedAt: r.updatedAt }))}
+        .map((r) => ({ id: r.id, reference: r.reference, title: r.title, register: r.register, publicUrl: "https://aletheiagov.org/documents", publishedAt: r.updatedAt }))}
       warnings={
         empty
           ? []

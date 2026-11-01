@@ -97,7 +97,7 @@ export function Footer() {
                 <Link href="/transparency" className="hover:text-gold transition-colors">{t("Status & Disclaimers")}</Link>
               </li>
               <li>
-                <a href="https://www.aletheiagov.org" target="_blank" rel="noopener noreferrer" className="hover:text-gold transition-colors">{t("Government Website (aletheiagov.org)")}</a>
+                <a href="https://aletheiagov.org" target="_blank" rel="noopener noreferrer" className="hover:text-gold transition-colors">{t("Government Website (aletheiagov.org)")}</a>
               </li>
               <li>
                 <a href={RESERVE_BANK.url} target="_blank" rel="noopener noreferrer" className="hover:text-gold transition-colors">{t("Reserve Bank of Aletheia")}</a>

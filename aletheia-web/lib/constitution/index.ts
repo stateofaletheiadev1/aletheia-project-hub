@@ -241,7 +241,7 @@ export function constitutionJsonLd() {
     legislationLegalForce: 'https://schema.org/NotInForce',
     legislationType: 'Draft constitution',
     inLanguage: 'en',
-    url: 'https://www.stateofaletheia.org/constitution',
-    encoding: { '@type': 'MediaObject', encodingFormat: 'application/pdf', contentUrl: 'https://www.stateofaletheia.org/pdf/constitution' },
+    url: 'https://stateofaletheia.org/constitution',
+    encoding: { '@type': 'MediaObject', encodingFormat: 'application/pdf', contentUrl: 'https://stateofaletheia.org/pdf/constitution' },
   };
 }

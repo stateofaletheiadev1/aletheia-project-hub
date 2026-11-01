@@ -144,11 +144,11 @@ describe("publication", () => {
     expect((await rec(b)).reference).toBe("AGV-DSP-2026-0002");
     const { outboxId } = await go(publisher, a, "publish");
     expect((await rec(a)).state).toBe("publishing");
-    const result = await deliver(uow(), new DevelopmentGateway("https://www.aletheiagov.org"), outboxId!);
+    const result = await deliver(uow(), new DevelopmentGateway("https://aletheiagov.org"), outboxId!);
     expect(result.state).toBe("confirmed");
     const r = await rec(a);
     expect(r.state).toBe("published");
-    expect(r.publication).toMatchObject({ reference: "AGV-DSP-2026-0001", simulated: true, url: "https://www.aletheiagov.org/dispatches/agv-dsp-2026-0001" });
+    expect(r.publication).toMatchObject({ reference: "AGV-DSP-2026-0001", simulated: true, url: "https://aletheiagov.org/dispatches/agv-dsp-2026-0001" });
     const entry = (await store.findOne<OutboxDoc>("outbox", { id: outboxId! }))!;
     expect(r.publication?.contentHash).toBe(publicationHash(entry.payload));
     expect((await verifyChain(store)).ok).toBe(true);
@@ -177,7 +177,7 @@ describe("publication", () => {
     const retry = await go(publisher, id, "retry_publication");
     expect(retry.outboxId).toBe(outboxId);
     expect(await store.count("outbox")).toBe(1);
-    expect((await deliver(uow(), new DevelopmentGateway("https://www.aletheiagov.org"), outboxId!)).state).toBe("confirmed");
+    expect((await deliver(uow(), new DevelopmentGateway("https://aletheiagov.org"), outboxId!)).state).toBe("confirmed");
     expect(await store.count("publication_receipts")).toBe(1);
   });
 
@@ -228,7 +228,7 @@ describe("a founder's authority (ADR 0009)", () => {
     await go(founder, id, "approve");
     await go(founder, id, "authorise_publication");
     const { outboxId } = await go(founder, id, "publish");
-    await deliver(uow(), new DevelopmentGateway("https://www.aletheiagov.org"), outboxId!);
+    await deliver(uow(), new DevelopmentGateway("https://aletheiagov.org"), outboxId!);
     expect((await rec(id)).state).toBe("published");
     const overrides = (await store.find<{ details: { step: string } }>("audit_events", { action: "record.founder_authority" }, { sort: { seq: 1 }, limit: 20 })).documents.map((e) => e.details.step);
     // For decisions, whoever approved may not normally release: that is set aside too.
@@ -298,7 +298,7 @@ describe("withdrawal from the public record (ADR 0010)", () => {
     const id = await createDraft(uow(), founder, { register: "dispatches", institution: "treasury", classification: "public", content: content() });
     for (const a of ["submit", "take_for_review", "approve", "authorise_publication"] as const) await go(founder, id, a);
     const { outboxId } = await go(founder, id, "publish");
-    await deliver(uow(), new DevelopmentGateway("https://www.aletheiagov.org"), outboxId!);
+    await deliver(uow(), new DevelopmentGateway("https://aletheiagov.org"), outboxId!);
     await expect(go(founder, id, "withdraw_publication", "test")).rejects.toThrow(/not on aletheiagov.org/);
   });
 });

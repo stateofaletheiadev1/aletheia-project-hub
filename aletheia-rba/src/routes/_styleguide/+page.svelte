@@ -214,7 +214,7 @@
 				</div>
 				<div class="row">
 					<Link href="/" arrow>Read the current status</Link>
-					<Link href="https://www.stateofaletheia.org" newTab>State of Aletheia</Link>
+					<Link href="https://stateofaletheia.org" newTab>State of Aletheia</Link>
 					<a href="/" class="draw-underline">Drawn underline</a>
 				</div>
 				<ul class="icons" role="list">

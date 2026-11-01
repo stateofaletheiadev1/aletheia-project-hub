@@ -7,7 +7,7 @@ const SITE = {
   name: 'The Sovereign Covenant State of Aletheia',
   url: 'https://stateofaletheia.org',
   host: 'stateofaletheia.org',
-  arms: 'https://www.stateofaletheia.org/brand/email-arms.png',
+  arms: 'https://stateofaletheia.org/brand/email-arms.png',
 };
 
 export type FoundingMember = { name: string; email: string; country: string; contribution: string };
