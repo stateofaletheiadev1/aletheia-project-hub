@@ -1,0 +1,208 @@
+/* The motion catalogue (wallet prompt 6.3). Only transform, opacity, clip-path and
+   stroke-dashoffset are animated. Under reduced motion every movement becomes an opacity
+   cross-fade of 150 ms or less, and ceremonies are skipped (6.4). */
+
+/* M-02 Ink-settle entrance: eyebrow → title → data → actions, by `--settle-order`. */
+.settle {
+  animation: ink-settle var(--dur-considered) var(--ease-ink) both;
+  animation-delay: calc(var(--settle-order, 0) * var(--stagger) * 2);
+}
+
+@keyframes ink-settle {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+/* M-03 Ledger write: the hairline draws left to right, then the row's ink appears. */
+.ledger-write {
+  position: relative;
+  animation: ledger-ink var(--dur-base) var(--ease-ink) var(--dur-quick) both;
+}
+
+.ledger-write::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: var(--hairline);
+  background: var(--accent-seal);
+  animation: ledger-rule var(--dur-considered) var(--ease-paper) both;
+}
+
+@keyframes ledger-rule {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  70% {
+    clip-path: inset(0 0 0 0);
+    opacity: 1;
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+    opacity: 0;
+  }
+}
+
+@keyframes ledger-ink {
+  from {
+    opacity: 0;
+  }
+}
+
+/* M-08 Sheet unfold: origin-aware, like a folded document opening. */
+.unfold {
+  transform-origin: var(--unfold-origin, top center);
+  animation: sheet-unfold var(--dur-considered) var(--ease-ink) both;
+}
+
+@keyframes sheet-unfold {
+  from {
+    opacity: 0;
+    transform: scaleY(0.96);
+  }
+}
+
+/* M-11 Skeleton as ruled paper: one slow ink-wash pass across real ruled lines. */
+.ruled-wash {
+  position: relative;
+  overflow: hidden;
+}
+
+.ruled-wash::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, var(--skeleton-wash) 50%, transparent 100%);
+  opacity: 0.7;
+  transform: translateX(-100%);
+  animation: ink-wash 2.4s var(--ease-paper) infinite;
+}
+
+@keyframes ink-wash {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+/* M-12 Error tremor: one 2px shake, never looped. */
+.tremor {
+  animation: tremor 180ms var(--ease-linear) 1;
+}
+
+@keyframes tremor {
+  25% {
+    transform: translateX(-2px);
+  }
+  50% {
+    transform: translateX(2px);
+  }
+  75% {
+    transform: translateX(-1px);
+  }
+}
+
+/* M-07 Page turn via View Transitions; the rail and seal persist as shared elements. */
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(page) {
+  animation: page-out var(--dur-considered) var(--ease-paper) both;
+}
+
+::view-transition-new(page) {
+  animation: page-in var(--dur-considered) var(--ease-ink) both;
+}
+
+@keyframes page-out {
+  to {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+::view-transition-group(rail),
+::view-transition-group(seal) {
+  animation-duration: var(--dur-considered);
+  animation-timing-function: var(--ease-ink);
+}
+
+/* M-09 Theme dusk/dawn: a circular reveal from the toggle. */
+:root.theme-sweep::view-transition-old(root) {
+  animation: none;
+}
+
+:root.theme-sweep::view-transition-new(root) {
+  animation: theme-reveal 480ms var(--ease-paper) both;
+}
+
+@keyframes theme-reveal {
+  from {
+    clip-path: circle(0 at var(--sweep-x, 50%) var(--sweep-y, 50%));
+  }
+  to {
+    clip-path: circle(150vmax at var(--sweep-x, 50%) var(--sweep-y, 50%));
+  }
+}
+
+/* Reduced motion (6.4) */
+:root[data-motion="reduce"] .settle,
+:root[data-motion="reduce"] .ledger-write,
+:root[data-motion="reduce"] .unfold {
+  animation: fade-in 150ms linear both;
+  animation-delay: 0ms;
+}
+
+:root[data-motion="reduce"] .ledger-write::after,
+:root[data-motion="reduce"] .ruled-wash::after {
+  animation: none;
+  opacity: 0;
+}
+
+:root[data-motion="reduce"] .tremor {
+  animation: none;
+}
+
+:root[data-motion="reduce"] ::view-transition-old(page),
+:root[data-motion="reduce"] ::view-transition-new(page),
+:root[data-motion="reduce"].theme-sweep::view-transition-new(root) {
+  animation: fade-in 150ms linear both;
+}
+
+:root[data-motion="reduce"] ::view-transition-old(page) {
+  animation-name: fade-out;
+}
+
+:root[data-motion="reduce"] :focus-visible {
+  animation: none;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion="full"]) *,
+  :root:not([data-motion="full"]) *::before,
+  :root:not([data-motion="full"]) *::after {
+    animation-duration: 150ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 150ms !important;
+  }
+}

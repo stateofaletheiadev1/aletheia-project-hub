@@ -1,0 +1,14 @@
+# Local devnet for the wallet's integration and end-to-end tests. Run from aletheia-wallet/.
+# Uses the node's published devnet genesis (funded development accounts, devnet only).
+[node]
+data_dir = "tests/.devnet/data"
+genesis = "../aletheia-node/genesis/devnet-explorer.toml"
+listen = "127.0.0.1:7790"
+node_key_file = "../aletheia-node/configs/devnet-node.key"
+
+[devnet]
+produce_every_ms = 500
+
+[rpc]
+listen = "127.0.0.1:7791"
+requests_per_second = 1000

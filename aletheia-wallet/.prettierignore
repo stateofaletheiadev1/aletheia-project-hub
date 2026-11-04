@@ -1,0 +1,10 @@
+node_modules
+.svelte-kit
+build
+.vercel
+coverage
+static/contours
+static/fonts
+package-lock.json
+docs/internal
+Aletheia_*_Prompt_*.md

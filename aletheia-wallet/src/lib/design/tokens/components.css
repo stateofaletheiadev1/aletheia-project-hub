@@ -1,0 +1,41 @@
+/* Layer 3 — component tokens (wallet prompt 5.1). Scoped intent for recurring parts.
+   Re-declared on .night so a Night Ink section inside a light page resolves its own values. */
+
+:root,
+.night {
+  --button-primary-bg: var(--accent-authority);
+  --button-primary-bg-hover: var(--accent-authority-hover);
+  --button-primary-ink: var(--ink-on-accent);
+  --button-primary-accent: var(--accent-seal);
+  --button-quiet-ink: var(--ink-heading);
+  --button-quiet-rule: var(--rule-control);
+  --button-height: 44px;
+  --button-radius: var(--radius-2);
+
+  --field-bg: var(--surface-sheet);
+  --field-rule: var(--rule-control);
+  --field-rule-focus: var(--focus-ring);
+  --field-rule-error: var(--state-rejected);
+  --field-height: 48px;
+
+  --ledger-row-hover: var(--surface-sunken);
+  --ledger-rule: var(--rule-hairline);
+
+  --sheet-bg: var(--surface-sheet);
+  --sheet-rule: var(--rule-hairline);
+  --sheet-radius: var(--radius-3);
+
+  --rail-bg: var(--surface-rail);
+  --rail-rule: var(--rule-hairline);
+  --rail-index-active: var(--ink-heading);
+
+  --seal-band: var(--accent-seal);
+  --seal-ink: var(--ink-heading);
+
+  /* A scanner needs dark modules on light paper in both themes. */
+  --qr-paper: var(--parchment-25);
+  --qr-ink: var(--navy-950);
+
+  --skeleton-bar: var(--rule-faint);
+  --skeleton-wash: var(--surface-sheet);
+}

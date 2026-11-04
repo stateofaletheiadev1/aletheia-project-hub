@@ -1,0 +1,10 @@
+{
+  "name": "Aletheia Wallet",
+  "short_name": "Aletheia Wallet",
+  "description": "The private ledger: the official non-custodial wallet for AletheiaChain.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0B1628",
+  "theme_color": "#0B1628",
+  "icons": [{ "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }]
+}

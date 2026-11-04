@@ -1,0 +1,144 @@
+/* Layer 1 — primitives (wallet prompt 5.1). Raw values only; components never read these.
+   Navy, parchment and gold are the Operations values (aletheia-ops src/design/tokens.css),
+   extended into full ramps. */
+
+:root {
+  /* Navy — Night Ink to Covenant Navy */
+  --navy-950: #0b1628;
+  --navy-925: #0d1a2f;
+  --navy-900: #0f1f39;
+  --navy-875: #112340;
+  --navy-850: #122442;
+  --navy-800: #15294a;
+  --navy-750: #1a3054;
+  --navy-700: #1e365d;
+  --navy-650: #22324f;
+  --navy-600: #2a4470;
+  --navy-500: #3d5a88;
+  --navy-400: #6a82a8;
+  --navy-300: #9aabc6;
+  --navy-200: #c3d2e9;
+  --navy-100: #dfe9f7;
+  --navy-50: #f0f5fd;
+
+  /* Ledger Parchment */
+  --parchment-25: #fffdf8;
+  --parchment-50: #fbf8f1;
+  --parchment-100: #f4eedf;
+  --parchment-150: #f0e9d7;
+  --parchment-200: #ece4d0;
+  --parchment-300: #e4d9c0;
+  --parchment-400: #cec3aa;
+  --parchment-500: #a99f88;
+  --parchment-600: #8e856f;
+  --parchment-700: #756e5e;
+  --parchment-800: #4f4a3f;
+  --parchment-900: #2e2b25;
+  --parchment-ink: #efe8d8;
+  --parchment-ink-2: #c9c0ad;
+  --parchment-ink-3: #a59e8c;
+
+  /* Seal Gold */
+  --gold-100: #f5e7c8;
+  --gold-200: #eed6a4;
+  --gold-300: #e6c183;
+  --gold-350: #d9bc7e;
+  --gold-400: #d6ad66;
+  --gold-450: #c8a764;
+  --gold-500: #c49a4e;
+  --gold-600: #a6803a;
+  --gold-700: #7f6026;
+  --gold-800: #5c4519;
+
+  /* Laurel Green — verified / finalized */
+  --laurel-50: #ecf5ef;
+  --laurel-100: #d3e8da;
+  --laurel-300: #7fc49a;
+  --laurel-400: #4e8c69;
+  --laurel-600: #2f6b4f;
+  --laurel-700: #23563e;
+  --laurel-800: #1a412f;
+  --laurel-900: #12301f;
+
+  /* Amber — pending, awaiting finality (warm, not alarming) */
+  --amber-50: #fbf1dc;
+  --amber-100: #f5e1b5;
+  --amber-300: #e3b65c;
+  --amber-400: #c9922a;
+  --amber-700: #7a4d00;
+  --amber-900: #3a2a0c;
+
+  /* Muted oxblood — rejected / error (institutional, not neon) */
+  --oxblood-50: #f7e9e7;
+  --oxblood-100: #eecfcb;
+  --oxblood-300: #e08a7c;
+  --oxblood-400: #b05a4d;
+  --oxblood-700: #74261c;
+  --oxblood-900: #3a1712;
+
+  /* Graphite — body ink and disabled */
+  --graphite-100: #e2e5ea;
+  --graphite-300: #b4bac4;
+  --graphite-500: #565e6e;
+  --graphite-600: #4a5263;
+  --graphite-700: #38404f;
+  --graphite-900: #141a24;
+
+  /* Space — 4px base */
+  --space-0: 0;
+  --space-half: 2px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-14: 56px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+  --space-30: 120px;
+
+  /* Radii — small and consistent */
+  --radius-0: 0;
+  --radius-1: 2px;
+  --radius-2: 4px;
+  --radius-3: 6px;
+  --radius-round: 50%;
+
+  /* Hairlines */
+  --hairline: 1px;
+  --rule-thick: 2px;
+
+  /* Motion (wallet prompt 6.2) */
+  --dur-instant: 90ms;
+  --dur-quick: 160ms;
+  --dur-base: 220ms;
+  --dur-considered: 360ms;
+  --dur-ceremony: 1100ms;
+  --dur-ceremony-long: 1400ms;
+  --ease-ink: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-paper: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-seal: cubic-bezier(0.34, 1.32, 0.64, 1);
+  --ease-linear: linear;
+  --stagger: 34ms;
+
+  /* Layers */
+  --z-base: 0;
+  --z-contour: 0;
+  --z-content: 1;
+  --z-sticky: 10;
+  --z-bar: 20;
+  --z-sheet: 40;
+  --z-dialog: 50;
+}
+
+@media (min-resolution: 2dppx) {
+  :root {
+    --hairline: 0.5px;
+  }
+}
