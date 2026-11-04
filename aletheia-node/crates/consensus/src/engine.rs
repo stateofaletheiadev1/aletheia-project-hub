@@ -834,6 +834,16 @@ impl<S: ConsensusSigner> Engine<S> {
         }
     }
 
+    /// Records that this validator's signer already signed a proposal in `round` (its
+    /// high-water mark, read at start-up), so the engine does not build another one there: after a
+    /// restart the rebuilt block would differ and the signer would rightly refuse it. The engine
+    /// abstains instead; the round times out and the next round proceeds. Abstaining is always safe.
+    pub fn already_proposed(&mut self, round: Slot) {
+        if self.proposed_in.is_none_or(|known| known < round) {
+            self.proposed_in = Some(round);
+        }
+    }
+
     fn on_built(
         &mut self,
         mut proposal: Proposal,

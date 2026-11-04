@@ -63,6 +63,17 @@ impl NodeSigner {
         }
     }
 
+    /// The round of the last proposal the signer signed, if any.
+    pub(crate) fn proposal_round(&self) -> Option<Slot> {
+        match self {
+            NodeSigner::Validator(_) => self
+                .with(Backend::state)
+                .ok()
+                .and_then(|state| state.proposal.map(|mark| mark.round)),
+            NodeSigner::Observer => None,
+        }
+    }
+
     /// The signer's high-water marks as safety data rounds, for the start-up max-merge. A
     /// remote signer that cannot be asked stops start-up: the floor must not be guessed.
     pub(crate) fn floor(&self, epoch: Epoch) -> Result<SafetyData, AletheiaError> {
@@ -193,7 +204,7 @@ impl ConsensusDriver {
             &seed(network, set.epoch(), &network.genesis_id()),
             set.len(),
         );
-        Engine::new(
+        let mut engine = Engine::new(
             *network,
             set.clone(),
             schedule,
@@ -201,7 +212,13 @@ impl ConsensusDriver {
             signer.clone(),
             safety,
             finalized,
-        )
+        );
+        // A proposal signed before a restart may never have been finalized; never build a
+        // different one for that round.
+        if let Some(round) = signer.proposal_round() {
+            engine.already_proposed(round);
+        }
+        engine
     }
 
     /// Block sync moved the finalized tip past the engine: start a fresh engine there,
