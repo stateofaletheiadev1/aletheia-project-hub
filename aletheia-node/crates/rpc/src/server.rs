@@ -1,6 +1,7 @@
-//! The HTTP server (Section 37): `POST /rpc/v1` and `/api/v1/…` on Axum and Hyper, over the
-//! same service. Bodies are capped at 1 MiB, each client IP has a request budget per second
-//! (JSON-RPC `-32001`, HTTP 429 beyond it), and no CORS headers are sent (CORS off by default).
+//! The HTTP server (Section 37): `POST /rpc/v1`, `/api/v1/…` and the `/ws/v1` WebSocket on Axum
+//! and Hyper, over the same service. Bodies are capped at 1 MiB, each client IP has a request
+//! budget per second (JSON-RPC `-32001`, HTTP 429 beyond it; every WebSocket message counts),
+//! and no CORS headers are sent (CORS off by default).
 
 use std::collections::HashMap;
 use std::net::{IpAddr, SocketAddr};
@@ -9,10 +10,12 @@ use std::time::Instant;
 
 use axum::Router;
 use axum::body::{Body, Bytes};
+use axum::extract::ws::{Message, WebSocket, WebSocketUpgrade};
 use axum::extract::{ConnectInfo, RawQuery, State};
 use axum::http::{Method, StatusCode, Uri, header};
 use axum::response::Response;
-use axum::routing::{any, post};
+use axum::routing::{any, get, post};
+use futures_util::{SinkExt, StreamExt};
 use tokio::net::TcpListener;
 
 use crate::backend::Backend;
@@ -20,6 +23,7 @@ use crate::error::RpcError;
 use crate::jsonrpc::{self, MAX_BODY_BYTES};
 use crate::rest;
 use crate::service::Service;
+use crate::ws::{Hub, MAX_MESSAGE_BYTES, PING_EVERY, Session};
 
 /// Requests per second per client IP, unless configured otherwise.
 pub const DEFAULT_REQUESTS_PER_SECOND: u32 = 50;
@@ -56,8 +60,9 @@ impl Limiter {
 
 #[derive(Debug)]
 struct Shared<B: Backend> {
-    service: Service<B>,
+    service: Arc<Service<B>>,
     limiter: Limiter,
+    hub: Arc<Hub>,
 }
 
 fn json_response(status: u16, body: String) -> Response {
@@ -140,17 +145,88 @@ async fn api<B: Backend + 'static>(
     json_response(answer.status, answer.body.to_string())
 }
 
+async fn ws<B: Backend + 'static>(
+    State(shared): State<Arc<Shared<B>>>,
+    ConnectInfo(peer): ConnectInfo<SocketAddr>,
+    upgrade: WebSocketUpgrade,
+) -> Response {
+    if !shared.limiter.allow(peer.ip(), 1) {
+        return json_response(429, RpcError::rate_limited().to_rest().to_string());
+    }
+    let Some(permit) = shared.hub.admit() else {
+        return json_response(503, serde_json::json!({ "error": { "name": "TOO_MANY_CONNECTIONS", "message": "the WebSocket connection limit is reached; retry later" } }).to_string());
+    };
+    shared.hub.ensure_follower(Arc::clone(&shared.service));
+    upgrade
+        .max_message_size(MAX_MESSAGE_BYTES)
+        .max_frame_size(MAX_MESSAGE_BYTES)
+        .on_upgrade(move |socket| async move {
+            connection(shared, socket, peer.ip()).await;
+            drop(permit);
+        })
+}
+
+/// One socket: client messages, fanned-out blocks and pings, until either side closes.
+async fn connection<B: Backend + 'static>(shared: Arc<Shared<B>>, socket: WebSocket, ip: IpAddr) {
+    let (mut sink, mut stream) = socket.split();
+    let mut events = shared.hub.subscribe();
+    let mut session = Session::default();
+    let mut ping = tokio::time::interval(PING_EVERY);
+    ping.tick().await;
+    loop {
+        let outgoing: Vec<String> = tokio::select! {
+            incoming = stream.next() => match incoming {
+                Some(Ok(Message::Text(text))) => {
+                    if shared.limiter.allow(ip, jsonrpc::calls_in(text.as_bytes())) {
+                        session.handle(&shared.service, text.as_str()).await
+                    } else {
+                        vec![serde_json::json!({ "jsonrpc": "2.0", "id": null, "error": RpcError::rate_limited().to_json() }).to_string()]
+                    }
+                }
+                Some(Ok(Message::Binary(_))) => {
+                    vec![serde_json::json!({ "jsonrpc": "2.0", "id": null, "error": RpcError::invalid_request("messages are JSON text").to_json() }).to_string()]
+                }
+                Some(Ok(Message::Ping(_) | Message::Pong(_))) => Vec::new(),
+                Some(Ok(Message::Close(_)) | Err(_)) | None => break,
+            },
+            fanout = events.recv(), if !session.is_empty() => match fanout {
+                Ok(fanout) => session.deliver(&shared.service, &fanout).await,
+                Err(tokio::sync::broadcast::error::RecvError::Lagged(missed)) => session.lagged(missed),
+                Err(tokio::sync::broadcast::error::RecvError::Closed) => break,
+            },
+            _ = ping.tick() => {
+                if sink.send(Message::Ping(Bytes::new())).await.is_err() {
+                    break;
+                }
+                Vec::new()
+            }
+        };
+        for text in outgoing {
+            if sink.send(Message::Text(text.into())).await.is_err() {
+                return;
+            }
+        }
+        // A socket idle on events drains its receiver so it does not report stale lag later.
+        if session.is_empty() {
+            events = events.resubscribe();
+        }
+    }
+    let _ = sink.close().await;
+}
+
 /// The router, for embedding in tests or another server.
 pub fn router<B: Backend + 'static>(service: Service<B>, requests_per_second: u32) -> Router {
     let shared = Arc::new(Shared {
-        service,
+        service: Arc::new(service),
         limiter: Limiter {
             per_second: requests_per_second,
             windows: Mutex::new(HashMap::new()),
         },
+        hub: Arc::new(Hub::default()),
     });
     Router::new()
         .route("/rpc/v1", post(rpc::<B>))
+        .route("/ws/v1", get(ws::<B>))
         .route("/api/v1/{*path}", any(api::<B>))
         .layer(axum::extract::DefaultBodyLimit::max(MAX_BODY_BYTES))
         .with_state(shared)

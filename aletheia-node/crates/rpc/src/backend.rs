@@ -93,6 +93,15 @@ pub trait Backend: Send + Sync {
         epoch: u64,
     ) -> impl Future<Output = Result<Option<Vec<ValidatorRecord>>, AletheiaError>> + Send;
 
+    /// Finalized transactions touching `address` (sender or transfer recipient), newest first,
+    /// as tx ids; `before` is an exclusive `(height, index)` cursor (ADR-064).
+    fn account_history(
+        &self,
+        address: Address,
+        before: Option<(u64, u32)>,
+        limit: usize,
+    ) -> impl Future<Output = Result<Vec<(u64, u32, Hash32)>, AletheiaError>> + Send;
+
     /// Admits a signed transaction to the mempool; returns its id.
     fn submit(&self, bytes: Vec<u8>) -> impl Future<Output = Result<Hash32, AletheiaError>> + Send;
 

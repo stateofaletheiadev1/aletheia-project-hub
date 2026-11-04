@@ -49,6 +49,57 @@ use aletheia_storage::wal::{RecordType, Wal, WalConfig};
 use aletheia_storage::{ColumnFamily, KvStore, LayeredStore, WriteBatch};
 
 const META_LAST_FINALIZED: &[u8] = b"last_finalized";
+/// Set once the account index covers every finalized transaction (ADR-064).
+const META_ACCOUNT_INDEX: &[u8] = b"account_index_v1";
+
+/// Account index (ADR-064): node-local, never hashed into state. Keys live in the `TxIndex`
+/// column family beside the 32-byte transaction ids, told apart by length and a leading byte:
+/// `b'a' || address(20) || height u64 BE || index u32 BE` (33 bytes) → the 32-byte tx id.
+const ACCOUNT_INDEX_TAG: u8 = b'a';
+const ACCOUNT_KEY_LEN: usize = 1 + 20 + 8 + 4;
+/// Most entries one history read loads; older ones page from the cursor.
+pub const ACCOUNT_HISTORY_SCAN: usize = 10_000;
+
+fn account_key(
+    address: &aletheia_core::Address,
+    height: Height,
+    index: u32,
+) -> [u8; ACCOUNT_KEY_LEN] {
+    let mut key = [0u8; ACCOUNT_KEY_LEN];
+    key[0] = ACCOUNT_INDEX_TAG;
+    key[1..21].copy_from_slice(address.as_bytes());
+    key[21..29].copy_from_slice(&height.get().to_be_bytes());
+    key[29..33].copy_from_slice(&index.to_be_bytes());
+    key
+}
+
+/// The accounts a transaction touches: its sender and every transfer recipient.
+fn touched_accounts(tx: &aletheia_core::tx::SignedTransaction) -> Vec<aletheia_core::Address> {
+    use aletheia_core::tx::Payload;
+    let mut out = vec![tx.body.sender];
+    match &tx.body.payload {
+        Payload::Transfer(leg) => out.push(leg.recipient),
+        Payload::BatchTransfer(legs) => out.extend(legs.iter().map(|leg| leg.recipient)),
+        _ => {}
+    }
+    out.sort();
+    out.dedup();
+    out
+}
+
+fn index_accounts(batch: &mut WriteBatch, network: &NetworkIdentity, proposal: &Proposal) {
+    let height = proposal.block.header.height;
+    for (index, tx) in (0u32..).zip(&proposal.block.body.transactions) {
+        let tx_id = tx.body.tx_id(network).hash();
+        for address in touched_accounts(tx) {
+            batch.put(
+                ColumnFamily::TxIndex,
+                &account_key(&address, height, index),
+                tx_id.as_bytes(),
+            );
+        }
+    }
+}
 const RELEASE: &str = concat!("aletheiad ", env!("CARGO_PKG_VERSION"));
 
 /// Where a test may simulate a crash inside the finalize path.
@@ -193,6 +244,12 @@ impl<S: KvStore> Ledger<S> {
             state_root,
         };
         batch.put(ColumnFamily::Meta, META_LAST_FINALIZED, &tip.to_ace_bytes());
+        // A new chain's account index is complete from block 0.
+        batch.put(
+            ColumnFamily::Meta,
+            META_ACCOUNT_INDEX,
+            &tip.height.to_ace_bytes(),
+        );
         store.write_sync(batch)?;
         let (mut wal, _) = Wal::open(&datadir.path("wal"), WalConfig::default())?;
         wal.append(
@@ -372,7 +429,61 @@ impl<S: KvStore> Ledger<S> {
             }
         };
         ledger.wal.sync()?;
+        ledger.backfill_account_index()?;
         Ok((ledger, reconciled))
+    }
+
+    /// Builds the account index for transactions finalized before it existed (ADR-064). Reads
+    /// only the transaction index and the blocks that hold transactions, once per data
+    /// directory; afterwards every commit maintains it.
+    fn backfill_account_index(&mut self) -> Result<(), AletheiaError> {
+        if self
+            .store
+            .get(ColumnFamily::Meta, META_ACCOUNT_INDEX)?
+            .is_some()
+        {
+            return Ok(());
+        }
+        let mut positions: Vec<(Height, u32)> = Vec::new();
+        let mut from: Vec<u8> = Vec::new();
+        let to = [0xffu8; 34];
+        loop {
+            let page = self.store.range(ColumnFamily::TxIndex, &from, &to, 4_096)?;
+            let Some((last, _)) = page.last() else { break };
+            let mut next = last.clone();
+            next.push(0);
+            for (key, value) in &page {
+                if key.len() != 32 {
+                    continue;
+                }
+                let height = value.get(..8).and_then(|b| Height::from_ace_bytes(b).ok());
+                let index = value
+                    .get(8..12)
+                    .and_then(|b| <[u8; 4]>::try_from(b).ok())
+                    .map(u32::from_le_bytes);
+                if let (Some(height), Some(index)) = (height, index) {
+                    positions.push((height, index));
+                }
+            }
+            if page.len() < 4_096 {
+                break;
+            }
+            from = next;
+        }
+        positions.sort();
+        positions.dedup_by_key(|(height, _)| *height);
+        let mut batch = self.store.batch();
+        for (height, _) in positions {
+            if let Some(proposal) = self.read_block(height)? {
+                index_accounts(&mut batch, &self.network, &proposal);
+            }
+        }
+        batch.put(
+            ColumnFamily::Meta,
+            META_ACCOUNT_INDEX,
+            &self.tip.height.to_ace_bytes(),
+        );
+        self.store.write_sync(batch)
     }
 
     /// Steps 5 and 6: the tip's archived block hashes to the recorded hash and the JMT root at
@@ -766,6 +877,7 @@ impl<S: KvStore> Ledger<S> {
             batch.put(ColumnFamily::TxIndex, receipt.tx_id.as_bytes(), &position);
         }
         index_entries(&mut batch, header.height, &hash, location);
+        index_accounts(&mut batch, &self.network, proposal);
         let tip = LastFinalized {
             height: header.height,
             hash,
@@ -1042,6 +1154,61 @@ impl<S: KvStore> Ledger<S> {
 
     // ---- reads for the public RPC (Section 37): finalized data only ----
 
+    /// Finalized transactions touching `address`, newest first: `(height, index, tx id)`.
+    /// `before` is an exclusive cursor from a previous page. Reads at most
+    /// [`ACCOUNT_HISTORY_SCAN`] entries per call.
+    pub fn account_history(
+        &self,
+        address: &aletheia_core::Address,
+        before: Option<(u64, u32)>,
+        limit: usize,
+    ) -> Result<Vec<(Height, u32, Hash32)>, AletheiaError> {
+        let from = account_key(address, Height::new(0), 0);
+        let to = match before {
+            Some((height, index)) => account_key(address, Height::new(height), index).to_vec(),
+            None => {
+                let mut end = account_key(address, Height::new(u64::MAX), u32::MAX).to_vec();
+                end.push(0);
+                end
+            }
+        };
+        let pairs = self
+            .store
+            .range(ColumnFamily::TxIndex, &from, &to, ACCOUNT_HISTORY_SCAN)?;
+        let mut out = Vec::new();
+        for (key, value) in pairs.iter().rev() {
+            if key.len() != ACCOUNT_KEY_LEN || key.first() != Some(&ACCOUNT_INDEX_TAG) {
+                continue;
+            }
+            let height = key
+                .get(21..29)
+                .and_then(|b| <[u8; 8]>::try_from(b).ok())
+                .map(u64::from_be_bytes);
+            let index = key
+                .get(29..33)
+                .and_then(|b| <[u8; 4]>::try_from(b).ok())
+                .map(u32::from_be_bytes);
+            let tx_id = <[u8; 32]>::try_from(value.as_slice())
+                .ok()
+                .map(Hash32::from_bytes);
+            match (height, index, tx_id) {
+                (Some(height), Some(index), Some(tx_id)) => {
+                    out.push((Height::new(height), index, tx_id))
+                }
+                _ => {
+                    return Err(fail_stop(
+                        ErrorCode::StoCorrupt,
+                        "account index entry".to_owned(),
+                    ));
+                }
+            }
+            if out.len() == limit {
+                break;
+            }
+        }
+        Ok(out)
+    }
+
     /// Where a finalized transaction is: its height and index in the block.
     pub fn tx_position(&self, tx_id: &Hash32) -> Result<Option<(Height, u32)>, AletheiaError> {
         let Some(bytes) = self.store.get(ColumnFamily::TxIndex, tx_id.as_bytes())? else {
@@ -1127,14 +1294,23 @@ impl<S: KvStore> Ledger<S> {
         Ok(entry.protocol_version)
     }
 
-    /// Executes a signed transaction as the first transaction of the next block, against the
-    /// tip, without committing anything (`simulateTransaction`).
+    /// Executes a transaction as the first transaction of the next block, against the tip,
+    /// without committing anything (`simulateTransaction`). A transaction whose authorization
+    /// carries keys but no signatures is simulated as a preview (ADR-064): every check runs
+    /// except signature verification, so a wallet can price a transfer before signing it.
     pub fn simulate(&self, bytes: &[u8]) -> Result<aletheia_execution::Receipt, AletheiaError> {
         let records = Records::new(self.network);
         let view = self.tip_view();
         let height = self.tip.height.next()?;
         let (rules, entry) = rules_for_height(&records, &view, height)?;
-        let verified = StatelessValidator::new(self.network, rules).validate(bytes)?;
+        let validator = StatelessValidator::new(self.network, rules);
+        let unsigned = aletheia_core::tx::SignedTransaction::from_ace_bytes(bytes)
+            .is_ok_and(|tx| tx.authorization.signatures.is_empty());
+        let verified = if unsigned {
+            validator.validate_preview(bytes)?
+        } else {
+            validator.validate(bytes)?
+        };
         let (slot, epoch) = match self.read_block(self.tip.height)? {
             Some(tip) => (
                 tip.block.header.slot.get().saturating_add(1),

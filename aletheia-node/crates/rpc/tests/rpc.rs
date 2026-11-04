@@ -143,6 +143,41 @@ impl Backend for DevnetBackend {
         let net = self.0.lock().unwrap();
         net.simulate(&SignedTransaction::from_ace_bytes(&bytes)?)
     }
+
+    /// The reference the node's account index must agree with: a scan of every block.
+    async fn account_history(
+        &self,
+        address: Address,
+        before: Option<(u64, u32)>,
+        limit: usize,
+    ) -> Result<Vec<(u64, u32, Hash32)>, AletheiaError> {
+        let net = self.0.lock().unwrap();
+        let mut out = Vec::new();
+        for (proposal, _) in net.blocks.iter().rev() {
+            let height = proposal.block.header.height.get();
+            for (index, tx) in proposal.block.body.transactions.iter().enumerate().rev() {
+                let index = u32::try_from(index).unwrap();
+                if before.is_some_and(|cursor| (height, index) >= cursor) {
+                    continue;
+                }
+                let touches = tx.body.sender == address
+                    || match &tx.body.payload {
+                        aletheia_core::tx::Payload::Transfer(leg) => leg.recipient == address,
+                        aletheia_core::tx::Payload::BatchTransfer(legs) => {
+                            legs.iter().any(|l| l.recipient == address)
+                        }
+                        _ => false,
+                    };
+                if touches {
+                    out.push((height, index, tx.body.tx_id(&net.network).hash()));
+                    if out.len() == limit {
+                        return Ok(out);
+                    }
+                }
+            }
+        }
+        Ok(out)
+    }
 }
 
 fn service() -> Service<DevnetBackend> {
@@ -515,4 +550,172 @@ proptest::proptest! {
         let runtime = tokio::runtime::Builder::new_current_thread().build().unwrap();
         let _ = runtime.block_on(jsonrpc::handle(&service, &body));
     }
+}
+
+#[tokio::test]
+async fn account_history_pages_newest_first_and_matches_rest() {
+    let service = service();
+    let network = service.backend.network();
+    let mut ids = Vec::new();
+    let mut recipient = String::new();
+    for _ in 0..3 {
+        let (tx, to) = signed_transfer(&service, ONE_AEY, 0);
+        recipient = to.to_text(network.network_kind());
+        let submitted = rpc(&service, "submitTransaction", json!({ "tx": tx })).await;
+        ids.push(result(&submitted)["txId"].as_str().unwrap().to_owned());
+    }
+    let first = rpc(
+        &service,
+        "getAccountHistory",
+        json!({ "address": recipient, "limit": 2 }),
+    )
+    .await;
+    let page = result(&first);
+    let shown: Vec<&str> = page["transactions"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|t| t["txId"].as_str().unwrap())
+        .collect();
+    assert_eq!(shown, [ids[2].as_str(), ids[1].as_str()]);
+    let cursor = page["next"].as_str().unwrap().to_owned();
+    let second = rpc(
+        &service,
+        "getAccountHistory",
+        json!({ "address": recipient, "limit": 2, "before": cursor }),
+    )
+    .await;
+    let rest = result(&second)["transactions"].as_array().unwrap();
+    assert_eq!(rest.len(), 1);
+    assert_eq!(rest[0]["txId"], ids[0].as_str());
+    assert_eq!(result(&second)["next"], Value::Null);
+
+    let via_rest = route(
+        &service,
+        "GET",
+        &format!("/accounts/{recipient}/transactions"),
+        &[("limit".to_owned(), "2".to_owned())],
+        b"",
+    )
+    .await;
+    assert_eq!(via_rest.status, 200);
+    assert_eq!(&via_rest.body, page);
+
+    let bad = rpc(
+        &service,
+        "getAccountHistory",
+        json!({ "address": recipient, "limit": 51 }),
+    )
+    .await;
+    assert_eq!(error_code(&bad), -32602);
+    let bad_cursor = rpc(
+        &service,
+        "getAccountHistory",
+        json!({ "address": recipient, "before": "x" }),
+    )
+    .await;
+    assert_eq!(error_code(&bad_cursor), -32602);
+}
+
+#[tokio::test]
+async fn websocket_sessions_subscribe_deliver_and_unsubscribe() {
+    use aletheia_rpc::ws::{BlockEvent, Fanout, Session};
+    use std::sync::Arc;
+
+    let service = service();
+    let network = service.backend.network();
+    let mut session = Session::default();
+    let parse = |text: &str| serde_json::from_str::<Value>(text).unwrap();
+
+    let replies = session
+        .handle(
+            &service,
+            r#"{"jsonrpc":"2.0","id":1,"method":"subscribe","params":{"topic":"finalizedBlocks"}}"#,
+        )
+        .await;
+    assert_eq!(parse(&replies[0])["result"]["subscription"], "1");
+
+    let (tx, to) = signed_transfer(&service, ONE_AEY, 0);
+    let address = to.to_text(network.network_kind());
+    let replies = session
+        .handle(&service, &json!({ "jsonrpc": "2.0", "id": 2, "method": "subscribe", "params": { "topic": "account", "address": address } }).to_string())
+        .await;
+    assert_eq!(parse(&replies[0])["result"]["subscription"], "2");
+
+    // Ordinary calls work over the socket too.
+    let status = session
+        .handle(
+            &service,
+            r#"{"jsonrpc":"2.0","id":3,"method":"getNetworkStatus","params":{}}"#,
+        )
+        .await;
+    assert_eq!(parse(&status[0])["result"]["network"], "devnet");
+
+    let submitted = rpc(&service, "submitTransaction", json!({ "tx": tx })).await;
+    let tx_id = result(&submitted)["txId"].as_str().unwrap().to_owned();
+
+    // Subscribing to a transaction that is already final answers at once and ends.
+    let replies = session
+        .handle(&service, &json!({ "jsonrpc": "2.0", "id": 4, "method": "subscribe", "params": { "topic": "transactionStatus", "txId": tx_id } }).to_string())
+        .await;
+    assert_eq!(replies.len(), 2);
+    assert_eq!(
+        parse(&replies[1])["params"]["result"]["status"],
+        "FINALIZED"
+    );
+    assert_eq!(session.len(), 2);
+
+    // Fan out the block that holds the transfer.
+    let (block, summary, hash) = {
+        let net = service.backend.0.lock().unwrap();
+        let (proposal, _) = net.blocks.last().unwrap();
+        let hash = proposal.block.body.transactions[0]
+            .body
+            .tx_id(&network)
+            .hash();
+        (
+            proposal.block.header.height.get(),
+            aletheia_rpc::encode::block_summary(&network, proposal),
+            hash,
+        )
+    };
+    let event = Fanout::Block(Arc::new(BlockEvent {
+        height: block,
+        summary,
+        txs: vec![(hash, vec![address.clone()])],
+    }));
+    let delivered = session.deliver(&service, &event).await;
+    assert_eq!(delivered.len(), 2);
+    assert_eq!(parse(&delivered[0])["params"]["result"]["height"], block);
+    assert_eq!(
+        parse(&delivered[1])["params"]["result"]["transaction"]["txId"],
+        tx_id.as_str()
+    );
+
+    let gap = session
+        .deliver(&service, &Fanout::Skipped { from: 1, to: 9 })
+        .await;
+    assert_eq!(parse(&gap[0])["params"]["result"]["gap"]["toHeight"], 9);
+    assert_eq!(session.lagged(4).len(), 2);
+
+    let replies = session
+        .handle(
+            &service,
+            r#"{"jsonrpc":"2.0","id":5,"method":"unsubscribe","params":{"subscription":"1"}}"#,
+        )
+        .await;
+    assert_eq!(parse(&replies[0])["result"], true);
+    assert_eq!(session.len(), 1);
+
+    let bad = session
+        .handle(
+            &service,
+            r#"{"jsonrpc":"2.0","id":6,"method":"subscribe","params":{"topic":"prices"}}"#,
+        )
+        .await;
+    assert_eq!(parse(&bad[0])["error"]["code"], -32602);
+    for i in 0..40 {
+        session.handle(&service, &format!(r#"{{"jsonrpc":"2.0","id":{i},"method":"subscribe","params":{{"topic":"finalizedBlocks"}}}}"#)).await;
+    }
+    assert_eq!(session.len(), aletheia_rpc::ws::MAX_SUBSCRIPTIONS);
 }

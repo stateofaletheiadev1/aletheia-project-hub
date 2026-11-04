@@ -30,6 +30,7 @@ pub(crate) enum RpcQuery {
     Assets,
     Supply(AssetId),
     Validators(u64),
+    AccountHistory(Address, Option<(u64, u32)>, usize),
     Simulate(Vec<u8>),
 }
 
@@ -45,6 +46,7 @@ pub(crate) enum RpcAnswer {
     Assets(Vec<(AssetId, AssetConfig)>),
     Supply(Option<Box<SupplyLedger>>),
     Validators(Option<Vec<ValidatorRecord>>),
+    History(Vec<(u64, u32, Hash32)>),
     Simulated(Box<Receipt>),
 }
 
@@ -133,6 +135,13 @@ pub(crate) fn answer<S: KvStore>(
         }
         RpcQuery::Supply(asset) => RpcAnswer::Supply(ledger.supply_at_tip(asset)?.map(Box::new)),
         RpcQuery::Validators(epoch) => RpcAnswer::Validators(ledger.validators_at_tip(epoch)?),
+        RpcQuery::AccountHistory(address, before, limit) => RpcAnswer::History(
+            ledger
+                .account_history(&address, before, limit)?
+                .into_iter()
+                .map(|(height, index, tx_id)| (height.get(), index, tx_id))
+                .collect(),
+        ),
         RpcQuery::Simulate(bytes) => RpcAnswer::Simulated(Box::new(ledger.simulate(&bytes)?)),
     })
 }
@@ -232,6 +241,21 @@ impl Backend for NodeBackend {
     async fn validators(&self, epoch: u64) -> Result<Option<Vec<ValidatorRecord>>, AletheiaError> {
         match self.ask(RpcQuery::Validators(epoch)).await? {
             RpcAnswer::Validators(v) => Ok(v),
+            _ => Err(unexpected()),
+        }
+    }
+
+    async fn account_history(
+        &self,
+        address: Address,
+        before: Option<(u64, u32)>,
+        limit: usize,
+    ) -> Result<Vec<(u64, u32, Hash32)>, AletheiaError> {
+        match self
+            .ask(RpcQuery::AccountHistory(address, before, limit))
+            .await?
+        {
+            RpcAnswer::History(h) => Ok(h),
             _ => Err(unexpected()),
         }
     }

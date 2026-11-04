@@ -15,6 +15,12 @@
 //! Signatures come last because they are the expensive check: a flood of oversized or
 //! wrong-network transactions is turned away before any curve arithmetic. Nothing here reads
 //! state or the clock, so every validator reaches the same verdict on the same bytes.
+//!
+//! [`StatelessValidator::validate_preview`] runs the same checks on a transaction that carries
+//! its keys but no signatures, skipping only steps 8's signature count and 9. It exists for
+//! `simulateTransaction` (ADR-064): a wallet can be told what a transfer would cost before it
+//! signs anything. A preview is never admitted to the mempool or a block; `validate` is the
+//! only path for those, and it is unchanged.
 
 use aletheia_core::{
     AceDecode, AletheiaError, AuthScheme, Authorization, ErrorCode, Hash32, NetworkIdentity,
@@ -66,6 +72,21 @@ impl StatelessValidator {
     }
 
     pub fn validate(&self, bytes: &[u8]) -> Result<VerifiedTransaction, AletheiaError> {
+        self.check(bytes, Signatures::Required)
+    }
+
+    /// Validates an unsigned preview for simulation only: every check of [`Self::validate`]
+    /// except the signature count and signature verification. The authorization must carry its
+    /// public keys and no signatures, so execution still binds the keys to the sender.
+    pub fn validate_preview(&self, bytes: &[u8]) -> Result<VerifiedTransaction, AletheiaError> {
+        self.check(bytes, Signatures::Absent)
+    }
+
+    fn check(
+        &self,
+        bytes: &[u8],
+        signatures: Signatures,
+    ) -> Result<VerifiedTransaction, AletheiaError> {
         let limits = self.rules.tx_limits();
         if bytes.len() > limits.max_tx_bytes {
             return Err(reject(
@@ -132,11 +153,24 @@ impl StatelessValidator {
             ));
         }
         check_validity_window(body, limits.max_validity_slots)?;
-        check_authorization_shape(&transaction.authorization)?;
-        verify_signatures(
-            &transaction.authorization,
-            &body.signing_digest(&self.network),
-        )?;
+        check_authorization_keys(&transaction.authorization)?;
+        match signatures {
+            Signatures::Required => {
+                check_signature_entries(&transaction.authorization)?;
+                verify_signatures(
+                    &transaction.authorization,
+                    &body.signing_digest(&self.network),
+                )?;
+            }
+            Signatures::Absent => {
+                if !transaction.authorization.signatures.is_empty() {
+                    return Err(reject(
+                        ErrorCode::TxAuthMalformed,
+                        "a simulation preview carries keys and no signatures".to_owned(),
+                    ));
+                }
+            }
+        }
 
         Ok(VerifiedTransaction {
             tx_id: body.tx_id(&self.network),
@@ -145,6 +179,13 @@ impl StatelessValidator {
             transaction,
         })
     }
+}
+
+/// Whether a transaction must carry valid signatures (always, except a simulation preview).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Signatures {
+    Required,
+    Absent,
 }
 
 fn reject(code: ErrorCode, detail: String) -> AletheiaError {
@@ -307,7 +348,8 @@ fn check_validity_window(body: &TransactionBody, max_slots: u64) -> Result<(), A
 /// Scheme, threshold, key and signature counts fit together (ADR-044). The signature count
 /// must equal the threshold exactly: extra signatures would change the witness hash without
 /// changing the intent, which is malleability for no benefit.
-fn check_authorization_shape(authorization: &Authorization) -> Result<(), AletheiaError> {
+/// Scheme, key count, threshold and key algorithms (step 8, without signatures).
+fn check_authorization_keys(authorization: &Authorization) -> Result<(), AletheiaError> {
     let keys = authorization.public_keys.len();
     let threshold = usize::from(authorization.threshold);
     let malformed = |detail: String| reject(ErrorCode::TxAuthMalformed, detail);
@@ -339,6 +381,14 @@ fn check_authorization_shape(authorization: &Authorization) -> Result<(), Alethe
             entry.alg_id
         )));
     }
+    Ok(())
+}
+
+/// Signature count and entries (the rest of step 8).
+fn check_signature_entries(authorization: &Authorization) -> Result<(), AletheiaError> {
+    let keys = authorization.public_keys.len();
+    let threshold = usize::from(authorization.threshold);
+    let malformed = |detail: String| reject(ErrorCode::TxAuthMalformed, detail);
     if authorization.signatures.len() != threshold {
         return Err(reject(
             ErrorCode::TxThresholdNotMet,

@@ -23,6 +23,7 @@ pub mod jsonrpc;
 pub mod rest;
 pub mod server;
 pub mod service;
+pub mod ws;
 
 pub use backend::{Backend, BlockRef, Located, NodeStatus};
 pub use error::RpcError;

@@ -271,6 +271,7 @@ dependencies = [
  "aletheia-monetary",
  "aletheia-test-harness",
  "axum",
+ "futures-util",
  "proptest",
  "serde_json",
  "tokio",

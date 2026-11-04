@@ -137,6 +137,16 @@ async fn dispatch<B: Backend>(
             }
             Ok(Value::Array(out))
         }
+        ("GET", ["accounts", address, "transactions"]) => {
+            let mut p = params(&[("address", s(address))]);
+            if let Some(limit) = q("limit") {
+                p.insert("limit".to_owned(), s(limit));
+            }
+            if let Some(before) = q("before") {
+                p.insert("before".to_owned(), s(before));
+            }
+            service.call("getAccountHistory", &p).await
+        }
         ("GET", ["assets"]) => service.call("getAssets", &Map::new()).await,
         ("GET", ["validators"]) => match q("epoch") {
             Some(epoch) => {

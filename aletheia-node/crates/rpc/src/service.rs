@@ -32,7 +32,11 @@ pub const METHODS: &[&str] = &[
     "getAssets",
     "getMonetarySupply",
     "getValidatorSet",
+    "getAccountHistory",
 ];
+
+/// Most transactions one history page returns.
+pub const MAX_HISTORY_PAGE: u64 = 50;
 
 fn text<'a>(params: &'a Params, name: &str) -> Result<&'a str, RpcError> {
     params
@@ -58,6 +62,16 @@ fn number(params: &Params, name: &str) -> Result<u64, RpcError> {
 fn bytes(params: &Params, name: &str) -> Result<Vec<u8>, RpcError> {
     base16::decode(text(params, name)?)
         .map_err(|e| RpcError::invalid_params(format!("\"{name}\": {}", e.detail())))
+}
+
+/// A history cursor, `"<height>:<index>"`, as `getAccountHistory` returns it in `next`.
+fn parse_cursor(text: &str) -> Result<(u64, u32), RpcError> {
+    let bad = || RpcError::invalid_params("\"before\" is a cursor from a previous page");
+    let (height, index) = text.split_once(':').ok_or_else(bad)?;
+    Ok((
+        height.parse().map_err(|_| bad())?,
+        index.parse().map_err(|_| bad())?,
+    ))
 }
 
 /// Refuses parameters a method does not take, so a typo is not silently ignored.
@@ -152,6 +166,26 @@ impl<B: Backend> Service<B> {
             "getMonetarySupply" => {
                 only(params, &["asset"])?;
                 self.supply(parse_asset(text(params, "asset")?)?).await
+            }
+            "getAccountHistory" => {
+                only(params, &["address", "limit", "before"])?;
+                let network = self.backend.network();
+                let address = parse_address(&network, text(params, "address")?)?;
+                let limit = if params.contains_key("limit") {
+                    number(params, "limit")?
+                } else {
+                    25
+                };
+                if limit == 0 || limit > MAX_HISTORY_PAGE {
+                    return Err(RpcError::invalid_params(format!(
+                        "\"limit\" is 1 to {MAX_HISTORY_PAGE}"
+                    )));
+                }
+                let before = match params.get("before") {
+                    None | Some(Value::Null) => None,
+                    Some(_) => Some(parse_cursor(text(params, "before")?)?),
+                };
+                self.account_history(&address, before, limit).await
             }
             "getValidatorSet" => {
                 only(params, &["epoch"])?;
@@ -353,6 +387,39 @@ impl<B: Backend> Service<B> {
                 })
                 .collect(),
         ))
+    }
+
+    /// A page of the account's finalized transactions, newest first, each as `getTransaction`
+    /// shows it, and the cursor for the next page (`null` at the end).
+    pub async fn account_history(
+        &self,
+        address: &aletheia_core::Address,
+        before: Option<(u64, u32)>,
+        limit: u64,
+    ) -> Result<Value, RpcError> {
+        let network = self.backend.network();
+        let page = usize::try_from(limit).unwrap_or(1);
+        let found = self
+            .backend
+            .account_history(*address, before, page)
+            .await
+            .map_err(|e| from_backend(&e))?;
+        let mut transactions = Vec::with_capacity(found.len());
+        for (_, _, tx_id) in &found {
+            transactions.push(self.transaction(*tx_id).await?);
+        }
+        let next = if found.len() == page {
+            found
+                .last()
+                .map(|(height, index, _)| Value::String(format!("{height}:{index}")))
+        } else {
+            None
+        };
+        Ok(json!({
+            "address": address_text(&network, address),
+            "transactions": transactions,
+            "next": next.unwrap_or(Value::Null),
+        }))
     }
 
     /// The validator set of `epoch` (default: the finalized tip's epoch). A chain run by the

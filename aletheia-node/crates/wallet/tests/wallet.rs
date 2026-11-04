@@ -129,6 +129,37 @@ impl Backend for DevnetBackend {
         let net = self.0.lock().unwrap();
         net.simulate(&SignedTransaction::from_ace_bytes(&bytes)?)
     }
+
+    /// A scan of every block, newest first (the node keeps an index; see ADR-064).
+    async fn account_history(
+        &self,
+        address: aletheia_core::Address,
+        before: Option<(u64, u32)>,
+        limit: usize,
+    ) -> Result<Vec<(u64, u32, aletheia_core::Hash32)>, AletheiaError> {
+        let net = self.0.lock().unwrap();
+        let mut out = Vec::new();
+        for (proposal, _) in net.blocks.iter().rev() {
+            let height = proposal.block.header.height.get();
+            for (index, tx) in proposal.block.body.transactions.iter().enumerate().rev() {
+                let index = u32::try_from(index).unwrap();
+                if before.is_some_and(|cursor| (height, index) >= cursor) {
+                    continue;
+                }
+                let recipient = match &tx.body.payload {
+                    aletheia_core::tx::Payload::Transfer(leg) => Some(leg.recipient),
+                    _ => None,
+                };
+                if tx.body.sender == address || recipient == Some(address) {
+                    out.push((height, index, tx.body.tx_id(&net.network).hash()));
+                    if out.len() == limit {
+                        return Ok(out);
+                    }
+                }
+            }
+        }
+        Ok(out)
+    }
 }
 
 struct InProcess(Service<DevnetBackend>);

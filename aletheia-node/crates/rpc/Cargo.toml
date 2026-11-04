@@ -13,7 +13,9 @@ aletheia-execution.workspace = true
 aletheia-monetary.workspace = true
 serde_json.workspace = true
 axum.workspace = true
-tokio = { version = "1", features = ["net", "rt", "sync", "time"] }
+# Already in the tree through axum's WebSocket support; used to read and write a socket at once.
+futures-util = { version = "0.3", default-features = false, features = ["sink"] }
+tokio = { version = "1", features = ["macros", "net", "rt", "sync", "time"] }
 
 [dev-dependencies]
 aletheia-test-harness.workspace = true

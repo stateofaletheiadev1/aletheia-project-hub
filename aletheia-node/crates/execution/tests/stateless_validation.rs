@@ -292,3 +292,44 @@ fn an_eu_limit_above_the_transaction_ceiling_is_refused() {
     over.fee.max_fee = u128::from(ceiling + 1);
     assert_eq!(rejection(&single(over)), ErrorCode::TxFieldOutOfRange);
 }
+
+/// An unsigned preview: the sender's key and no signatures (ADR-064).
+fn preview(body: TransactionBody) -> SignedTransaction {
+    sign(body, AuthScheme::Ed25519, 1, &[key(1)], &[])
+}
+
+#[test]
+fn an_unsigned_preview_passes_only_the_preview_check() {
+    let tx = preview(body());
+    let verified = validator().validate_preview(&tx.to_ace_bytes()).unwrap();
+    assert_eq!(verified.tx_id(), tx.body.tx_id(&network()));
+    // The admission path never accepts it.
+    assert_eq!(rejection(&tx), ErrorCode::TxThresholdNotMet);
+}
+
+#[test]
+fn a_preview_runs_every_other_check() {
+    let mut wrong_chain = body();
+    wrong_chain.chain_id = ChainId::new(1);
+    let code = |tx: &SignedTransaction| {
+        validator()
+            .validate_preview(&tx.to_ace_bytes())
+            .unwrap_err()
+            .code()
+    };
+    assert_eq!(code(&preview(wrong_chain)), ErrorCode::TxWrongChain);
+    let mut no_eu = body();
+    no_eu.fee.eu_limit = 0;
+    assert_eq!(code(&preview(no_eu)), ErrorCode::TxFieldOutOfRange);
+    let two_keys = sign(body(), AuthScheme::Ed25519, 1, &[key(1), key(2)], &[]);
+    assert_eq!(code(&two_keys), ErrorCode::TxAuthMalformed);
+}
+
+#[test]
+fn a_preview_must_not_carry_signatures() {
+    let signed = single(body());
+    let error = validator()
+        .validate_preview(&signed.to_ace_bytes())
+        .unwrap_err();
+    assert_eq!(error.code(), ErrorCode::TxAuthMalformed);
+}
