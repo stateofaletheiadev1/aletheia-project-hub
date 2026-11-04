@@ -12,6 +12,10 @@ export const STABLECHAIN = {
   rest: 'https://rpc.stateofaletheia.org/api/v1',
   /** JSON-RPC 2.0 interface (Section 37.2). */
   jsonRpc: 'https://rpc.stateofaletheia.org/rpc/v1',
+  /** WebSocket subscriptions: finalized blocks, transaction status, account events (node ADR-064, live 4 November 2026). */
+  webSocket: 'wss://rpc.stateofaletheia.org/ws/v1',
+  /** Account history, newest first (node ADR-064). Append the address and `/transactions`. */
+  accountHistory: 'https://rpc.stateofaletheia.org/api/v1/accounts/{address}/transactions',
   explorer: 'https://aletheiascan.mainnet.stateofaletheia.org',
   /** The explorer is linked only while it is deployed; when false every explorer link is hidden. */
   explorerLive: true,
@@ -23,6 +27,16 @@ export const STABLECHAIN = {
   slotMs: 500,
   /** Address checksum prefix (human-readable part) on mainnet. */
   addressHrp: 'al',
+} as const;
+
+/**
+ * Aletheia Wallet, the State's non-custodial wallet for AletheiaChain (aletheia-wallet/). Linked only
+ * once it is served at its own address; until then pages name it without a link.
+ */
+export const WALLET = {
+  name: 'Aletheia Wallet',
+  url: 'https://wallet.mainnet.stateofaletheia.org',
+  live: false,
 } as const;
 
 /** The two native assets (Section 18.3). */
@@ -42,7 +56,7 @@ export const NATIVE_ASSETS = [
 ] as const;
 
 /**
- * Example identifiers for illustrations (sample statements, the demo portal). They are
+ * Example identifiers for format illustrations (the identifier table). They are
  * correctly formed mainnet text (valid EIP-55 case checksums, ADR-062; generated with the
  * explorer's APS-0002 code from fixed labels) and name no real account, transaction or block.
  */

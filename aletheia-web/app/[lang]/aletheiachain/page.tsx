@@ -51,7 +51,7 @@ export default function AletheiaChainPage() {
                 Aletheia<span className="text-gold-metallic">Chain</span>
               </h1>
 
-              <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light max-w-2xl">{t("AletheiaChain is Aletheia’s public ledger, the stablechain that holds its currencies. It runs today as Mainnet Beta and reference implementation, designed for 500 ms slots with deterministic finality, a fixed fee schedule, and native registries for statutes, companies and public spending.")}</p>
+              <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light max-w-2xl">{t("AletheiaChain is Aletheia’s public ledger, the stablechain that holds its currencies. It has run as Mainnet Beta since 27 October 2026: 500 ms slots with deterministic finality, a fixed fee schedule, and native registries for statutes, companies and public spending.")}</p>
 
               <div className="flex flex-wrap gap-4 pt-2">
                 <Link
@@ -137,7 +137,7 @@ export default function AletheiaChainPage() {
           <div className="bg-navy-deep border border-burgundy/30 rounded-sm px-5 py-4 flex items-start gap-3">
             <ShieldCheck className="w-5 h-5 text-gold shrink-0 mt-0.5" />
             <p className="text-sm text-parchment/80 leading-relaxed">
-              <strong className="text-parchment">{t("AletheiaChain runs today as Mainnet Beta, its reference implementation.")}</strong>{' '}{t("It carries no real value. No AEY or other asset is issued, sold or offered to the public. Read-only access is provided for transparency and review.")}</p>
+              <strong className="text-parchment">{t("AletheiaChain has run as Mainnet Beta since 27 October 2026.")}</strong>{' '}{t("Its RPC, WebSocket and explorer are open to everyone. No AEY has been issued yet, and no asset on it is sold or offered to the public.")}</p>
           </div>
 
           <AeyNotice tone="dark" />

@@ -12,8 +12,9 @@ import { createHash, randomBytes } from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const here = path.dirname(new URL(import.meta.url).pathname);
+const here = path.dirname(fileURLToPath(import.meta.url));
 const webDir = path.resolve(here, '../..');
 
 async function waitFor(url, ms = 60_000) {
@@ -29,7 +30,7 @@ async function waitFor(url, ms = 60_000) {
 }
 
 export async function start({ dbPort = 7799, webPort = 3199, smtpPort = 2599, env: extraEnv = {} } = {}) {
-  const bin = process.env.ALETHEIADB_BIN ?? path.resolve(webDir, '../aletheia-db/target/release/aletheiadb');
+  const bin = process.env.ALETHEIADB_BIN ?? path.resolve(webDir, `../aletheia-db/target/release/aletheiadb${process.platform === 'win32' ? '.exe' : ''}`);
   if (!fs.existsSync(bin)) throw new Error(`AletheiaDB binary not found at ${bin}: build it with \`cargo build --release\` in aletheia-db, or set ALETHEIADB_BIN`);
   const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'aletheiadb-test-'));
   const rootSecret = randomBytes(24).toString('hex');

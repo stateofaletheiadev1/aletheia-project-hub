@@ -56,7 +56,7 @@ const NAV_SECTIONS = [
     items: [
       { label: 'Company Formations', href: '/admin/companies', badge: null, badgeColor: 'bg-gold/15 text-gold border border-gold/20' },
       { label: 'Document Review', href: '/admin/documents', badge: null, badgeColor: '' },
-      { label: 'Treasury Issuance', href: '/admin/treasury', badge: null, badgeColor: '' },
+      { label: 'Treasury on AletheiaChain', href: '/admin/treasury', badge: null, badgeColor: '' },
     ],
   },
   {

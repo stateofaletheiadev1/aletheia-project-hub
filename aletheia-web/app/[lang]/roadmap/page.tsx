@@ -12,7 +12,14 @@ const PHASES: { phase: string; title: string; when: string; now?: boolean; visio
     title: 'Now',
     when: '2026',
     now: true,
-    items: ['A founding community forming', 'Digital institutions: this platform, the draft Constitution and the public record', 'AletheiaChain on Mainnet Beta'],
+    items: [
+      'A founding community forming',
+      'Digital institutions: this platform, the draft Constitution and the public record',
+      'AletheiaChain on Mainnet Beta since 27 October 2026, with its public explorer and open RPC and WebSocket interfaces',
+      'AletheiaDB, the State’s own record database, in production since 10 October 2026',
+      'Government operations: aletheiagov.org and the workbench that publishes its record, in production since 15 October 2026',
+      'Aletheia Wallet: the non-custodial wallet for AletheiaChain, in final preparation',
+    ],
   },
   {
     phase: 'Phase 1',

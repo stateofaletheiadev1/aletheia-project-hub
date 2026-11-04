@@ -31,6 +31,10 @@ type Dashboard = {
 export default function CivicPortalDashboard() {
   const { t, tx, intl } = useI18n();
   const { data } = useApi<Dashboard>('/api/portal/dashboard');
+  // Balances live on AletheiaChain only; the portal reads them for the linked address.
+  const chain = useApi<{ linked: boolean; balances?: { asset: string; available: string; display: string | null }[] }>('/api/portal/wallet');
+  const aeyOnChain = chain.data?.balances?.find((b) => b.asset === 'AEY');
+  const aeyText = aeyOnChain ? (aeyOnChain.display ?? aeyOnChain.available).replace(/(\.\d*?)0+$/, '$1').replace(/\.$/, '') : null;
   const [copied, setCopied] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -49,7 +53,7 @@ export default function CivicPortalDashboard() {
   const STATUS_CARDS = [
     { label: 'Residency Status', value: account?.role ?? '—', sub: account?.residency ? t('Valid until {date}', { date: day(account.residency.validUntil, intl) }) : t('Apply for e-residency'), icon: Globe2, accent: '#3D8664', bg: 'rgba(47,107,79,0.08)' },
     { label: 'Companies', value: t('{count} Active', { count: activeCompanies.length }), sub: activeCompanies[0]?.name ?? t('None registered yet'), icon: Building2, accent: '#C49A4E', bg: 'rgba(196,154,78,0.08)' },
-    { label: 'AEY Balance', value: (account?.balance ?? 0).toLocaleString(intl, { minimumFractionDigits: 2, maximumFractionDigits: 2 }), sub: 'Aletheian Guilder', icon: CreditCard, accent: '#15294A', bg: 'rgba(21,41,74,0.06)' },
+    { label: 'AletheiaChain', value: account?.chainAddress ? `${account.chainAddress.slice(0, 10)}…${account.chainAddress.slice(-4)}` : t('Not linked'), sub: account?.chainAddress ? t('Account linked') : t('Link your address'), icon: CreditCard, accent: '#15294A', bg: 'rgba(21,41,74,0.06)' },
     { label: 'Pending', value: t('{count} Items', { count: pending.length }), sub: pending[0]?.reference ?? t('Nothing waiting'), icon: Clock, accent: '#E4A628', bg: 'rgba(228,166,40,0.08)' },
   ];
 
@@ -201,21 +205,20 @@ export default function CivicPortalDashboard() {
             {/* AEY Wallet mini */}
             <div className="shell-card-light rounded-sm overflow-hidden">
               <div className="px-6 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid rgba(21,41,74,0.07)' }}>
-                <h2 className="text-[13px] font-extrabold" style={{ color: '#15294A' }}>{t("AEY Wallet")}</h2>
-                <Link href="/portal/wallet" className="flex items-center gap-1 text-[11px] font-bold" style={{ color: 'rgba(196,154,78,0.75)' }}>{t("Full Wallet")}{' '}<ArrowUpRight className="w-3 h-3" />
+                <h2 className="text-[13px] font-extrabold" style={{ color: '#15294A' }}>{t("AletheiaChain account")}</h2>
+                <Link href="/portal/wallet" className="flex items-center gap-1 text-[11px] font-bold" style={{ color: 'rgba(196,154,78,0.75)' }}>{t("Open")}{' '}<ArrowUpRight className="w-3 h-3" />
                 </Link>
               </div>
               <div className="p-5 flex items-center gap-6">
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: 'rgba(21,41,74,0.40)' }}>{t("Available Balance")}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: 'rgba(21,41,74,0.40)' }}>{t("AEY on AletheiaChain")}</p>
                   <div className="flex items-end gap-2 mt-1">
-                    <span className="text-3xl font-extrabold tracking-tight text-gold-metallic">{(account?.balance ?? 0).toLocaleString(intl, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                    <span className="text-sm font-bold pb-0.5" style={{ color: 'rgba(21,41,74,0.50)' }}>{t("AEY")}</span>
+                    <span className="text-3xl font-extrabold tracking-tight text-gold-metallic">{aeyText ?? '—'}</span>
+                    <span className="text-sm font-bold pb-0.5" style={{ color: 'rgba(21,41,74,0.50)' }}>{aeyText ? t("AEY") : chain.data && !chain.data.linked ? t("Link your address") : ''}</span>
                   </div>
                 </div>
                 <div className="ml-auto flex gap-3">
-                  <Link href="/portal/wallet" className="px-4 py-2 rounded-sm text-xs font-bold transition-all btn-shimmer" style={{ background: 'linear-gradient(135deg, #E4C689, #C49A4E)', color: '#0E1B31', boxShadow: '0 4px 14px rgba(196,154,78,0.28)' }}>{t("Transfer")}</Link>
-                  <Link href="/portal/wallet" className="px-4 py-2 rounded-sm text-xs font-bold transition-all" style={{ background: 'rgba(21,41,74,0.06)', border: '1px solid rgba(21,41,74,0.12)', color: '#15294A' }}>{t("History")}</Link>
+                  <Link href="/portal/wallet" className="px-4 py-2 rounded-sm text-xs font-bold transition-all" style={{ background: 'rgba(21,41,74,0.06)', border: '1px solid rgba(21,41,74,0.12)', color: '#15294A' }}>{t("Transfers")}</Link>
                 </div>
               </div>
             </div>

@@ -10,10 +10,11 @@
 import { execFileSync } from 'node:child_process';
 import { createHmac, generateKeyPairSync } from 'node:crypto';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { AletheiaDB } from '@aletheia/aletheiadb';
 import { start } from './harness.mjs';
 
-const webDir = path.resolve(path.dirname(new URL(import.meta.url).pathname), '../..');
+const webDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 let failures = 0;
 let passes = 0;
 function check(name, cond, detail = '') {
@@ -82,7 +83,8 @@ function totp(secret, t = Date.now()) {
 const publicKeyHex = () => generateKeyPairSync('ed25519').publicKey.export({ format: 'der', type: 'spki' }).subarray(-32).toString('hex');
 const PASS = 'correct horse battery staple 42';
 
-const env = await start();
+// The portal is closed in production (FEATURE_APPLICATIONS); these tests exercise it open.
+const env = await start({ env: { FEATURE_APPLICATIONS: 'true' } });
 try {
   const { base } = env;
 
@@ -247,28 +249,26 @@ try {
   const bob = new Client(base);
   r = await bob.post('/api/portal/auth/register', { name: 'Bob Builder', email: 'bob@example.org', passphrase: PASS });
   const bobId = r.account.id;
-  check('wallet starts empty', (await ada.get('/api/portal/wallet')).balance === 0);
-  check('overdraft refused', (await ada.post('/api/portal/wallet/transfers', { recipient: bobId, amount: 10 })).status === 400);
-  check('self-transfer refused', (await ada.post('/api/portal/wallet/transfers', { recipient: adaId, amount: 1 })).status === 400);
-  check('unknown recipient', (await ada.post('/api/portal/wallet/transfers', { recipient: 'ALE-ID-2000-000000', amount: 1 })).status === 404);
-  check('issuance needs a reason', (await off.post('/api/admin/treasury', { recipient: adaId, amount: 100, reason: '' })).status === 400);
-  check('citizens cannot reach the treasury', (await ada.post('/api/admin/treasury', { recipient: adaId, amount: 100, reason: 'x' })).status === 401);
-  r = await off.post('/api/admin/treasury', { recipient: adaId, amount: 100, reason: 'Founding grant for testing' });
-  check('treasury issues AEY', r.status === 201 && /^ISS-/.test(r.issuance?.reference) && r.issuance.state === 'completed', JSON.stringify(r));
+  // AEY exists only on AletheiaChain: the portal links a person's own address and reads the chain.
+  // These checks reach the live Mainnet Beta node through the server (STABLECHAIN.rest).
+  const TREASURY_ON_CHAIN = 'alt:56CB50d83DD2F56b4F57599110139C37cC38655a'; // genesis allocation, public
+  r = await ada.get('/api/portal/wallet');
+  check('chain account starts unlinked', r.linked === false, JSON.stringify(r));
+  check('malformed address refused', (await ada.put('/api/portal/wallet', { address: 'alt:1234' })).status === 400);
+  const flipped = TREASURY_ON_CHAIN.replace('C', 'c');
+  check('wrong checksum casing refused by the node', (await ada.put('/api/portal/wallet', { address: flipped })).status === 400);
+  check('another network’s address refused', (await ada.put('/api/portal/wallet', { address: 'alt:a7c308Be39bA1F33fa045Dde6A90b4E623360162' })).status === 400);
+  r = await ada.put('/api/portal/wallet', { address: TREASURY_ON_CHAIN });
+  check('address linked after the node checks it', r.linked === true && r.address === TREASURY_ON_CHAIN, JSON.stringify(r).slice(0, 300));
+  check('balances read from the chain', Array.isArray(r.balances) && r.balances.some((b) => b.asset === 'ALnT' && /^\d+$/.test(b.available)) && r.height > 0);
+  check('linked address shown on the account', (await ada.get('/api/portal/me')).account?.chainAddress === TREASURY_ON_CHAIN);
+  check('portal transfers are retired', (await ada.post('/api/portal/wallet/transfers', { recipient: bobId, amount: 1 })).status === 410);
+  check('citizens cannot reach the treasury', (await ada.post('/api/admin/treasury', {})).status === 401);
+  check('portal issuance is retired', (await off.post('/api/admin/treasury', { recipient: adaId, amount: 100, reason: 'x' })).status === 410);
   r = await off.get('/api/admin/treasury');
-  check('issuance listed with total', r.issuances?.length === 1 && r.total === 100 && r.issuances[0].recipient === adaId);
-  r = await ada.get('/api/portal/wallet');
-  check('issuance credited with entry', r.balance === 100 && r.transactions[0]?.description.startsWith('Issued by the Treasury'));
-  check('fractional cents refused', (await ada.post('/api/portal/wallet/transfers', { recipient: bobId, amount: 1.234 })).status === 400);
-  r = await ada.post('/api/portal/wallet/transfers', { recipient: bobId.toLowerCase(), amount: 25.5, memo: 'Gears' });
-  check('transfer completes', r.status === 201 && r.transfer?.state === 'completed' && r.wallet?.balance === 74.5, JSON.stringify(r).slice(0, 300));
-  r = await bob.get('/api/portal/wallet');
-  check('recipient credited with entry', r.balance === 25.5 && r.transactions.length === 1 && r.transactions[0].type === 'Credit' && r.transactions[0].description.includes('Ada King') && r.transactions[0].description.includes('Gears'));
-  r = await ada.get('/api/portal/wallet');
-  check('sender has debit entry', r.transactions.length === 2 && r.transactions[0].type === 'Debit' && r.transactions[0].amount === 25.5 && r.transactions[0].description.includes('Bob Builder'));
-  const results = await Promise.all([1, 2, 3, 4].map(() => ada.post('/api/portal/wallet/transfers', { recipient: bobId, amount: 30 })));
-  r = await ada.get('/api/portal/wallet');
-  check('concurrent transfers never overdraw', r.balance >= 0 && results.filter((x) => x.status === 201).length === 2 && Math.abs(r.balance - 14.5) < 1e-9, `${results.map((x) => x.status)} balance ${r.balance}`);
+  check('treasury reports supply from the chain', r.supply?.some((x) => x.asset === 'ALnT' && /^\d+$/.test(x.issuedTotal ?? '')), JSON.stringify(r).slice(0, 300));
+  r = await ada.put('/api/portal/wallet', { address: null });
+  check('address unlinked', r.linked === false);
 
   console.log('rescission');
   r = await off.post('/api/admin/rescissions', { nationalId, basis: 'Voluntary Renunciation', stage: 'Hearing Scheduled', dossierRef: 'DOS-1' });
@@ -359,8 +359,8 @@ try {
   check('erased person cannot sign in', [401, 403].includes((await new Client(base).post('/api/portal/auth/login', { identifier: bobId, passphrase: PASS })).status));
   const bobDoc = await raw.collection('accounts').findOne({ aletheiaId: bobId });
   check('erased data key is gone', (await raw.collection('subject_keys').count({ subject: bobDoc.subject })) === 0);
-  r = await ada.get('/api/portal/wallet');
-  check('other wallets keep their own records', r.transactions.length >= 2);
+  r = await ada.get('/api/portal/me');
+  check('other people keep their own records', r.account?.email === 'ada@example.org' && (await ada.get('/api/portal/wallet')).linked === false);
 
   console.log('lockout');
   const carolId = (await new Client(base).post('/api/portal/auth/register', { name: 'Carol Danvers', email: 'carol@example.org', passphrase: PASS })).account.id;

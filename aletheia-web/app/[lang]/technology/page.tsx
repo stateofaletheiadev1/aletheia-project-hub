@@ -12,6 +12,7 @@ import {
   Search,
 } from 'lucide-react';
 import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
+import { explorerUrl } from '@/lib/stablechain';
 
 const REGISTRIES = [
   {
@@ -51,14 +52,20 @@ const REGISTRIES = [
 export default function TechnologyPage() {
   const { t, tx } = useI18n();
   const [queryInput, setQueryInput] = useState('');
-  const [queryResult, setQueryResult] = useState<'idle' | 'searching' | 'none'>('idle');
+  const [queryResult, setQueryResult] = useState<'idle' | 'searching' | 'none' | { href: string; kind: string }>('idle');
 
   // The State Registry has published nothing on the ledger yet, so every lookup truthfully
   // finds nothing. Replace with a call to the registry when it publishes.
+  // AletheiaChain identifiers open on the live explorer; registry numbers exist once a registry publishes.
   const handleQuery = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!queryInput.trim()) return;
-    setQueryResult('none');
+    const q = queryInput.trim();
+    if (!q) return;
+    if (/^alt:T[0-9a-fA-F]{64}$/.test(q)) setQueryResult({ href: explorerUrl.tx(q), kind: 'Transaction' });
+    else if (/^alt:B[0-9a-fA-F]{64}$/.test(q)) setQueryResult({ href: explorerUrl.block(q), kind: 'Block' });
+    else if (/^alt:[0-9a-fA-F]{40}$/.test(q)) setQueryResult({ href: explorerUrl.address(q), kind: 'Account' });
+    else if (/^\d{1,12}$/.test(q)) setQueryResult({ href: explorerUrl.block(q), kind: 'Block' });
+    else setQueryResult('none');
   };
 
   return (
@@ -79,7 +86,7 @@ export default function TechnologyPage() {
 
             <h1 className="heading-hero">{t("Digital State & National Registries")}</h1>
 
-            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("A paperless state, by design: every law, company charter, identity and title would be signed, timestamped and verifiable on the AletheiaChain, now on Mainnet Beta. The registries hold no records today.")}</p>
+            <p className="text-base sm:text-lg text-parchment/72 leading-[1.85] font-light">{t("A paperless state, by design: every law, company charter, identity and title would be signed, timestamped and verifiable on AletheiaChain, which runs today as Mainnet Beta. The registries hold no records today.")}</p>
 
             <div className="flex flex-wrap gap-4 pt-2">
               <Link
@@ -154,7 +161,7 @@ export default function TechnologyPage() {
           <div className="lg:col-span-6 space-y-6">
             <span className="text-xs font-bold tracking-eyebrow uppercase text-gold">{t("Public Verification")}</span>
             <h2 className="text-2xl sm:text-3xl font-bold text-navy tracking-tight">{t("Check a Registry Record")}</h2>
-            <p className="text-sm text-navy/70 leading-relaxed">{t("Once a registry exists, any founding document, company registration, land title hash or notary signature could be checked here against the ledger.")}</p>
+            <p className="text-sm text-navy/70 leading-relaxed">{t("Any AletheiaChain transaction, block or account can be checked here against the live ledger. Founding documents, company registrations and land titles will be checkable the same way once their registries publish.")}</p>
 
             <form onSubmit={handleQuery} className="p-6 bg-white border border-navy/15 rounded-sm shadow-sm space-y-4">
               <label htmlFor="reg-query" className="text-xs font-bold text-navy uppercase tracking-wider block">{t("Enter a Record Number or Hash:")}</label>
@@ -162,7 +169,7 @@ export default function TechnologyPage() {
                 <input
                   id="reg-query"
                   type="text"
-                  placeholder={t("e.g. SARL-2026-0819 or alt:T…")}
+                  placeholder={t("alt:T…, alt:B…, alt:… or a block height")}
                   value={queryInput}
                   onChange={(e) => setQueryInput(e.target.value)}
                   className="flex-1 px-4 py-2 text-xs border border-navy/20 rounded-sm focus:outline-none focus:border-navy font-mono"
@@ -177,12 +184,18 @@ export default function TechnologyPage() {
                 </button>
               </div>
 
-              {tx(queryResult === 'none' && (
+              {typeof queryResult === 'object' && (
+                <div className="p-4 bg-navy/5 border border-navy/20 rounded-sm space-y-2 text-xs text-navy">
+                  <div className="font-bold">{t("{kind} on AletheiaChain Mainnet Beta", { kind: queryResult.kind === 'Transaction' ? t('Transaction') : queryResult.kind === 'Block' ? t('Block') : t('Account') })}</div>
+                  <a href={queryResult.href} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-semibold text-navy underline underline-offset-2 hover:text-gold break-all">{t("Open the record on the explorer")}</a>
+                </div>
+              )}
+              {queryResult === 'none' && (
                 <div className="p-4 bg-navy/5 border border-navy/20 rounded-sm space-y-2 text-xs text-navy">
                   <div className="font-bold">{t("No record found")}</div>
-                  <div className="text-[11px] text-navy/70">{t("The State Registry has not published any records on the ledger yet. Records will be verifiable here once AletheiaChain mainnet is running.")}</div>
+                  <div className="text-[11px] text-navy/70">{t("No registry has published records yet. Transaction IDs (alt:T…), block IDs (alt:B…), block heights and account addresses (alt:…) can be checked now.")}</div>
                 </div>
-              ))}
+              )}
             </form>
           </div>
 

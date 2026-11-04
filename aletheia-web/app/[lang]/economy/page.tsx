@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { HeroBackdrop } from '@/components/ui/HeroBackdrop';
 import { AeyNotice } from '@/components/ui/AeyNotice';
+import { LiveChainCard } from '@/components/stablechain/LiveChain';
 
 const INVARIANTS = [
   { id: '1', label: 'Published Rules', rule: 'New AEY is issued only under rules adopted and published by the Reserve Bank of Aletheia.' },
@@ -236,31 +237,17 @@ export default function EconomyPage() {
 
               <div className="flex items-center gap-2 pt-2">
                 <StatusBadge asset="stablechain" size="sm" />
-                <span className="text-[11px] text-parchment/50">{t("Mainnet Beta · reference implementation")}</span>
+                <span className="text-[11px] text-parchment/50">{t("Mainnet Beta since 27 October 2026")}</span>
               </div>
 
               <Link href="/aletheiachain" className="inline-flex items-center gap-2 px-5 py-2.5 border border-gold/30 text-parchment font-semibold text-[12px] uppercase tracking-wider rounded-[3px] hover:border-gold/60 transition-colors group">{t("AletheiaChain Technical Docs")}{' '}<ArrowRight className="w-3.5 h-3.5 text-gold group-hover:translate-x-0.5 transition-transform" />
               </Link>
             </div>
 
-            <div className="relative">
-              <div className="bg-navy-deep/60 border border-gold/20 rounded-[4px] p-6 font-mono text-[11px] leading-6 text-parchment/70 space-y-1">
-                <span className="text-gold/60 block mb-3">{t("# AletheiaChain Epoch Report — Slot #1,847,392")}</span>
-                <span className="text-parchment/40 block">{t("ledger_snapshot:")}</span>
-                <span className="pl-4 text-laurel block">{' '}{t("finality: 2 slots (≈ 1 s)")}</span>
-                <span className="pl-4 text-laurel block">{' '}{t("validators_signing: 4 of 4")}</span>
-                <span className="text-parchment/40 block mt-2">{t("ledger_checks:")}</span>
-                {['SIGNATURES_VALID', 'FINALITY_2_CHAIN', 'ISSUANCE_RECORDED', 'STATE_ROOT_MATCH'].map((inv) => (
-                  <span key={inv} className="pl-4 block">
-                    <span className="text-parchment/40">{tx(inv)}: </span>
-                    <span className="text-laurel font-bold">{t("PASS ✓")}</span>
-                  </span>
-                ))}
-                <span className="text-parchment/40 block mt-2">{t("merkle_root:")}</span>
-                <span className="pl-4 text-gold/70 block break-all">60847173…7c48</span>
-                <span className="text-parchment/40 block">{t("epoch_timestamp: 2026-10-01T20:00:00Z")}</span>
-              </div>
-              <div className="absolute -top-2 -right-2 px-2.5 py-0.5 bg-laurel text-white text-[9px] font-bold uppercase tracking-wider rounded-[2px]">{t("Example Report")}</div>
+            {/* The live ledger, read from the public RPC: no figure here is made up. */}
+            <div className="border-flow rounded-sm p-7 relative">
+              <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-gold to-transparent" />
+              <LiveChainCard />
             </div>
           </div>
         </div>

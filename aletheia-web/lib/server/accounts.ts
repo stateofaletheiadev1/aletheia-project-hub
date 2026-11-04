@@ -34,9 +34,13 @@ export type Account = {
   oathPending: { nationalId: string; grantedAt: string } | null;
   nationalId: string | null;
   passportNumber: string | null;
+  /** Retired off-chain ledger balance (see chain-account.ts); kept as recorded, never shown or changed. */
   balanceCents: number;
-  /** Ids of the latest transfers debited from this account (see wallet.ts). */
+  /** Retired with the off-chain ledger. */
   appliedDebits?: string[];
+  /** The person's own AletheiaChain account, checked by the node when linked. */
+  chainAddress?: string | null;
+  chainAddressLinkedAt?: string | null;
   notifyEmail: boolean;
   notifyLedger: boolean;
   failedSignIns: number;
@@ -108,7 +112,7 @@ export async function accountView(a: StoredAccount) {
     oathPending: a.oathPending,
     nationalId: a.nationalId,
     passportNumber: a.passportNumber,
-    balance: a.balanceCents / 100,
+    chainAddress: a.chainAddress ?? null,
     notifyEmail: a.notifyEmail,
     notifyLedger: a.notifyLedger,
     createdAt: a.createdAt,

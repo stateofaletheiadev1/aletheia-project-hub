@@ -5,7 +5,7 @@ import { useI18n } from '@/components/i18n/I18nProvider';
 import { CopyValue } from '@/components/stablechain/CopyValue';
 import { useChainStatus } from '@/components/stablechain/useChainStatus';
 import { SourceBadge } from '@/components/stablechain/LiveChain';
-import { EXAMPLE, STABLECHAIN } from '@/lib/stablechain';
+import { EXAMPLE, STABLECHAIN, WALLET } from '@/lib/stablechain';
 
 /**
  * The network's public details, as a wallet, exchange or auditor needs them: endpoints,
@@ -40,6 +40,16 @@ export function NetworkDetails() {
           <span className={value}><CopyValue value={STABLECHAIN.jsonRpc} /></span>
         </div>
         <div className={row}>
+          <span className={label}>{t('WebSocket subscriptions')}</span>
+          <span className={value}><CopyValue value={STABLECHAIN.webSocket} /></span>
+        </div>
+        <div className={row}>
+          <span className={label}>{t('Account history')}</span>
+          <span className={`${value} font-mono text-xs break-all`} translate="no" data-i18n-skip="">
+            {STABLECHAIN.accountHistory}
+          </span>
+        </div>
+        <div className={row}>
           <span className={label}>{t('Block explorer')}</span>
           <span className={value}>
             {STABLECHAIN.explorerLive ? (
@@ -55,6 +65,25 @@ export function NetworkDetails() {
               </a>
             ) : (
               t('Published when the explorer opens to the public')
+            )}
+          </span>
+        </div>
+        <div className={row}>
+          <span className={label}>{t('Wallet')}</span>
+          <span className={value}>
+            {WALLET.live ? (
+              <a
+                href={WALLET.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 font-mono text-gold hover:text-gold-tint break-all"
+                translate="no" data-i18n-skip=""
+              >
+                {WALLET.url}
+                <ArrowUpRight className="w-3.5 h-3.5 shrink-0" />
+              </a>
+            ) : (
+              t('Aletheia Wallet: non-custodial, keys made and kept in your browser')
             )}
           </span>
         </div>

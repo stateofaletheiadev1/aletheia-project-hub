@@ -19,7 +19,8 @@ export interface PortalAccount {
   oathPending: { nationalId: string; grantedAt: string } | null;
   nationalId: string | null;
   passportNumber: string | null;
-  balance: number;
+  /** The linked AletheiaChain account, if any; balances are read from the chain. */
+  chainAddress: string | null;
   notifyEmail: boolean;
   notifyLedger: boolean;
   createdAt: string;

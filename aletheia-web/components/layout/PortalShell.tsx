@@ -63,7 +63,7 @@ const NAV_SECTIONS: NavSection[] = [
     title: 'Business',
     items: [
       { label: 'My Companies', href: '/portal/companies' },
-      { label: 'AEY Wallet', href: '/portal/wallet' },
+      { label: 'AletheiaChain account', href: '/portal/wallet' },
     ],
   },
   {
