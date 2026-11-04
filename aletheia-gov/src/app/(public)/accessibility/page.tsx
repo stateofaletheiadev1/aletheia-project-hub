@@ -28,13 +28,15 @@ export default function AccessibilityPage() {
         <li>Pages reflow at 320 pixels wide and remain usable at 400 % zoom.</li>
       </ul>
 
-      <h2>What has not yet been verified</h2>
+      <h2>How it is tested</h2>
       <p>
-        An automated audit and a manual keyboard and screen-reader review are planned before launch. Until they are complete, this statement does not claim conformance.
+        Every public page is audited with axe against WCAG 2.2 AA, and keyboard behaviour is checked by automated tests, before each release. A release with a serious or critical finding is not published. This statement does not claim formal certification.
       </p>
 
       <h2>Reporting a problem</h2>
-      <p>A contact for accessibility reports will be published here before launch.</p>
+      <p>
+        If anything on this site is hard to use, write to <a className="link-ledger" href="mailto:info@stateofaletheia.org">info@stateofaletheia.org</a>. Each report is answered.
+      </p>
     </ProsePage>
   );
 }

@@ -9,6 +9,8 @@ export const PUBLIC_ROUTES = [
   "/projects",
   "/projects/aletheiachain",
   "/projects/aletheiadb",
+  "/projects/government-platform",
+  "/projects/aletheia-wallet",
   "/opportunities",
   "/appointments",
   "/directory",

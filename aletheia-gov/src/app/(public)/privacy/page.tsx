@@ -11,12 +11,12 @@ export default function PrivacyPage() {
     <ProsePage
       mark={{ n: "L1", label: "Policies" }}
       title="Privacy"
-      lede="This website sets no cookies for visitors and runs no analytics. It stores personal data only when you register interest, encrypted. This page describes what the code actually does."
+      lede="This website sets no cookies for visitors and runs no analytics. It stores personal data only when you register interest or apply for a position, encrypted. This page describes what the code actually does."
       margin={[
         { label: "Cookies", value: "None for visitors; one sign-in cookie for officers" },
         { label: "Analytics", value: "None" },
         { label: "Third-party requests", value: "None from your browser" },
-        { label: "Personal data stored", value: "Registrations of interest and CVs, encrypted" },
+        { label: "Personal data stored", value: "Registrations, applications and CVs, encrypted" },
         { label: "Version", value: "Founding edition, October 2026" },
       ]}
     >
@@ -31,10 +31,10 @@ export default function PrivacyPage() {
       <h2>Search</h2>
       <p>Search terms are processed on the server to produce results and are not stored.</p>
 
-      <h2>Registering interest</h2>
+      <h2>Registering interest and applying</h2>
       <p>
-        If you register interest, we keep: your full name, email address, the kinds of position and the institutions you chose, your main area of expertise, your
-        optional note, your CV, and the time you registered. We use them only to contact you when positions of those kinds in those institutions are published. Registering again with the same
+        If you register interest or apply for a published position, we keep: your full name, email address, the kinds of position and the institutions you chose, your main area of expertise, your
+        optional note, your CV, the time you registered and the references of any positions you applied for. We use them only to assess your applications and to contact you when positions of those kinds in those institutions are published. Registering again with the same
         email adds to your earlier registration rather than creating a second one.
       </p>
       <ul>
@@ -67,16 +67,10 @@ export default function PrivacyPage() {
         sent only over a secure connection, and ends after 30 minutes without activity or 12 hours in any case. Visitors who do not sign in receive no cookies.
       </p>
 
-      <h2>When applications open</h2>
+      <h2>What applications never ask for</h2>
       <p>
-        The applicant portal is not yet open. When it opens, this notice will be updated before any personal data is collected. The platform is designed so that:
+        Applications ask only for what is needed to assess them: never passport or identity numbers, banking details, date of birth or protected characteristics.
       </p>
-      <ul>
-        <li>applications ask only for what is needed: no passport or identity numbers, banking details, date of birth or protected characteristics;</li>
-        <li>personal data is encrypted before it is stored, with keys held outside the database;</li>
-        <li>erasure works by destroying a person’s encryption key, so earlier copies become unreadable;</li>
-        <li>unsuccessful applications are erased twelve months after the decision.</li>
-      </ul>
       <p>
         Data-protection principles from the GDPR and Nigeria’s NDPA were used as design references. That is a statement about design, not a claim of legal compliance or certification.
       </p>

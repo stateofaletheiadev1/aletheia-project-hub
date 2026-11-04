@@ -63,7 +63,7 @@ export default function ProgrammesPage() {
                   </div>
                   <div className="col-span-2 lg:col-span-1">
                     <dt className="t-meta text-[0.6875rem] text-ink-500">Milestones</dt>
-                    <dd className="mt-1.5 text-ink-600">None published yet</dd>
+                    <dd className="mt-1.5 text-ink-600">{p.milestones?.length ? `${p.milestones.length} verified` : "None published yet"}</dd>
                   </div>
                 </dl>
               </Link>

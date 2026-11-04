@@ -23,6 +23,7 @@ export async function generateMetadata(props: PageProps<"/projects/[slug]">): Pr
 export default async function ProgrammePage(props: PageProps<"/projects/[slug]">) {
   const p = getProgramme((await props.params).slug);
   if (!p) notFound();
+  const milestones = [...(p.milestones ?? [])].sort((a, b) => b.date.localeCompare(a.date));
 
   return (
     <>
@@ -44,6 +45,7 @@ export default async function ProgrammePage(props: PageProps<"/projects/[slug]">
                 { label: "Status", value: <StatusSeal status={p.status} /> },
                 { label: "Lead", value: p.lead },
                 { label: "Progress", value: "Derived from published milestones only" },
+                ...(p.evidence ? [{ label: "Evidence", value: <a className="link-ledger break-all" href={p.evidence} rel="noopener">{p.evidence.replace(/^https:\/\//, "")}</a> }] : []),
                 { label: "Scope", value: p.scope.join(" · ") },
               ]}
             />
@@ -68,11 +70,27 @@ export default async function ProgrammePage(props: PageProps<"/projects/[slug]">
               <h2 id="milestones" className="t-h3">
                 Milestones
               </h2>
-              <span className="t-ref text-ink-500">0 verified</span>
+              <span className="t-ref text-ink-500">{milestones.length} verified</span>
             </div>
-            <EmptyRecord compact pattern="AGV-PRJ-····-····" title="No milestones have been published yet.">
-              A milestone is published only when it is complete and its evidence is on the record. This programme shows no percentage of progress because none has been earned.
-            </EmptyRecord>
+            {milestones.length ? (
+              <ol className="divide-y rule">
+                {milestones.map((m) => (
+                  <li key={`${m.date}-${m.title}`} className="grid gap-2 py-6 md:grid-cols-[9rem_1fr_auto] md:gap-8">
+                    <time dateTime={m.date} className="t-ref text-ink-500">
+                      {new Date(`${m.date}T00:00:00Z`).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" })}
+                    </time>
+                    <p className="text-[1.0625rem] text-ink-900">{m.title}</p>
+                    <a className="link-ledger text-[0.875rem]" href={m.evidence.href} rel="noopener">
+                      {m.evidence.label}
+                    </a>
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <EmptyRecord compact pattern="AGV-PRJ-····-····" title="No milestones have been published yet.">
+                A milestone is published only when it is complete and its evidence is on the record. This programme shows no percentage of progress because none has been earned.
+              </EmptyRecord>
+            )}
           </section>
 
           <div className="mt-14 flex flex-wrap gap-x-10 gap-y-4">
