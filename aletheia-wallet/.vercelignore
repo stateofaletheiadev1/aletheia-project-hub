@@ -1,0 +1,12 @@
+node_modules
+.svelte-kit
+.svelte-kit-devnet
+.vercel/output
+coverage
+test-results
+playwright-report
+docs/internal
+Aletheia_*_Prompt_*.md
+tests/.devnet
+tests/*.log
+.env
