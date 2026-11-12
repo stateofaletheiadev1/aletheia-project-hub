@@ -5,7 +5,7 @@
 use std::collections::BTreeSet;
 use std::path::Path;
 
-use redb::{Database, ReadableDatabase, ReadableTable, TableDefinition, WriteTransaction};
+use redb::{Database, ReadableDatabase, ReadableTable, TableDefinition, TableHandle, WriteTransaction};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value, json};
 
@@ -21,6 +21,35 @@ const INDEX: TableDefinition<Bytes, Bytes> = TableDefinition::new("index_entries
 const CATALOG: TableDefinition<Bytes, Bytes> = TableDefinition::new("catalog");
 const KEYS: TableDefinition<Bytes, Bytes> = TableDefinition::new("api_keys");
 const IDEM: TableDefinition<Bytes, Bytes> = TableDefinition::new("idempotency");
+/// Every table, in the fixed order backups copy and digest them.
+const ALL_TABLES: [TableDefinition<Bytes, Bytes>; 5] = [CATALOG, DOCS, INDEX, KEYS, IDEM];
+
+/// SHA-256 over tables and rows, each length-prefixed, independent of redb's page layout.
+struct ContentDigest(sha2::Sha256);
+
+impl ContentDigest {
+    fn new() -> ContentDigest {
+        use sha2::Digest;
+        ContentDigest(sha2::Sha256::new_with_prefix(b"AletheiaDB backup content v1"))
+    }
+    fn field(&mut self, bytes: &[u8]) {
+        use sha2::Digest;
+        self.0.update((bytes.len() as u64).to_be_bytes());
+        self.0.update(bytes);
+    }
+    fn table(&mut self, name: &str) {
+        self.field(b"table");
+        self.field(name.as_bytes());
+    }
+    fn row(&mut self, key: &[u8], value: &[u8]) {
+        self.field(key);
+        self.field(value);
+    }
+    fn finish(self) -> String {
+        use sha2::Digest;
+        self.0.finalize().iter().map(|b| format!("{b:02x}")).collect()
+    }
+}
 
 /// A query may examine at most this many documents without an index.
 pub const MAX_SCAN: usize = 50_000;
@@ -161,6 +190,72 @@ impl Store {
         }
         tx.commit()?;
         Ok(Store { db })
+    }
+
+    /// Copies every table, as one read transaction sees it, into a new file at `dest` (which
+    /// must not exist). Returns the rows per table and the content digest of what was read.
+    /// Rows are committed in batches so a large copy stays within the service's memory cap;
+    /// the file is only a backup once [`crate::backup::run`] has verified and renamed it.
+    pub fn copy_to(&self, dest: &Path) -> Result<(Vec<(String, u64)>, String)> {
+        const BATCH: usize = 5_000;
+        let target = Database::builder().set_cache_size(8 << 20).create(dest)?;
+        let read = self.db.begin_read()?;
+        let mut digest = ContentDigest::new();
+        let mut rows = Vec::new();
+        for table in ALL_TABLES {
+            digest.table(table.name());
+            let source = read.open_table(table)?;
+            let mut count = 0u64;
+            let mut iter = source.iter()?;
+            loop {
+                let tx = target.begin_write()?;
+                let mut written = 0usize;
+                {
+                    let mut out = tx.open_table(table)?;
+                    for row in iter.by_ref() {
+                        let (k, v) = row?;
+                        digest.row(k.value(), v.value());
+                        out.insert(k.value(), v.value())?;
+                        written += 1;
+                        if written == BATCH {
+                            break;
+                        }
+                    }
+                }
+                tx.commit()?;
+                count += written as u64;
+                if written < BATCH {
+                    break;
+                }
+            }
+            rows.push((table.name().to_string(), count));
+        }
+        Ok((rows, digest.finish()))
+    }
+
+    /// Rows per table and the content digest of a database file that no server holds open.
+    pub fn digest_file(path: &Path) -> Result<(Vec<(String, u64)>, String)> {
+        let db = Database::builder().set_cache_size(8 << 20).open(path)?;
+        let read = db.begin_read()?;
+        let mut digest = ContentDigest::new();
+        let mut rows = Vec::new();
+        for table in ALL_TABLES {
+            digest.table(table.name());
+            let mut count = 0u64;
+            match read.open_table(table) {
+                Ok(t) => {
+                    for row in t.iter()? {
+                        let (k, v) = row?;
+                        digest.row(k.value(), v.value());
+                        count += 1;
+                    }
+                }
+                Err(redb::TableError::TableDoesNotExist(_)) => {}
+                Err(e) => return Err(e.into()),
+            }
+            rows.push((table.name().to_string(), count));
+        }
+        Ok((rows, digest.finish()))
     }
 
     /// Readiness probe: the file can be read.

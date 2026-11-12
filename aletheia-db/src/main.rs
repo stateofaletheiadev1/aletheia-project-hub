@@ -11,6 +11,8 @@ const HELP: &str = "AletheiaDB — the document database of the Sovereign Covena
 Usage:
   aletheiadb serve      Run the server (configured by environment variables)
   aletheiadb keygen     Generate a root key and the hash to put in ALETHEIADB_ROOT_KEY_SHA256
+  aletheiadb verify-backup <file.redb>
+                        Check a backup against its manifest (works offline)
   aletheiadb version    Print the version
 
 Environment:
@@ -18,6 +20,9 @@ Environment:
   ALETHEIADB_DATA_DIR          data directory (default ./data)
   ALETHEIADB_ROOT_KEY_SHA256   SHA-256 of the root key secret (unset disables the root key)
   ALETHEIADB_CACHE_MB          page cache in MB (default 64)
+  ALETHEIADB_BACKUP_DIR        online backups go here (unset: none); not inside the data directory
+  ALETHEIADB_BACKUP_EVERY_HOURS  hours between backups (default 24)
+  ALETHEIADB_BACKUP_KEEP       backups kept, newest first (default 7)
   RUST_LOG                     log filter (default info)";
 
 fn main() {
@@ -25,6 +30,7 @@ fn main() {
     match cmd.as_str() {
         "serve" => serve(),
         "keygen" => keygen(),
+        "verify-backup" => verify_backup(),
         "version" | "--version" | "-V" => println!("aletheiadb {VERSION}"),
         _ => {
             println!("{HELP}");
@@ -42,6 +48,25 @@ fn keygen() {
     println!();
     println!("Put this line in the server's aletheiadb.env:");
     println!("  ALETHEIADB_ROOT_KEY_SHA256={}", auth::sha256_hex(secret.as_bytes()));
+}
+
+fn verify_backup() {
+    let Some(file) = std::env::args().nth(2) else {
+        eprintln!("usage: aletheiadb verify-backup <file.redb>");
+        std::process::exit(2);
+    };
+    match aletheiadb::backup::verify(std::path::Path::new(&file)) {
+        Ok(m) => {
+            println!("OK  {}  made {}  {} bytes  sha256 {}", m.file, m.created, m.bytes, m.content_sha256);
+            for (table, rows) in m.rows {
+                println!("    {table}: {rows} rows");
+            }
+        }
+        Err(e) => {
+            eprintln!("FAILED  {e}");
+            std::process::exit(1);
+        }
+    }
 }
 
 fn serve() {
@@ -97,10 +122,39 @@ fn serve() {
             }
         });
 
+        // Online backups: the first a few minutes after start, then on the configured interval.
+        let backups = cfg.backup_dir.clone().map(|dir| {
+            Arc::new(aletheiadb::backup::Schedule {
+                dir,
+                every: Duration::from_secs(cfg.backup_every_hours * 3600),
+                keep: cfg.backup_keep,
+                running: tokio::sync::Mutex::new(()),
+            })
+        });
+        match &backups {
+            Some(schedule) => {
+                let (schedule, store) = (schedule.clone(), store.clone());
+                tracing::info!(dir = %schedule.dir.display(), every_hours = cfg.backup_every_hours, keep = schedule.keep, "backups enabled");
+                tokio::spawn(async move {
+                    tokio::time::sleep(Duration::from_secs(300)).await;
+                    let mut every = tokio::time::interval(schedule.every);
+                    loop {
+                        every.tick().await;
+                        match schedule.run_now(store.clone()).await {
+                            Ok(m) => tracing::info!(file = %m.file, bytes = m.bytes, sha256 = %m.content_sha256, "backup made"),
+                            Err(e) => tracing::error!(error = %e, "backup failed"),
+                        }
+                    }
+                });
+            }
+            None => tracing::warn!("ALETHEIADB_BACKUP_DIR is not set: no online backups are made"),
+        }
+
         let state = AppState {
             store,
             root_secret_sha256: cfg.root_secret_sha256.clone(),
             started: Instant::now(),
+            backups,
         };
         let listener = match tokio::net::TcpListener::bind(cfg.listen).await {
             Ok(l) => l,

@@ -53,11 +53,28 @@ file and the key in `/root/aletheiadb-root.key`, then `systemctl restart alethei
 
 The data file is a single redb file; every commit is durable before the API answers.
 
-- **Volume backups** (recommended): in Oracle, Storage, Block Volumes, `aletheiadb-data`,
-  Backups. Always Free includes 5 volume backups in total.
-- **File copy**: `sudo systemctl stop aletheiadb && sudo cp -a /srv/aletheiadb/data/aletheia.redb <dest> && sudo systemctl start aletheiadb`.
-- **Restore**: stop the service, put the file back at `/srv/aletheiadb/data/aletheia.redb`
-  owned by `aletheiadb`, start the service, check `/health/ready`.
+- **Online backups** (since 0.3.0, ADR 0004): the server backs itself up without stopping,
+  from a consistent snapshot, verifies each copy and keeps the newest few. Configure in
+  `aletheiadb.env`:
+
+  ```sh
+  ALETHEIADB_BACKUP_DIR=/srv/aletheiadb/backups   # boot disk, not the data volume
+  ALETHEIADB_BACKUP_EVERY_HOURS=24
+  ALETHEIADB_BACKUP_KEEP=7
+  ```
+
+  Create the folder once: `sudo install -d -o aletheiadb -g aletheiadb -m 0750 /srv/aletheiadb/backups`.
+  The first backup runs five minutes after start. Each is `aletheia-<UTC time>.redb` with a
+  `.json` manifest (row counts, content SHA-256). List or make one now with the root key:
+  `GET` / `POST https://db.stateofaletheia.org/v1/admin/backups`. Results are in the journal
+  (`backup made` / `backup failed`).
+- **Off-site copy**: copy the newest `.redb` and `.json` pair off the server (for example with
+  `scp`) and check it there with `aletheiadb verify-backup <file.redb>`.
+- **Volume backups**: in Oracle, Storage, Block Volumes, `aletheiadb-data`, Backups. Always
+  Free includes 5 volume backups in total.
+- **Restore**: `aletheiadb verify-backup <file.redb>` first; then stop the service, copy the
+  file to `/srv/aletheiadb/data/aletheia.redb` owned by `aletheiadb`, start the service and
+  check `/health/ready`.
 
 ## Moving to a bigger server
 

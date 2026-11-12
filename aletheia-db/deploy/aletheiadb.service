@@ -23,10 +23,11 @@ MemoryHigh=200M
 MemoryMax=250M
 CPUWeight=50
 
-# Hardening: read-only system, writable data folder only.
+# Hardening: read-only system, writable data and backup folders only. Backups live on the
+# boot disk, apart from the data volume, so they survive losing it (ADR 0004).
 NoNewPrivileges=yes
 ProtectSystem=strict
-ReadWritePaths=/srv/aletheiadb/data
+ReadWritePaths=/srv/aletheiadb/data -/srv/aletheiadb/backups
 ProtectHome=yes
 PrivateTmp=yes
 PrivateDevices=yes

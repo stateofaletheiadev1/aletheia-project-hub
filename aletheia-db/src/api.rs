@@ -33,6 +33,8 @@ pub struct AppState {
     /// SHA-256 (hex) of the root key's secret; `None` disables the root key.
     pub root_secret_sha256: Option<String>,
     pub started: Instant,
+    /// Online backups, when configured.
+    pub backups: Option<Arc<crate::backup::Schedule>>,
 }
 
 #[derive(Clone)]
@@ -56,7 +58,8 @@ pub fn router(state: AppState) -> Router {
         .route("/databases/{db}/collections/{coll}/count", post(count_documents))
         .route("/databases/{db}/commit", post(commit))
         .route("/keys", get(list_keys).post(create_key))
-        .route("/keys/{id}", axum::routing::delete(delete_key));
+        .route("/keys/{id}", axum::routing::delete(delete_key))
+        .route("/admin/backups", get(list_backups).post(run_backup));
 
     Router::new()
         .route("/health", get(health))
@@ -629,6 +632,41 @@ async fn commit(
         .await
     };
     write_reply(&rid, r.await)
+}
+
+// ---------------------------------------------------------------- backups (root only)
+
+fn backups_of(s: &AppState) -> Result<Arc<crate::backup::Schedule>> {
+    s.backups
+        .clone()
+        .ok_or_else(|| DbError::Unavailable("backups are not configured (ALETHEIADB_BACKUP_DIR)".into()))
+}
+
+async fn list_backups(State(s): State<AppState>, Extension(rid): Extension<RequestId>, headers: HeaderMap) -> Response {
+    let r = async {
+        authenticate(&s, &headers).await?.require_root()?;
+        let schedule = backups_of(&s)?;
+        let dir = schedule.dir.clone();
+        let all = blocking(move || crate::backup::list(&dir)).await?;
+        Ok((
+            StatusCode::OK,
+            json!({ "everyHours": schedule.every.as_secs() / 3600, "keep": schedule.keep, "backups": all }),
+        ))
+    };
+    reply(&rid, r.await)
+}
+
+/// Runs a backup now. Not bound by the 15 s storage deadline: a backup takes as long as the
+/// data needs; a second request while one runs is a conflict.
+async fn run_backup(State(s): State<AppState>, Extension(rid): Extension<RequestId>, headers: HeaderMap) -> Response {
+    let r = async {
+        authenticate(&s, &headers).await?.require_root()?;
+        let schedule = backups_of(&s)?;
+        let manifest = schedule.run_now(s.store.clone()).await?;
+        tracing::info!(file = %manifest.file, bytes = manifest.bytes, "backup made on request");
+        Ok((StatusCode::CREATED, json!(manifest)))
+    };
+    reply(&rid, r.await)
 }
 
 // ---------------------------------------------------------------- api keys (root only)

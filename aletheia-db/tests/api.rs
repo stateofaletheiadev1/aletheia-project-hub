@@ -29,6 +29,7 @@ fn harness() -> Harness {
         store,
         root_secret_sha256: Some(sha256_hex(ROOT_SECRET.as_bytes())),
         started: Instant::now(),
+        backups: None,
     });
     Harness { app, _dir: dir, path }
 }
@@ -544,6 +545,7 @@ async fn data_survives_a_restart() {
         store,
         root_secret_sha256: Some(sha256_hex(ROOT_SECRET.as_bytes())),
         started: Instant::now(),
+        backups: None,
     });
     let (_, r, _) = call(
         &app,
