@@ -20,6 +20,7 @@ export * from "./uri/payment-uri.js";
 export * from "./keys/slip10.js";
 export * from "./keys/mnemonic.js";
 export * from "./keys/sign.js";
+export * from "./keys/multisig.js";
 export * from "./state/proof.js";
 export * from "./util/amount.js";
 export type * from "./util/brand.js";

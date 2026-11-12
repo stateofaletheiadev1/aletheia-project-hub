@@ -267,11 +267,14 @@ dependencies = [
 name = "aletheia-rpc"
 version = "0.1.0"
 dependencies = [
+ "aletheia-arno",
  "aletheia-core",
+ "aletheia-crypto",
  "aletheia-execution",
  "aletheia-monetary",
  "aletheia-state",
  "aletheia-test-harness",
+ "aletheia-vm",
  "axum",
  "blake3",
  "futures-util",

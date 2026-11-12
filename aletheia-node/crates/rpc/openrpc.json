@@ -511,7 +511,7 @@
     },
     {
       "name": "getStateProof",
-      "summary": "An account (address), balance (address + asset) or supply ledger (asset) at the finalized tip, with its Merkle proof against the tip's state root. The node verifies the proof before serving it; verify it yourself against a header you trust.",
+      "summary": "A record at the finalized tip with its Merkle proof against the tip's state root. Without `record`: an account (address), balance (address + asset) or supply ledger (asset). With `record`: contract (address), identity, credential, residence, parcel, proposal or bridgeTransfer (id), bridgeRoute (route), bridgeEscrow. The node verifies the proof before serving it; verify it yourself against a header you trust.",
       "params": [
         {
           "name": "address",
@@ -526,6 +526,42 @@
           "schema": {
             "$ref": "#/components/schemas/Asset"
           }
+        },
+        {
+          "name": "record",
+          "required": false,
+          "schema": {
+            "type": "string",
+            "enum": [
+              "account",
+              "balance",
+              "supply",
+              "contract",
+              "identity",
+              "credential",
+              "residence",
+              "parcel",
+              "proposal",
+              "bridgeRoute",
+              "bridgeTransfer",
+              "bridgeEscrow"
+            ]
+          }
+        },
+        {
+          "name": "id",
+          "required": false,
+          "schema": {
+            "$ref": "#/components/schemas/Word"
+          }
+        },
+        {
+          "name": "route",
+          "required": false,
+          "schema": {
+            "type": "integer",
+            "minimum": 0
+          }
         }
       ],
       "result": {
@@ -538,7 +574,16 @@
               "enum": [
                 "account",
                 "balance",
-                "supply"
+                "supply",
+                "contract",
+                "identity",
+                "credential",
+                "residence",
+                "parcel",
+                "proposal",
+                "bridgeRoute",
+                "bridgeTransfer",
+                "bridgeEscrow"
               ]
             },
             "height": {
@@ -677,6 +722,78 @@
           ]
         }
       }
+    },
+    {
+      "name": "getContract",
+      "summary": "A deployed contract: code hash, deployer, Arno version and the routines a client can call (entry, view, constructor). Run a view routine with simulateTransaction as an unsigned preview.",
+      "params": [
+        {
+          "name": "address",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Address"
+          }
+        }
+      ],
+      "result": {
+        "name": "contract",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "address": {
+              "$ref": "#/components/schemas/Address"
+            },
+            "height": {
+              "type": "integer"
+            },
+            "block": {
+              "$ref": "#/components/schemas/BlockId"
+            },
+            "codeHash": {
+              "$ref": "#/components/schemas/Hash"
+            },
+            "deployer": {
+              "$ref": "#/components/schemas/Address"
+            },
+            "arnoVersion": {
+              "type": "string"
+            },
+            "codeBytes": {
+              "type": "integer"
+            },
+            "routines": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "entry",
+                      "view",
+                      "constructor"
+                    ]
+                  },
+                  "params": {
+                    "type": "integer"
+                  },
+                  "returns": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "$ref": "#/components/errors/NotFound"
+        }
+      ]
     }
   ],
   "components": {

@@ -34,6 +34,7 @@ export const METHODS = [
   "getAccountHistory",
   "getStateProof",
   "getEvents",
+  "getContract",
 ] as const;
 export type Method = (typeof METHODS)[number];
 
@@ -156,7 +157,20 @@ export type Receipt = Infer<typeof Receipt>;
 
 /** `getStateProof` (node ADR-065): check it with `verifyStateProof` against a trusted root. */
 export const StateProofAnswer = object({
-  record: literal("account", "balance", "supply"),
+  record: literal(
+    "account",
+    "balance",
+    "supply",
+    "contract",
+    "identity",
+    "credential",
+    "residence",
+    "parcel",
+    "proposal",
+    "bridgeRoute",
+    "bridgeTransfer",
+    "bridgeEscrow",
+  ),
   height: count,
   block: string,
   stateRoot: string,

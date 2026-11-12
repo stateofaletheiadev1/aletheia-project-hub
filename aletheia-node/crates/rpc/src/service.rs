@@ -36,6 +36,7 @@ pub const METHODS: &[&str] = &[
     "getAccountHistory",
     "getStateProof",
     "getEvents",
+    "getContract",
 ];
 
 /// Most events one page returns.
@@ -61,11 +62,32 @@ pub const PARAMS: &[(&str, &[&str])] = &[
     ("getMonetarySupply", &["asset"]),
     ("getValidatorSet", &["epoch"]),
     ("getAccountHistory", &["address", "limit", "before"]),
-    ("getStateProof", &["address", "asset"]),
+    (
+        "getStateProof",
+        &["address", "asset", "record", "id", "route"],
+    ),
     (
         "getEvents",
         &["emitter", "eventType", "topic", "limit", "before"],
     ),
+    ("getContract", &["address"]),
+];
+
+/// The records `getStateProof` serves by name (`record`), besides accounts, balances and supply
+/// ledgers, which it infers from `address` and `asset` (ADR-068).
+pub const PROVABLE_RECORDS: &[&str] = &[
+    "account",
+    "balance",
+    "supply",
+    "contract",
+    "identity",
+    "credential",
+    "residence",
+    "parcel",
+    "proposal",
+    "bridgeRoute",
+    "bridgeTransfer",
+    "bridgeEscrow",
 ];
 
 /// The OpenRPC 1.2 description of this interface, served by `rpc.discover` and REST
@@ -273,6 +295,10 @@ impl<B: Backend> Service<B> {
                 only(params, method)?;
                 let network = self.backend.network();
                 let records = Records::new(network);
+                if params.contains_key("record") {
+                    let (name, key) = self.named_record(&records, params)?;
+                    return self.state_proof(name, key).await;
+                }
                 let address = match params.get("address") {
                     None => None,
                     Some(_) => Some(parse_address(&network, text(params, "address")?)?),
@@ -326,6 +352,12 @@ impl<B: Backend> Service<B> {
                 };
                 self.events(filter, before, limit).await
             }
+            "getContract" => {
+                only(params, method)?;
+                let network = self.backend.network();
+                let address = parse_address(&network, text(params, "address")?)?;
+                self.contract(&address).await
+            }
             "rpc.discover" => {
                 only(params, method)?;
                 serde_json::from_str(OPENRPC).map_err(|_| RpcError::internal())
@@ -359,6 +391,175 @@ impl<B: Backend> Service<B> {
             "key": base16::encode(key.as_bytes()),
             "value": read.value.as_deref().map(base16::encode),
             "proof": base16::encode(&read.proof.to_ace_bytes()),
+        }))
+    }
+
+    /// The state key of a record named by `record` (ADR-068), with the parameters it needs.
+    fn named_record(
+        &self,
+        records: &Records,
+        params: &Params,
+    ) -> Result<(&'static str, aletheia_state::StateKey), RpcError> {
+        use aletheia_execution::bridge_model::Bridge;
+        use aletheia_execution::registry_model::Registry;
+        let network = self.backend.network();
+        let requested = text(params, "record")?;
+        let name = PROVABLE_RECORDS
+            .iter()
+            .copied()
+            .find(|n| *n == requested)
+            .ok_or_else(|| {
+                RpcError::invalid_params(format!(
+                    "\"record\" is one of {}",
+                    PROVABLE_RECORDS.join(", ")
+                ))
+            })?;
+        let needs = |field: &str| -> Result<(), RpcError> {
+            let allowed: &[&str] = match name {
+                "account" | "contract" => &["record", "address"],
+                "balance" => &["record", "address", "asset"],
+                "supply" => &["record", "asset"],
+                "bridgeRoute" => &["record", "route"],
+                "bridgeEscrow" => &["record"],
+                _ => &["record", "id"],
+            };
+            match params.keys().find(|k| !allowed.contains(&k.as_str())) {
+                Some(extra) => Err(RpcError::invalid_params(format!(
+                    "\"{extra}\" does not apply to record \"{name}\" ({field})"
+                ))),
+                None => Ok(()),
+            }
+        };
+        let id = || -> Result<aletheia_core::Hash32, RpcError> {
+            word(params, "id")?.ok_or_else(|| {
+                RpcError::invalid_params(format!(
+                    "record \"{name}\" needs \"id\" (64 hex characters)"
+                ))
+            })
+        };
+        let registry = Registry { records };
+        let bridge = Bridge { records };
+        let key = match name {
+            "account" => {
+                needs("address")?;
+                records.account_key(&parse_address(&network, text(params, "address")?)?)
+            }
+            "contract" => {
+                needs("address")?;
+                records.contract_meta_key(&parse_address(&network, text(params, "address")?)?)
+            }
+            "balance" => {
+                needs("address, asset")?;
+                records.balance_key(
+                    &parse_address(&network, text(params, "address")?)?,
+                    parse_asset(text(params, "asset")?)?,
+                )
+            }
+            "supply" => {
+                needs("asset")?;
+                records.supply_key(parse_asset(text(params, "asset")?)?)
+            }
+            "bridgeRoute" => {
+                needs("route")?;
+                let route = u32::try_from(number(params, "route")?)
+                    .map_err(|_| RpcError::invalid_params("\"route\" is a route number"))?;
+                bridge.route_key(route)
+            }
+            "bridgeEscrow" => {
+                needs("")?;
+                bridge.escrow_total_key()
+            }
+            "identity" => {
+                needs("id")?;
+                registry.identity_key(&id()?)
+            }
+            "credential" => {
+                needs("id")?;
+                registry.credential_key(&id()?)
+            }
+            "residence" => {
+                needs("id")?;
+                registry.residence_key(&id()?)
+            }
+            "parcel" => {
+                needs("id")?;
+                registry.parcel_key(&id()?)
+            }
+            "proposal" => {
+                needs("id")?;
+                registry.proposal_key(&id()?)
+            }
+            _ => {
+                needs("id")?;
+                bridge.outbound_key(&id()?)
+            }
+        };
+        Ok((name, key))
+    }
+
+    /// A deployed contract (ADR-068): its metadata and the routines a client can call, read
+    /// through verified state reads. View routines run with `simulateTransaction` as an
+    /// unsigned preview (ADR-064), which returns their result without a signature.
+    pub async fn contract(&self, address: &aletheia_core::Address) -> Result<Value, RpcError> {
+        use aletheia_vm::package::{FLAG_CONSTRUCTOR, FLAG_ENTRY, FLAG_VIEW, Package};
+        let network = self.backend.network();
+        let records = Records::new(network);
+        let read = |key: aletheia_state::StateKey| async move {
+            let read = self
+                .backend
+                .state_proof(key)
+                .await
+                .map_err(|e| from_backend(&e))?;
+            read.proof
+                .verify(&network, &read.state_root, &key, read.value.as_deref())
+                .map_err(|_| RpcError::internal())?;
+            Ok::<_, RpcError>(read)
+        };
+        let meta_read = read(records.contract_meta_key(address)).await?;
+        let Some(meta_bytes) = meta_read.value else {
+            return Err(RpcError::not_found(
+                "no contract is deployed at that address",
+            ));
+        };
+        let meta =
+            <aletheia_execution::model::ContractMeta as aletheia_core::AceDecode>::from_ace_bytes(
+                &meta_bytes,
+            )
+            .map_err(|_| RpcError::internal())?;
+        let code = read(records.contract_code_key(&meta.code_hash))
+            .await?
+            .value
+            .ok_or_else(RpcError::internal)?;
+        let package = Package::from_bytes(&code).map_err(|_| RpcError::internal())?;
+        let routines: Vec<Value> = package
+            .functions
+            .iter()
+            .filter(|f| f.flags & (FLAG_ENTRY | FLAG_VIEW | FLAG_CONSTRUCTOR) != 0)
+            .map(|f| {
+                let kind = if f.flags & FLAG_CONSTRUCTOR != 0 {
+                    "constructor"
+                } else if f.flags & FLAG_VIEW != 0 {
+                    "view"
+                } else {
+                    "entry"
+                };
+                json!({
+                    "name": package.text(f.name).unwrap_or(""),
+                    "kind": kind,
+                    "params": f.params,
+                    "returns": f.returns.is_some(),
+                })
+            })
+            .collect();
+        Ok(json!({
+            "address": address_text(&network, address),
+            "height": meta_read.height,
+            "block": block_text(&network, meta_read.block_hash),
+            "codeHash": base16::encode(meta.code_hash.as_bytes()),
+            "deployer": address_text(&network, &meta.deployer),
+            "arnoVersion": format!("{}.{}", meta.arno_version >> 8, meta.arno_version & 0xff),
+            "codeBytes": code.len(),
+            "routines": routines,
         }))
     }
 

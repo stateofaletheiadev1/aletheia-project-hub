@@ -1119,3 +1119,145 @@ async fn events_filter_and_page_newest_first() {
         -32602
     );
 }
+
+/// Deploys the example escrow contract (examples/arno/escrow.arno) from account 0.
+fn deploy_escrow(service: &Service<DevnetBackend>) -> Address {
+    use aletheia_core::monetary::ContractDeploy;
+    let path = format!(
+        "{}/../../examples/arno/escrow.arno",
+        env!("CARGO_MANIFEST_DIR")
+    );
+    let file =
+        aletheia_arno::SourceFile::new("escrow.arno", std::fs::read_to_string(path).unwrap());
+    let package = aletheia_arno::compile(&file).unwrap();
+    let code_hash = aletheia_vm::Package::from_bytes(&package)
+        .unwrap()
+        .code_hash();
+    let mut net = service.backend.0.lock().unwrap();
+    let mut args = net.address(1).to_ace_bytes();
+    args.extend(net.address(2).to_ace_bytes());
+    args.extend(aletheia_core::Slot::new(50).to_ace_bytes());
+    let nonce = net.next_nonce(0);
+    let mut body = net.body(
+        0,
+        nonce,
+        aletheia_core::Payload::ContractDeploy(Box::new(ContractDeploy {
+            package,
+            args,
+            attach: None,
+        })),
+    );
+    body.fee.eu_limit = 2_000_000;
+    body.fee.max_fee = 2_000_000;
+    let tx = net.sign(0, body);
+    let (_, executed) = net.produce(vec![tx]).unwrap();
+    assert_eq!(
+        executed.receipts[0].status,
+        aletheia_execution::ReceiptStatus::Success
+    );
+    aletheia_crypto::address::contract_account(&net.network, &net.address(0), nonce, &code_hash)
+}
+
+/// ADR-068: a contract's routines are discoverable, and registry, bridge and contract records
+/// come with proofs that verify against the head's state root.
+#[tokio::test]
+async fn contracts_registries_and_bridge_records_are_readable_and_provable() {
+    let service = Service::new(DevnetBackend(Mutex::new(Devnet::new(
+        3,
+        100 * ONE_AEY,
+        10_000 * ONE_ALNT,
+    ))));
+    let contract = deploy_escrow(&service);
+    let network = service.backend.network();
+    let text = contract.to_text(network.network_kind());
+
+    let shown = rpc(&service, "getContract", json!({ "address": text })).await;
+    let shown = result(&shown);
+    assert_eq!(shown["address"], text);
+    let routines = shown["routines"].as_array().unwrap();
+    let kind_of = |name: &str| {
+        routines
+            .iter()
+            .find(|r| r["name"].as_str().unwrap().eq_ignore_ascii_case(name))
+            .map(|r| r["kind"].as_str().unwrap().to_owned())
+    };
+    assert_eq!(kind_of("status").as_deref(), Some("view"), "{shown}");
+    assert!(routines.iter().any(|r| r["kind"] == "entry"), "{shown}");
+    assert_eq!(
+        shown["deployer"],
+        service
+            .backend
+            .0
+            .lock()
+            .unwrap()
+            .address(0)
+            .to_text(network.network_kind())
+    );
+    let rest = route(&service, "GET", &format!("/contracts/{text}"), &[], &[]).await;
+    assert_eq!(rest.status, 200, "{}", rest.body);
+    assert_eq!(&rest.body, shown);
+    let account = Address::from_bytes([0x11; 20]).to_text(network.network_kind());
+    assert_eq!(
+        error_code(&rpc(&service, "getContract", json!({ "address": account })).await),
+        -32002
+    );
+
+    let records = aletheia_execution::model::Records::new(network);
+    let registry = aletheia_execution::registry_model::Registry { records: &records };
+    let bridge = aletheia_execution::bridge_model::Bridge { records: &records };
+    let id = aletheia_core::Hash32::from_bytes([7; 32]);
+    let id_hex = base16::encode(id.as_bytes());
+    let cases = [
+        (
+            json!({ "record": "contract", "address": text }),
+            records.contract_meta_key(&contract),
+            true,
+        ),
+        (
+            json!({ "record": "identity", "id": id_hex }),
+            registry.identity_key(&id),
+            false,
+        ),
+        (
+            json!({ "record": "parcel", "id": id_hex }),
+            registry.parcel_key(&id),
+            false,
+        ),
+        (
+            json!({ "record": "proposal", "id": id_hex }),
+            registry.proposal_key(&id),
+            false,
+        ),
+        (
+            json!({ "record": "bridgeRoute", "route": 1 }),
+            bridge.route_key(1),
+            false,
+        ),
+        (
+            json!({ "record": "bridgeTransfer", "id": id_hex }),
+            bridge.outbound_key(&id),
+            false,
+        ),
+    ];
+    for (params, key, present) in cases {
+        let answer = rpc(&service, "getStateProof", params.clone()).await;
+        let answer = result(&answer);
+        assert_eq!(answer["record"], params["record"]);
+        assert_eq!(answer["value"].is_string(), present, "{params}: {answer}");
+        check_state_proof(&service, answer, &key);
+    }
+
+    // Each record takes only its own parameters.
+    for bad in [
+        json!({ "record": "identity" }),
+        json!({ "record": "identity", "id": id_hex, "route": 1 }),
+        json!({ "record": "bridgeRoute", "id": id_hex }),
+        json!({ "record": "nothing" }),
+    ] {
+        assert_eq!(
+            error_code(&rpc(&service, "getStateProof", bad.clone()).await),
+            -32602,
+            "{bad}"
+        );
+    }
+}

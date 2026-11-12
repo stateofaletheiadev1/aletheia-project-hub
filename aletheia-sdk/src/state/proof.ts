@@ -199,3 +199,25 @@ export function verifyStateProof(
   checkStateProof(network, trustedStateRoot, key, value, decodeStateProof(fromHex(answer.proof)));
   return value;
 }
+
+/**
+ * Verifies any `getStateProof` answer (registry, bridge and contract records included, node
+ * ADR-068) for the state key it names, against a state root the caller trusts. Use
+ * `verifyStateProof` where the SDK derives the key itself (accounts, balances, supply); here the
+ * caller is responsible for knowing which key it asked about. Returns the proven value bytes, or
+ * `null` when the key is proven absent.
+ */
+export function verifyRecordProof(
+  network: { chainId: number; kind: NetworkKind },
+  trustedStateRoot: Uint8Array,
+  expectedKey: Uint8Array,
+  answer: StateProofAnswer,
+): Uint8Array | null {
+  if (!equalBytes(fromHex(answer.key), expectedKey)) throw new ProofError("the answer is for a different state key");
+  if (!equalBytes(fromHex(answer.stateRoot), trustedStateRoot)) {
+    throw new ProofError("the answer is against a different state root than the trusted one");
+  }
+  const value = answer.value === null ? null : fromHex(answer.value);
+  checkStateProof(network, trustedStateRoot, expectedKey, value, decodeStateProof(fromHex(answer.proof)));
+  return value;
+}

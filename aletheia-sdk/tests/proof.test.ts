@@ -7,7 +7,14 @@ import { fromHex, toHex } from "../src/encoding/hex.js";
 import { parseNetworkKind } from "../src/network/kind.js";
 import { METHODS } from "../src/rpc/types.js";
 import type { StateProofAnswer } from "../src/rpc/types.js";
-import { ProofError, checkStateProof, decodeStateProof, stateKey, verifyStateProof } from "../src/state/proof.js";
+import {
+  ProofError,
+  checkStateProof,
+  decodeStateProof,
+  stateKey,
+  verifyRecordProof,
+  verifyStateProof,
+} from "../src/state/proof.js";
 
 interface Case {
   name: string;
@@ -82,6 +89,16 @@ describe("state proofs from the node", () => {
     const badTag = bytes.slice();
     badTag[badTag.length - 65] = 7;
     expect(() => decodeStateProof(badTag)).toThrow();
+  });
+});
+
+describe("record proofs by named key", () => {
+  it("proves a record for the key the caller expects, and refuses another key", () => {
+    const c = byName("supply");
+    const value = verifyRecordProof(network, root, fromHex(c.answer.key), c.answer);
+    expect(value && toHex(value)).toBe(c.answer.value);
+    const other = byName("account");
+    expect(() => verifyRecordProof(network, root, fromHex(other.answer.key), c.answer)).toThrow(/different state key/);
   });
 });
 

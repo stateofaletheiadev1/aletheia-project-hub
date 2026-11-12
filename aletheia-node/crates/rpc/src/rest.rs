@@ -109,6 +109,11 @@ async fn dispatch<B: Backend>(
                 .call("getReceipt", &params(&[("txId", s(id))]))
                 .await
         }
+        ("GET", ["contracts", address]) => {
+            service
+                .call("getContract", &params(&[("address", s(address))]))
+                .await
+        }
         ("GET", ["accounts", address]) => {
             service
                 .call("getAccount", &params(&[("address", s(address))]))
