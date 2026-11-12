@@ -87,6 +87,68 @@ fn touched_accounts(tx: &aletheia_core::tx::SignedTransaction) -> Vec<aletheia_c
     out
 }
 
+/// Set once the event index covers every finalized receipt (ADR-067).
+const META_EVENT_INDEX: &[u8] = b"event_index_v1";
+
+/// Event index (ADR-067): node-local, never hashed into state, in the `Events` column family.
+/// `tag || subject || height u64 BE || index u32 BE || event u16 BE` → empty; the event itself
+/// is read from the receipt. Tags: `e` emitter (20-byte subject), `y` event type and `t` topic
+/// (32-byte subjects).
+pub(crate) const EVENT_BY_EMITTER: u8 = b'e';
+pub(crate) const EVENT_BY_TYPE: u8 = b'y';
+pub(crate) const EVENT_BY_TOPIC: u8 = b't';
+/// Most index entries one event read examines; further ones page from the cursor.
+pub const EVENT_SCAN: usize = 10_000;
+
+fn event_key(tag: u8, subject: &[u8], height: Height, index: u32, event: u16) -> Vec<u8> {
+    let mut key = Vec::with_capacity(subject.len().saturating_add(15));
+    key.push(tag);
+    key.extend_from_slice(subject);
+    key.extend_from_slice(&height.get().to_be_bytes());
+    key.extend_from_slice(&index.to_be_bytes());
+    key.extend_from_slice(&event.to_be_bytes());
+    key
+}
+
+fn index_events(batch: &mut WriteBatch, height: Height, receipts: &[aletheia_execution::Receipt]) {
+    for (index, receipt) in (0u32..).zip(receipts) {
+        for (event_index, event) in (0u16..).zip(&receipt.events) {
+            batch.put(
+                ColumnFamily::Events,
+                &event_key(
+                    EVENT_BY_EMITTER,
+                    event.emitter.as_bytes(),
+                    height,
+                    index,
+                    event_index,
+                ),
+                &[],
+            );
+            batch.put(
+                ColumnFamily::Events,
+                &event_key(
+                    EVENT_BY_TYPE,
+                    event.event_type.as_bytes(),
+                    height,
+                    index,
+                    event_index,
+                ),
+                &[],
+            );
+            let mut topics: Vec<&Hash32> = event.topics.iter().collect();
+            topics.sort();
+            topics.dedup();
+            for topic in topics {
+                batch.put(
+                    ColumnFamily::Events,
+                    &event_key(EVENT_BY_TOPIC, topic.as_bytes(), height, index, event_index),
+                    &[],
+                );
+            }
+        }
+    }
+}
+
 fn index_accounts(batch: &mut WriteBatch, network: &NetworkIdentity, proposal: &Proposal) {
     let height = proposal.block.header.height;
     for (index, tx) in (0u32..).zip(&proposal.block.body.transactions) {
@@ -430,6 +492,7 @@ impl<S: KvStore> Ledger<S> {
         };
         ledger.wal.sync()?;
         ledger.backfill_account_index()?;
+        ledger.backfill_event_index()?;
         Ok((ledger, reconciled))
     }
 
@@ -481,6 +544,96 @@ impl<S: KvStore> Ledger<S> {
         batch.put(
             ColumnFamily::Meta,
             META_ACCOUNT_INDEX,
+            &self.tip.height.to_ace_bytes(),
+        );
+        self.store.write_sync(batch)
+    }
+
+    /// Builds the event index from the receipts finalized before it existed (ADR-067), once
+    /// per data directory; afterwards every commit maintains it.
+    fn backfill_event_index(&mut self) -> Result<(), AletheiaError> {
+        if self
+            .store
+            .get(ColumnFamily::Meta, META_EVENT_INDEX)?
+            .is_some()
+        {
+            return Ok(());
+        }
+        let mut batch = self.store.batch();
+        let mut from: Vec<u8> = Vec::new();
+        let to = [0xffu8; 13];
+        loop {
+            let page = self
+                .store
+                .range(ColumnFamily::Receipts, &from, &to, 4_096)?;
+            let Some((last, _)) = page.last() else { break };
+            let mut next = last.clone();
+            next.push(0);
+            for (key, value) in &page {
+                let height = key
+                    .get(..8)
+                    .and_then(|b| <[u8; 8]>::try_from(b).ok())
+                    .map(u64::from_be_bytes);
+                let index = key
+                    .get(8..12)
+                    .and_then(|b| <[u8; 4]>::try_from(b).ok())
+                    .map(u32::from_be_bytes);
+                let (Some(height), Some(index)) = (height, index) else {
+                    return Err(fail_stop(ErrorCode::StoCorrupt, "receipt key".to_owned()));
+                };
+                let receipt = aletheia_execution::Receipt::from_ace_bytes(value).map_err(|e| {
+                    fail_stop(
+                        ErrorCode::StoCorrupt,
+                        format!("receipt at {height}/{index}: {}", e.detail()),
+                    )
+                })?;
+                for (event_index, event) in (0u16..).zip(&receipt.events) {
+                    let height = Height::new(height);
+                    batch.put(
+                        ColumnFamily::Events,
+                        &event_key(
+                            EVENT_BY_EMITTER,
+                            event.emitter.as_bytes(),
+                            height,
+                            index,
+                            event_index,
+                        ),
+                        &[],
+                    );
+                    batch.put(
+                        ColumnFamily::Events,
+                        &event_key(
+                            EVENT_BY_TYPE,
+                            event.event_type.as_bytes(),
+                            height,
+                            index,
+                            event_index,
+                        ),
+                        &[],
+                    );
+                    for topic in &event.topics {
+                        batch.put(
+                            ColumnFamily::Events,
+                            &event_key(
+                                EVENT_BY_TOPIC,
+                                topic.as_bytes(),
+                                height,
+                                index,
+                                event_index,
+                            ),
+                            &[],
+                        );
+                    }
+                }
+            }
+            if page.len() < 4_096 {
+                break;
+            }
+            from = next;
+        }
+        batch.put(
+            ColumnFamily::Meta,
+            META_EVENT_INDEX,
             &self.tip.height.to_ace_bytes(),
         );
         self.store.write_sync(batch)
@@ -878,6 +1031,7 @@ impl<S: KvStore> Ledger<S> {
         }
         index_entries(&mut batch, header.height, &hash, location);
         index_accounts(&mut batch, &self.network, proposal);
+        index_events(&mut batch, header.height, &executed.receipts);
         let tip = LastFinalized {
             height: header.height,
             hash,
@@ -1204,6 +1358,61 @@ impl<S: KvStore> Ledger<S> {
             }
             if out.len() == limit {
                 break;
+            }
+        }
+        Ok(out)
+    }
+
+    /// Event positions `(height, tx index, event index)` under one index subject, newest
+    /// first, strictly before `before`; at most `max` (ADR-067).
+    pub fn event_positions(
+        &self,
+        tag: u8,
+        subject: &[u8],
+        before: Option<(u64, u32, u16)>,
+        max: usize,
+    ) -> Result<Vec<(Height, u32, u16)>, AletheiaError> {
+        let from = event_key(tag, subject, Height::new(0), 0, 0);
+        let to = match before {
+            Some((height, index, event)) => {
+                event_key(tag, subject, Height::new(height), index, event)
+            }
+            None => {
+                let mut end = event_key(tag, subject, Height::new(u64::MAX), u32::MAX, u16::MAX);
+                end.push(0);
+                end
+            }
+        };
+        let tail = subject.len().saturating_add(1);
+        let pairs = self.store.range(ColumnFamily::Events, &from, &to, max)?;
+        let mut out = Vec::with_capacity(pairs.len());
+        for (key, _) in pairs.iter().rev() {
+            let rest = key.get(tail..).filter(|rest| rest.len() == 14);
+            let height = rest
+                .and_then(|r| r.get(..8))
+                .and_then(|b| <[u8; 8]>::try_from(b).ok());
+            let index = rest
+                .and_then(|r| r.get(8..12))
+                .and_then(|b| <[u8; 4]>::try_from(b).ok());
+            let event = rest
+                .and_then(|r| r.get(12..))
+                .and_then(|b| <[u8; 2]>::try_from(b).ok());
+            let position = match (height, index, event) {
+                (Some(h), Some(i), Some(e)) => Some((
+                    Height::new(u64::from_be_bytes(h)),
+                    u32::from_be_bytes(i),
+                    u16::from_be_bytes(e),
+                )),
+                _ => None,
+            };
+            match position {
+                Some(p) if key.first() == Some(&tag) => out.push(p),
+                _ => {
+                    return Err(fail_stop(
+                        ErrorCode::StoCorrupt,
+                        "event index entry".to_owned(),
+                    ));
+                }
             }
         }
         Ok(out)

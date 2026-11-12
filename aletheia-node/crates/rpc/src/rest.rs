@@ -160,6 +160,15 @@ async fn dispatch<B: Backend>(
             }
             service.call("getAccountHistory", &p).await
         }
+        ("GET", ["events"]) => {
+            let mut p = Map::new();
+            for name in ["emitter", "eventType", "topic", "limit", "before"] {
+                if let Some(value) = q(name) {
+                    p.insert(name.to_owned(), s(value));
+                }
+            }
+            service.call("getEvents", &p).await
+        }
         ("GET", ["assets"]) => service.call("getAssets", &Map::new()).await,
         ("GET", ["validators"]) => match q("epoch") {
             Some(epoch) => {

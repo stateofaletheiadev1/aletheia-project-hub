@@ -6,7 +6,7 @@ use aletheia_core::{AceEncode, AssetId, base16};
 use aletheia_execution::model::Records;
 use serde_json::{Map, Value, json};
 
-use crate::backend::{Backend, BlockRef};
+use crate::backend::{Backend, BlockRef, EventFilter};
 use crate::encode::{
     address_text, amount, asset_name, block_summary, block_text, display_or_null, parse_address,
     parse_asset, parse_block_id, parse_tx_id, receipt_json, transaction_json, tx_text,
@@ -35,7 +35,11 @@ pub const METHODS: &[&str] = &[
     "getValidatorSet",
     "getAccountHistory",
     "getStateProof",
+    "getEvents",
 ];
+
+/// Most events one page returns.
+pub const MAX_EVENTS_PAGE: u64 = 100;
 
 /// The parameters each method accepts. Dispatch refuses any other name, and the published
 /// OpenRPC document (`openrpc.json`, `rpc.discover`) must list exactly these (tested).
@@ -58,6 +62,10 @@ pub const PARAMS: &[(&str, &[&str])] = &[
     ("getValidatorSet", &["epoch"]),
     ("getAccountHistory", &["address", "limit", "before"]),
     ("getStateProof", &["address", "asset"]),
+    (
+        "getEvents",
+        &["emitter", "eventType", "topic", "limit", "before"],
+    ),
 ];
 
 /// The OpenRPC 1.2 description of this interface, served by `rpc.discover` and REST
@@ -101,6 +109,38 @@ fn parse_cursor(text: &str) -> Result<(u64, u32), RpcError> {
         height.parse().map_err(|_| bad())?,
         index.parse().map_err(|_| bad())?,
     ))
+}
+
+/// An event cursor, `"<height>:<index>:<event>"`, as `getEvents` returns it in `next`.
+fn parse_event_cursor(text: &str) -> Result<(u64, u32, u16), RpcError> {
+    let bad = || RpcError::invalid_params("\"before\" is a cursor from a previous page");
+    let mut parts = text.split(':');
+    let (Some(h), Some(i), Some(e), None) =
+        (parts.next(), parts.next(), parts.next(), parts.next())
+    else {
+        return Err(bad());
+    };
+    Ok((
+        h.parse().map_err(|_| bad())?,
+        i.parse().map_err(|_| bad())?,
+        e.parse().map_err(|_| bad())?,
+    ))
+}
+
+/// A 32-byte value given as 64 hex characters (event types and topics).
+fn word(params: &Params, name: &str) -> Result<Option<aletheia_core::Hash32>, RpcError> {
+    match params.get(name) {
+        None | Some(Value::Null) => Ok(None),
+        Some(_) => {
+            let bytes = base16::decode(text(params, name)?)
+                .ok()
+                .and_then(|b| <[u8; 32]>::try_from(b).ok())
+                .ok_or_else(|| {
+                    RpcError::invalid_params(format!("\"{name}\" is 64 hex characters"))
+                })?;
+            Ok(Some(aletheia_core::Hash32::from_bytes(bytes)))
+        }
+    }
 }
 
 /// Refuses parameters a method does not take, so a typo is not silently ignored.
@@ -253,6 +293,39 @@ impl<B: Backend> Service<B> {
                 };
                 self.state_proof(record, key).await
             }
+            "getEvents" => {
+                only(params, method)?;
+                let network = self.backend.network();
+                let emitter = match params.get("emitter") {
+                    None | Some(Value::Null) => None,
+                    Some(_) => Some(parse_address(&network, text(params, "emitter")?)?),
+                };
+                let filter = EventFilter {
+                    emitter,
+                    event_type: word(params, "eventType")?,
+                    topic: word(params, "topic")?,
+                };
+                if filter == EventFilter::default() {
+                    return Err(RpcError::invalid_params(
+                        "give at least one of \"emitter\", \"eventType\" or \"topic\"",
+                    ));
+                }
+                let limit = if params.contains_key("limit") {
+                    number(params, "limit")?
+                } else {
+                    25
+                };
+                if limit == 0 || limit > MAX_EVENTS_PAGE {
+                    return Err(RpcError::invalid_params(format!(
+                        "\"limit\" is 1 to {MAX_EVENTS_PAGE}"
+                    )));
+                }
+                let before = match params.get("before") {
+                    None | Some(Value::Null) => None,
+                    Some(_) => Some(parse_event_cursor(text(params, "before")?)?),
+                };
+                self.events(filter, before, limit).await
+            }
             "rpc.discover" => {
                 only(params, method)?;
                 serde_json::from_str(OPENRPC).map_err(|_| RpcError::internal())
@@ -286,6 +359,41 @@ impl<B: Backend> Service<B> {
             "key": base16::encode(key.as_bytes()),
             "value": read.value.as_deref().map(base16::encode),
             "proof": base16::encode(&read.proof.to_ace_bytes()),
+        }))
+    }
+
+    /// A page of finalized events (ADR-067).
+    pub async fn events(
+        &self,
+        filter: EventFilter,
+        before: Option<(u64, u32, u16)>,
+        limit: u64,
+    ) -> Result<Value, RpcError> {
+        let network = self.backend.network();
+        let page = self
+            .backend
+            .events(filter, before, usize::try_from(limit).unwrap_or(usize::MAX))
+            .await
+            .map_err(|e| from_backend(&e))?;
+        let events: Vec<Value> = page
+            .events
+            .iter()
+            .map(|found| {
+                json!({
+                    "txId": tx_text(&network, found.tx_id),
+                    "height": found.height,
+                    "index": found.index,
+                    "eventIndex": found.event_index,
+                    "emitter": address_text(&network, &found.event.emitter),
+                    "eventType": base16::encode(found.event.event_type.as_bytes()),
+                    "topics": found.event.topics.iter().map(|t| base16::encode(t.as_bytes())).collect::<Vec<_>>(),
+                    "data": base16::encode(&found.event.data),
+                })
+            })
+            .collect();
+        Ok(json!({
+            "events": events,
+            "next": page.next.map(|(h, i, e)| format!("{h}:{i}:{e}")),
         }))
     }
 

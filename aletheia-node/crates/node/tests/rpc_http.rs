@@ -351,3 +351,81 @@ async fn hostile_transfers_never_move_value_they_should_not() {
     assert_eq!(end[0], 92 * ONE_AEY, "account 0 sent 5 + 1 + 2 AEY");
     stop(server, node).await;
 }
+
+/// ADR-067 on a running node: the event index finds every transfer, and after a restart (which
+/// runs the one-time backfill over the stored receipts) it answers the same, without duplicates.
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn the_event_index_survives_a_restart_without_duplicates() {
+    let devnet = Devnet::new(3, 100 * ONE_AEY, 1_000 * ONE_ALNT);
+    let network = devnet.genesis.network();
+    let dir = std::env::temp_dir().join(format!("aletheia-rpc-{}-events", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    let config = || NodeConfig {
+        data_dir: dir.clone(),
+        genesis: devnet.genesis.clone(),
+        listen: "127.0.0.1:0".parse().unwrap(),
+        peers: Vec::new(),
+        node_key: Ed25519SigningKey::from_seed(&Secret::new([78; 32])),
+        produce_every: Some(Duration::from_millis(100)),
+        consensus_key: None,
+        remote_signer: None,
+    };
+    let store = Arc::new(MemoryKvStore::new());
+    let node = Node::start(config(), store.clone()).await.unwrap();
+    let (address, server) = serve(&node, 1_000).await;
+    let to = devnet.address(1);
+    let mut ids = Vec::new();
+    for nonce in 0..4 {
+        let tx = devnet.transfer(0, nonce, to, AssetId::AEY, ONE_AEY);
+        let submitted = call(
+            address,
+            "submitTransaction",
+            json!({ "tx": base16::encode(&tx.to_ace_bytes()) }),
+        )
+        .await;
+        let id = submitted["result"]["txId"].as_str().unwrap().to_owned();
+        finalized(address, &id).await;
+        ids.push(id);
+    }
+    let topic = base16::encode(devnet.address(0).to_word().as_bytes());
+    let found = |address| {
+        let topic = topic.clone();
+        async move {
+            let answer = call(address, "getEvents", json!({ "topic": topic })).await;
+            answer["result"]["events"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|e| e["txId"].as_str().unwrap().to_owned())
+                .collect::<Vec<_>>()
+        }
+    };
+    let mut newest_first = ids.clone();
+    newest_first.reverse();
+    assert_eq!(found(address).await, newest_first);
+    stop(server, node).await;
+
+    let node = Node::start(config(), store).await.unwrap();
+    let (address, server) = serve(&node, 1_000).await;
+    assert_eq!(
+        found(address).await,
+        newest_first,
+        "the same events after the restart's backfill"
+    );
+    let recipient = to.to_text(network.network_kind());
+    let by_recipient = call(
+        address,
+        "getEvents",
+        json!({ "topic": base16::encode(to.to_word().as_bytes()), "limit": 2 }),
+    )
+    .await;
+    assert_eq!(
+        by_recipient["result"]["events"].as_array().unwrap().len(),
+        2
+    );
+    assert!(
+        by_recipient["result"]["next"].is_string(),
+        "{by_recipient} for {recipient}"
+    );
+    stop(server, node).await;
+}

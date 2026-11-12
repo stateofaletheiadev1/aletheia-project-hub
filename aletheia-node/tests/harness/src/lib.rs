@@ -147,6 +147,25 @@ impl Devnet {
         Records::new(self.network)
     }
 
+    /// Every finalized event, newest first, as `(height, tx index, event index, tx id, event)`:
+    /// the reference the node's event index must agree with (ADR-067).
+    pub fn all_events(&self) -> Vec<(u64, u32, u16, Hash32, aletheia_execution::Event)> {
+        let mut out = Vec::new();
+        for (proposal, executed) in self.blocks.iter().rev() {
+            let height = proposal.block.header.height.get();
+            let receipts: Vec<(u32, &aletheia_execution::Receipt)> =
+                (0u32..).zip(&executed.receipts).collect();
+            for (index, receipt) in receipts.into_iter().rev() {
+                let events: Vec<(u16, &aletheia_execution::Event)> =
+                    (0u16..).zip(&receipt.events).collect();
+                for (event_index, event) in events.into_iter().rev() {
+                    out.push((height, index, event_index, receipt.tx_id, event.clone()));
+                }
+            }
+        }
+        out
+    }
+
     /// `key` at the head and its state proof (the RPC test backends serve `getStateProof` with it).
     pub fn state_read(
         &self,

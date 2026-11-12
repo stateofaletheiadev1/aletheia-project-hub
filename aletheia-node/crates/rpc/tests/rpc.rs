@@ -154,6 +154,36 @@ impl Backend for DevnetBackend {
         })
     }
 
+    async fn events(
+        &self,
+        filter: aletheia_rpc::EventFilter,
+        before: Option<(u64, u32, u16)>,
+        limit: usize,
+    ) -> Result<aletheia_rpc::EventPage, AletheiaError> {
+        let net = self.0.lock().unwrap();
+        let mut page = aletheia_rpc::EventPage::default();
+        for (height, index, event_index, tx_id, event) in net.all_events() {
+            if before.is_some_and(|cursor| (height, index, event_index) >= cursor)
+                || !filter.matches(&event)
+            {
+                continue;
+            }
+            if page.events.len() == limit {
+                let last = page.events.last().unwrap();
+                page.next = Some((last.height, last.index, last.event_index));
+                break;
+            }
+            page.events.push(aletheia_rpc::FoundEvent {
+                height,
+                index,
+                event_index,
+                tx_id,
+                event,
+            });
+        }
+        Ok(page)
+    }
+
     async fn simulate(&self, bytes: Vec<u8>) -> Result<Receipt, AletheiaError> {
         let net = self.0.lock().unwrap();
         net.simulate(&SignedTransaction::from_ace_bytes(&bytes)?)
@@ -963,4 +993,129 @@ async fn sdk_state_proof_vectors() {
         "cases": cases,
     });
     std::fs::write(path, serde_json::to_string_pretty(&vectors).unwrap() + "\n").unwrap();
+}
+
+/// ADR-067: events by topic, emitter and type, paged newest first, identical over REST.
+#[tokio::test]
+async fn events_filter_and_page_newest_first() {
+    let service = service();
+    for n in 0..5u64 {
+        let (tx, _) = signed_transfer(&service, ONE_AEY + u128::from(n), 0);
+        result(&rpc(&service, "submitTransaction", json!({ "tx": tx })).await);
+    }
+    let network = service.backend.network();
+    let (sender, recipient) = {
+        let net = service.backend.0.lock().unwrap();
+        (net.address(0), net.address(1))
+    };
+    let sender_topic = base16::encode(sender.to_word().as_bytes());
+    let transfer_type = base16::encode(
+        aletheia_execution::receipt::event_type("aletheia.asset.transfer.v1").as_bytes(),
+    );
+
+    // Every transfer from the sender, newest first: five events.
+    let all = rpc(&service, "getEvents", json!({ "topic": sender_topic })).await;
+    let all = result(&all);
+    let events = all["events"].as_array().unwrap();
+    assert_eq!(events.len(), 5, "{all}");
+    assert!(all["next"].is_null());
+    let heights: Vec<u64> = events
+        .iter()
+        .map(|e| e["height"].as_u64().unwrap())
+        .collect();
+    assert!(
+        heights.windows(2).all(|w| w[0] > w[1]),
+        "newest first: {heights:?}"
+    );
+    assert_eq!(
+        events[0]["topics"][1],
+        base16::encode(recipient.to_word().as_bytes())
+    );
+    assert!(events[0]["txId"].as_str().unwrap().starts_with("alt:T"));
+
+    // Two at a time: pages join up to the same five, with no repeats.
+    let mut seen = Vec::new();
+    let mut before = Value::Null;
+    loop {
+        let mut params = json!({ "topic": sender_topic, "limit": 2 });
+        if !before.is_null() {
+            params["before"] = before.clone();
+        }
+        let page = rpc(&service, "getEvents", params).await;
+        let page = result(&page).clone();
+        seen.extend(
+            page["events"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|e| e["txId"].clone()),
+        );
+        before = page["next"].clone();
+        if before.is_null() {
+            break;
+        }
+    }
+    let first: Vec<Value> = events.iter().map(|e| e["txId"].clone()).collect();
+    assert_eq!(seen, first);
+
+    // Filters combine: the transfer type and the sender topic give the same set; an emitter
+    // that emitted nothing gives none.
+    let typed = rpc(
+        &service,
+        "getEvents",
+        json!({ "eventType": transfer_type, "topic": sender_topic }),
+    )
+    .await;
+    assert_eq!(
+        result(&typed)["events"].as_array().unwrap().len(),
+        5,
+        "{typed}"
+    );
+    let nobody = Address::from_bytes([0x5a; 20]).to_text(network.network_kind());
+    let none = rpc(&service, "getEvents", json!({ "emitter": nobody })).await;
+    assert!(result(&none)["events"].as_array().unwrap().is_empty());
+
+    // REST answers identically.
+    let rest = route(
+        &service,
+        "GET",
+        "/events",
+        &[("topic".to_owned(), sender_topic.clone())],
+        &[],
+    )
+    .await;
+    assert_eq!(rest.status, 200, "{}", rest.body);
+    assert_eq!(&rest.body, all);
+
+    // Strict parameters.
+    assert_eq!(
+        error_code(&rpc(&service, "getEvents", json!({})).await),
+        -32602
+    );
+    assert_eq!(
+        error_code(&rpc(&service, "getEvents", json!({ "topic": "abcd" })).await),
+        -32602
+    );
+    assert_eq!(
+        error_code(
+            &rpc(
+                &service,
+                "getEvents",
+                json!({ "topic": sender_topic, "limit": 101 })
+            )
+            .await
+        ),
+        -32602
+    );
+    assert_eq!(
+        error_code(
+            &rpc(
+                &service,
+                "getEvents",
+                json!({ "topic": sender_topic, "before": "1:2" })
+            )
+            .await
+        ),
+        -32602
+    );
 }

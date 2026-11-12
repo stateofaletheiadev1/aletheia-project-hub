@@ -9,7 +9,9 @@ use aletheia_core::{
 use aletheia_execution::Receipt;
 use aletheia_execution::model::{Account, AssetConfig, Balance, ValidatorRecord};
 use aletheia_monetary::SupplyLedger;
-use aletheia_rpc::{Backend, BlockRef, Located, NodeStatus, StateRead};
+use aletheia_rpc::{
+    Backend, BlockRef, EventFilter, EventPage, FoundEvent, Located, NodeStatus, StateRead,
+};
 use aletheia_state::StateKey;
 use aletheia_storage::KvStore;
 use tokio::sync::{mpsc, oneshot};
@@ -33,6 +35,7 @@ pub(crate) enum RpcQuery {
     Validators(u64),
     AccountHistory(Address, Option<(u64, u32)>, usize),
     StateProof(StateKey),
+    Events(EventFilter, Option<(u64, u32, u16)>, usize),
     Simulate(Vec<u8>),
 }
 
@@ -50,6 +53,7 @@ pub(crate) enum RpcAnswer {
     Validators(Option<Vec<ValidatorRecord>>),
     History(Vec<(u64, u32, Hash32)>),
     State(Box<StateRead>),
+    Events(EventPage),
     Simulated(Box<Receipt>),
 }
 
@@ -77,6 +81,73 @@ fn located<S: KvStore, T>(
         block_hash: hash,
         slot,
     }))
+}
+
+/// Events from the index (ADR-067): positions under the most selective subject given, then
+/// each event read from its receipt and checked against every filter field. One read examines at
+/// most `EVENT_SCAN` positions; `next` resumes after the last one examined.
+fn events<S: KvStore>(
+    ledger: &Ledger<S>,
+    filter: EventFilter,
+    before: Option<(u64, u32, u16)>,
+    limit: usize,
+) -> Result<EventPage, AletheiaError> {
+    use crate::ledger::{EVENT_BY_EMITTER, EVENT_BY_TOPIC, EVENT_BY_TYPE, EVENT_SCAN};
+    let (tag, subject): (u8, Vec<u8>) = match (filter.topic, filter.event_type, filter.emitter) {
+        (Some(topic), _, _) => (EVENT_BY_TOPIC, topic.as_bytes().to_vec()),
+        (None, Some(kind), _) => (EVENT_BY_TYPE, kind.as_bytes().to_vec()),
+        (None, None, Some(emitter)) => (EVENT_BY_EMITTER, emitter.as_bytes().to_vec()),
+        (None, None, None) => return Ok(EventPage::default()),
+    };
+    let positions = ledger.event_positions(tag, &subject, before, EVENT_SCAN)?;
+    let mut page = EventPage::default();
+    let mut receipt: Option<(Height, u32, Receipt)> = None;
+    for (n, (height, index, event_index)) in positions.iter().copied().enumerate() {
+        if receipt
+            .as_ref()
+            .is_none_or(|(h, i, _)| (*h, *i) != (height, index))
+        {
+            let found = ledger.receipt_at(height, index)?.ok_or_else(|| {
+                AletheiaError::new(
+                    aletheia_core::ErrorCode::StoCorrupt,
+                    format!("event index names a missing receipt at {height}/{index}"),
+                )
+            })?;
+            receipt = Some((height, index, found));
+        }
+        let Some((_, _, current)) = receipt.as_ref() else {
+            continue;
+        };
+        let event = current
+            .events
+            .get(usize::from(event_index))
+            .ok_or_else(|| {
+                AletheiaError::new(
+                    aletheia_core::ErrorCode::StoCorrupt,
+                    format!("event index names a missing event at {height}/{index}/{event_index}"),
+                )
+            })?;
+        if filter.matches(event) {
+            page.events.push(FoundEvent {
+                height: height.get(),
+                index,
+                event_index,
+                tx_id: current.tx_id,
+                event: event.clone(),
+            });
+        }
+        let examined_all = n.saturating_add(1) == positions.len();
+        if page.events.len() == limit {
+            if !examined_all || positions.len() == EVENT_SCAN {
+                page.next = Some((height.get(), index, event_index));
+            }
+            return Ok(page);
+        }
+        if examined_all && positions.len() == EVENT_SCAN {
+            page.next = Some((height.get(), index, event_index));
+        }
+    }
+    Ok(page)
 }
 
 /// Answers one query against the ledger (on the chain thread).
@@ -147,6 +218,9 @@ pub(crate) fn answer<S: KvStore>(
                 .collect(),
         ),
         RpcQuery::StateProof(key) => RpcAnswer::State(Box::new(ledger.state_read_at_tip(&key)?)),
+        RpcQuery::Events(filter, before, limit) => {
+            RpcAnswer::Events(events(ledger, filter, before, limit)?)
+        }
         RpcQuery::Simulate(bytes) => RpcAnswer::Simulated(Box::new(ledger.simulate(&bytes)?)),
     })
 }
@@ -274,6 +348,18 @@ impl Backend for NodeBackend {
     async fn state_proof(&self, key: StateKey) -> Result<StateRead, AletheiaError> {
         match self.ask(RpcQuery::StateProof(key)).await? {
             RpcAnswer::State(read) => Ok(*read),
+            _ => Err(unexpected()),
+        }
+    }
+
+    async fn events(
+        &self,
+        filter: EventFilter,
+        before: Option<(u64, u32, u16)>,
+        limit: usize,
+    ) -> Result<EventPage, AletheiaError> {
+        match self.ask(RpcQuery::Events(filter, before, limit)).await? {
+            RpcAnswer::Events(page) => Ok(page),
             _ => Err(unexpected()),
         }
     }

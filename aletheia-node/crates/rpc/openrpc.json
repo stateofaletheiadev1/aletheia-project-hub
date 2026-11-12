@@ -578,6 +578,105 @@
           ]
         }
       }
+    },
+    {
+      "name": "getEvents",
+      "summary": "Finalized events by emitter, event type or topic, newest first. Every filter given must match; at least one is required. A transfer's topics are its sender and recipient (as 32-byte words) and its asset.",
+      "params": [
+        {
+          "name": "emitter",
+          "required": false,
+          "schema": {
+            "$ref": "#/components/schemas/Address"
+          }
+        },
+        {
+          "name": "eventType",
+          "required": false,
+          "schema": {
+            "$ref": "#/components/schemas/Word"
+          }
+        },
+        {
+          "name": "topic",
+          "required": false,
+          "schema": {
+            "$ref": "#/components/schemas/Word"
+          }
+        },
+        {
+          "name": "limit",
+          "required": false,
+          "schema": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 25
+          }
+        },
+        {
+          "name": "before",
+          "required": false,
+          "schema": {
+            "type": "string",
+            "pattern": "^[0-9]+:[0-9]+:[0-9]+$"
+          },
+          "description": "The `next` cursor of a previous page."
+        }
+      ],
+      "result": {
+        "name": "events",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "events": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "txId": {
+                    "$ref": "#/components/schemas/TxId"
+                  },
+                  "height": {
+                    "type": "integer"
+                  },
+                  "index": {
+                    "type": "integer"
+                  },
+                  "eventIndex": {
+                    "type": "integer"
+                  },
+                  "emitter": {
+                    "$ref": "#/components/schemas/Address"
+                  },
+                  "eventType": {
+                    "$ref": "#/components/schemas/Hash"
+                  },
+                  "topics": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/Hash"
+                    }
+                  },
+                  "data": {
+                    "$ref": "#/components/schemas/Base16"
+                  }
+                }
+              }
+            },
+            "next": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "events",
+            "next"
+          ]
+        }
+      }
     }
   ],
   "components": {
@@ -687,6 +786,11 @@
             }
           }
         }
+      },
+      "Word": {
+        "type": "string",
+        "pattern": "^[0-9a-fA-F]{64}$",
+        "description": "A 32-byte value: an event type (BLAKE3 of the event schema name) or a topic."
       }
     },
     "errors": {

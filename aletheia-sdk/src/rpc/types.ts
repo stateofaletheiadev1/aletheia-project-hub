@@ -33,6 +33,7 @@ export const METHODS = [
   "getValidatorSet",
   "getAccountHistory",
   "getStateProof",
+  "getEvents",
 ] as const;
 export type Method = (typeof METHODS)[number];
 
@@ -164,3 +165,21 @@ export const StateProofAnswer = object({
   proof: string,
 });
 export type StateProofAnswer = Infer<typeof StateProofAnswer>;
+
+/** `getEvents` (node ADR-067): finalized events, newest first, with a resume cursor. */
+export const EventPage = object({
+  events: array(
+    object({
+      txId: string,
+      height: count,
+      index: count,
+      eventIndex: count,
+      emitter: string,
+      eventType: string,
+      topics: array(string),
+      data: string,
+    }),
+  ),
+  next: nullable(string),
+});
+export type EventPage = Infer<typeof EventPage>;

@@ -16,6 +16,7 @@ import {
   NetworkStatus,
   Receipt,
   Simulation,
+  EventPage,
   StateProofAnswer,
   Submitted,
   Supply,
@@ -218,5 +219,16 @@ export class ChainClient {
    */
   stateProof(params: { address: string; asset?: AssetCode } | { asset: AssetCode }) {
     return this.call("getStateProof", params, StateProofAnswer);
+  }
+
+  /**
+   * Finalized events, newest first (node ADR-067). Give at least one filter; every one given must
+   * match. `eventType` and `topic` are 64 hex characters; a transfer's topics are its sender and
+   * recipient as 32-byte words and its asset.
+   */
+  events(filter: { emitter?: string; eventType?: string; topic?: string; limit?: number; before?: string | null }) {
+    const params: Record<string, unknown> = {};
+    for (const [name, value] of Object.entries(filter)) if (value !== undefined && value !== null) params[name] = value;
+    return this.call("getEvents", params, EventPage);
   }
 }

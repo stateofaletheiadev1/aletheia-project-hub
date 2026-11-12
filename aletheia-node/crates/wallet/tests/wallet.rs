@@ -140,6 +140,36 @@ impl Backend for DevnetBackend {
         })
     }
 
+    async fn events(
+        &self,
+        filter: aletheia_rpc::EventFilter,
+        before: Option<(u64, u32, u16)>,
+        limit: usize,
+    ) -> Result<aletheia_rpc::EventPage, AletheiaError> {
+        let net = self.0.lock().unwrap();
+        let mut page = aletheia_rpc::EventPage::default();
+        for (height, index, event_index, tx_id, event) in net.all_events() {
+            if before.is_some_and(|cursor| (height, index, event_index) >= cursor)
+                || !filter.matches(&event)
+            {
+                continue;
+            }
+            if page.events.len() == limit {
+                let last = page.events.last().unwrap();
+                page.next = Some((last.height, last.index, last.event_index));
+                break;
+            }
+            page.events.push(aletheia_rpc::FoundEvent {
+                height,
+                index,
+                event_index,
+                tx_id,
+                event,
+            });
+        }
+        Ok(page)
+    }
+
     async fn simulate(&self, bytes: Vec<u8>) -> Result<Receipt, AletheiaError> {
         let net = self.0.lock().unwrap();
         net.simulate(&SignedTransaction::from_ace_bytes(&bytes)?)
