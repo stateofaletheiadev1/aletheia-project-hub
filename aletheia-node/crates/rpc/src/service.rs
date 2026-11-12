@@ -2,7 +2,8 @@
 //! adapter). Each method takes named parameters and returns the JSON result, so REST and
 //! JSON-RPC answer identically by construction.
 
-use aletheia_core::{AssetId, base16};
+use aletheia_core::{AceEncode, AssetId, base16};
+use aletheia_execution::model::Records;
 use serde_json::{Map, Value, json};
 
 use crate::backend::{Backend, BlockRef};
@@ -33,6 +34,7 @@ pub const METHODS: &[&str] = &[
     "getMonetarySupply",
     "getValidatorSet",
     "getAccountHistory",
+    "getStateProof",
 ];
 
 /// Most transactions one history page returns.
@@ -196,8 +198,60 @@ impl<B: Backend> Service<B> {
                 };
                 self.validator_set(epoch).await
             }
+            "getStateProof" => {
+                only(params, &["address", "asset"])?;
+                let network = self.backend.network();
+                let records = Records::new(network);
+                let address = match params.get("address") {
+                    None => None,
+                    Some(_) => Some(parse_address(&network, text(params, "address")?)?),
+                };
+                let asset = match params.get("asset") {
+                    None => None,
+                    Some(_) => Some(parse_asset(text(params, "asset")?)?),
+                };
+                let (record, key) = match (address, asset) {
+                    (Some(a), None) => ("account", records.account_key(&a)),
+                    (Some(a), Some(asset)) => ("balance", records.balance_key(&a, asset)),
+                    (None, Some(asset)) => ("supply", records.supply_key(asset)),
+                    (None, None) => {
+                        return Err(RpcError::invalid_params(
+                            "give \"address\" (account), \"address\" and \"asset\" (balance), or \"asset\" (supply ledger)",
+                        ));
+                    }
+                };
+                self.state_proof(record, key).await
+            }
             other => Err(RpcError::method_not_found(other)),
         }
+    }
+
+    /// A state record at the finalized tip and its proof against the tip's state root. The
+    /// node checks the proof before serving it, so a corrupt store answers with an error,
+    /// never with a proof that does not verify.
+    pub async fn state_proof(
+        &self,
+        record: &str,
+        key: aletheia_state::StateKey,
+    ) -> Result<Value, RpcError> {
+        let network = self.backend.network();
+        let read = self
+            .backend
+            .state_proof(key)
+            .await
+            .map_err(|e| from_backend(&e))?;
+        read.proof
+            .verify(&network, &read.state_root, &key, read.value.as_deref())
+            .map_err(|_| RpcError::internal())?;
+        Ok(json!({
+            "record": record,
+            "height": read.height,
+            "block": block_text(&network, read.block_hash),
+            "stateRoot": base16::encode(read.state_root.as_bytes()),
+            "key": base16::encode(key.as_bytes()),
+            "value": read.value.as_deref().map(base16::encode),
+            "proof": base16::encode(&read.proof.to_ace_bytes()),
+        }))
     }
 
     pub async fn network_status(&self) -> Result<Value, RpcError> {

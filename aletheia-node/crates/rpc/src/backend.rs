@@ -9,6 +9,7 @@ use aletheia_core::{Address, AletheiaError, AssetId, Hash32, NetworkIdentity};
 use aletheia_execution::Receipt;
 use aletheia_execution::model::{Account, AssetConfig, Balance, ValidatorRecord};
 use aletheia_monetary::SupplyLedger;
+use aletheia_state::{StateKey, StateProof};
 
 /// The node's state as the status endpoints report it.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -36,6 +37,18 @@ pub struct Located<T> {
     pub index: u32,
     pub block_hash: Hash32,
     pub slot: u64,
+}
+
+/// A state value read at the finalized tip, with its proof against that block's state root.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct StateRead {
+    pub height: u64,
+    pub block_hash: Hash32,
+    pub state_root: Hash32,
+    /// The stored record (canonical ACE), or `None` when the key is absent.
+    pub value: Option<Vec<u8>>,
+    /// Inclusion proof for a value, non-inclusion proof for an absent key.
+    pub proof: StateProof,
 }
 
 /// Finalized-only reads and the two writes (submit, simulate). Every read is of finalized
@@ -101,6 +114,12 @@ pub trait Backend: Send + Sync {
         before: Option<(u64, u32)>,
         limit: usize,
     ) -> impl Future<Output = Result<Vec<(u64, u32, Hash32)>, AletheiaError>> + Send;
+
+    /// `key` at the finalized tip, with its state proof.
+    fn state_proof(
+        &self,
+        key: StateKey,
+    ) -> impl Future<Output = Result<StateRead, AletheiaError>> + Send;
 
     /// Admits a signed transaction to the mempool; returns its id.
     fn submit(&self, bytes: Vec<u8>) -> impl Future<Output = Result<Hash32, AletheiaError>> + Send;

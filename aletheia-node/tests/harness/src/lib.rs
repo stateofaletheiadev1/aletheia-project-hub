@@ -147,6 +147,18 @@ impl Devnet {
         Records::new(self.network)
     }
 
+    /// `key` at the head and its state proof (the RPC test backends serve `getStateProof` with it).
+    pub fn state_read(
+        &self,
+        key: &StateKey,
+    ) -> Result<(Option<StateValue>, aletheia_state::StateProof), AletheiaError> {
+        let view = self.view();
+        Ok((
+            view.tree.get(key, view.version)?,
+            view.tree.prove(key, view.version)?,
+        ))
+    }
+
     pub fn view(&self) -> VersionView<'_> {
         VersionView {
             tree: JellyfishMerkleTree::new(&self.store, self.network),

@@ -137,6 +137,18 @@ async fn dispatch<B: Backend>(
             }
             Ok(Value::Array(out))
         }
+        ("GET", ["accounts", address, "proof"]) => {
+            let mut p = params(&[("address", s(address))]);
+            if let Some(asset) = q("asset") {
+                p.insert("asset".to_owned(), s(asset));
+            }
+            service.call("getStateProof", &p).await
+        }
+        ("GET", ["monetary", asset, "supply", "proof"]) => {
+            service
+                .call("getStateProof", &params(&[("asset", s(asset))]))
+                .await
+        }
         ("GET", ["accounts", address, "transactions"]) => {
             let mut p = params(&[("address", s(address))]);
             if let Some(limit) = q("limit") {

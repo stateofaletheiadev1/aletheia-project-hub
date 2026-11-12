@@ -69,6 +69,7 @@ pub struct Node {
     chain_handle: chain::ChainHandle,
     submissions: mpsc::Sender<Submission>,
     tip: watch::Receiver<LastFinalized>,
+    peers: watch::Receiver<crate::sync::PeerView>,
     sync: Option<JoinHandle<Result<(), AletheiaError>>>,
     chain: std::thread::JoinHandle<Result<(), AletheiaError>>,
 }
@@ -242,6 +243,7 @@ impl Node {
 
         let (tip_tx, tip_rx) = watch::channel(tip);
         let (submit_tx, submit_rx) = mpsc::channel(SUBMIT_QUEUE);
+        let (peers_tx, peers_rx) = watch::channel(crate::sync::PeerView::default());
         let service = SyncService {
             chain,
             network: network_handle,
@@ -250,6 +252,7 @@ impl Node {
             produce_every: config.produce_every,
             mempool: Mempool::new(),
             peer_tips: std::collections::BTreeMap::new(),
+            peers: peers_tx,
             in_flight: None,
             consensus,
         };
@@ -260,6 +263,7 @@ impl Node {
             chain_handle,
             submissions: submit_tx,
             tip: tip_rx,
+            peers: peers_rx,
             sync: Some(sync),
             chain: chain_thread,
         })
@@ -272,6 +276,7 @@ impl Node {
             chain: self.chain_handle.clone(),
             submissions: self.submissions.clone(),
             network: self.network,
+            peers: self.peers.clone(),
         }
     }
 

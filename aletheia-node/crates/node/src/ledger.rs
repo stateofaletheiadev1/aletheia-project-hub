@@ -1287,6 +1287,21 @@ impl<S: KvStore> Ledger<S> {
         Records::new(self.network).validator_set(&self.tip_view(), epoch)
     }
 
+    /// `key` at the tip and its proof against the tip's state root (`getStateProof`).
+    pub fn state_read_at_tip(
+        &self,
+        key: &StateKey,
+    ) -> Result<aletheia_rpc::StateRead, AletheiaError> {
+        let view = self.tip_view();
+        Ok(aletheia_rpc::StateRead {
+            height: self.tip.height.get(),
+            block_hash: self.tip.hash,
+            state_root: self.tip.state_root,
+            value: view.tree.get(key, view.version)?,
+            proof: view.tree.prove(key, view.version)?,
+        })
+    }
+
     /// The protocol version in force at the tip.
     pub fn tip_version(&self) -> Result<u16, AletheiaError> {
         let records = Records::new(self.network);

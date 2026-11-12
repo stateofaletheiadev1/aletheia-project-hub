@@ -160,6 +160,22 @@ async fn a_late_node_catches_up_from_genesis_in_batches() {
         assert_eq!(caught.hash, at_goal.hash);
         assert_eq!(caught.state_root, at_goal.state_root);
     }
+
+    // The RPC status reports the connection on both sides, and the caught-up node is not
+    // syncing any more.
+    let status = |node: &Node| {
+        let service = aletheia_rpc::Service::new(node.rpc_backend());
+        async move {
+            service
+                .call("getNetworkStatus", &serde_json::Map::new())
+                .await
+                .unwrap()
+        }
+    };
+    assert_eq!(status(&producer).await["peers"], 1);
+    let late_status = status(&late).await;
+    assert_eq!(late_status["peers"], 1);
+    assert_eq!(late_status["syncing"], false, "{late_status}");
     late.shutdown().await.unwrap();
     producer.shutdown().await.unwrap();
 }

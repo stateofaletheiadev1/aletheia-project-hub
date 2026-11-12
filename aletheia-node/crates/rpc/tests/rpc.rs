@@ -139,6 +139,21 @@ impl Backend for DevnetBackend {
         Ok(id)
     }
 
+    async fn state_proof(
+        &self,
+        key: aletheia_state::StateKey,
+    ) -> Result<aletheia_rpc::StateRead, AletheiaError> {
+        let net = self.0.lock().unwrap();
+        let (value, proof) = net.state_read(&key)?;
+        Ok(aletheia_rpc::StateRead {
+            height: net.head.height.get(),
+            block_hash: net.head.block_hash(&net.network),
+            state_root: net.head.state_root,
+            value,
+            proof,
+        })
+    }
+
     async fn simulate(&self, bytes: Vec<u8>) -> Result<Receipt, AletheiaError> {
         let net = self.0.lock().unwrap();
         net.simulate(&SignedTransaction::from_ace_bytes(&bytes)?)
@@ -341,6 +356,16 @@ async fn rest_and_json_rpc_return_identical_data() {
             "/monetary/AEY/supply".to_owned(),
         ),
         ("getValidatorSet", json!({}), "/validators".to_owned()),
+        (
+            "getStateProof",
+            json!({ "address": address }),
+            format!("/accounts/{address}/proof"),
+        ),
+        (
+            "getStateProof",
+            json!({ "asset": "AEY" }),
+            "/monetary/AEY/supply/proof".to_owned(),
+        ),
     ];
     for (method, params, path) in pairs {
         let via_rpc = rpc(&service, method, params).await;
@@ -718,4 +743,124 @@ async fn websocket_sessions_subscribe_deliver_and_unsubscribe() {
         session.handle(&service, &format!(r#"{{"jsonrpc":"2.0","id":{i},"method":"subscribe","params":{{"topic":"finalizedBlocks"}}}}"#)).await;
     }
     assert_eq!(session.len(), aletheia_rpc::ws::MAX_SUBSCRIPTIONS);
+}
+
+/// Decodes a `getStateProof` answer and checks it the way a light client would: against the
+/// state root in the finalized header, with nothing taken from the node on trust.
+fn check_state_proof(
+    service: &Service<DevnetBackend>,
+    answer: &Value,
+    key: &aletheia_state::StateKey,
+) -> Option<Vec<u8>> {
+    let network = service.backend.network();
+    let head = service.backend.0.lock().unwrap().head.clone();
+    assert_eq!(answer["height"], head.height.get());
+    assert_eq!(
+        answer["stateRoot"],
+        base16::encode(head.state_root.as_bytes())
+    );
+    assert_eq!(answer["key"], base16::encode(key.as_bytes()));
+    let value = answer["value"].as_str().map(|v| base16::decode(v).unwrap());
+    let proof = aletheia_state::StateProof::from_ace_bytes(
+        &base16::decode(answer["proof"].as_str().unwrap()).unwrap(),
+    )
+    .unwrap();
+    proof
+        .verify(&network, &head.state_root, key, value.as_deref())
+        .unwrap();
+    // The same proof must not vouch for another value, nor for absence.
+    if let Some(v) = &value {
+        let mut forged = v.clone();
+        forged[0] ^= 1;
+        assert!(
+            proof
+                .verify(&network, &head.state_root, key, Some(&forged))
+                .is_err()
+        );
+        assert!(proof.verify(&network, &head.state_root, key, None).is_err());
+    }
+    value
+}
+
+#[tokio::test]
+async fn state_proofs_verify_against_the_finalized_state_root() {
+    let service = service();
+    let (tx, to) = signed_transfer(&service, 3 * ONE_AEY, 0);
+    result(&rpc(&service, "submitTransaction", json!({ "tx": tx })).await);
+    let network = service.backend.network();
+    let records = aletheia_execution::model::Records::new(network);
+    let address = to.to_text(network.network_kind());
+
+    // An account (the sender's: a recipient holds balances but has no account record until
+    // it sends): the proven value is the account record the node reports.
+    let sender = service.backend.0.lock().unwrap().address(0);
+    let answer = rpc(
+        &service,
+        "getStateProof",
+        json!({ "address": sender.to_text(network.network_kind()) }),
+    )
+    .await;
+    let answer = result(&answer);
+    assert_eq!(answer["record"], "account");
+    let value = check_state_proof(&service, answer, &records.account_key(&sender)).unwrap();
+    let account = service.backend.0.lock().unwrap().account(&sender).unwrap();
+    assert_eq!(value, account.to_ace_bytes());
+
+    // A balance, after the transfer credited it.
+    let answer = rpc(
+        &service,
+        "getStateProof",
+        json!({ "address": address, "asset": "AEY" }),
+    )
+    .await;
+    let answer = result(&answer);
+    assert_eq!(answer["record"], "balance");
+    let value =
+        check_state_proof(&service, answer, &records.balance_key(&to, AssetId::AEY)).unwrap();
+    let balance = service.backend.0.lock().unwrap().balance(&to, AssetId::AEY);
+    assert_eq!(value, balance.to_ace_bytes());
+
+    // The AEY supply ledger.
+    let answer = rpc(&service, "getStateProof", json!({ "asset": "AEY" })).await;
+    let answer = result(&answer);
+    assert_eq!(answer["record"], "supply");
+    assert!(check_state_proof(&service, answer, &records.supply_key(AssetId::AEY)).is_some());
+
+    // An account that was never created: a non-inclusion proof, value null.
+    let stranger = Address::from_bytes([0x5a; 20]);
+    let answer = rpc(
+        &service,
+        "getStateProof",
+        json!({ "address": stranger.to_text(network.network_kind()) }),
+    )
+    .await;
+    let answer = result(&answer);
+    assert!(answer["value"].is_null());
+    assert!(check_state_proof(&service, answer, &records.account_key(&stranger)).is_none());
+
+    // A balance query through REST carries the asset as a query parameter.
+    let rest = route(
+        &service,
+        "GET",
+        &format!("/accounts/{address}/proof"),
+        &[("asset".to_owned(), "AEY".to_owned())],
+        &[],
+    )
+    .await;
+    assert_eq!(rest.status, 200, "{}", rest.body);
+    assert_eq!(rest.body["record"], "balance");
+}
+
+#[tokio::test]
+async fn state_proof_parameters_are_strict() {
+    let service = service();
+    let none = rpc(&service, "getStateProof", json!({})).await;
+    assert_eq!(error_code(&none), -32602);
+    let typo = rpc(&service, "getStateProof", json!({ "adress": "x" })).await;
+    assert_eq!(error_code(&typo), -32602);
+    let asset = rpc(&service, "getStateProof", json!({ "asset": "XYZ" })).await;
+    assert!(
+        asset.get("error").is_some(),
+        "unknown asset refused: {asset}"
+    );
 }

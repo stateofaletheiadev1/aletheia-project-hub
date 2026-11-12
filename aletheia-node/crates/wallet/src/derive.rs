@@ -11,10 +11,10 @@ use crate::WalletError;
 
 type HmacSha512 = Hmac<Sha512>;
 
-/// The coin type in the derivation path. PROVISIONAL: not yet registered in SLIP-0044 nor
-/// recorded in APS-0030. Changing it changes every derived address, so it must be settled
-/// before any mainnet wallet derives keys.
-pub const PROVISIONAL_COIN_TYPE: u32 = 7771;
+/// The coin type in the derivation path, `m/44'/7771'/…`. Settled by the founder on
+/// 2026-11-12; 7771 was unassigned in SLIP-0044 when chosen. Changing it would change every
+/// derived address, so it is fixed for good.
+pub const COIN_TYPE: u32 = 7771;
 
 const HARDENED: u32 = 0x8000_0000;
 
@@ -144,17 +144,14 @@ mod tests {
     #[test]
     fn accounts_and_indices_give_different_keys() {
         let seed = [9u8; 32];
-        let a = account_key(&seed, PROVISIONAL_COIN_TYPE, 0, 0).unwrap();
-        let b = account_key(&seed, PROVISIONAL_COIN_TYPE, 0, 1).unwrap();
-        let c = account_key(&seed, PROVISIONAL_COIN_TYPE, 1, 0).unwrap();
+        let a = account_key(&seed, COIN_TYPE, 0, 0).unwrap();
+        let b = account_key(&seed, COIN_TYPE, 0, 1).unwrap();
+        let c = account_key(&seed, COIN_TYPE, 1, 0).unwrap();
         assert_ne!(a.key().expose(), b.key().expose());
         assert_ne!(a.key().expose(), c.key().expose());
         assert_eq!(
             a.key().expose(),
-            account_key(&seed, PROVISIONAL_COIN_TYPE, 0, 0)
-                .unwrap()
-                .key()
-                .expose()
+            account_key(&seed, COIN_TYPE, 0, 0).unwrap().key().expose()
         );
     }
 }

@@ -23,7 +23,7 @@ use std::time::Duration;
 
 use aletheia_core::{Address, AssetId};
 use aletheia_crypto::Secret;
-use aletheia_wallet::derive::{PROVISIONAL_COIN_TYPE, account_key};
+use aletheia_wallet::derive::{COIN_TYPE, account_key};
 use aletheia_wallet::{
     Account, HttpRpc, Rpc, TransferRequest, WalletError, keystore, node_network, parse_amount,
     transfer,
@@ -320,7 +320,7 @@ async fn run(cli: Cli) -> Result<(), WalletError> {
             let mut seed = [0u8; 32];
             getrandom::fill(&mut seed).map_err(|e| fail(format!("no randomness: {e}")))?;
             let seed = Secret::new(seed);
-            let derived = account_key(seed.expose(), PROVISIONAL_COIN_TYPE, 0, 0)?;
+            let derived = account_key(seed.expose(), COIN_TYPE, 0, 0)?;
             let address = Account::new(derived.key(), network)
                 .address()
                 .to_text(network.network_kind());
@@ -348,7 +348,7 @@ async fn run(cli: Cli) -> Result<(), WalletError> {
                 map.insert("publicKey".to_owned(), json!(public_key));
                 map.insert(
                     "path".to_owned(),
-                    json!(format!("m/44'/{PROVISIONAL_COIN_TYPE}'/0'/0'/0'")),
+                    json!(format!("m/44'/{COIN_TYPE}'/0'/0'/0'")),
                 );
             }
             std::fs::write(
@@ -458,7 +458,7 @@ async fn run(cli: Cli) -> Result<(), WalletError> {
             };
             let pass = password("Keystore password: ")?;
             let seed = keystore::open(&file, pass.expose().as_bytes())?;
-            let derived = account_key(seed.expose(), PROVISIONAL_COIN_TYPE, 0, 0)?;
+            let derived = account_key(seed.expose(), COIN_TYPE, 0, 0)?;
             let account = Account::new(derived.key(), network);
             let confirm = |summary: &aletheia_wallet::Summary| {
                 if json_out || yes {

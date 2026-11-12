@@ -156,6 +156,36 @@ async fn a_transfer_goes_through_the_http_rpc_and_back() {
     let (status, _) = http(address, "GET", "/api/v1/blocks/height/999999", "").await;
     assert_eq!(status, 404);
 
+    // A balance proof checks against the state root of the block it names, read separately.
+    let proven = call(
+        address,
+        "getStateProof",
+        json!({ "address": to_text, "asset": "AEY" }),
+    )
+    .await;
+    let proven = &proven["result"];
+    let block = call(
+        address,
+        "getBlock",
+        json!({ "block": proven["block"].as_str().unwrap() }),
+    )
+    .await;
+    assert_eq!(block["result"]["height"], proven["height"]);
+    assert_eq!(block["result"]["stateRoot"], proven["stateRoot"]);
+    let root = aletheia_core::Hash32::from_bytes(
+        base16::decode(proven["stateRoot"].as_str().unwrap())
+            .unwrap()
+            .try_into()
+            .unwrap(),
+    );
+    let value = base16::decode(proven["value"].as_str().unwrap()).unwrap();
+    let proof = <aletheia_state::StateProof as aletheia_core::AceDecode>::from_ace_bytes(
+        &base16::decode(proven["proof"].as_str().unwrap()).unwrap(),
+    )
+    .unwrap();
+    let key = aletheia_execution::model::Records::new(network).balance_key(&to, AssetId::AEY);
+    proof.verify(&network, &root, &key, Some(&value)).unwrap();
+
     stop(server, node).await;
 }
 

@@ -7,7 +7,7 @@ import { hmac } from "@noble/hashes/hmac.js";
 import { sha512 } from "@noble/hashes/sha2.js";
 
 /**
- * PROVISIONAL coin type, identical to `PROVISIONAL_COIN_TYPE` in the node's wallet crate so the
+ * The coin type, settled 2026-11-12 and identical to `COIN_TYPE` in the node's wallet crate so the
  * same seed gives the same keys as `aletheia-cli` (PROTOCOL_DISCREPANCIES D-1).
  */
 export const COIN_TYPE = 7771;

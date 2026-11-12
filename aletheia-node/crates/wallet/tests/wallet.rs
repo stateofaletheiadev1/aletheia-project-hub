@@ -23,7 +23,7 @@ use aletheia_execution::model::{Account as AccountRecord, AssetConfig, Balance};
 use aletheia_monetary::SupplyLedger;
 use aletheia_rpc::{Backend, BlockRef, Located, NodeStatus, Service};
 use aletheia_test_harness::{Devnet, ONE_AEY, ONE_ALNT};
-use aletheia_wallet::derive::{PROVISIONAL_COIN_TYPE, account_key};
+use aletheia_wallet::derive::{COIN_TYPE, account_key};
 use aletheia_wallet::{Account, PaymentUri, Rpc, TransferRequest, WalletError, keystore, transfer};
 use serde_json::{Value, json};
 
@@ -125,6 +125,21 @@ impl Backend for DevnetBackend {
         net.produce(vec![tx])?;
         Ok(id)
     }
+    async fn state_proof(
+        &self,
+        key: aletheia_state::StateKey,
+    ) -> Result<aletheia_rpc::StateRead, AletheiaError> {
+        let net = self.0.lock().unwrap();
+        let (value, proof) = net.state_read(&key)?;
+        Ok(aletheia_rpc::StateRead {
+            height: net.head.height.get(),
+            block_hash: net.head.block_hash(&net.network),
+            state_root: net.head.state_root,
+            value,
+            proof,
+        })
+    }
+
     async fn simulate(&self, bytes: Vec<u8>) -> Result<Receipt, AletheiaError> {
         let net = self.0.lock().unwrap();
         net.simulate(&SignedTransaction::from_ace_bytes(&bytes)?)
@@ -184,7 +199,7 @@ const SEED: [u8; 32] = [42; 32];
 /// A devnet where the wallet's derived address holds 50 AEY and 100 ALnT for fees.
 fn node_and_account() -> (InProcess, Account) {
     let mut net = Devnet::new(3, 100 * ONE_AEY, 1_000 * ONE_ALNT);
-    let derived = account_key(&SEED, PROVISIONAL_COIN_TYPE, 0, 0).unwrap();
+    let derived = account_key(&SEED, COIN_TYPE, 0, 0).unwrap();
     let account = Account::new(derived.key(), net.network);
     let me = account.address();
     let fund_aey = net.transfer(0, 0, me, AssetId::AEY, 50 * ONE_AEY);

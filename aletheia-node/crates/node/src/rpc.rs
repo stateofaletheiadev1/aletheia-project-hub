@@ -9,7 +9,8 @@ use aletheia_core::{
 use aletheia_execution::Receipt;
 use aletheia_execution::model::{Account, AssetConfig, Balance, ValidatorRecord};
 use aletheia_monetary::SupplyLedger;
-use aletheia_rpc::{Backend, BlockRef, Located, NodeStatus};
+use aletheia_rpc::{Backend, BlockRef, Located, NodeStatus, StateRead};
+use aletheia_state::StateKey;
 use aletheia_storage::KvStore;
 use tokio::sync::{mpsc, oneshot};
 
@@ -31,6 +32,7 @@ pub(crate) enum RpcQuery {
     Supply(AssetId),
     Validators(u64),
     AccountHistory(Address, Option<(u64, u32)>, usize),
+    StateProof(StateKey),
     Simulate(Vec<u8>),
 }
 
@@ -47,6 +49,7 @@ pub(crate) enum RpcAnswer {
     Supply(Option<Box<SupplyLedger>>),
     Validators(Option<Vec<ValidatorRecord>>),
     History(Vec<(u64, u32, Hash32)>),
+    State(Box<StateRead>),
     Simulated(Box<Receipt>),
 }
 
@@ -88,6 +91,7 @@ pub(crate) fn answer<S: KvStore>(
                 finalized_height: tip.height.get(),
                 finalized_hash: tip.hash,
                 protocol_version: ledger.tip_version()?,
+                // Filled in by NodeBackend::status from the sync task's peer view.
                 peers: None,
                 syncing: false,
             })
@@ -142,6 +146,7 @@ pub(crate) fn answer<S: KvStore>(
                 .map(|(height, index, tx_id)| (height.get(), index, tx_id))
                 .collect(),
         ),
+        RpcQuery::StateProof(key) => RpcAnswer::State(Box::new(ledger.state_read_at_tip(&key)?)),
         RpcQuery::Simulate(bytes) => RpcAnswer::Simulated(Box::new(ledger.simulate(&bytes)?)),
     })
 }
@@ -152,6 +157,7 @@ pub struct NodeBackend {
     pub(crate) chain: ChainHandle,
     pub(crate) submissions: mpsc::Sender<Submission>,
     pub(crate) network: NetworkIdentity,
+    pub(crate) peers: tokio::sync::watch::Receiver<crate::sync::PeerView>,
 }
 
 fn unexpected() -> AletheiaError {
@@ -174,7 +180,12 @@ impl Backend for NodeBackend {
 
     async fn status(&self) -> Result<NodeStatus, AletheiaError> {
         match self.ask(RpcQuery::Status).await? {
-            RpcAnswer::Status(s) => Ok(s),
+            RpcAnswer::Status(mut s) => {
+                let peers = *self.peers.borrow();
+                s.peers = Some(peers.connected);
+                s.syncing = peers.syncing(s.finalized_height);
+                Ok(s)
+            }
             _ => Err(unexpected()),
         }
     }
@@ -256,6 +267,13 @@ impl Backend for NodeBackend {
             .await?
         {
             RpcAnswer::History(h) => Ok(h),
+            _ => Err(unexpected()),
+        }
+    }
+
+    async fn state_proof(&self, key: StateKey) -> Result<StateRead, AletheiaError> {
+        match self.ask(RpcQuery::StateProof(key)).await? {
+            RpcAnswer::State(read) => Ok(*read),
             _ => Err(unexpected()),
         }
     }

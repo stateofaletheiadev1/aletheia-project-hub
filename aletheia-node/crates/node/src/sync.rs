@@ -46,6 +46,21 @@ use crate::mempool::{Admitted, Mempool};
 /// the blocks are in flight through consensus and will be finalized there.
 pub(crate) const SYNC_LAG_BLOCKS: u64 = 8;
 
+/// What the node knows of its peers, published for the RPC status (`peers`, `syncing`).
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub(crate) struct PeerView {
+    pub(crate) connected: u32,
+    /// The highest finalized height any connected peer has reported.
+    pub(crate) best_tip: u64,
+}
+
+impl PeerView {
+    /// Syncing: a peer is far enough ahead that blocks come by block sync, not consensus.
+    pub(crate) fn syncing(&self, our_height: u64) -> bool {
+        self.best_tip > our_height.saturating_add(SYNC_LAG_BLOCKS)
+    }
+}
+
 /// A transaction submitted locally, with where to report the admission result.
 pub(crate) struct Submission {
     pub(crate) transaction: SignedTransaction,
@@ -60,6 +75,7 @@ pub(crate) struct SyncService {
     pub(crate) produce_every: Option<Duration>,
     pub(crate) mempool: Mempool,
     pub(crate) peer_tips: BTreeMap<PeerId, Height>,
+    pub(crate) peers: watch::Sender<PeerView>,
     /// The peer we are currently syncing blocks from.
     pub(crate) in_flight: Option<PeerId>,
     /// Present on a chain with validators.
@@ -90,6 +106,18 @@ async fn sleep_until_or_never(deadline: Option<Instant>) {
 impl SyncService {
     fn our_height(&self) -> Height {
         self.tip.borrow().height
+    }
+
+    fn publish_peers(&self) {
+        let view = PeerView {
+            connected: u32::try_from(self.peer_tips.len()).unwrap_or(u32::MAX),
+            best_tip: self.peer_tips.values().map(|h| h.get()).max().unwrap_or(0),
+        };
+        self.peers.send_if_modified(|current| {
+            let changed = *current != view;
+            *current = view;
+            changed
+        });
     }
 
     async fn send(&self, command: NetworkCommand) {
@@ -144,10 +172,12 @@ impl SyncService {
                 peer, tip_height, ..
             } => {
                 self.peer_tips.insert(peer, tip_height);
+                self.publish_peers();
                 self.request_more().await;
             }
             NetworkEvent::Disconnected { peer, .. } => {
                 self.peer_tips.remove(&peer);
+                self.publish_peers();
                 if self.in_flight == Some(peer) {
                     self.in_flight = None;
                     self.request_more().await;
@@ -166,6 +196,7 @@ impl SyncService {
             } => {
                 let known = self.peer_tips.entry(peer).or_insert(tip_height);
                 *known = (*known).max(tip_height);
+                self.publish_peers();
                 self.request_more().await;
             }
             Message::GetBlocks { from, count } => {
