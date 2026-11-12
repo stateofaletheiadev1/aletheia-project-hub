@@ -226,3 +226,127 @@ async fn a_key_receives_and_sends_aey_through_the_cli() {
     let _ = server.await;
     node.shutdown().await.unwrap();
 }
+
+/// A GET over plain HTTP with optional extra headers; the status code.
+async fn get_status(address: SocketAddr, path: &str, headers: &str) -> u16 {
+    use tokio::io::{AsyncReadExt, AsyncWriteExt};
+    let mut stream = tokio::net::TcpStream::connect(address).await.unwrap();
+    let request =
+        format!("GET {path} HTTP/1.1\r\nHost: {address}\r\n{headers}Connection: close\r\n\r\n");
+    stream.write_all(request.as_bytes()).await.unwrap();
+    let mut response = Vec::new();
+    stream.read_to_end(&mut response).await.unwrap();
+    String::from_utf8_lossy(&response)
+        .split_whitespace()
+        .nth(1)
+        .unwrap()
+        .parse()
+        .unwrap()
+}
+
+/// ADR-066: a key made by `aletheia-cli api-key new` is accepted by a node configured with the
+/// printed hash, and gets its own budget; the public budget and unknown keys are unaffected.
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn an_api_key_from_the_cli_has_its_own_budget_on_the_node() {
+    let unused: SocketAddr = "127.0.0.1:9".parse().unwrap();
+    let dir = scratch("api-key");
+    let (ok, stdout, stderr) = cli(
+        unused,
+        &dir.join("none"),
+        &[
+            "--output",
+            "json",
+            "api-key",
+            "new",
+            "--name",
+            "explorer",
+            "--requests-per-second",
+            "20",
+        ],
+    );
+    assert!(ok, "{stderr}");
+    let made = json(&stdout);
+    let key = made["key"].as_str().unwrap().to_owned();
+    assert!(key.starts_with("alk_") && key.len() == 68);
+    let hash: [u8; 32] = aletheia_core::base16::decode(made["blake3"].as_str().unwrap())
+        .unwrap()
+        .try_into()
+        .unwrap();
+    assert_eq!(
+        hash,
+        aletheia_rpc::server::api_key_hash(&key),
+        "CLI and node hash alike"
+    );
+    // A second key is different.
+    let (_, again, _) = cli(
+        unused,
+        &dir.join("none"),
+        &["--output", "json", "api-key", "new", "--name", "x"],
+    );
+    assert_ne!(json(&again)["key"], made["key"]);
+    let (refused, _, _) = cli(
+        unused,
+        &dir.join("none"),
+        &["api-key", "new", "--name", "a\"b"],
+    );
+    assert!(!refused);
+
+    let devnet = Devnet::new(1, ONE_AEY, ONE_ALNT);
+    let config = NodeConfig {
+        data_dir: dir.join("node"),
+        genesis: devnet.genesis.clone(),
+        listen: "127.0.0.1:0".parse().unwrap(),
+        peers: Vec::new(),
+        node_key: Ed25519SigningKey::from_seed(&Secret::new([6; 32])),
+        produce_every: Some(Duration::from_millis(200)),
+        consensus_key: None,
+        remote_signer: None,
+    };
+    let node = Node::start(config, Arc::new(MemoryKvStore::new()))
+        .await
+        .unwrap();
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let rpc = listener.local_addr().unwrap();
+    let server = tokio::spawn(aletheia_rpc::server::serve_with(
+        listener,
+        Service::new(node.rpc_backend()),
+        aletheia_rpc::server::ServerConfig {
+            requests_per_second: 2,
+            trusted_proxies: Vec::new(),
+            api_keys: vec![aletheia_rpc::server::ApiKey {
+                name: "explorer".to_owned(),
+                hash,
+                requests_per_second: 20,
+            }],
+        },
+    ));
+
+    let bearer = format!("Authorization: Bearer {key}\r\n");
+    for _ in 0..10 {
+        assert_eq!(
+            get_status(rpc, "/api/v1/network/status", &bearer).await,
+            200
+        );
+    }
+    let x_api_key = format!("X-Api-Key: {key}\r\n");
+    assert_eq!(
+        get_status(rpc, "/api/v1/network/status", &x_api_key).await,
+        200
+    );
+    // The public budget of this address is untouched by the keyed calls, then runs out.
+    assert_eq!(get_status(rpc, "/api/v1/network/status", "").await, 200);
+    assert_eq!(get_status(rpc, "/api/v1/network/status", "").await, 200);
+    assert_eq!(get_status(rpc, "/api/v1/network/status", "").await, 429);
+    assert_eq!(
+        get_status(
+            rpc,
+            "/api/v1/network/status",
+            "Authorization: Bearer alk_wrong\r\n"
+        )
+        .await,
+        401
+    );
+
+    server.abort();
+    node.shutdown().await.unwrap();
+}

@@ -201,10 +201,8 @@ async fn main() -> ExitCode {
                     "rpc listening on {bound} (REST /api/v1, JSON-RPC /rpc/v1)"
                 ));
                 let service = aletheia_rpc::Service::new(node.rpc_backend());
-                Some(tokio::spawn(aletheia_rpc::server::serve(
-                    listener,
-                    service,
-                    rpc.requests_per_second,
+                Some(tokio::spawn(aletheia_rpc::server::serve_with(
+                    listener, service, rpc.server,
                 )))
             }
             Err(error) => {

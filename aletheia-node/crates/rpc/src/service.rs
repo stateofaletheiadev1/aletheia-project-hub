@@ -37,6 +37,33 @@ pub const METHODS: &[&str] = &[
     "getStateProof",
 ];
 
+/// The parameters each method accepts. Dispatch refuses any other name, and the published
+/// OpenRPC document (`openrpc.json`, `rpc.discover`) must list exactly these (tested).
+pub const PARAMS: &[(&str, &[&str])] = &[
+    ("getNetworkStatus", &[]),
+    ("getChainHead", &[]),
+    ("getFinalizedHead", &[]),
+    ("getChainParams", &[]),
+    ("getBlock", &["block"]),
+    ("getBlockByHeight", &["height"]),
+    ("getFinalityProof", &["block"]),
+    ("submitTransaction", &["tx"]),
+    ("simulateTransaction", &["tx"]),
+    ("getTransaction", &["txId"]),
+    ("getReceipt", &["txId"]),
+    ("getAccount", &["address"]),
+    ("getBalance", &["address", "asset"]),
+    ("getAssets", &[]),
+    ("getMonetarySupply", &["asset"]),
+    ("getValidatorSet", &["epoch"]),
+    ("getAccountHistory", &["address", "limit", "before"]),
+    ("getStateProof", &["address", "asset"]),
+];
+
+/// The OpenRPC 1.2 description of this interface, served by `rpc.discover` and REST
+/// `GET /api/v1/openrpc.json`.
+pub const OPENRPC: &str = include_str!("../openrpc.json");
+
 /// Most transactions one history page returns.
 pub const MAX_HISTORY_PAGE: u64 = 50;
 
@@ -77,7 +104,11 @@ fn parse_cursor(text: &str) -> Result<(u64, u32), RpcError> {
 }
 
 /// Refuses parameters a method does not take, so a typo is not silently ignored.
-fn only(params: &Params, allowed: &[&str]) -> Result<(), RpcError> {
+fn only(params: &Params, method: &str) -> Result<(), RpcError> {
+    let allowed = PARAMS
+        .iter()
+        .find(|(name, _)| *name == method)
+        .map_or(&[][..], |(_, accepted)| *accepted);
     match params.keys().find(|k| !allowed.contains(&k.as_str())) {
         Some(extra) => Err(RpcError::invalid_params(format!(
             "unknown parameter \"{extra}\""
@@ -100,77 +131,77 @@ impl<B: Backend> Service<B> {
     pub async fn call(&self, method: &str, params: &Params) -> Result<Value, RpcError> {
         match method {
             "getNetworkStatus" => {
-                only(params, &[])?;
+                only(params, method)?;
                 self.network_status().await
             }
             "getChainHead" | "getFinalizedHead" => {
-                only(params, &[])?;
+                only(params, method)?;
                 self.head().await
             }
             "getChainParams" => {
-                only(params, &[])?;
+                only(params, method)?;
                 self.chain_params().await
             }
             "getBlock" => {
-                only(params, &["block"])?;
+                only(params, method)?;
                 let network = self.backend.network();
                 let hash = parse_block_id(&network, text(params, "block")?)?;
                 self.block(BlockRef::Hash(hash)).await
             }
             "getBlockByHeight" => {
-                only(params, &["height"])?;
+                only(params, method)?;
                 self.block(BlockRef::Height(number(params, "height")?))
                     .await
             }
             "getFinalityProof" => {
-                only(params, &["block"])?;
+                only(params, method)?;
                 let network = self.backend.network();
                 let hash = parse_block_id(&network, text(params, "block")?)?;
                 self.finality_proof(hash).await
             }
             "submitTransaction" => {
-                only(params, &["tx"])?;
+                only(params, method)?;
                 self.submit(bytes(params, "tx")?).await
             }
             "simulateTransaction" => {
-                only(params, &["tx"])?;
+                only(params, method)?;
                 self.simulate(bytes(params, "tx")?).await
             }
             "getTransaction" => {
-                only(params, &["txId"])?;
+                only(params, method)?;
                 let network = self.backend.network();
                 self.transaction(parse_tx_id(&network, text(params, "txId")?)?)
                     .await
             }
             "getReceipt" => {
-                only(params, &["txId"])?;
+                only(params, method)?;
                 let network = self.backend.network();
                 self.receipt(parse_tx_id(&network, text(params, "txId")?)?)
                     .await
             }
             "getAccount" => {
-                only(params, &["address"])?;
+                only(params, method)?;
                 let network = self.backend.network();
                 self.account(&parse_address(&network, text(params, "address")?)?)
                     .await
             }
             "getBalance" => {
-                only(params, &["address", "asset"])?;
+                only(params, method)?;
                 let network = self.backend.network();
                 let address = parse_address(&network, text(params, "address")?)?;
                 let asset = parse_asset(text(params, "asset")?)?;
                 self.balance(&address, asset).await
             }
             "getAssets" => {
-                only(params, &[])?;
+                only(params, method)?;
                 self.assets().await
             }
             "getMonetarySupply" => {
-                only(params, &["asset"])?;
+                only(params, method)?;
                 self.supply(parse_asset(text(params, "asset")?)?).await
             }
             "getAccountHistory" => {
-                only(params, &["address", "limit", "before"])?;
+                only(params, method)?;
                 let network = self.backend.network();
                 let address = parse_address(&network, text(params, "address")?)?;
                 let limit = if params.contains_key("limit") {
@@ -190,7 +221,7 @@ impl<B: Backend> Service<B> {
                 self.account_history(&address, before, limit).await
             }
             "getValidatorSet" => {
-                only(params, &["epoch"])?;
+                only(params, method)?;
                 let epoch = if params.contains_key("epoch") {
                     Some(number(params, "epoch")?)
                 } else {
@@ -199,7 +230,7 @@ impl<B: Backend> Service<B> {
                 self.validator_set(epoch).await
             }
             "getStateProof" => {
-                only(params, &["address", "asset"])?;
+                only(params, method)?;
                 let network = self.backend.network();
                 let records = Records::new(network);
                 let address = match params.get("address") {
@@ -221,6 +252,10 @@ impl<B: Backend> Service<B> {
                     }
                 };
                 self.state_proof(record, key).await
+            }
+            "rpc.discover" => {
+                only(params, method)?;
+                serde_json::from_str(OPENRPC).map_err(|_| RpcError::internal())
             }
             other => Err(RpcError::method_not_found(other)),
         }

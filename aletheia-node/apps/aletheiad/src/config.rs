@@ -38,6 +38,12 @@
 //! [rpc]                                # optional: REST /api/v1 and JSON-RPC /rpc/v1
 //! listen = "127.0.0.1:7781"
 //! requests_per_second = 50             # per client IP; default 50
+//! trusted_proxies = ["127.0.0.1"]      # their X-Forwarded-For names the client (ADR-066)
+//!
+//! [[rpc.api_keys]]                     # optional, repeatable: a key with its own budget
+//! name = "explorer"
+//! blake3 = "<64 hex>"                  # `aletheia-cli api-key new` prints a key and this hash
+//! requests_per_second = 500
 //! ```
 
 use std::net::SocketAddr;
@@ -110,6 +116,53 @@ fn default_block_cache_bytes(total: Option<u64>) -> u64 {
     total.map_or(512 * MIB, |bytes| (bytes / 8).clamp(64 * MIB, 512 * MIB))
 }
 
+/// The `[rpc]` section, with API key hashes checked: 64 hex characters, distinct names and
+/// hashes, a budget above zero.
+fn rpc_settings(section: RpcSection) -> Result<RpcSettings, String> {
+    let mut api_keys: Vec<aletheia_rpc::server::ApiKey> = Vec::new();
+    for key in section.api_keys {
+        let bytes = base16::decode(&key.blake3)
+            .ok()
+            .and_then(|b| <[u8; 32]>::try_from(b).ok())
+            .ok_or_else(|| {
+                format!(
+                    "rpc.api_keys \"{}\": blake3 must be 64 hex characters (from `aletheia-cli api-key new`)",
+                    key.name
+                )
+            })?;
+        if key.requests_per_second == 0 {
+            return Err(format!(
+                "rpc.api_keys \"{}\": requests_per_second must be above 0",
+                key.name
+            ));
+        }
+        if api_keys
+            .iter()
+            .any(|k| k.name == key.name || k.hash == bytes)
+        {
+            return Err(format!(
+                "rpc.api_keys \"{}\": each key needs its own name and hash",
+                key.name
+            ));
+        }
+        api_keys.push(aletheia_rpc::server::ApiKey {
+            name: key.name,
+            hash: bytes,
+            requests_per_second: key.requests_per_second,
+        });
+    }
+    Ok(RpcSettings {
+        listen: section.listen,
+        server: aletheia_rpc::server::ServerConfig {
+            requests_per_second: section
+                .requests_per_second
+                .unwrap_or(aletheia_rpc::server::DEFAULT_REQUESTS_PER_SECOND),
+            trusted_proxies: section.trusted_proxies,
+            api_keys,
+        },
+    })
+}
+
 fn storage_settings(section: Option<&StorageSection>) -> Result<StorageSettings, String> {
     let cache = match section.and_then(|s| s.block_cache_mb) {
         Some(mb) if !(16..=65_536).contains(&mb) => {
@@ -155,13 +208,25 @@ fn storage_settings(section: Option<&StorageSection>) -> Result<StorageSettings,
 struct RpcSection {
     listen: SocketAddr,
     requests_per_second: Option<u32>,
+    #[serde(default)]
+    trusted_proxies: Vec<std::net::IpAddr>,
+    #[serde(default)]
+    api_keys: Vec<ApiKeySection>,
 }
 
-/// Where the public RPC listens, and its per-IP budget.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct ApiKeySection {
+    name: String,
+    blake3: String,
+    requests_per_second: u32,
+}
+
+/// Where the public RPC listens, and how it budgets clients.
+#[derive(Debug, Clone)]
 pub(crate) struct RpcSettings {
     pub(crate) listen: SocketAddr,
-    pub(crate) requests_per_second: u32,
+    pub(crate) server: aletheia_rpc::server::ServerConfig,
 }
 
 #[derive(Debug, Deserialize)]
@@ -380,12 +445,7 @@ pub(crate) fn load(path: &std::path::Path) -> Result<Settings, String> {
     }
 
     let storage = storage_settings(file.storage.as_ref())?;
-    let rpc = file.rpc.map(|section| RpcSettings {
-        listen: section.listen,
-        requests_per_second: section
-            .requests_per_second
-            .unwrap_or(aletheia_rpc::server::DEFAULT_REQUESTS_PER_SECOND),
-    });
+    let rpc = file.rpc.map(rpc_settings).transpose()?;
     Ok(Settings {
         rpc,
         data_dir: file.node.data_dir,
@@ -431,5 +491,72 @@ mod tests {
         assert_eq!(ok.block_cache_bytes, 128 * 1024 * 1024);
         assert_eq!(ok.write_buffer_bytes, 128 * 1024 * 1024);
         assert_eq!((ok.max_open_files, ok.background_jobs), (1024, 2));
+    }
+
+    fn rpc_section(toml_text: &str) -> Result<RpcSettings, String> {
+        let section: RpcSection = toml::from_str(toml_text).map_err(|e| e.to_string())?;
+        rpc_settings(section)
+    }
+
+    #[test]
+    fn rpc_keys_and_proxies_are_read_and_checked() {
+        let hash = base16::encode(&aletheia_rpc::server::api_key_hash("k1"));
+        let settings = rpc_section(&format!(
+            "listen = \"127.0.0.1:7781\"
+trusted_proxies = [\"127.0.0.1\", \"::1\"]
+             [[api_keys]]
+name = \"explorer\"
+blake3 = \"{hash}\"
+requests_per_second = 500
+"
+        ))
+        .unwrap();
+        assert_eq!(settings.server.trusted_proxies.len(), 2);
+        assert_eq!(settings.server.api_keys[0].name, "explorer");
+        assert_eq!(
+            settings.server.api_keys[0].hash,
+            aletheia_rpc::server::api_key_hash("k1")
+        );
+        assert_eq!(settings.server.requests_per_second, 50);
+
+        let short = rpc_section(
+            "listen = \"127.0.0.1:7781\"
+[[api_keys]]
+name = \"x\"
+blake3 = \"abcd\"
+requests_per_second = 5
+",
+        );
+        assert!(short.unwrap_err().contains("64 hex"));
+        let zero = rpc_section(&format!(
+            "listen = \"127.0.0.1:7781\"
+[[api_keys]]
+name = \"x\"
+blake3 = \"{hash}\"
+requests_per_second = 0
+"
+        ));
+        assert!(zero.unwrap_err().contains("above 0"));
+        let twice = rpc_section(&format!(
+            "listen = \"127.0.0.1:7781\"
+             [[api_keys]]
+name = \"a\"
+blake3 = \"{hash}\"
+requests_per_second = 5
+             [[api_keys]]
+name = \"b\"
+blake3 = \"{hash}\"
+requests_per_second = 5
+"
+        ));
+        assert!(twice.unwrap_err().contains("own name and hash"));
+        assert!(
+            rpc_section(
+                "listen = \"127.0.0.1:7781\"
+trusted_proxies = [\"nginx\"]
+"
+            )
+            .is_err()
+        );
     }
 }

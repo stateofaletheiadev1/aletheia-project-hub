@@ -864,3 +864,52 @@ async fn state_proof_parameters_are_strict() {
         "unknown asset refused: {asset}"
     );
 }
+
+/// The published OpenRPC document lists exactly the methods and parameters dispatch accepts,
+/// and its error codes are the ones the service returns.
+#[tokio::test]
+async fn the_openrpc_document_matches_the_interface() {
+    let service = service();
+    let doc: Value = serde_json::from_str(aletheia_rpc::OPENRPC).unwrap();
+    assert_eq!(doc["openrpc"], "1.2.6");
+    let methods = doc["methods"].as_array().unwrap();
+    let names: Vec<&str> = methods
+        .iter()
+        .map(|m| m["name"].as_str().unwrap())
+        .collect();
+    assert_eq!(names, aletheia_rpc::METHODS, "documented methods, in order");
+    for method in methods {
+        let name = method["name"].as_str().unwrap();
+        let documented: Vec<&str> = method["params"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|p| p["name"].as_str().unwrap())
+            .collect();
+        let accepted = aletheia_rpc::PARAMS
+            .iter()
+            .find(|(n, _)| *n == name)
+            .unwrap_or_else(|| panic!("{name} has no parameter table"))
+            .1;
+        assert_eq!(documented, accepted, "{name} parameters");
+        // A parameter outside the table is refused, so the table is what dispatch enforces.
+        let refused = rpc(&service, name, json!({ "notAParameter": 1 })).await;
+        assert_eq!(error_code(&refused), -32602, "{name}: {refused}");
+    }
+    let errors = &doc["components"]["errors"];
+    for (key, real) in [
+        ("NotFound", aletheia_rpc::RpcError::not_found("x")),
+        ("RateLimited", aletheia_rpc::RpcError::rate_limited()),
+    ] {
+        assert_eq!(errors[key]["code"], real.code, "{key}");
+    }
+    let rejected = rpc(&service, "submitTransaction", json!({ "tx": "00" })).await;
+    assert_eq!(errors["Rejected"]["code"], error_code(&rejected));
+
+    // Served by rpc.discover and by REST, identically.
+    let discovered = rpc(&service, "rpc.discover", json!({})).await;
+    assert_eq!(result(&discovered), &doc);
+    let rest = route(&service, "GET", "/openrpc.json", &[], &[]).await;
+    assert_eq!(rest.status, 200);
+    assert_eq!(rest.body, doc);
+}

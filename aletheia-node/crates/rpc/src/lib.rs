@@ -27,4 +27,4 @@ pub mod ws;
 
 pub use backend::{Backend, BlockRef, Located, NodeStatus, StateRead};
 pub use error::RpcError;
-pub use service::{METHODS, Service};
+pub use service::{METHODS, OPENRPC, PARAMS, Service};

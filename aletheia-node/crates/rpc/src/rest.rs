@@ -71,6 +71,7 @@ async fn dispatch<B: Backend>(
             .map(|(_, v)| v.as_str())
     };
     match (method, segments.as_slice()) {
+        ("GET", ["openrpc.json"]) => service.call("rpc.discover", &Map::new()).await,
         ("GET", ["network", "status"]) => service.call("getNetworkStatus", &Map::new()).await,
         ("GET", ["chain", "head"]) => service.call("getChainHead", &Map::new()).await,
         ("GET", ["chain", "finalized"]) => service.call("getFinalizedHead", &Map::new()).await,

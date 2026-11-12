@@ -15,6 +15,7 @@ path = "src/main.rs"
 aletheia-core.workspace = true
 aletheia-crypto.workspace = true
 aletheia-wallet.workspace = true
+blake3.workspace = true
 clap = { version = "4", default-features = false, features = ["std", "derive", "help", "usage", "error-context"] }
 getrandom.workspace = true
 rpassword = "7"

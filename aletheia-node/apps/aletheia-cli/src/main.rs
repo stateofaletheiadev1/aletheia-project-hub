@@ -103,6 +103,33 @@ enum Command {
         #[command(subcommand)]
         action: Block,
     },
+    /// RPC API keys for node operators (ADR-066). Works offline; talks to no node.
+    ApiKey {
+        #[command(subcommand)]
+        action: ApiKeyCommand,
+    },
+}
+
+#[derive(Debug, Subcommand)]
+enum ApiKeyCommand {
+    /// Make a new API key: prints the key once, and the `[[rpc.api_keys]]` entry with its
+    /// hash for aletheiad.toml. Only the hash goes on the server.
+    New {
+        /// A name for the key in the node's configuration, e.g. "explorer".
+        #[arg(long)]
+        name: String,
+        /// The key's budget.
+        #[arg(long, default_value_t = 500)]
+        requests_per_second: u32,
+    },
+}
+
+/// Must equal `aletheia_rpc::server::API_KEY_CONTEXT` (tested): the node hashes a presented key
+/// under the same context.
+const API_KEY_CONTEXT: &str = "AletheiaChain 2026-11-12 RPC API key v1";
+
+fn api_key_hash(key: &str) -> [u8; 32] {
+    blake3::derive_key(API_KEY_CONTEXT, key.as_bytes())
 }
 
 #[derive(Debug, Subcommand)]
@@ -518,6 +545,33 @@ async fn run(cli: Cli) -> Result<(), WalletError> {
                     ),
                     ("Write set", s(&receipt, &["writeSetHash"])),
                 ]),
+            );
+        }
+        Command::ApiKey {
+            action:
+                ApiKeyCommand::New {
+                    name,
+                    requests_per_second,
+                },
+        } => {
+            if name.is_empty() || name.contains('"') || name.contains('\n') {
+                return Err(fail("--name is one line without quotes"));
+            }
+            if requests_per_second == 0 {
+                return Err(fail("--requests-per-second must be above 0"));
+            }
+            let mut secret = [0u8; 32];
+            getrandom::fill(&mut secret).map_err(|e| fail(format!("no randomness: {e}")))?;
+            let key = format!("alk_{}", aletheia_core::base16::encode(&secret));
+            let hash = aletheia_core::base16::encode(&api_key_hash(&key));
+            print(
+                &json!({ "name": name, "key": key, "blake3": hash, "requestsPerSecond": requests_per_second }),
+                format!(
+                    "API key (shown once; give it to the client and keep no other copy):\n  {key}\n\n\
+                     Add to the node's configuration:\n\n\
+                     [[rpc.api_keys]]\nname = \"{name}\"\nblake3 = \"{hash}\"\n\
+                     requests_per_second = {requests_per_second}"
+                ),
             );
         }
         Command::Block {
