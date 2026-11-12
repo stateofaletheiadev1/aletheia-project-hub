@@ -3189,5 +3189,6 @@
   "Your balances and transfers, read from AletheiaChain Mainnet Beta. The portal holds no money and never sees your keys.": "Uw saldi en overboekingen, gelezen uit AletheiaChain Mainnet Beta. Het portaal houdt geen geld aan en ziet uw sleutels nooit.",
   "AletheiaChain has run as Mainnet Beta since 27 October 2026.": "AletheiaChain draait sinds 27 oktober 2026 als Mainnet Beta.",
   "AletheiaChain is Aletheia’s public ledger, the stablechain that holds its currencies. It has run as Mainnet Beta since 27 October 2026: 500 ms slots with deterministic finality, a fixed fee schedule, and native registries for statutes, companies and public spending.": "AletheiaChain is het openbare grootboek van Aletheia, de stablechain die zijn valuta’s bevat. Sinds 27 oktober 2026 draait het als Mainnet Beta: slots van 500 ms met deterministische finaliteit, een vast tarievenschema en native registers voor wetten, bedrijven en overheidsuitgaven.",
-  "Mainnet Beta since 27 October 2026": "Mainnet Beta sinds 27 oktober 2026"
+  "Mainnet Beta since 27 October 2026": "Mainnet Beta sinds 27 oktober 2026",
+  "Aletheia Wallet, the non-custodial wallet for AletheiaChain, live since 12 November 2026": "Aletheia Wallet, de non-custodial wallet voor AletheiaChain, live sinds 12 november 2026"
 }

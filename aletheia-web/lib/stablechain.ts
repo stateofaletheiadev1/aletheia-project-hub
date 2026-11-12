@@ -36,7 +36,7 @@ export const STABLECHAIN = {
 export const WALLET = {
   name: 'Aletheia Wallet',
   url: 'https://wallet.mainnet.stateofaletheia.org',
-  live: false,
+  live: true,
 } as const;
 
 /** The two native assets (Section 18.3). */

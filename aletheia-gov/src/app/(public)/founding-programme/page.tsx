@@ -93,7 +93,7 @@ export default function FoundingProgrammePage() {
             </h2>
             <div className="prose-ledger mt-8">
               <p>
-                Phases I and II are in development. The founding framework exists as a draft, the National Blueprint, and is being turned into versioned documents for this record. The digital infrastructure of phase II is in production: AletheiaChain has run as Mainnet Beta since 27 October 2026, AletheiaDB holds the public record, and the Government Operations workbench publishes to this site. The Aletheia Wallet is in final preparation.
+                Phases I and II are in development. The founding framework exists as a draft, the National Blueprint, and is being turned into versioned documents for this record. The digital infrastructure of phase II is in production: AletheiaChain has run as Mainnet Beta since 27 October 2026, AletheiaDB holds the public record, and the Government Operations workbench publishes to this site. The Aletheia Wallet, its non-custodial wallet, has been live since 12 November 2026.
               </p>
               <p>
                 Phases III and IV are planned and have not started. Phase V is proposed. No date has been set for any phase to finish, and none will be published until it is decided.

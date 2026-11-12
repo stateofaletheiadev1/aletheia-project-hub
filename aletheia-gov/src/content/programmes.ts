@@ -111,7 +111,8 @@ export const programmes: Programme[] = [
   {
     slug: "aletheia-wallet",
     name: "Aletheia Wallet",
-    status: "in_development",
+    status: "operational",
+    evidence: "https://wallet.mainnet.stateofaletheia.org/",
     line: "The State’s non-custodial wallet for AletheiaChain: keys made and kept in the holder’s browser.",
     summary: [
       "Aletheia Wallet holds AEY and ALnT on AletheiaChain. The recovery phrase is generated and sealed in the holder’s browser and never leaves it; every transfer is priced by the network before it is signed and followed until the chain finalizes it.",
@@ -119,7 +120,11 @@ export const programmes: Programme[] = [
     scope: ["Key custody in the browser", "Transfers and receipts", "Live updates from the chain"],
     image: null,
     lead: "The Founding Government",
-    milestones: [{ date: "2026-11-04", title: "Wallet built and verified against a live AletheiaChain node", evidence: commit("ba038e4") }],
+    external: { href: "https://wallet.mainnet.stateofaletheia.org/", label: "Open Aletheia Wallet" },
+    milestones: [
+      { date: "2026-11-04", title: "Wallet built and verified against a live AletheiaChain node", evidence: commit("ba038e4") },
+      { date: "2026-11-12", title: "Live at wallet.mainnet.stateofaletheia.org on AletheiaChain Mainnet Beta", evidence: { label: "The wallet", href: "https://wallet.mainnet.stateofaletheia.org/" } },
+    ],
   },
   {
     slug: "maritime-framework",

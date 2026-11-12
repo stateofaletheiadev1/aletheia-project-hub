@@ -3189,5 +3189,6 @@
   "Your balances and transfers, read from AletheiaChain Mainnet Beta. The portal holds no money and never sees your keys.": "Ваша стања и преноси, очитани са AletheiaChain Mainnet Beta. Портал не држи новац и никада не види ваше кључеве.",
   "AletheiaChain has run as Mainnet Beta since 27 October 2026.": "AletheiaChain ради као Mainnet Beta од 27. октобра 2026.",
   "AletheiaChain is Aletheia’s public ledger, the stablechain that holds its currencies. It has run as Mainnet Beta since 27 October 2026: 500 ms slots with deterministic finality, a fixed fee schedule, and native registries for statutes, companies and public spending.": "AletheiaChain је јавна главна књига Алетеје, stablechain који држи њене валуте. Ради као Mainnet Beta од 27. октобра 2026: слотови од 500 ms са детерминистичком коначношћу, фиксна тарифа накнада и изворни регистри за прописе, предузећа и јавну потрошњу.",
-  "Mainnet Beta since 27 October 2026": "Mainnet Beta од 27. октобра 2026"
+  "Mainnet Beta since 27 October 2026": "Mainnet Beta од 27. октобра 2026",
+  "Aletheia Wallet, the non-custodial wallet for AletheiaChain, live since 12 November 2026": "Aletheia Wallet, новчаник без старатеља за AletheiaChain, у раду од 12. новембра 2026"
 }
