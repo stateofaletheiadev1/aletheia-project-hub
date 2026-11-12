@@ -6,6 +6,9 @@ export default {
   preprocess: vitePreprocess(),
   kit: {
     adapter: adapter(),
+    // The TypeScript SDK's source (aletheia-sdk), so proofs are checked by the same code the
+    // wallet and integrators use.
+    alias: { $sdk: "../aletheia-sdk/src" },
     // Strict CSP (spec 41A.15): no third-party scripts, styles, fonts or connections.
     csp: {
       mode: "hash",

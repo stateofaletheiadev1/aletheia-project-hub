@@ -163,3 +163,14 @@ export type StreamMessage =
   | { readonly kind: "snapshot"; readonly stats: Stats; readonly blocks: readonly BlockSummary[]; readonly txs: readonly TxLine[] }
   | { readonly kind: "block"; readonly stats: Stats; readonly block: BlockSummary; readonly txs: readonly TxLine[] }
   | { readonly kind: "stats"; readonly stats: Stats };
+
+/** `getStateProof` as the node sends it (node ADR-065). */
+export interface StateProofAnswer {
+  readonly record: "account" | "balance" | "supply";
+  readonly height: number;
+  readonly block: string;
+  readonly stateRoot: string;
+  readonly key: string;
+  readonly value: string | null;
+  readonly proof: string;
+}

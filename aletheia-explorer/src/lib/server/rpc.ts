@@ -11,6 +11,7 @@ import type {
   Supply,
   ValidatorSet,
   TransactionView,
+  StateProofAnswer,
 } from "$lib/types";
 
 const TIMEOUT_MS = 4_000;
@@ -73,4 +74,12 @@ export const rpc = {
   balances: (address: string) => get<Balance[]>(`/accounts/${segment(address)}/balances`),
   validators: (epoch?: number) => get<ValidatorSet>(epoch === undefined ? "/validators" : `/validators?epoch=${epoch}`),
   supply: (asset: string) => get<Supply>(`/monetary/${segment(asset)}/supply`),
+  /** Finalized transactions touching an address, newest first (node ADR-064). */
+  accountHistory: (address: string, limit: number, before?: string) =>
+    get<{ transactions: TransactionView[]; next: string | null }>(
+      `/accounts/${segment(address)}/transactions?limit=${limit}${before ? `&before=${segment(before)}` : ""}`,
+    ),
+  /** A balance with its state proof (node ADR-065). */
+  balanceProof: (address: string, asset: string) =>
+    get<StateProofAnswer>(`/accounts/${segment(address)}/proof?asset=${segment(asset)}`),
 };

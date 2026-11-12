@@ -2,6 +2,7 @@
   import BackLink from "$lib/components/BackLink.svelte";
   import Hash from "$lib/components/Hash.svelte";
   import TxRow from "$lib/components/TxRow.svelte";
+  import ProofCheck from "$lib/components/ProofCheck.svelte";
   import Icon from "$lib/components/Icon.svelte";
   import { useLive } from "$lib/context";
   import { amountText, grouped } from "$lib/format/display";
@@ -9,10 +10,13 @@
   let { data } = $props();
   const live = useLive();
   const address = $derived(data.account.address);
-  // Recent activity keeps following the chain while the page is open.
-  const recent = $derived(
-    live.txs.length > 0 ? live.txs.filter((t) => t.sender === address || t.recipient === address) : data.recent,
-  );
+  // The first page keeps following the chain while it is open: new transfers join the top.
+  const history = $derived.by(() => {
+    if (data.paged) return data.history;
+    const seen = new Set(data.history.map((t) => t.txId));
+    const fresh = live.txs.filter((t) => (t.sender === address || t.recipient === address) && !seen.has(t.txId));
+    return data.complete ? [...fresh, ...data.history] : live.txs.length > 0 ? live.txs.filter((t) => t.sender === address || t.recipient === address) : data.history;
+  });
   const names: Record<string, string> = { AEY: "Aletheian Guilder", ALnT: "Aletheia Talent" };
 </script>
 
@@ -48,6 +52,9 @@
       <p class="sub num">
         {#if balance.locked !== "0"}Locked {locked.text} {balance.asset} · {/if}At block {grouped(balance.height)}
       </p>
+      {#if balance.asset === "AEY" || balance.asset === "ALnT"}
+        <ProofCheck {address} asset={balance.asset} shown={balance.available} />
+      {/if}
     </article>
   {/each}
 </section>
@@ -55,16 +62,19 @@
 <section class="container">
   <article class="panel activity">
     <header>
-      <h2>Recent activity</h2>
-      <span class="note">Seen by this explorer in the latest blocks</span>
+      <h2>{data.complete ? "Transactions" : "Recent activity"}</h2>
+      <span class="note">{data.complete ? "Every finalized transaction, newest first" : "Seen by this explorer in the latest blocks"}</span>
     </header>
     <div class="list">
-      {#each recent as tx (tx.txId)}
+      {#each history as tx (tx.txId)}
         <TxRow {tx} fresh={live.fresh.has(tx.txId)} />
       {:else}
-        <p class="empty">No transfers from or to this address in the latest blocks.</p>
+        <p class="empty">{data.complete ? "No transactions from or to this address yet." : "No transfers from or to this address in the latest blocks."}</p>
       {/each}
     </div>
+    {#if data.next}
+      <a class="more" href="?before={encodeURIComponent(data.next)}" data-sveltekit-noscroll>Older transactions</a>
+    {/if}
   </article>
 </section>
 
@@ -169,6 +179,13 @@
   .list {
     display: grid;
     gap: 0.625rem;
+  }
+  .more {
+    display: inline-block;
+    margin-top: 1rem;
+    font-size: var(--fs-sm);
+    font-weight: 700;
+    color: var(--brand-gold-bright);
   }
   .empty {
     padding: 2rem 1rem;
