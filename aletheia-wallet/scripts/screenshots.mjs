@@ -31,7 +31,13 @@ async function shoot(page, name) {
 
 const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, reducedMotion: "reduce" });
 const page = await context.newPage();
-for (const [name, path] of [["landing", "/"], ["about", "/about"], ["security-public", "/security"], ["help", "/help"], ["network", "/network"]]) {
+for (const [name, path] of [
+  ["landing", "/"],
+  ["about", "/about"],
+  ["security-public", "/security"],
+  ["help", "/help"],
+  ["network", "/network"],
+]) {
   await page.goto(BASE + path);
   await shoot(page, name);
 }
@@ -50,7 +56,10 @@ await page.getByRole("button", { name: "I have written this down" }).click();
 await shoot(page, "create-verify");
 for (let i = 0; i < 4; i++) {
   const place = Number(await page.locator(".verify li.next .n").textContent());
-  await page.locator(".bank .chip", { hasText: new RegExp(`^${words[place - 1]}$`) }).first().click();
+  await page
+    .locator(".bank .chip", { hasText: new RegExp(`^${words[place - 1]}$`) })
+    .first()
+    .click();
 }
 await page.getByRole("button", { name: "Continue" }).click();
 await shoot(page, "create-seal");
@@ -61,7 +70,16 @@ await page.waitForURL(/dashboard/, { timeout: 60_000 });
 
 const nav = (name) => page.locator('nav[aria-label="Wallet index"]').getByRole("link", { name, exact: true }).click();
 await shoot(page, "dashboard");
-for (const [name, link] of [["send", "Send"], ["receive", "Receive"], ["activity", "Activity"], ["assets", "Assets"], ["accounts", "Accounts"], ["address-book", "Address book"], ["security", "Security"], ["settings", "Settings"]]) {
+for (const [name, link] of [
+  ["send", "Send"],
+  ["receive", "Receive"],
+  ["activity", "Activity"],
+  ["assets", "Assets"],
+  ["accounts", "Accounts"],
+  ["address-book", "Address book"],
+  ["security", "Security"],
+  ["settings", "Settings"],
+]) {
   await nav(link);
   await page.waitForLoadState("networkidle").catch(() => undefined);
   await shoot(page, name);

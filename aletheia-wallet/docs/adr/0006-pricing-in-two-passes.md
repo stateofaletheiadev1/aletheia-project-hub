@@ -2,7 +2,7 @@
 
 Status: Accepted
 
-**Update (node ADR-064).** Both passes now simulate an *unsigned preview* (body + public key, no
+**Update (node ADR-064).** Both passes now simulate an _unsigned preview_ (body + public key, no
 signature); the first signature is made at approval. Against an older node the wallet detects
 `TX_THRESHOLD_NOT_MET` and prices from a signed copy as described below, saying so on the screen.
 

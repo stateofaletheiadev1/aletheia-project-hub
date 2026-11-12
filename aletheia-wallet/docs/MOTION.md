@@ -4,20 +4,20 @@ Tokens: `--dur-instant` 90 · `--dur-quick` 160 · `--dur-base` 220 · `--dur-co
 `--dur-ceremony` 1100 ms; `--ease-ink` (settle), `--ease-paper` (page turn), `--ease-seal` (press).
 Only transform, opacity, clip-path and stroke-dashoffset animate.
 
-| ID | Where | What it tells you |
-|---|---|---|
-| M-01 | `ContourField` | atmosphere: 64 s drift, ≤ 12 px parallax; off when reduced |
-| M-02 | `.settle` | hierarchy: eyebrow → title → data → actions |
-| M-03 | `ActivityLedger` | a new row: the rule draws, then ink; FLIP for the rest |
-| M-04 | `Denomination` | a balance changed: digits roll per place; final value announced |
-| M-05 | `:focus-visible` | focus: a gold hairline drawn in |
-| M-06 | `Identifier` | copied: gold underline, icon becomes a check, "Copied" for 2 s |
-| M-07 | View Transitions | page turn; rail and seal persist as shared elements |
-| M-08 | `.unfold` | the review sheet opens from its top |
-| M-09 | `ThemeToggle` | theme: circular reveal from the toggle |
-| M-10 | `NetworkSeal` | one band segment per finalized block observed; amber and stopped when stalled |
-| M-11 | `RuledSkeleton` | loading: real rules, one slow ink wash |
-| M-12 | `TextField` | invalid input: one 2 px shake, oxblood rule |
+| ID   | Where            | What it tells you                                                             |
+| ---- | ---------------- | ----------------------------------------------------------------------------- |
+| M-01 | `ContourField`   | atmosphere: 64 s drift, ≤ 12 px parallax; off when reduced                    |
+| M-02 | `.settle`        | hierarchy: eyebrow → title → data → actions                                   |
+| M-03 | `ActivityLedger` | a new row: the rule draws, then ink; FLIP for the rest                        |
+| M-04 | `Denomination`   | a balance changed: digits roll per place; final value announced               |
+| M-05 | `:focus-visible` | focus: a gold hairline drawn in                                               |
+| M-06 | `Identifier`     | copied: gold underline, icon becomes a check, "Copied" for 2 s                |
+| M-07 | View Transitions | page turn; rail and seal persist as shared elements                           |
+| M-08 | `.unfold`        | the review sheet opens from its top                                           |
+| M-09 | `ThemeToggle`    | theme: circular reveal from the toggle                                        |
+| M-10 | `NetworkSeal`    | one band segment per finalized block observed; amber and stopped when stalled |
+| M-11 | `RuledSkeleton`  | loading: real rules, one slow ink wash                                        |
+| M-12 | `TextField`      | invalid input: one 2 px shake, oxblood rule                                   |
 
 ## Signature moments
 

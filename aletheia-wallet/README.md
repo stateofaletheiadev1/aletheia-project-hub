@@ -1,4 +1,4 @@
-# Aletheia Wallet — *The Private Ledger*
+# Aletheia Wallet — _The Private Ledger_
 
 The official non-custodial wallet for **AletheiaChain**, the public ledger of the Sovereign Covenant
 State of Aletheia. Native accounts, AEY and ALnT, transfers priced by the network and tracked to
@@ -28,15 +28,15 @@ PUBLIC_STABLECHAIN_GENESIS_BLOCK=<block 0 id of that devnet> npm run dev
 
 ## Checks
 
-| Command | What it proves |
-|---|---|
-| `npm run check` | svelte-check, TypeScript strict, zero warnings |
-| `npm run lint` | ESLint (trust boundary, no floats for amounts) + Prettier |
-| `npm test` / `npm run test:coverage` | 77 unit tests; ≥ 95 % lines on protocol and custody code |
-| `npm run test:integration` | the Rust node accepts, executes and finalizes what this code signs (needs the devnet) |
-| `npm run test:e2e` | Chrome: create → certificate → verify → seal → funded → send → finalized → lock → unlock, axe on every screen |
-| `npm run build` | production build + bundle budgets + "no wallet crypto on public pages" |
-| `npm run contrast` | WCAG 2.2 AA for every colour pair of both themes |
+| Command                              | What it proves                                                                                                |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------- |
+| `npm run check`                      | svelte-check, TypeScript strict, zero warnings                                                                |
+| `npm run lint`                       | ESLint (trust boundary, no floats for amounts) + Prettier                                                     |
+| `npm test` / `npm run test:coverage` | 77 unit tests; ≥ 95 % lines on protocol and custody code                                                      |
+| `npm run test:integration`           | the Rust node accepts, executes and finalizes what this code signs (needs the devnet)                         |
+| `npm run test:e2e`                   | Chrome: create → certificate → verify → seal → funded → send → finalized → lock → unlock, axe on every screen |
+| `npm run build`                      | production build + bundle budgets + "no wallet crypto on public pages"                                        |
+| `npm run contrast`                   | WCAG 2.2 AA for every colour pair of both themes                                                              |
 
 ## Signing on Mainnet Beta
 

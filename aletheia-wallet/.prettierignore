@@ -8,3 +8,4 @@ static/fonts
 package-lock.json
 docs/internal
 Aletheia_*_Prompt_*.md
+tests/vectors/

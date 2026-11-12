@@ -44,7 +44,13 @@ export default defineConfig({
     // Development and tests only: a local aletheiad sends no CORS headers (production nginx does),
     // so the dev server forwards /__devnet/* to it. Never part of a build.
     proxy: process.env.DEVNET_PROXY
-      ? { "/__devnet": { target: process.env.DEVNET_PROXY, ws: true, rewrite: (path) => path.replace(/^\/__devnet/, "") } }
+      ? {
+          "/__devnet": {
+            target: process.env.DEVNET_PROXY,
+            ws: true,
+            rewrite: (path) => path.replace(/^\/__devnet/, ""),
+          },
+        }
       : {},
   },
   preview: { port: 4180, strictPort: true },
