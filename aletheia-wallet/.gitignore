@@ -16,3 +16,5 @@ playwright-report/
 /tests/.devnet/
 /tests/.*.log
 .svelte-kit-devnet/
+
+.vercel
