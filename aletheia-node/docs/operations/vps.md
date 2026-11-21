@@ -123,6 +123,27 @@ exits that restarting cannot fix (64 usage, 75 needs a newer release, 78 configu
 fail-stops in ten minutes keep it down for you to look at (`exit-codes.md`). It runs the node
 as `aletheia` with a read-only system, private `/tmp` and no capabilities.
 
+### Liveness watchdog
+
+`Restart=` only sees a node that exits. On 2026-11-21 the Mainnet Beta node stayed alive with
+its RPC and peer sockets closed and stopped finalizing for ten hours; systemd reported it as
+active. The watchdog closes that gap:
+
+```sh
+install -m 0755 deploy/watchdog/aletheia-watchdog.sh /usr/local/sbin/aletheia-watchdog
+install -m 0644 deploy/watchdog/aletheia-watchdog.service deploy/watchdog/aletheia-watchdog.timer /etc/systemd/system/
+systemctl daemon-reload
+systemctl enable --now aletheia-watchdog.timer
+journalctl -u aletheia-watchdog -f
+```
+
+Every minute it asks `/api/v1/network/status` for the finalized height. If the RPC does not
+answer, or the height has not risen since the previous check, that is a strike; three strikes
+in a row restart the node. A node younger than ten minutes is never judged, because opening
+the store can take five minutes on a 1 vCPU host. It also restarts the explorer after three
+failed page loads. A node that systemd itself has stopped is left alone. The thresholds are
+environment variables at the top of the script (set them in a drop-in for the service).
+
 ## 4. Memory, with and without swap
 
 What the node uses, and how it sizes itself:
