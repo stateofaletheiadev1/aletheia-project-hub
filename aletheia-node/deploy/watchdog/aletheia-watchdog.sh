@@ -12,9 +12,9 @@ set -u
 STATE_DIR=/run/aletheia-watchdog
 NODE_UNIT=${ALETHEIA_WATCHDOG_NODE_UNIT:-aletheiad}
 NODE_STATUS=${ALETHEIA_WATCHDOG_NODE_STATUS:-http://127.0.0.1:7781/api/v1/network/status}
-# Start-up opens RocksDB and can take five minutes on a 1 vCPU host: never judge a node
+# Start-up opens RocksDB and took nine minutes on the 1 vCPU Mainnet Beta host: never judge a node
 # younger than this.
-NODE_GRACE=${ALETHEIA_WATCHDOG_NODE_GRACE:-600}
+NODE_GRACE=${ALETHEIA_WATCHDOG_NODE_GRACE:-900}
 EXPLORER_UNIT=${ALETHEIA_WATCHDOG_EXPLORER_UNIT:-aletheia-explorer}
 EXPLORER_URL=${ALETHEIA_WATCHDOG_EXPLORER_URL:-http://127.0.0.1:3000/}
 EXPLORER_GRACE=${ALETHEIA_WATCHDOG_EXPLORER_GRACE:-120}

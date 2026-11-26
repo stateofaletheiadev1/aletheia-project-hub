@@ -145,8 +145,8 @@ journalctl -u aletheia-watchdog -f
 
 Every minute it asks `/api/v1/network/status` for the finalized height. If the RPC does not
 answer, or the height has not risen since the previous check, that is a strike; three strikes
-in a row restart the node. A node younger than ten minutes is never judged, because opening
-the store can take five minutes on a 1 vCPU host. It also restarts the explorer after three
+in a row restart the node. A node younger than fifteen minutes is never judged, because opening
+the store took nine minutes on the 1 vCPU Mainnet Beta host. It also restarts the explorer after three
 failed page loads. A node that systemd itself has stopped is left alone. The thresholds are
 environment variables at the top of the script (set them in a drop-in for the service).
 
