@@ -100,7 +100,7 @@
                 <td>
                   {#if v.registration}
                     <a class="cell-link party" href="/address/{encodeURIComponent(v.registration.operator)}"><Blazon address={v.registration.operator} size={14} /><Ident value={v.registration.operator} head={4} tail={4} /></a>
-                    <span class="faint block">Licensed operator</span>
+                    <span class="faint block key" title="Licence fingerprint (aletheia-cli validator licence-hash): {v.registration.metadataHash}">Licence {short(v.registration.metadataHash, 6, 4)}<CopyButton value={v.registration.metadataHash} label="Copy licence fingerprint" /></span>
                   {:else}
                     <span>The state</span>
                     <span class="faint block">Genesis validator</span>

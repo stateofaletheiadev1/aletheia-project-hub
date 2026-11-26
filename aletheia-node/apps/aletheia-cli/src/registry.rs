@@ -3,7 +3,8 @@
 //! ```text
 //! validator set      [--epoch N]
 //! validator register --keystore op.json --consensus-key HEX --proof-of-possession HEX
-//!                    --node-key HEX [--cert-hash HEX] [--metadata-hash HEX] --bond 10000
+//!                    --node-key HEX [--cert-hash HEX] [--licence AGV-EOI-…] --bond 10000
+//! validator licence-hash AGV-EOI-…                  (offline)
 //! validator withdraw --keystore op.json --node-key HEX
 //! validator exit     --keystore op.json --node-key HEX
 //! gov propose        --keystore council.json <action ...>
@@ -43,6 +44,9 @@ pub(crate) struct Fees {
 
 #[derive(Debug, Subcommand)]
 pub(crate) enum ValidatorCommand {
+    /// The fingerprint of a licence application reference, as `register --licence` records it.
+    /// Works offline; talks to no node.
+    LicenceHash { reference: String },
     /// The validator set of an epoch (the current one by default) at the finalized tip.
     Set {
         #[arg(long)]
@@ -65,8 +69,12 @@ pub(crate) enum ValidatorCommand {
         #[arg(long)]
         cert_hash: Option<String>,
         /// Commitment to the off-chain licence record, 32 bytes hex. Never personal data.
-        #[arg(long)]
+        #[arg(long, conflicts_with = "licence")]
         metadata_hash: Option<String>,
+        /// The licence application reference (AGV-EOI-YYYY-NNNN); its fingerprint becomes the
+        /// metadata hash, so the Council can match the registration to the application.
+        #[arg(long)]
+        licence: Option<String>,
         /// Bond in ALnT, e.g. 10000.
         #[arg(long)]
         bond: String,
@@ -193,6 +201,27 @@ fn optional_hash(what: &str, text: Option<&str>) -> Result<Hash32, WalletError> 
     })
 }
 
+/// Context for licence fingerprints. Changing it changes every fingerprint: never edit it.
+const LICENCE_CONTEXT: &str = "AletheiaChain 2026-11-26 validator licence v1";
+
+/// The fingerprint of a licence application reference (`AGV-EOI-YYYY-NNNN`, any case).
+fn licence_hash(reference: &str) -> Result<Hash32, WalletError> {
+    let reference = reference.trim().to_ascii_uppercase();
+    let parts: Vec<&str> = reference.split('-').collect();
+    let valid = matches!(parts.as_slice(), ["AGV", "EOI", year, number]
+        if year.len() == 4 && year.bytes().all(|b| b.is_ascii_digit())
+            && number.len() >= 4 && number.bytes().all(|b| b.is_ascii_digit()));
+    if !valid {
+        return Err(fail(format!(
+            "\"{reference}\" is not an application reference (AGV-EOI-YYYY-NNNN)"
+        )));
+    }
+    Ok(Hash32::from_bytes(blake3::derive_key(
+        LICENCE_CONTEXT,
+        reference.as_bytes(),
+    )))
+}
+
 fn alnt(text: &str) -> Result<u128, WalletError> {
     parse_amount(text, aletheia_wallet::asset_decimals(AssetId::ALNT))
 }
@@ -294,8 +323,21 @@ pub(crate) async fn validator(
     json_out: bool,
     command: ValidatorCommand,
 ) -> Result<(), WalletError> {
+    if let ValidatorCommand::LicenceHash { reference } = &command {
+        let hash = base16::encode(licence_hash(reference)?.as_bytes());
+        if json_out {
+            out(&serde_json::to_string_pretty(&json!({ "reference": reference.trim().to_ascii_uppercase(), "metadataHash": hash })).unwrap_or_default());
+        } else {
+            out(&rows(&[
+                ("Reference", reference.trim().to_ascii_uppercase()),
+                ("Metadata hash", hash),
+            ]));
+        }
+        return Ok(());
+    }
     let network = checked_network(rpc, expected).await?;
     match command {
+        ValidatorCommand::LicenceHash { .. } => {}
         ValidatorCommand::Set { epoch } => {
             let params = match epoch {
                 Some(epoch) => json!({ "epoch": epoch }),
@@ -328,15 +370,20 @@ pub(crate) async fn validator(
             node_key,
             cert_hash,
             metadata_hash,
+            licence,
             bond,
             fees,
         } => {
+            let metadata = match licence.as_deref() {
+                Some(reference) => licence_hash(reference)?,
+                None => optional_hash("--metadata-hash", metadata_hash.as_deref())?,
+            };
             let application = ValidatorApplication {
                 consensus_key: hex::<48>("--consensus-key", &consensus_key)?,
                 proof_of_possession: hex::<96>("--proof-of-possession", &proof_of_possession)?,
                 node_key: hex::<32>("--node-key", &node_key)?,
                 transport_cert_hash: optional_hash("--cert-hash", cert_hash.as_deref())?,
-                metadata_hash: optional_hash("--metadata-hash", metadata_hash.as_deref())?,
+                metadata_hash: metadata,
                 bond: alnt(&bond)?,
             };
             check_possession(&network, &application)?;
@@ -558,4 +605,18 @@ pub(crate) async fn gov(
         }
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_licence_fingerprint_ignores_case_and_spacing_and_refuses_other_text() {
+        let a = licence_hash("AGV-EOI-2026-0001").unwrap();
+        assert_eq!(licence_hash(" agv-eoi-2026-0001 ").unwrap(), a);
+        assert_ne!(licence_hash("AGV-EOI-2026-0002").unwrap(), a);
+        assert!(licence_hash("AGV-OPP-2026-0001").is_err());
+        assert!(licence_hash("AGV-EOI-26-0001").is_err());
+    }
 }

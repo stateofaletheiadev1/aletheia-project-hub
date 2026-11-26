@@ -35,6 +35,13 @@ const WAYS = [
   },
   {
     n: "04",
+    title: "Run a validator of AletheiaChain",
+    text: "Licensed operators run validators beside the State's own and are paid a share of the network's rewards for the blocks they sign.",
+    href: "/validator-licensing",
+    cta: "Validator licensing",
+  },
+  {
+    n: "05",
     title: "Learn what Aletheia is",
     text: "The national website sets out the State’s identity, constitutional vision and currency.",
     href: site.nationalSite,

@@ -10,7 +10,7 @@ export const revalidate = 3600;
 const STATIC = [
   "", "/government", "/institutions", "/founding-programme", "/projects", "/opportunities", "/appointments",
   "/directory", "/documents", "/decisions", "/public-finance", "/dispatches", "/events", "/development",
-  "/build-aletheia", "/register-interest", "/search", "/contact", "/privacy", "/terms", "/accessibility", "/image-credits",
+  "/build-aletheia", "/validator-licensing", "/register-interest", "/search", "/contact", "/privacy", "/terms", "/accessibility", "/image-credits",
 ];
 
 const RECORD_PATH: Record<RecordKind, string> = {

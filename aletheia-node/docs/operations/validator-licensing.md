@@ -49,11 +49,13 @@ chain. Amounts are in ALnT (3 decimals).
    ```sh
    aletheia-cli --network mainnet validator register --keystore operator.json \
      --consensus-key <hex> --proof-of-possession <hex> --node-key <hex> \
-     --metadata-hash <hash of the licence record> --bond 10000
+     --licence AGV-EOI-YYYY-NNNN --bond 10000
    ```
 
-   The proof of possession is checked locally before anything is sent. The metadata hash
-   commits to the Foundation's off-chain licence record; never put personal data on chain.
+   The proof of possession is checked locally before anything is sent. `--licence` records
+   only a fingerprint of the application reference (never personal data). The Council checks
+   it against the approved application with `aletheia-cli validator licence-hash AGV-EOI-…`
+   and the explorer's validator page before activating.
 
 4. The Council admits it (1 governance epoch timelock); the node becomes a validator at the
    epoch that begins right after:
