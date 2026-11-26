@@ -25,6 +25,13 @@ export const POSITION_TYPES = [
   { slug: "volunteer", name: "Volunteer role" },
 ] as const;
 export type PositionType = (typeof POSITION_TYPES)[number]["slug"];
+/** Kinds an application can carry: the positions above, and the validator operator licence,
+ * which has its own form on aletheiagov.org and is never published as an opportunity here. */
+export const APPLICATION_KINDS: readonly { slug: string; name: string }[] = [
+  ...POSITION_TYPES,
+  { slug: "validator-operator", name: "Validator operator licence" },
+];
+export const applicationKindName = (slug: string) => APPLICATION_KINDS.find((p) => p.slug === slug)?.name ?? slug;
 export const POSITION_SLUGS = POSITION_TYPES.map((p) => p.slug) as [PositionType, ...PositionType[]];
 export type Fact = z.infer<typeof FactSchema>;
 

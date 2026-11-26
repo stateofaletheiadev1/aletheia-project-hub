@@ -1,6 +1,6 @@
 import "server-only";
 import { database } from "@/server/aletheiadb/client";
-import { decryptRegistration, positionTypesOf, registrations, type InterestStatus, type StatusChange } from "@/server/services/interest";
+import { decryptRegistration, positionTypesOf, registrations, type InterestStatus, type Pii, type StatusChange, type ValidatorApplication } from "@/server/services/interest";
 
 // Read models for workbench screens. Callers must have checked permissions first.
 
@@ -21,6 +21,8 @@ export type RegistrationRow = {
   name: string;
   email: string;
   notes: { text: string; at: string }[];
+  /** Validator operator licence applications, oldest first. */
+  validator: ValidatorApplication[];
 };
 
 export async function listRegistrations(opts: { institution?: string; positionType?: string; status?: string; opportunity?: string; page: number; pageSize: number }) {
@@ -65,7 +67,7 @@ export async function registrationCounts() {
   return { total, fresh, inProgress };
 }
 
-function toRow(r: Awaited<ReturnType<ReturnType<typeof registrations>["findOne"]>> & object, pii: { fullName: string; email: string; notes: { text: string; at: string }[] } | null): RegistrationRow {
+function toRow(r: Awaited<ReturnType<ReturnType<typeof registrations>["findOne"]>> & object, pii: Pii | null): RegistrationRow {
   return {
     _id: r._id,
     _rev: r._rev,
@@ -83,5 +85,6 @@ function toRow(r: Awaited<ReturnType<ReturnType<typeof registrations>["findOne"]
     name: pii?.fullName ?? "(erased)",
     email: pii?.email ?? "",
     notes: pii?.notes ?? [],
+    validator: pii?.validator ?? [],
   };
 }

@@ -14,6 +14,16 @@ export const POSITION_TYPES: { slug: PositionType; name: string; description: st
 
 export const POSITION_SLUGS = POSITION_TYPES.map((p) => p.slug) as [PositionType, ...PositionType[]];
 
+/** Validator licence applications (aletheiagov.org/validator-licensing/apply) are kept with the
+ * other applications under this kind. They have their own form, so the kind is not offered on
+ * "Register your interest"; the staff area lists and filters it with the others. */
+export const VALIDATOR_OPERATOR = "validator-operator";
+export const RECORD_POSITION_TYPES: { slug: string; name: string }[] = [
+  ...POSITION_TYPES,
+  { slug: VALIDATOR_OPERATOR, name: "Validator operator licence" },
+];
+export const RECORD_POSITION_SLUGS = RECORD_POSITION_TYPES.map((p) => p.slug);
+
 export function positionName(slug: string): string {
-  return POSITION_TYPES.find((p) => p.slug === slug)?.name ?? slug;
+  return RECORD_POSITION_TYPES.find((p) => p.slug === slug)?.name ?? slug;
 }

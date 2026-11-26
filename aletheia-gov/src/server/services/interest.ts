@@ -1,6 +1,8 @@
 import "server-only";
 import { ConflictError, type AletheiaDB } from "@aletheia/aletheiadb";
 import { ANY_INSTITUTION, type InterestInput } from "@/features/interest/schema";
+import type { ValidatorInput } from "@/features/validator/schema";
+import { VALIDATOR_OPERATOR } from "@/content/positions";
 import type { ApplicationStatus } from "@/lib/application-status";
 import { database } from "@/server/aletheiadb/client";
 import { blindIndex, decryptFields, encryptFields, type Sealed } from "@/server/crypto/envelope";
@@ -21,7 +23,16 @@ const MAX_CVS = 3;
 /** The hiring steps (lib/application-status.ts); shared with the operations workbench. */
 export type InterestStatus = ApplicationStatus;
 export type StatusChange = { status: InterestStatus; at: string; by: string; byName: string; via: "portal" | "ops" };
-export type Pii = { fullName: string; email: string; notes: { text: string; at: string }[] };
+export type Pii = {
+  fullName: string;
+  email: string;
+  notes: { text: string; at: string }[];
+  /** Validator operator licence applications, oldest first (encrypted like the rest). */
+  validator?: ValidatorApplication[];
+};
+
+/** One validator licence application as kept (personal and organisational details). */
+export type ValidatorApplication = Omit<ValidatorInput, "fullName" | "email" | "consent"> & { at: string };
 
 export type Registration = {
   reference: string;
@@ -143,6 +154,93 @@ export async function registerInterest(
     throw new Error("registration kept conflicting");
   } catch (e) {
     console.error("registerInterest failed:", (e as Error).message);
+    return { ok: false, reason: "unavailable" };
+  }
+}
+
+/**
+ * A validator operator licence application. Kept with the person's other applications (one
+ * record per person, same reference, statuses and staff screens) under the kind
+ * "validator-operator"; the details are encrypted with the person's key. A repeat application
+ * adds to the record; it never overwrites an earlier one.
+ */
+export async function registerValidatorApplication(
+  input: ValidatorInput,
+  profile: { bytes: Uint8Array; name: string } | null,
+  opts: { idempotencyKey?: string } = {},
+): Promise<{ ok: true; reference: string; profile: boolean } | { ok: false; reason: "not_configured" | "unavailable" }> {
+  const db = database();
+  const master = masterKey();
+  if (!db || !master) return { ok: false, reason: "not_configured" };
+  try {
+    const subject = blindIndex(master, "person-email", input.email);
+    const key = await subjectKeyFor(db, master, subject);
+    const fileMeta = profile
+      ? await storeAttachment(db, subject, key, { bytes: profile.bytes, name: profile.name, contentType: "application/pdf" })
+      : null;
+    const now = new Date().toISOString();
+    const application: ValidatorApplication = {
+      organisation: input.organisation,
+      country: input.country,
+      operatorAddress: input.operatorAddress,
+      serverLocation: input.serverLocation,
+      hosting: input.hosting,
+      specs: input.specs,
+      experience: input.experience,
+      at: now,
+    };
+    const regs = registrations(db);
+    for (let attempt = 0; attempt < 4; attempt++) {
+      const existing = await regs.findOne({ subject });
+      if (!existing) {
+        const reference = await nextReference(db, "EOI");
+        try {
+          await regs.insertOne(
+            {
+              reference,
+              subject,
+              positionTypes: [VALIDATOR_OPERATOR],
+              institutions: [],
+              expertise: ["Engineering and technology"],
+              pii: encryptFields(key, { fullName: input.fullName, email: input.email, notes: [], validator: [application] } satisfies Pii, COLLECTION),
+              cvs: fileMeta ? [fileMeta] : [],
+              status: "new",
+              visibility: "confidential",
+              source: "website",
+              submittedAt: now,
+              updatedAt: now,
+              retainUntil: retainUntil(),
+            },
+            { idempotencyKey: opts.idempotencyKey },
+          );
+          return { ok: true, reference, profile: Boolean(fileMeta) };
+        } catch (e) {
+          if (e instanceof ConflictError) continue;
+          throw e;
+        }
+      }
+      const pii = decryptFields<Pii>(key, existing.pii, COLLECTION);
+      const cvs = fileMeta ? [...existing.cvs, fileMeta] : existing.cvs;
+      const dropped = cvs.slice(0, Math.max(0, cvs.length - MAX_CVS));
+      try {
+        await regs.updateOne(existing._id, existing._rev, {
+          $set: {
+            positionTypes: [...new Set([...positionTypesOf(existing), VALIDATOR_OPERATOR])],
+            pii: encryptFields(key, { ...pii, validator: [...(pii.validator ?? []), application] }, COLLECTION),
+            cvs: cvs.slice(-MAX_CVS),
+            updatedAt: now,
+            retainUntil: retainUntil(),
+          },
+        });
+        for (const old of dropped) await deleteAttachment(db, old.fileId);
+        return { ok: true, reference: existing.reference, profile: Boolean(fileMeta) };
+      } catch (e) {
+        if (!(e instanceof ConflictError)) throw e;
+      }
+    }
+    throw new Error("validator application kept conflicting");
+  } catch (e) {
+    console.error("registerValidatorApplication failed:", (e as Error).message);
     return { ok: false, reason: "unavailable" };
   }
 }

@@ -24,6 +24,8 @@ export type RegistrationSummary = {
   position?: { title: string; reference: string };
   institutions: string[];
   positionTypes: string[];
+  /** A validator licence application: its own next steps. */
+  validator?: boolean;
 };
 
 function rows(r: RegistrationSummary): [string, string][] {
@@ -52,7 +54,13 @@ export function registrationReceived(r: RegistrationSummary): Mail {
     details: rows(r).length ? { title: "You registered for", rows: rows(r) } : undefined,
     steps: {
       title: "What happens next",
-      items: r.position
+      items: r.validator
+        ? [
+            "The founding team reviews your application; the licence terms and fee are agreed with you in writing before admission.",
+            `When you register your node on AletheiaChain, give this reference with --licence ${r.reference}. Only a fingerprint of it is written to the chain.`,
+            "The Governance Council matches your registration to this application and admits the node at the next epoch. We email you whenever the status changes.",
+          ]
+        : r.position
         ? [
             "The founding team reviews your application against the published position.",
             "We email you whenever its status changes, quoting your reference.",

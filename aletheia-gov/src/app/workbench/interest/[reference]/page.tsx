@@ -1,4 +1,5 @@
 import { positionName } from "@/content/positions";
+import { licenceFingerprint } from "@/lib/licence";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ActionForm } from "@/components/workbench/ActionForm";
@@ -70,6 +71,41 @@ export default async function RegistrationDetail(props: PageProps<"/workbench/in
               ))}
             </ul>,
           )}
+          {r.validator.length
+            ? row(
+                "Validator licence",
+                <div className="space-y-5">
+                  {r.validator.map((a, i) => (
+                    <dl key={i} className="grid gap-x-6 gap-y-1.5 text-[0.9375rem] md:grid-cols-[11rem_1fr]">
+                      <dt className="text-ink-500">Applied</dt>
+                      <dd>{formatDateLong(a.at)}</dd>
+                      {a.organisation ? (
+                        <>
+                          <dt className="text-ink-500">Organisation</dt>
+                          <dd>{a.organisation}</dd>
+                        </>
+                      ) : null}
+                      <dt className="text-ink-500">Country</dt>
+                      <dd>{a.country}</dd>
+                      <dt className="text-ink-500">Operator account</dt>
+                      <dd className="font-mono text-[0.8125rem] break-all">{a.operatorAddress}</dd>
+                      <dt className="text-ink-500">Server</dt>
+                      <dd>
+                        {a.serverLocation} · {a.hosting}
+                        <span className="block text-ink-600">{a.specs}</span>
+                      </dd>
+                      <dt className="text-ink-500">Experience</dt>
+                      <dd className="whitespace-pre-line">{a.experience}</dd>
+                    </dl>
+                  ))}
+                  <p className="text-[0.875rem] text-ink-600">
+                    Licence fingerprint on the chain (the registration&apos;s metadata hash):{" "}
+                    <span className="font-mono text-[0.8125rem] break-all text-ink-900">{licenceFingerprint(r.reference)}</span>. Before activating, check that the
+                    registration on the explorer&apos;s validators page shows this fingerprint and the operator account above.
+                  </p>
+                </div>,
+              )
+            : null}
           {row(
             "Institutions",
             <ul className="space-y-1">

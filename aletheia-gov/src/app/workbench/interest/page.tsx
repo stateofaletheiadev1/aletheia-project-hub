@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { StatusPill, WorkbenchHeading } from "@/components/workbench/WorkbenchHeading";
-import { POSITION_SLUGS, POSITION_TYPES, positionName } from "@/content/positions";
+import { RECORD_POSITION_SLUGS, RECORD_POSITION_TYPES, positionName } from "@/content/positions";
 import { ANY_INSTITUTION, INTEREST_INSTITUTIONS, institutionName } from "@/features/interest/schema";
 import { APPLICATION_STATUSES, APPLICATION_STATUS_LABEL } from "@/lib/application-status";
 import { formatDateShort } from "@/lib/dates";
@@ -16,7 +16,7 @@ export default async function InterestList(props: PageProps<"/workbench/interest
   const q = await props.searchParams;
   const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";
   const institution = [ANY_INSTITUTION, ...INTEREST_INSTITUTIONS.map((i) => i.slug)].includes(one(q.institution)) ? one(q.institution) : "";
-  const positionType = (POSITION_SLUGS as string[]).includes(one(q.type)) ? one(q.type) : "";
+  const positionType = RECORD_POSITION_SLUGS.includes(one(q.type)) ? one(q.type) : "";
   const status = (APPLICATION_STATUSES as readonly string[]).includes(one(q.status)) ? one(q.status) : "";
   const page = Math.max(1, Math.min(400, Number(one(q.page)) || 1));
 
@@ -49,7 +49,7 @@ export default async function InterestList(props: PageProps<"/workbench/interest
           Kind of position
           <select name="type" defaultValue={positionType} className={select}>
             <option value="">All kinds</option>
-            {POSITION_TYPES.map((p) => (
+            {RECORD_POSITION_TYPES.map((p) => (
               <option key={p.slug} value={p.slug}>
                 {p.name}
               </option>

@@ -6,7 +6,7 @@ import { InlineAlert, PageHeader, SectionMark } from "@/components/ui/feedback";
 import { Choice } from "@/components/ui/form";
 import { Timestamp } from "@/components/ui/Timestamp";
 import { APPLICATION_STATUSES, APPLICATION_STATUS_LABEL } from "@/domain/applications";
-import { POSITION_TYPES } from "@/domain/content";
+import { applicationKindName } from "@/domain/content";
 import { institutionName } from "@/domain/labels";
 import { env } from "@/lib/env";
 import { can } from "@/policy/roles";
@@ -17,7 +17,7 @@ import { StatusMark } from "../StatusMark";
 
 export const metadata: Metadata = { title: "Application" };
 
-const positionName = (slug: string) => POSITION_TYPES.find((p) => p.slug === slug)?.name ?? slug;
+const positionName = applicationKindName;
 const institution = (slug: string) => (slug === "any" ? "Any institution" : institutionName(slug));
 
 export default async function ApplicationPage({ params }: { params: Promise<{ reference: string }> }) {
@@ -89,6 +89,41 @@ export default async function ApplicationPage({ params }: { params: Promise<{ re
               )
             : null}
           {row("Kinds of position", a.positionTypes.map(positionName).join(", "))}
+          {a.validator?.length
+            ? row(
+                "Validator licence",
+                <div className="grid gap-4">
+                  {a.validator.map((v, i) => (
+                    <dl key={i} className="grid gap-x-6 gap-y-1 md:grid-cols-12">
+                      <dt className="text-ink-2 md:col-span-3">Applied</dt>
+                      <dd className="md:col-span-9">
+                        <Timestamp at={v.at} mode="date" timeZone={tz} />
+                      </dd>
+                      {v.organisation ? (
+                        <>
+                          <dt className="text-ink-2 md:col-span-3">Organisation</dt>
+                          <dd className="md:col-span-9">{v.organisation}</dd>
+                        </>
+                      ) : null}
+                      <dt className="text-ink-2 md:col-span-3">Country</dt>
+                      <dd className="md:col-span-9">{v.country}</dd>
+                      <dt className="text-ink-2 md:col-span-3">Operator account</dt>
+                      <dd className="font-mono break-all md:col-span-9">{v.operatorAddress}</dd>
+                      <dt className="text-ink-2 md:col-span-3">Server</dt>
+                      <dd className="md:col-span-9">
+                        {v.serverLocation} · {v.hosting} · {v.specs}
+                      </dd>
+                      <dt className="text-ink-2 md:col-span-3">Experience</dt>
+                      <dd className="whitespace-pre-line md:col-span-9">{v.experience}</dd>
+                    </dl>
+                  ))}
+                  <p className="text-meta text-ink-2">
+                    Before the Council activates the node, compare its registration on the explorer with the licence fingerprint on this application&apos;s page in the
+                    aletheiagov.org staff area (or aletheia-cli validator licence-hash {a.reference}).
+                  </p>
+                </div>,
+              )
+            : null}
           {row("Institutions", a.institutions.map(institution).join(", "))}
           {row("Expertise", a.expertise.join(", ") || "—")}
           {row(

@@ -5,7 +5,7 @@ import { Pagination } from "@/components/patterns/Pagination";
 import { EmptyRegister, InlineAlert, PageHeader, SectionMark } from "@/components/ui/feedback";
 import { Timestamp } from "@/components/ui/Timestamp";
 import { APPLICATION_STATUSES, APPLICATION_STATUS_LABEL, isApplicationStatus, type ApplicationStatus } from "@/domain/applications";
-import { POSITION_TYPES } from "@/domain/content";
+import { applicationKindName } from "@/domain/content";
 import { applications } from "@/server/runtime";
 import { requirePermission } from "@/server/session";
 import { StatusMark } from "./StatusMark";
@@ -16,7 +16,7 @@ import { StatusMark } from "./StatusMark";
 export const metadata: Metadata = { title: "Applications" };
 
 const PAGE_SIZE = 50;
-const positionName = (slug: string) => POSITION_TYPES.find((p) => p.slug === slug)?.name ?? slug;
+const positionName = applicationKindName;
 
 export default async function ApplicationsPage({ searchParams }: { searchParams: Promise<{ status?: string; q?: string; page?: string }> }) {
   const { official, actor } = await requirePermission("application.read");

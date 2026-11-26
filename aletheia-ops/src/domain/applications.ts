@@ -39,4 +39,16 @@ export type Application = {
   name: string;
   email: string;
   notes: { text: string; at: string }[];
+  /** Validator operator licence applications, oldest first (aletheiagov.org/validator-licensing/apply).
+   * Missing when the portal predates them. */
+  validator?: {
+    organisation: string;
+    country: string;
+    operatorAddress: string;
+    serverLocation: string;
+    hosting: string;
+    specs: string;
+    experience: string;
+    at: string;
+  }[];
 };

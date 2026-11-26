@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { ArrowLink } from "@/components/editorial/ArrowLink";
 import { PageHead } from "@/components/editorial/PageHead";
 import { SectionMark } from "@/components/editorial/SectionMark";
@@ -14,7 +13,7 @@ export const metadata: Metadata = {
 const STEPS = [
   [
     "Apply",
-    "Apply for the validator operator licence through Opportunities, with your details and a profile of your organisation. Your application reference (AGV-EOI-…) identifies you for the rest of the process.",
+    "Fill in the validator licence application: your details, the account that will operate the validator, and the server that will run it. Your application reference (AGV-EOI-…) identifies you for the rest of the process.",
   ],
   [
     "Agree the licence",
@@ -106,18 +105,10 @@ export default function ValidatorLicensingPage() {
             ))}
           </ol>
           <p className="t-body mt-10 max-w-[62ch] text-ink-600">
-            Applications are taken only through this site. Open{" "}
-            <Link className="link-ledger" href="/opportunities">
-              Opportunities
-            </Link>{" "}
-            and choose the validator operator licence; if it is not listed yet, you can{" "}
-            <Link className="link-ledger" href="/register-interest">
-              register your interest
-            </Link>{" "}
-            to be contacted when it opens.
+            Applications are taken only through this site. The details you give are encrypted before they are stored and never written to the chain.
           </p>
           <div className="mt-10">
-            <ArrowLink href="/opportunities">Opportunities</ArrowLink>
+            <ArrowLink href="/validator-licensing/apply">Apply for a validator licence</ArrowLink>
           </div>
         </div>
       </section>
