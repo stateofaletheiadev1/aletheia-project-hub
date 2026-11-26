@@ -374,7 +374,9 @@ impl Node {
             sync.abort();
             let _ = sync.await;
         }
-        // The chain thread stops once every handle to it is gone.
+        // An explicit stop: clients of the RPC may hold handles to the chain thread for as long
+        // as their connections live, so waiting for every handle to go could wait forever.
+        chain_handle.stop().await;
         drop(submissions);
         drop(chain_handle);
         tokio::task::spawn_blocking(move || chain.join())

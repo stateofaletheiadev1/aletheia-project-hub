@@ -77,6 +77,9 @@ pub(crate) enum ChainRequest {
     EngineEpoch {
         reply: Reply<EngineEpoch>,
     },
+    /// Ends the thread after the requests queued before it. Requests still queued behind it,
+    /// or sent later, are refused (their callers see the node as stopped).
+    Stop,
 }
 
 /// The async side's handle to the chain thread.
@@ -185,6 +188,13 @@ impl ChainHandle {
         .await
     }
 
+    /// Asks the chain thread to finish and shut the ledger down. Shutdown does not wait for
+    /// every handle to be dropped: an RPC connection held open by a client keeps a handle for as
+    /// long as it lives, which once kept a stopping node alive for ten hours (2026-11-21).
+    pub(crate) async fn stop(&self) {
+        let _ = self.requests.send(ChainRequest::Stop).await;
+    }
+
     /// The validator epoch, set and start round the engine runs at the finalized tip.
     pub(crate) async fn engine_epoch(&self) -> Result<EngineEpoch, AletheiaError> {
         self.call(|reply| ChainRequest::EngineEpoch { reply }).await
@@ -225,8 +235,8 @@ impl ChainHandle {
     }
 }
 
-/// Starts the chain thread. It runs until every handle is dropped, then shuts the ledger down
-/// cleanly (checkpoint at the tip, Section 46A.3 steps 3-5).
+/// Starts the chain thread. It runs until asked to stop (or every handle is dropped), then shuts
+/// the ledger down cleanly (checkpoint at the tip, Section 46A.3 steps 3-5).
 pub(crate) fn spawn<S: KvStore + 'static>(
     ledger: Ledger<S>,
 ) -> Result<(ChainHandle, JoinHandle<Result<(), AletheiaError>>), AletheiaError> {
@@ -236,9 +246,15 @@ pub(crate) fn spawn<S: KvStore + 'static>(
         .spawn(move || {
             let mut ledger = ledger;
             while let Some(request) = inbox.blocking_recv() {
+                if matches!(request, ChainRequest::Stop) {
+                    break;
+                }
                 // A fail-stop error ends the thread: it is never answered and carried on from.
                 serve(&mut ledger, request)?;
             }
+            // Refuse whatever is still queued: dropping the queue drops every reply channel.
+            inbox.close();
+            drop(inbox);
             ledger.shutdown()
         })
         .map_err(|e| AletheiaError::new(ErrorCode::StoIo, format!("start chain thread: {e}")))?;
@@ -271,6 +287,8 @@ fn serve<S: KvStore>(ledger: &mut Ledger<S>, request: ChainRequest) -> Result<()
             answer(reply, ledger.read_block_by_hash(&hash))
         }
         ChainRequest::EngineEpoch { reply } => answer(reply, ledger.engine_epoch()),
+        // Handled by the thread loop before `serve` is called.
+        ChainRequest::Stop => Ok(()),
         ChainRequest::ApplyProven {
             blocks,
             proof,

@@ -390,3 +390,34 @@ async fn a_signer_daemon_with_the_wrong_key_or_beside_a_local_key_is_refused() {
     let error = Node::start(both, m.store.clone()).await.unwrap_err();
     assert!(error.detail().contains("both given"), "{error}");
 }
+
+/// Mainnet Beta, 2026-11-21: shutdown waited for every handle to the chain thread, and an RPC
+/// connection a client kept open holds one, so a stopping node never stopped. Shutdown must
+/// finish while a client still holds the RPC backend, and that client then sees the node as
+/// stopped instead of hanging.
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn shutdown_finishes_while_an_rpc_client_still_holds_the_node() {
+    use aletheia_rpc::Backend;
+    let genesis = genesis(1);
+    let member = Member {
+        data_dir: scratch("shutdown-held"),
+        store: Arc::new(MemoryKvStore::new()),
+    };
+    let mut node = Node::start(
+        config(&member, &genesis, 0, Vec::new(), true),
+        member.store.clone(),
+    )
+    .await
+    .unwrap();
+    node.wait_for_height(Height::new(3), WAIT).await.unwrap();
+    let held = node.rpc_backend();
+    tokio::time::timeout(Duration::from_secs(20), node.shutdown())
+        .await
+        .expect("shutdown finished although a client held the RPC backend")
+        .unwrap();
+    let answer = tokio::time::timeout(Duration::from_secs(5), held.status()).await;
+    assert!(
+        matches!(answer, Ok(Err(_))),
+        "the held client is told the node stopped: {answer:?}"
+    );
+}

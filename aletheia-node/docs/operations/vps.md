@@ -127,7 +127,13 @@ as `aletheia` with a read-only system, private `/tmp` and no capabilities.
 
 `Restart=` only sees a node that exits. On 2026-11-21 the Mainnet Beta node stayed alive with
 its RPC and peer sockets closed and stopped finalizing for ten hours; systemd reported it as
-active. The watchdog closes that gap:
+active. The cause, since fixed: one failed answer from the signer daemon (a non-fatal reject)
+ended the sync service; the daemon then began shutting down, and shutdown waited for every
+handle to the chain thread, including those held by RPC connections the explorer and nginx keep
+open, so it never finished and nothing was logged. Now a failed signature is an abstention, the
+sync service logs and survives non-fatal errors, the chain thread is stopped explicitly, the
+daemon logs why the node stopped at once and exits as failed if shutdown takes over 60 s. The
+watchdog stays as the last line of defence:
 
 ```sh
 install -m 0755 deploy/watchdog/aletheia-watchdog.sh /usr/local/sbin/aletheia-watchdog

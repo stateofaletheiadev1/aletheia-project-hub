@@ -149,6 +149,23 @@ pub struct Engine<S: ConsensusSigner> {
     own_timeout: Option<Timeout>,
     /// Set once this engine finalized a block that closes its epoch (ADR-069).
     closed: bool,
+    /// A round this validator timed out in whose timeout the signer did not sign yet, with the
+    /// high QC the request carried. The timer repeats the identical request (the signer re-signs
+    /// identical requests, so a lost answer is safe to ask again), so a validator alone is never
+    /// stuck in that round.
+    unsigned_timeout: Option<(Slot, QuorumCertificate)>,
+}
+
+/// A signature the signer could not give (unreachable, slow, or refusing) is an abstention,
+/// never a stop: the vote, proposal or timeout is simply not sent and the round proceeds
+/// without it (Section 19.2). Only a fail-stop error ends the engine. On Mainnet Beta a single
+/// slow answer from the signer daemon once ended consensus for ten hours (2026-11-21).
+fn signed<T>(result: Result<T, AletheiaError>) -> Result<Option<T>, AletheiaError> {
+    match result {
+        Ok(value) => Ok(Some(value)),
+        Err(error) if error.is_fail_stop() => Err(error),
+        Err(_) => Ok(None),
+    }
 }
 
 /// Whether a block closes its validator epoch: it commits to a different next set (ADR-069).
@@ -218,6 +235,7 @@ impl<S: ConsensusSigner> Engine<S> {
             proposed_in: None,
             own_timeout: None,
             closed: false,
+            unsigned_timeout: None,
         }
     }
 
@@ -551,7 +569,10 @@ impl<S: ConsensusSigner> Engine<S> {
         out.push(Output::PersistSafety(safety));
         let digest =
             QuorumCertificate::vote_digest(&self.network, header.slot, &hash, header.epoch);
-        let signature = self.signer.sign_vote(header.slot, &hash, &digest)?;
+        let Some(signature) = signed(self.signer.sign_vote(header.slot, &hash, &digest))? else {
+            // Abstain: the safety data already forbids a second vote in this round.
+            return Ok(());
+        };
         if let Some(pending) = self.blocks.get_mut(&hash) {
             pending.state = pending.state.transition(BlockState::Attested)?;
         }
@@ -851,21 +872,47 @@ impl<S: ConsensusSigner> Engine<S> {
                     round,
                     after_ms: self.pacemaker.timeout_ms(),
                 });
+            } else if let Some((_, high_qc)) =
+                self.unsigned_timeout.clone().filter(|(r, _)| *r == round)
+            {
+                // The signer did not sign this round's timeout last time: ask again, identically.
+                return self.send_timeout(me, round, high_qc, out);
             }
             return Ok(());
         };
         out.push(Output::PersistSafety(safety));
+        let high_qc = self.high_qc.clone();
+        self.send_timeout(me, round, high_qc, out)
+    }
+
+    /// Signs and broadcasts this validator's timeout for `round` (its safety data already
+    /// records it). When the signer does not sign, the timer is re-armed to ask again.
+    fn send_timeout(
+        &mut self,
+        me: ValidatorIndex,
+        round: Slot,
+        high_qc: QuorumCertificate,
+        out: &mut Vec<Output>,
+    ) -> Result<(), AletheiaError> {
         let digest = TimeoutCertificate::timeout_digest(
             &self.network,
             round,
             self.set.epoch(),
-            self.high_qc.round,
+            high_qc.round,
         );
-        let signature = self.signer.sign_timeout(round, &digest)?;
+        let Some(signature) = signed(self.signer.sign_timeout(round, &digest))? else {
+            self.unsigned_timeout = Some((round, high_qc));
+            out.push(Output::ArmTimer {
+                round,
+                after_ms: self.pacemaker.timeout_ms(),
+            });
+            return Ok(());
+        };
+        self.unsigned_timeout = None;
         let timeout = Timeout {
             round,
             epoch: self.set.epoch(),
-            high_qc: self.high_qc.clone(),
+            high_qc,
             voter: me,
             signature,
         };
@@ -937,9 +984,15 @@ impl<S: ConsensusSigner> Engine<S> {
         }
         self.proposed_in = Some(round);
         let hash = proposal.block.header.block_hash(&self.network);
-        proposal.proposer_signature = self
-            .signer
-            .sign_proposal(round, &Proposal::signing_digest(&self.network, &hash))?;
+        let Some(signature) = signed(
+            self.signer
+                .sign_proposal(round, &Proposal::signing_digest(&self.network, &hash)),
+        )?
+        else {
+            // Abstain: the round times out and the next leader proceeds.
+            return Ok(());
+        };
+        proposal.proposer_signature = signature;
         out.push(Output::Broadcast(ConsensusMessage::Proposal(Box::new(
             proposal.clone(),
         ))));

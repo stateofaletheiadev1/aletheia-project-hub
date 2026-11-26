@@ -95,6 +95,10 @@ fn connect_signer(
     }
 }
 
+/// How long a stopping node may take to drain the chain thread and checkpoint before the
+/// process gives up and exits as failed. Well under systemd's TimeoutStopSec (120 s).
+const SHUTDOWN_DEADLINE: std::time::Duration = std::time::Duration::from_secs(60);
+
 fn exit_for(error: &AletheiaError) -> ExitCode {
     if error.code() == ErrorCode::ProtocolUpgradeRequired {
         oplog::line(&format!("stopped cleanly: {}", error.detail()));
@@ -193,7 +197,7 @@ async fn main() -> ExitCode {
         }
         Err(error) => return exit_for(&error),
     };
-    let rpc_task = match settings.rpc {
+    let mut rpc_task = match settings.rpc {
         Some(rpc) => match tokio::net::TcpListener::bind(rpc.listen).await {
             Ok(listener) => {
                 let bound = listener.local_addr().map_or(rpc.listen, |a| a);
@@ -223,8 +227,35 @@ async fn main() -> ExitCode {
         tip.state_root
     ));
 
+    // The RPC server is supervised like the node: if it ends, the process ends, so systemd
+    // restarts it. Each outcome is logged the moment it happens, before shutdown begins.
+    let rpc_ended = async {
+        match rpc_task.as_mut() {
+            Some(task) => match task.await {
+                Ok(Ok(())) => "the rpc server stopped".to_owned(),
+                Ok(Err(error)) => format!("the rpc server failed: {error}"),
+                Err(error) => format!("the rpc server task ended abnormally: {error}"),
+            },
+            None => std::future::pending().await,
+        }
+    };
     let outcome = tokio::select! {
-        result = node.stopped() => result,
+        result = node.stopped() => {
+            match &result {
+                Ok(()) => oplog::line("the node stopped on its own; shutting down"),
+                Err(error) => oplog::error(&format!(
+                    "the node stopped: {} ({}): {}; shutting down",
+                    error.code().name(),
+                    error.code().get(),
+                    error.detail()
+                )),
+            }
+            result
+        }
+        reason = rpc_ended => {
+            oplog::error(&format!("{reason}; shutting down"));
+            Err(AletheiaError::new(ErrorCode::StoIo, reason))
+        }
         () = shutdown_signal() => {
             oplog::line("shutdown requested: stopping intake, draining the chain thread");
             Ok(())
@@ -234,7 +265,18 @@ async fn main() -> ExitCode {
         task.abort();
     }
     let last = node.tip();
-    let drained = node.shutdown().await;
+    // A shutdown that cannot finish must not leave a silent process behind: after the deadline
+    // the process exits as failed, and systemd restarts it (recovery runs at start-up).
+    let drained = match tokio::time::timeout(SHUTDOWN_DEADLINE, node.shutdown()).await {
+        Ok(drained) => drained,
+        Err(_) => {
+            oplog::error(&format!(
+                "shutdown did not finish within {} s; exiting for systemd to restart the node",
+                SHUTDOWN_DEADLINE.as_secs()
+            ));
+            return ExitCode::from(EXIT_FAIL_STOP);
+        }
+    };
     match outcome.and(drained) {
         Ok(()) => {
             oplog::line(&format!(

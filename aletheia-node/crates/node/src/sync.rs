@@ -124,10 +124,46 @@ impl SyncService {
         let _ = self.network.commands.send(command).await;
     }
 
+    /// Ends the service only for an error that must stop the node. Anything else (a peer's bad
+    /// block, a request that failed, a signer that did not answer) is reported and the service
+    /// carries on: on Mainnet Beta one such error once ended consensus for ten hours with
+    /// nothing logged (2026-11-21).
+    fn survive(result: Result<(), AletheiaError>) -> Result<(), AletheiaError> {
+        match result {
+            Err(error) if must_stop(&error) => Err(error),
+            Err(error) => {
+                crate::consensus::operator_note(&format!(
+                    "warn {} ({}): {}; continuing",
+                    error.code().name(),
+                    error.code().get(),
+                    error.detail()
+                ));
+                Ok(())
+            }
+            Ok(()) => Ok(()),
+        }
+    }
+
+    /// After an error interrupted the engine's outputs, make sure a round timer is armed: the
+    /// engine then times out and moves on instead of waiting for a timer that was never set.
+    fn keep_timer(&mut self) {
+        if let Some(driver) = self.consensus.as_mut()
+            && driver.timer.is_none()
+        {
+            let wait = driver.slot_duration.saturating_mul(4);
+            driver.timer = Some((driver.engine.round(), deadline(wait)));
+        }
+    }
+
     pub(crate) async fn run(mut self) -> Result<(), AletheiaError> {
         let mut producer = self.produce_every.map(tokio::time::interval);
         if self.consensus.is_some() {
-            self.drive(Input::Start).await?;
+            let started = self.drive(Input::Start).await;
+            let failed = started.is_err();
+            Self::survive(started)?;
+            if failed {
+                self.keep_timer();
+            }
         }
         loop {
             let tick = async {
@@ -143,25 +179,37 @@ impl SyncService {
                 .consensus
                 .as_ref()
                 .and_then(|c| c.pending_build.as_ref().map(|b| b.at));
-            tokio::select! {
+            let step = tokio::select! {
                 event = self.network.events.recv() => match event {
-                    Some(event) => self.on_network(event).await?,
-                    None => return Ok(()),
+                    Some(event) => self.on_network(event).await,
+                    None => {
+                        return Err(AletheiaError::new(
+                            ErrorCode::StoIo,
+                            "the network task stopped".to_owned(),
+                        ));
+                    }
                 },
                 Some(submission) = self.submissions.recv() => {
                     let result = self.admit(submission.transaction).await;
                     let _ = submission.reply.send(result);
+                    Ok(())
                 }
-                () = tick => self.produce().await?,
+                () = tick => self.produce().await,
                 () = sleep_until_or_never(timer.map(|(_, at)| at)) => {
                     if let Some(driver) = self.consensus.as_mut() {
                         driver.timer = None;
                     }
-                    if let Some((round, _)) = timer {
-                        self.drive(Input::RoundTimer(round)).await?;
+                    match timer {
+                        Some((round, _)) => self.drive(Input::RoundTimer(round)).await,
+                        None => Ok(()),
                     }
                 }
-                () = sleep_until_or_never(build_at) => self.build().await?,
+                () = sleep_until_or_never(build_at) => self.build().await,
+            };
+            let failed = step.is_err();
+            Self::survive(step)?;
+            if failed {
+                self.keep_timer();
             }
         }
     }
