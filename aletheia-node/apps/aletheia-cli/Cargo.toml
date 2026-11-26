@@ -23,6 +23,7 @@ serde_json.workspace = true
 tokio = { version = "1", features = ["rt", "macros", "net", "io-util", "time"] }
 
 [dev-dependencies]
+aletheia-execution.workspace = true
 aletheia-node = { workspace = true, features = ["devnet-producer"] }
 aletheia-rpc.workspace = true
 aletheia-storage.workspace = true

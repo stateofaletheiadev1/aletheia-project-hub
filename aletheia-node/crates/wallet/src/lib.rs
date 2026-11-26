@@ -20,7 +20,9 @@ pub mod http;
 pub mod keystore;
 pub mod uri;
 
-pub use flow::{Account, Rpc, Sent, Summary, TransferRequest, node_network, transfer};
+pub use flow::{
+    Account, FeeTerms, Preview, Rpc, Sent, Summary, TransferRequest, node_network, send, transfer,
+};
 pub use http::HttpRpc;
 pub use uri::{PaymentUri, asset_decimals, format_amount, parse_amount};
 

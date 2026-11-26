@@ -164,15 +164,48 @@ pub struct Sent {
     pub finalized: Option<Value>,
 }
 
-/// Builds, simulates, confirms, signs, submits and tracks a transfer. `confirm` sees the
-/// summary and returns false to stop before signing.
-pub async fn transfer(
-    rpc: &impl Rpc,
-    account: &Account,
-    request: &TransferRequest,
-    confirm: impl FnOnce(&Summary) -> bool,
-    track: Duration,
-) -> Result<Sent, WalletError> {
+/// Fee terms and validity of a transaction to build.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct FeeTerms {
+    pub fee_asset: AssetId,
+    pub max_fee: u128,
+    pub eu_limit: u64,
+    /// Slots the transaction stays valid for.
+    pub validity_slots: u64,
+}
+
+/// What any transaction will cost and who sends it, shown before signing.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Preview {
+    pub network: String,
+    pub chain_id: u32,
+    pub from: String,
+    /// The nonce the transaction is signed with (governance proposal ids depend on it).
+    pub nonce: u64,
+    pub fee_estimate: String,
+    pub fee_asset: String,
+    pub eu_used: u64,
+}
+
+impl core::fmt::Display for Preview {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        writeln!(
+            f,
+            "Network          {} (chain {})",
+            self.network, self.chain_id
+        )?;
+        writeln!(f, "From             {}", self.from)?;
+        write!(
+            f,
+            "Fee (estimate)   {} {}   ({} EU)",
+            self.fee_estimate, self.fee_asset, self.eu_used
+        )
+    }
+}
+
+/// The sender's next nonce and the current slot, after checking the node is on the account's
+/// network.
+async fn prepare(rpc: &impl Rpc, account: &Account) -> Result<(u64, u64), WalletError> {
     let (network, height) = node_network(rpc).await?;
     let mine = account.network();
     if network.chain_id() != mine.chain_id() || network.network_kind() != mine.network_kind() {
@@ -184,37 +217,50 @@ pub async fn transfer(
             mine.network_kind()
         )));
     }
-    let kind = network.network_kind();
-    let from = account.address();
+    let from = account.address().to_text(network.network_kind());
     let nonce = rpc
-        .call("getAccount", json!({ "address": from.to_text(kind) }))
+        .call("getAccount", json!({ "address": from }))
         .await?
         .get("nonce")
         .and_then(Value::as_u64)
         .ok_or_else(|| WalletError("the node did not report the account nonce".to_owned()))?;
     let head = rpc.call("getFinalizedHead", json!({})).await?;
     let slot = head.get("slot").and_then(Value::as_u64).unwrap_or(height);
-    let body = TransactionBody {
+    Ok((nonce, slot))
+}
+
+fn body(
+    account: &Account,
+    nonce: u64,
+    slot: u64,
+    terms: &FeeTerms,
+    payload: Payload,
+) -> TransactionBody {
+    let network = account.network();
+    TransactionBody {
         version: TX_BODY_VERSION_1,
         chain_id: network.chain_id(),
-        network_kind: kind,
-        sender: from,
+        network_kind: network.network_kind(),
+        sender: account.address(),
         nonce,
         fee: Fee {
-            fee_asset: request.fee_asset,
-            max_fee: request.max_fee,
-            eu_limit: request.eu_limit,
+            fee_asset: terms.fee_asset,
+            max_fee: terms.max_fee,
+            eu_limit: terms.eu_limit,
         },
         valid_from_slot: Slot::new(slot),
-        expiry_slot: Slot::new(slot.saturating_add(request.validity_slots)),
+        expiry_slot: Slot::new(slot.saturating_add(terms.validity_slots)),
         memo: Vec::new(),
-        payload: Payload::Transfer(TransferLeg {
-            recipient: request.recipient,
-            asset: request.asset,
-            amount: request.amount,
-        }),
-    };
-    // Simulate first: the summary shows what the chain will charge.
+        payload,
+    }
+}
+
+/// Simulates the signed body and refuses to go on when it would fail on chain.
+async fn simulate(
+    rpc: &impl Rpc,
+    account: &Account,
+    body: &TransactionBody,
+) -> Result<Value, WalletError> {
     let preview = account.sign(body.clone());
     let simulated = rpc
         .call(
@@ -234,30 +280,19 @@ pub async fn transfer(
             .and_then(Value::as_str)
             .unwrap_or("unknown");
         return Err(WalletError(format!(
-            "the transfer would fail on chain: {name}"
+            "the transaction would fail on chain: {name}; nothing was signed"
         )));
     }
-    let summary = Summary {
-        network: kind.to_string(),
-        chain_id: network.chain_id().get(),
-        from: from.to_text(kind),
-        recipient: request.recipient.to_text(kind),
-        asset: asset_name(request.asset),
-        amount: format_amount(request.amount, asset_decimals(request.asset)),
-        fee_estimate: simulated
-            .get("fee")
-            .and_then(|f| f.get("display"))
-            .and_then(Value::as_str)
-            .unwrap_or("?")
-            .to_owned(),
-        fee_asset: asset_name(request.fee_asset),
-        eu_used: simulated.get("euUsed").and_then(Value::as_u64).unwrap_or(0),
-    };
-    if !confirm(&summary) {
-        return Err(WalletError(
-            "not signed: the transfer was not confirmed".to_owned(),
-        ));
-    }
+    Ok(simulated)
+}
+
+/// Signs, submits and tracks to FINALIZED (the node only reports finalized transactions).
+async fn submit_and_track(
+    rpc: &impl Rpc,
+    account: &Account,
+    body: TransactionBody,
+    track: Duration,
+) -> Result<Sent, WalletError> {
     let signed = account.sign(body);
     let submitted = rpc
         .call(
@@ -270,7 +305,6 @@ pub async fn transfer(
         .and_then(Value::as_str)
         .ok_or_else(|| WalletError("the node did not return a transaction id".to_owned()))?
         .to_owned();
-    // Track to FINALIZED: the node only reports finalized transactions.
     let deadline = std::time::Instant::now().checked_add(track);
     loop {
         if let Ok(shown) = rpc.call("getTransaction", json!({ "txId": tx_id })).await {
@@ -287,4 +321,91 @@ pub async fn transfer(
         }
         tokio::time::sleep(Duration::from_millis(200)).await;
     }
+}
+
+fn fee_display(simulated: &Value) -> String {
+    simulated
+        .get("fee")
+        .and_then(|f| f.get("display"))
+        .and_then(Value::as_str)
+        .unwrap_or("?")
+        .to_owned()
+}
+
+/// Builds, simulates, confirms, signs, submits and tracks any transaction. `payload` is built
+/// from the nonce the transaction will carry; `confirm` sees the preview and returns false to
+/// stop before signing.
+pub async fn send(
+    rpc: &impl Rpc,
+    account: &Account,
+    terms: &FeeTerms,
+    payload: impl FnOnce(u64) -> Payload,
+    confirm: impl FnOnce(&Preview) -> bool,
+    track: Duration,
+) -> Result<Sent, WalletError> {
+    let (nonce, slot) = prepare(rpc, account).await?;
+    let body = body(account, nonce, slot, terms, payload(nonce));
+    let simulated = simulate(rpc, account, &body).await?;
+    let network = account.network();
+    let preview = Preview {
+        network: network.network_kind().to_string(),
+        chain_id: network.chain_id().get(),
+        from: account.address().to_text(network.network_kind()),
+        nonce,
+        fee_estimate: fee_display(&simulated),
+        fee_asset: asset_name(terms.fee_asset),
+        eu_used: simulated.get("euUsed").and_then(Value::as_u64).unwrap_or(0),
+    };
+    if !confirm(&preview) {
+        return Err(WalletError(
+            "not signed: the transaction was not confirmed".to_owned(),
+        ));
+    }
+    submit_and_track(rpc, account, body, track).await
+}
+
+/// Builds, simulates, confirms, signs, submits and tracks a transfer. `confirm` sees the
+/// summary and returns false to stop before signing.
+pub async fn transfer(
+    rpc: &impl Rpc,
+    account: &Account,
+    request: &TransferRequest,
+    confirm: impl FnOnce(&Summary) -> bool,
+    track: Duration,
+) -> Result<Sent, WalletError> {
+    let (nonce, slot) = prepare(rpc, account).await?;
+    let terms = FeeTerms {
+        fee_asset: request.fee_asset,
+        max_fee: request.max_fee,
+        eu_limit: request.eu_limit,
+        validity_slots: request.validity_slots,
+    };
+    let payload = Payload::Transfer(TransferLeg {
+        recipient: request.recipient,
+        asset: request.asset,
+        amount: request.amount,
+    });
+    let body = body(account, nonce, slot, &terms, payload);
+    let simulated = simulate(rpc, account, &body)
+        .await
+        .map_err(|e| WalletError(e.0.replace("the transaction", "the transfer")))?;
+    let network = account.network();
+    let kind = network.network_kind();
+    let summary = Summary {
+        network: kind.to_string(),
+        chain_id: network.chain_id().get(),
+        from: account.address().to_text(kind),
+        recipient: request.recipient.to_text(kind),
+        asset: asset_name(request.asset),
+        amount: format_amount(request.amount, asset_decimals(request.asset)),
+        fee_estimate: fee_display(&simulated),
+        fee_asset: asset_name(request.fee_asset),
+        eu_used: simulated.get("euUsed").and_then(Value::as_u64).unwrap_or(0),
+    };
+    if !confirm(&summary) {
+        return Err(WalletError(
+            "not signed: the transfer was not confirmed".to_owned(),
+        ));
+    }
+    submit_and_track(rpc, account, body, track).await
 }

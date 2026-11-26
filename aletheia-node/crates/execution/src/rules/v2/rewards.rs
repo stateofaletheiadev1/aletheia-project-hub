@@ -434,3 +434,18 @@ mod tests {
         );
     }
 }
+
+#[cfg(test)]
+mod address_tests {
+    use super::*;
+
+    /// The address the treasury funds rewards at, as the runbook prints it
+    /// (docs/operations/validator-licensing.md).
+    #[test]
+    fn the_reward_pool_address_is_the_documented_one() {
+        assert_eq!(
+            REWARD_POOL.to_text(aletheia_core::NetworkKind::Mainnet),
+            "alt:000000000000000000000000000000000000000b"
+        );
+    }
+}

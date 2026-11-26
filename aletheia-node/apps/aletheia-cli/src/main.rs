@@ -10,11 +10,15 @@
 //!   balance <alt:…> [--asset AEY]
 //!   transfer --keystore wallet.json --to <alt:…> --amount 1.5 [--asset AEY] [--yes]
 //!   tx show <alt:T…>   receipt <alt:T…>   block show <height | alt:B…>
+//!   validator set | register | withdraw | exit            (protocol version 2, ADR-069)
+//!   gov propose <action> | vote | execute                  (Council)
 //! ```
 //!
 //! Every command checks that the node is on the expected network when `--network` is given.
 //! Secrets are never printed; the password is read without echo, or from the file named by
 //! `ALETHEIA_PASSWORD_FILE` for automation.
+
+mod registry;
 
 use std::io::Write;
 use std::path::PathBuf;
@@ -103,6 +107,16 @@ enum Command {
         #[command(subcommand)]
         action: Block,
     },
+    /// Validators: the set, and an operator's register, withdraw and exit (ADR-069).
+    Validator {
+        #[command(subcommand)]
+        action: registry::ValidatorCommand,
+    },
+    /// Council governance: propose, vote, execute.
+    Gov {
+        #[command(subcommand)]
+        action: registry::GovCommand,
+    },
     /// RPC API keys for node operators (ADR-066). Works offline; talks to no node.
     ApiKey {
         #[command(subcommand)]
@@ -168,6 +182,36 @@ fn fail(message: impl Into<String>) -> WalletError {
 fn out(text: &str) {
     let mut stdout = std::io::stdout();
     let _ = writeln!(stdout, "{text}");
+}
+
+/// Asks a yes/no question on the terminal; anything but `y` is no.
+fn ask(question: &str) -> bool {
+    let mut stdout = std::io::stdout();
+    let _ = write!(stdout, "{question} [y/N] ");
+    let _ = stdout.flush();
+    let mut answer = String::new();
+    std::io::stdin().read_line(&mut answer).is_ok() && answer.trim().eq_ignore_ascii_case("y")
+}
+
+/// Opens a keystore made for this chain, asking for its password.
+fn open_account(
+    path: &std::path::Path,
+    network: &aletheia_core::NetworkIdentity,
+) -> Result<Account, WalletError> {
+    let file: Value = serde_json::from_str(
+        &std::fs::read_to_string(path)
+            .map_err(|e| fail(format!("cannot read {}: {e}", path.display())))?,
+    )
+    .map_err(|_| fail(format!("{} is not a keystore", path.display())))?;
+    if file.get("chainId").and_then(Value::as_u64) != Some(u64::from(network.chain_id().get())) {
+        return Err(fail(
+            "this keystore was made for another chain; nothing was signed",
+        ));
+    }
+    let pass = password("Keystore password: ")?;
+    let seed = keystore::open(&file, pass.expose().as_bytes())?;
+    let derived = account_key(seed.expose(), COIN_TYPE, 0, 0)?;
+    Ok(Account::new(derived.key(), *network))
 }
 
 fn password(prompt: &str) -> Result<Secret<String>, WalletError> {
@@ -459,18 +503,6 @@ async fn run(cli: Cli) -> Result<(), WalletError> {
             yes,
         } => {
             let network = checked_network(&rpc, expected).await?;
-            let file: Value = serde_json::from_str(
-                &std::fs::read_to_string(&path)
-                    .map_err(|e| fail(format!("cannot read {}: {e}", path.display())))?,
-            )
-            .map_err(|_| fail(format!("{} is not a keystore", path.display())))?;
-            if file.get("chainId").and_then(Value::as_u64)
-                != Some(u64::from(network.chain_id().get()))
-            {
-                return Err(fail(
-                    "this keystore was made for another chain; nothing was signed",
-                ));
-            }
             let recipient = Address::parse(&to, network.network_kind())
                 .map_err(|e| fail(format!("recipient: {}", e.detail())))?;
             let asset_id = asset(&asset_name)?;
@@ -483,25 +515,26 @@ async fn run(cli: Cli) -> Result<(), WalletError> {
                 eu_limit,
                 validity_slots: 1_000,
             };
-            let pass = password("Keystore password: ")?;
-            let seed = keystore::open(&file, pass.expose().as_bytes())?;
-            let derived = account_key(seed.expose(), COIN_TYPE, 0, 0)?;
-            let account = Account::new(derived.key(), network);
+            let account = open_account(&path, &network)?;
             let confirm = |summary: &aletheia_wallet::Summary| {
                 if json_out || yes {
                     return yes;
                 }
                 out(&summary.to_string());
-                let mut stdout = std::io::stdout();
-                let _ = write!(stdout, "Sign and send? [y/N] ");
-                let _ = stdout.flush();
-                let mut answer = String::new();
-                std::io::stdin().read_line(&mut answer).is_ok()
-                    && answer.trim().eq_ignore_ascii_case("y")
+                ask("Sign and send?")
             };
             let sent = transfer(&rpc, &account, &request, confirm, Duration::from_secs(60)).await?;
             match &sent.finalized {
-                Some(tx) => print(tx, show_tx(tx)),
+                Some(tx) => {
+                    print(tx, show_tx(tx));
+                    let status = s(tx, &["receipt", "status"]);
+                    if !status.is_empty() && status != "SUCCESS" {
+                        return Err(fail(format!(
+                            "the transfer was finalized but failed: {status} {}; only the fee was charged",
+                            s(tx, &["receipt", "errorName"])
+                        )));
+                    }
+                }
                 None => print(
                     &json!({ "txId": sent.tx_id, "status": "SUBMITTED" }),
                     format!(
@@ -546,6 +579,12 @@ async fn run(cli: Cli) -> Result<(), WalletError> {
                     ("Write set", s(&receipt, &["writeSetHash"])),
                 ]),
             );
+        }
+        Command::Validator { action } => {
+            registry::validator(&rpc, expected, json_out, action).await?;
+        }
+        Command::Gov { action } => {
+            registry::gov(&rpc, expected, json_out, action).await?;
         }
         Command::ApiKey {
             action:

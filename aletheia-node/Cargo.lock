@@ -52,6 +52,7 @@ version = "0.1.0"
 dependencies = [
  "aletheia-core",
  "aletheia-crypto",
+ "aletheia-execution",
  "aletheia-node",
  "aletheia-rpc",
  "aletheia-storage",
