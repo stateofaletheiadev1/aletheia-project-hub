@@ -32,6 +32,7 @@ pub mod registry;
 mod text_id;
 pub mod tx;
 pub mod types;
+pub mod validator;
 
 pub use ace::{AceDecode, AceEncode, AceReader, AceWriter};
 pub use address::{Address, AddressType};

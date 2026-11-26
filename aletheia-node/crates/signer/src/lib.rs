@@ -242,6 +242,14 @@ impl Backend {
             Backend::Remote(signer) => signer.state(),
         }
     }
+
+    /// The consensus public key this signer signs with.
+    pub fn public_key(&self) -> [u8; 48] {
+        match self {
+            Backend::Local(signer) => signer.public_key(),
+            Backend::Remote(signer) => signer.public_key(),
+        }
+    }
 }
 
 impl ConsensusSigner for Backend {

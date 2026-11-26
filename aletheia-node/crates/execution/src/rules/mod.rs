@@ -19,6 +19,7 @@ use crate::stateless::VerifiedTransaction;
 #[cfg(feature = "test-protocol-v2")]
 pub mod test_v2;
 pub mod v1;
+pub mod v2;
 
 /// Size, window and fee-asset limits a rule set enforces during stateless validation.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -43,23 +44,26 @@ pub struct BlockLimits {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Rules {
     V1,
-    /// Test-only (feature `test-protocol-v2`).
+    /// Validator registry and epoch transitions (ADR-069).
+    V2,
+    /// Test-only version 3 (feature `test-protocol-v2`): version 2 plus `TestRemark`.
     #[cfg(feature = "test-protocol-v2")]
     TestV2,
 }
 
 /// Highest protocol version this binary can execute.
 #[cfg(not(feature = "test-protocol-v2"))]
-pub const MAX_SUPPORTED_VERSION: u16 = 1;
-#[cfg(feature = "test-protocol-v2")]
 pub const MAX_SUPPORTED_VERSION: u16 = 2;
+#[cfg(feature = "test-protocol-v2")]
+pub const MAX_SUPPORTED_VERSION: u16 = 3;
 
 impl Rules {
     pub fn for_version(version: ProtocolVersion) -> Result<Rules, AletheiaError> {
         match version.get() {
             1 => Ok(Rules::V1),
+            2 => Ok(Rules::V2),
             #[cfg(feature = "test-protocol-v2")]
-            2 => Ok(Rules::TestV2),
+            3 => Ok(Rules::TestV2),
             other => Err(AletheiaError::new(
                 ErrorCode::ProtocolVersionUnsupported,
                 format!(
@@ -72,22 +76,24 @@ impl Rules {
     pub fn version(self) -> ProtocolVersion {
         match self {
             Rules::V1 => ProtocolVersion::new(1),
+            Rules::V2 => ProtocolVersion::new(2),
             #[cfg(feature = "test-protocol-v2")]
-            Rules::TestV2 => ProtocolVersion::new(2),
+            Rules::TestV2 => ProtocolVersion::new(3),
         }
     }
 
     pub fn tx_type_active(self, tx_type: TxType) -> bool {
         match self {
             Rules::V1 => v1::TX_TYPES.contains(&tx_type),
+            Rules::V2 => v2::tx_type_active(tx_type),
             #[cfg(feature = "test-protocol-v2")]
-            Rules::TestV2 => test_v2::TX_TYPES.contains(&tx_type),
+            Rules::TestV2 => test_v2::tx_type_active(tx_type),
         }
     }
 
     pub fn tx_limits(self) -> TxLimits {
         match self {
-            Rules::V1 => v1::TX_LIMITS,
+            Rules::V1 | Rules::V2 => v1::TX_LIMITS,
             #[cfg(feature = "test-protocol-v2")]
             Rules::TestV2 => v1::TX_LIMITS,
         }
@@ -95,7 +101,7 @@ impl Rules {
 
     pub fn block_limits(self) -> BlockLimits {
         match self {
-            Rules::V1 => v1::BLOCK_LIMITS,
+            Rules::V1 | Rules::V2 => v1::BLOCK_LIMITS,
             #[cfg(feature = "test-protocol-v2")]
             Rules::TestV2 => v1::BLOCK_LIMITS,
         }
@@ -109,13 +115,25 @@ impl Rules {
     ) -> Vec<(aletheia_core::Address, AssetId)> {
         match self {
             Rules::V1 => v1::touched_balances(tx),
+            Rules::V2 => v2::touched_balances(tx),
             #[cfg(feature = "test-protocol-v2")]
-            Rules::TestV2 => v1::touched_balances(tx),
+            Rules::TestV2 => v2::touched_balances(tx),
         }
     }
 
     /// The protocol's own work after a block's transactions (Section 40B.7 scheduled
     /// payments), reporting the balances it moved.
+    /// Whether the version has validator epochs (ADR-069): the registry, set changes and the
+    /// epoch rules for headers.
+    pub fn has_validator_epochs(self) -> bool {
+        match self {
+            Rules::V1 => false,
+            Rules::V2 => true,
+            #[cfg(feature = "test-protocol-v2")]
+            Rules::TestV2 => true,
+        }
+    }
+
     pub fn end_block(
         self,
         records: &Records,
@@ -124,8 +142,9 @@ impl Rules {
     ) -> Result<v1::Touched, AletheiaError> {
         match self {
             Rules::V1 => v1::end_block(records, overlay, ctx),
+            Rules::V2 => v2::end_block(records, overlay, ctx),
             #[cfg(feature = "test-protocol-v2")]
-            Rules::TestV2 => v1::end_block(records, overlay, ctx),
+            Rules::TestV2 => v2::end_block(records, overlay, ctx),
         }
     }
 
@@ -139,6 +158,7 @@ impl Rules {
     ) -> Result<(Receipt, v1::Touched), AletheiaError> {
         match self {
             Rules::V1 => v1::apply_transaction(records, overlay, tx, ctx, index),
+            Rules::V2 => v2::apply_transaction(records, overlay, tx, ctx, index),
             #[cfg(feature = "test-protocol-v2")]
             Rules::TestV2 => test_v2::apply_transaction(records, overlay, tx, ctx, index),
         }
@@ -152,13 +172,19 @@ mod tests {
     #[test]
     fn unknown_versions_are_refused_by_name() {
         assert_eq!(Rules::for_version(ProtocolVersion::new(1)), Ok(Rules::V1));
-        let error = Rules::for_version(ProtocolVersion::new(3)).unwrap_err();
+        assert_eq!(Rules::for_version(ProtocolVersion::new(2)), Ok(Rules::V2));
+        let error = Rules::for_version(ProtocolVersion::new(4)).unwrap_err();
         assert_eq!(error.code(), ErrorCode::ProtocolVersionUnsupported);
-        assert!(error.detail().contains("protocol version 3"));
+        assert!(error.detail().contains("protocol version 4"));
     }
 
     #[test]
     fn version_round_trips() {
         assert_eq!(Rules::for_version(Rules::V1.version()), Ok(Rules::V1));
+        assert_eq!(Rules::for_version(Rules::V2.version()), Ok(Rules::V2));
+        assert!(!Rules::V1.has_validator_epochs());
+        assert!(Rules::V2.has_validator_epochs());
+        assert!(!Rules::V1.tx_type_active(TxType::new(64)));
+        assert!(Rules::V2.tx_type_active(TxType::new(64)));
     }
 }

@@ -701,6 +701,20 @@ fn check_council(members: &[Address], threshold: u8) -> Result<(), AletheiaError
     Ok(())
 }
 
+/// Validator registry actions exist from protocol version 2 (ADR-069); before it they are
+/// refused exactly as an unknown action would be.
+fn validator_action_active(cx: &Cx<'_, '_>, action: &GovAction) -> Result<(), AletheiaError> {
+    let active = crate::rules::Rules::for_version(cx.ctx.protocol_version)
+        .is_ok_and(crate::rules::Rules::has_validator_epochs);
+    if action.is_validator_action() && !active {
+        return Err(fail(
+            ErrorCode::TxTypeNotActive,
+            "validator governance actions start at protocol version 2",
+        ));
+    }
+    Ok(())
+}
+
 /// Bounds that do not depend on state (state-dependent bounds are checked at execution).
 fn check_action(action: &GovAction) -> Result<(), AletheiaError> {
     match action {
@@ -769,6 +783,23 @@ fn check_action(action: &GovAction) -> Result<(), AletheiaError> {
             ))
         }
         GovAction::UpsertBridgeRoute(route) => crate::rules::v1::bridge::check_route(route),
+        GovAction::SetRewardPolicy {
+            period_slots: 0, ..
+        } => Err(fail(
+            ErrorCode::GovOutOfBounds,
+            "a reward period has at least one slot",
+        )),
+        GovAction::SetValidatorPolicy { max_validators, .. }
+            if *max_validators == 0 || *max_validators > aletheia_core::block::MAX_VALIDATORS =>
+        {
+            Err(fail(
+                ErrorCode::GovOutOfBounds,
+                format!(
+                    "the largest validator set is between 1 and {}",
+                    aletheia_core::block::MAX_VALIDATORS
+                ),
+            ))
+        }
         _ => Ok(()),
     }
 }
@@ -846,6 +877,7 @@ fn governance_propose(
     let policy = policy(cx)?;
     council_member(cx, &policy)?;
     check_action(action)?;
+    validator_action_active(cx, action)?;
     let id = proposal_id(cx.reg.records.network(), &cx.sender, cx.nonce, action);
     if cx.reg.proposal(cx.overlay, &id)?.is_some() {
         return Err(fail(ErrorCode::RegAlreadyExists, "this proposal exists"));
@@ -1092,6 +1124,15 @@ fn governance_execute(
         }
         GovAction::SetBridgeRoutePaused { route_id, paused } => {
             crate::rules::v1::bridge::set_paused(records, cx.overlay, *route_id, *paused)?;
+        }
+        GovAction::ActivateValidator { .. }
+        | GovAction::RejectValidator { .. }
+        | GovAction::SuspendValidator { .. }
+        | GovAction::ReinstateValidator { .. }
+        | GovAction::SetValidatorPolicy { .. }
+        | GovAction::SetRewardPolicy { .. } => {
+            validator_action_active(cx, &proposal.action)?;
+            crate::rules::v2::validators::govern(records, cx.overlay, &proposal.action, cx.events)?;
         }
     }
     proposal.status = ProposalStatus::Executed;

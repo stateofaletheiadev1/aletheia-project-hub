@@ -93,6 +93,7 @@ error_codes! {
     BlkTimeMismatch = 3006, "BLK_TIME_MISMATCH", Reject;
     BlkInvalidTransaction = 3007, "BLK_INVALID_TRANSACTION", Reject;
     BlkValidatorSetMismatch = 3008, "BLK_VALIDATOR_SET_MISMATCH", Reject;
+    BlkEpochMismatch = 3009, "BLK_EPOCH_MISMATCH", Reject;
     SigInvalid = 4001, "SIG_INVALID", Reject;
     SigMalformed = 4002, "SIG_MALFORMED", Reject;
     KeyMalformed = 4003, "KEY_MALFORMED", Reject;
@@ -202,6 +203,12 @@ error_codes! {
     GovAlreadyVoted = 14011, "GOV_ALREADY_VOTED", Reject;
     GovOutOfBounds = 14012, "GOV_OUT_OF_BOUNDS", Reject;
     GovNoCouncil = 14013, "GOV_NO_COUNCIL", Reject;
+    ValNotFound = 14014, "VAL_NOT_FOUND", Reject;
+    ValInvalidTransition = 14015, "VAL_INVALID_TRANSITION", Reject;
+    ValAlreadyRegistered = 14016, "VAL_ALREADY_REGISTERED", Reject;
+    ValBondTooLow = 14017, "VAL_BOND_TOO_LOW", Reject;
+    ValSetBound = 14018, "VAL_SET_BOUND", Reject;
+    ValKeyInvalid = 14019, "VAL_KEY_INVALID", Reject;
 }
 
 #[cfg(test)]

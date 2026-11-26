@@ -291,6 +291,16 @@ fn check_field_ranges(
             };
         }
         Payload::Registry(_) => return Ok(()),
+        Payload::Validator(op) => {
+            return match op.as_ref() {
+                aletheia_core::validator::ValidatorOp::Register(application)
+                    if application.bond == 0 =>
+                {
+                    zero("validator bond")
+                }
+                _ => Ok(()),
+            };
+        }
         Payload::Bridge(op) => {
             return match op.as_ref() {
                 aletheia_core::bridge::BridgeOp::BridgeOut { amount: 0, .. } => {

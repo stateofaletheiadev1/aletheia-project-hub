@@ -235,6 +235,18 @@ struct Parent {
     hash: Hash32,
 }
 
+/// Where the consensus engine stands at the finalized tip (see [`Ledger::engine_epoch`]).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct EngineEpoch {
+    pub epoch: aletheia_core::Epoch,
+    /// The epoch's set; `None` on a chain without validators (the devnet producer).
+    pub records: Option<Vec<ValidatorRecord>>,
+    /// The finalized hash the epoch's leader schedule is seeded with.
+    pub seed_hash: Hash32,
+    /// The finalized tip the engine resumes from, with the epoch's start round.
+    pub root: aletheia_consensus::FinalizedTip,
+}
+
 /// Header fields chosen by consensus for a block this node builds.
 #[derive(Debug, Clone)]
 pub struct BuildParams {
@@ -805,7 +817,7 @@ impl<S: KvStore> Ledger<S> {
             ));
         }
         let set_hash = self.validator_set_hash(&view, header.epoch)?;
-        if header.validator_set_hash != set_hash || header.next_validator_set_hash != set_hash {
+        if header.validator_set_hash != set_hash {
             return Err(fail_stop(
                 ErrorCode::BlkValidatorSetMismatch,
                 format!(
@@ -830,6 +842,9 @@ impl<S: KvStore> Ledger<S> {
             proposer: header.proposer,
             parent_hash: header.parent_hash,
             protocol_version: header.version,
+            parent_signers: aletheia_execution::context::Signers::from_bitmap(
+                &header.parent_qc.signers,
+            ),
         };
         let executed = execute_block(rules, &records, &view, &ctx, &verified)?;
         let mut nodes = WriteBatch::new();
@@ -840,7 +855,41 @@ impl<S: KvStore> Ledger<S> {
             &mut nodes,
         )?;
         check_header_results(&self.network, header, &executed, &state_root)?;
+        // The next set: the same one unless this block closed the epoch (ADR-069).
+        let next_hash = self.next_set_hash(header.epoch, set_hash, &executed)?;
+        if header.next_validator_set_hash != next_hash {
+            return Err(fail_stop(
+                ErrorCode::BlkValidatorSetMismatch,
+                format!(
+                    "block at height {} commits to next validator set {}, execution gives {next_hash}",
+                    header.height, header.next_validator_set_hash
+                ),
+            ));
+        }
         Ok((executed, nodes))
+    }
+
+    /// `next_validator_set_hash`: the set of `epoch + 1` when the block closed `epoch`,
+    /// otherwise `set_hash` unchanged.
+    fn next_set_hash(
+        &self,
+        epoch: aletheia_core::Epoch,
+        set_hash: Hash32,
+        executed: &ExecutedBlock,
+    ) -> Result<Hash32, AletheiaError> {
+        match &executed.next_validator_set {
+            None => Ok(set_hash),
+            Some(members) => {
+                let next =
+                    aletheia_core::Epoch::new(epoch.get().checked_add(1).ok_or_else(|| {
+                        AletheiaError::new(
+                            ErrorCode::ArithmeticOverflow,
+                            "validator epoch overflows".to_owned(),
+                        )
+                    })?);
+                Ok(validator_records_hash(&self.network, next, members))
+            }
+        }
     }
 
     /// `validator_set_hash` for `epoch` as state records it; zero for a chain without
@@ -1176,7 +1225,18 @@ impl<S: KvStore> Ledger<S> {
             proposer: params.proposer,
             parent_hash: parent.hash,
             protocol_version: aletheia_core::ProtocolVersion::new(entry.protocol_version),
+            parent_signers: aletheia_execution::context::Signers::from_bitmap(
+                &params.parent_qc.signers,
+            ),
         };
+        // A suffix block certifies the epoch's closing block and carries nothing (ADR-069).
+        let suffix = rules.has_validator_epochs()
+            && aletheia_execution::rules::v2::validators::position(
+                &records,
+                &view,
+                params.epoch.get(),
+            )? == aletheia_execution::rules::v2::validators::EpochPosition::Suffix;
+        let candidates = if suffix { Vec::new() } else { candidates };
         let included =
             aletheia_execution::builder::select(rules, &records, &view, &ctx, candidates)?;
         let executed = execute_block(rules, &records, &view, &ctx, &included)?;
@@ -1188,6 +1248,7 @@ impl<S: KvStore> Ledger<S> {
             &mut scratch,
         )?;
         let set_hash = self.validator_set_hash(&view, params.epoch)?;
+        let next_hash = self.next_set_hash(params.epoch, set_hash, &executed)?;
         let header = aletheia_core::block::BlockHeader {
             version: ctx.protocol_version,
             chain_id: self.network.chain_id(),
@@ -1204,7 +1265,7 @@ impl<S: KvStore> Ledger<S> {
             state_root,
             event_root: executed.event_root,
             validator_set_hash: set_hash,
-            next_validator_set_hash: set_hash,
+            next_validator_set_hash: next_hash,
             monetary_root: Hash32::ZERO,
             eu_used: executed.eu_used,
             tx_count: executed.tx_count,
@@ -1262,6 +1323,41 @@ impl<S: KvStore> Ledger<S> {
             )
         })?;
         Ok(block.block.header.slot)
+    }
+
+    /// The validator epoch the engine runs at the finalized tip (ADR-069): when the tip closed
+    /// its epoch, the next one, rooted on the tip one round later and seeded by its hash;
+    /// otherwise the open epoch, seeded by the block that closed the one before (genesis_id in
+    /// epoch 0).
+    pub fn engine_epoch(&self) -> Result<EngineEpoch, AletheiaError> {
+        let records = Records::new(self.network);
+        let view = self.tip_view();
+        let state =
+            aletheia_execution::validator_model::Validators::new(&records).epoch_state(&view)?;
+        let tip_round = self.tip_round()?;
+        let (epoch, seed_hash, root_round) = if state.closed {
+            let next = state.epoch.checked_add(1).ok_or_else(|| {
+                fail_stop(
+                    ErrorCode::ArithmeticOverflow,
+                    "validator epoch overflows".to_owned(),
+                )
+            })?;
+            (next, self.tip.hash, tip_round.next()?)
+        } else if state.opened_after == Hash32::ZERO {
+            (state.epoch, self.network.genesis_id(), tip_round)
+        } else {
+            (state.epoch, state.opened_after, tip_round)
+        };
+        Ok(EngineEpoch {
+            epoch: aletheia_core::Epoch::new(epoch),
+            records: records.validator_set(&view, epoch)?,
+            seed_hash,
+            root: aletheia_consensus::FinalizedTip {
+                hash: self.tip.hash,
+                height: self.tip.height,
+                round: root_round,
+            },
+        })
     }
 
     /// The validator set of `epoch` as of the finalized tip.
@@ -1552,6 +1648,7 @@ impl<S: KvStore> Ledger<S> {
             proposer: aletheia_core::ValidatorIndex::new(0),
             parent_hash: self.tip.hash,
             protocol_version: aletheia_core::ProtocolVersion::new(entry.protocol_version),
+            parent_signers: aletheia_execution::context::Signers::NONE,
         };
         let mut overlay = aletheia_state::StateOverlay::new(&view);
         rules

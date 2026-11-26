@@ -335,6 +335,13 @@ class = "reject"
 message = "validator_set_hash or next_validator_set_hash differs from the set state records for the epoch."
 
 [[code]]
+code = 3009
+name = "BLK_EPOCH_MISMATCH"
+variant = "BlkEpochMismatch"
+class = "reject"
+message = "The header's epoch is neither the open epoch nor, after a closing block, the same epoch (an empty suffix block) or the next one (ADR-069)."
+
+[[code]]
 code = 4001
 name = "SIG_INVALID"
 variant = "SigInvalid"
@@ -1096,3 +1103,45 @@ name = "GOV_NO_COUNCIL"
 variant = "GovNoCouncil"
 class = "reject"
 message = "This chain has no governance council."
+
+[[code]]
+code = 14014
+name = "VAL_NOT_FOUND"
+variant = "ValNotFound"
+class = "reject"
+message = "No validator registration or set member has this node key."
+
+[[code]]
+code = 14015
+name = "VAL_INVALID_TRANSITION"
+variant = "ValInvalidTransition"
+class = "reject"
+message = "The validator's status does not allow this operation, or the sender is not its operator."
+
+[[code]]
+code = 14016
+name = "VAL_ALREADY_REGISTERED"
+variant = "ValAlreadyRegistered"
+class = "reject"
+message = "The node key is already registered or in the validator set."
+
+[[code]]
+code = 14017
+name = "VAL_BOND_TOO_LOW"
+variant = "ValBondTooLow"
+class = "reject"
+message = "The bond is below the minimum the validator policy sets."
+
+[[code]]
+code = 14018
+name = "VAL_SET_BOUND"
+variant = "ValSetBound"
+class = "reject"
+message = "The change would leave the validator set empty or larger than the policy allows."
+
+[[code]]
+code = 14019
+name = "VAL_KEY_INVALID"
+variant = "ValKeyInvalid"
+class = "reject"
+message = "The consensus key's proof of possession does not verify, or the key is already in the set."

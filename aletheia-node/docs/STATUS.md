@@ -106,6 +106,9 @@ partly written; see the end of this file.
 | Module | APS | Specified | Implemented | Tested | Fuzzed | Documented | Benchmarked |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | Validator set, Q = N − F (`validator_set.rs`) | 19.1 (+ E-20, E-21) | yes | yes | unit | n/a | rustdoc | n/a |
+| Epoch transitions: closing block, empty suffix block, next epoch's engine (`engine.rs`, `consensus.rs`, ADR-069) | 19.1 | yes | yes | `epoch_boundary.rs` (closing, suffix, refusal, next epoch), `validator_epochs.rs` (TLS, 1→2→1 validators, restart) | n/a | rustdoc | no |
+| Validator registry: register (bond), withdraw, exit; Council activate, reject, suspend, reinstate, policy (`rules/v2/validators.rs`, protocol version 2) | 34, 35 | yes | yes | `validator_epochs.rs`, record round trips | no | rustdoc | no |
+| Validator rewards: fees + reward pool, daily, split by work, state share to the beneficiary (`rules/v2/rewards.rs`) | ADR-069 | yes | yes | credit and record units, `validator_epochs.rs` (operator paid) | no | rustdoc | no |
 | Leader schedule (`schedule.rs`) | 19.6 (+ E-22) | yes | yes | unit, property (permutation) | n/a | rustdoc | n/a |
 | Safety rules V2-V5 (`safety.rs`) | 19.5, R.11 | yes | yes | unit, property | n/a | rustdoc | n/a |
 | QC/TC verification and collectors (`certificate.rs`) | APS-0009 (+ E-11) | yes | yes | unit | **no** | rustdoc | no |
@@ -122,7 +125,7 @@ partly written; see the end of this file.
 | --- | --- |
 | Simulator Byzantine suite green (10k seeds) | Green at 25 seeds in release (10 scenarios: silent, equivocating proposer, double voter, invalid proposer, partitions, loss, random faults). The 10k-seed run is the scheduled `node:sim` job, not yet run. |
 | Chaos 24 h, no safety violation | **Not yet run.** |
-| Activation with readiness just above and below threshold | **Not yet**: epoch transitions are not implemented. |
+| Activation with readiness just above and below threshold | **Not yet**: epoch transitions exist (ADR-069); readiness signalling does not. |
 
 ## crates/arno, crates/vm, apps/arno (Phase 8)
 
@@ -205,7 +208,7 @@ partly written; see the end of this file.
 | Land: parcels, encumbrances, co-signed transfers, history | 33 | yes | yes | controller-only transfers, locks, co-signature (and replay), history proofs | n/a | rustdoc | no |
 | Governance: council, proposals, timelocks, designated actions | 35 | yes | yes | threshold, timelock, rejection, expiry, bounds, capacity, upgrade scheduling | n/a | rustdoc | n/a |
 | Separate `identity`, `residence`, `land`, `governance` crates (Section 5.5) | 5.5 | yes | **no**: implemented as modules of `execution`, beside the other native modules | n/a | n/a | n/a | n/a |
-| Emergency validator suspension (timelock class 0) | 35 | yes | **no**: needs the validator registry operations | no | no | no | no |
+| Emergency validator suspension (timelock class 0) | 35 | yes | yes (`SuspendValidator`, protocol version 2) | `validator_epochs.rs` | no | rustdoc | no |
 
 ## Phase 10 exit criteria (spec Section 62)
 

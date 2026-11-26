@@ -225,6 +225,10 @@ pub fn run_payload(
         Payload::Bridge(op) => {
             bridge::apply(records, overlay, verified, op, ctx, meter, events, touched)
         }
+        Payload::Validator(_) => Err(invalid(
+            ErrorCode::TxTypeNotActive,
+            "validator registry transactions start at protocol version 2".to_owned(),
+        )),
         #[cfg(feature = "test-protocol-v2")]
         Payload::TestRemark(_) => Err(invalid(
             ErrorCode::TxTypeNotActive,
@@ -303,6 +307,8 @@ pub fn touched_balances(
         // Bridge transfers report their balances at run time: an inbound recipient is in
         // the message, a delayed one settles in a later transaction.
         Payload::Bridge(_) => &[],
+        // Version 2 reports the bond (rules::v2::touched_balances).
+        Payload::Validator(_) => &[],
         #[cfg(feature = "test-protocol-v2")]
         Payload::TestRemark(_) => &[],
     };

@@ -23,6 +23,8 @@ use aletheia_core::{AletheiaError, Epoch, ErrorCode, Hash32, NetworkIdentity, Sl
 use aletheia_crypto::bls::{BlsPublicKey, BlsSignature};
 use aletheia_execution::model::ValidatorRecord;
 use aletheia_signer::Backend;
+
+use crate::ledger::EngineEpoch;
 use tokio::time::Instant;
 
 /// The node's signer. Shared so the engine can be rebuilt (after block sync moves the
@@ -60,6 +62,14 @@ impl NodeSigner {
                 sign(&mut guard)
             }
             NodeSigner::Observer => Err(signer_error("an observer node does not sign")),
+        }
+    }
+
+    /// The consensus public key, for a node that holds one.
+    pub(crate) fn public_key(&self) -> Option<[u8; 48]> {
+        match self {
+            NodeSigner::Validator(signer) => signer.lock().ok().map(|guard| guard.public_key()),
+            NodeSigner::Observer => None,
         }
     }
 
@@ -147,6 +157,10 @@ pub(crate) struct ConsensusDriver {
     pub(crate) set: ValidatorSet,
     signer: NodeSigner,
     pub(crate) me: Option<aletheia_core::ValidatorIndex>,
+    /// This node's P2P identity: its place in each epoch's set, if any.
+    node_key: [u8; 32],
+    /// The finalized hash the current epoch's leader schedule is seeded with (ADR-069).
+    seed_hash: Hash32,
     /// Proposals above the finalized tip that this node holds, served to peers that fetch them.
     pub(crate) known: BTreeMap<Hash32, Proposal>,
     pub(crate) timer: Option<(Slot, Instant)>,
@@ -166,22 +180,27 @@ impl core::fmt::Debug for ConsensusDriver {
 }
 
 impl ConsensusDriver {
+    #[allow(clippy::too_many_arguments)]
     pub(crate) fn new(
         network: NetworkIdentity,
         set: ValidatorSet,
         signer: NodeSigner,
-        me: Option<aletheia_core::ValidatorIndex>,
+        node_key: [u8; 32],
+        seed_hash: Hash32,
         safety: SafetyData,
         finalized: FinalizedTip,
         slot_duration: Duration,
     ) -> ConsensusDriver {
-        let engine = Self::engine(&network, &set, &signer, me, safety, finalized);
+        let me = member_index(&set, &signer, &node_key);
+        let engine = Self::engine(&network, &set, &signer, me, seed_hash, safety, finalized);
         ConsensusDriver {
             engine,
             network,
             set,
             signer,
             me,
+            node_key,
+            seed_hash,
             known: BTreeMap::new(),
             timer: None,
             pending_build: None,
@@ -195,13 +214,15 @@ impl ConsensusDriver {
         set: &ValidatorSet,
         signer: &NodeSigner,
         me: Option<aletheia_core::ValidatorIndex>,
+        seed_hash: Hash32,
         safety: SafetyData,
         finalized: FinalizedTip,
     ) -> Engine<NodeSigner> {
-        // Epoch 0 only until epoch transitions arrive: the seed is genesis_id (ERRATA E-22).
+        // Epoch 0 seeds from genesis_id (ERRATA E-22); later epochs from the block that closed
+        // the one before (ADR-069).
         let schedule = LeaderSchedule::new(
             set.epoch(),
-            &seed(network, set.epoch(), &network.genesis_id()),
+            &seed(network, set.epoch(), &seed_hash),
             set.len(),
         );
         let mut engine = Engine::new(
@@ -221,21 +242,77 @@ impl ConsensusDriver {
         engine
     }
 
-    /// Block sync moved the finalized tip past the engine: start a fresh engine there,
-    /// keeping the safety data (it only ever grows) and the signer.
-    pub(crate) fn reset(&mut self, finalized: FinalizedTip) {
+    /// Starts a fresh engine at the finalized tip: after block sync moved the tip past the
+    /// engine, or when the tip closed the epoch and the next one begins (ADR-069). Keeps the
+    /// safety data (it only ever grows) and the signer; this node's place in the set is found
+    /// again, so a node joins or leaves the validators with the set.
+    pub(crate) fn restart(&mut self, at: &EngineEpoch) -> Result<(), AletheiaError> {
+        let records = at.records.as_deref().ok_or_else(|| {
+            AletheiaError::new(
+                ErrorCode::StoCorrupt,
+                format!("validator epoch {} has no recorded set", at.epoch),
+            )
+        })?;
+        let set = validator_set(&self.network, at.epoch, records)?;
+        let me = member_index(&set, &self.signer, &self.node_key);
+        if me != self.me || set.epoch() != self.set.epoch() {
+            operator_note(&format!(
+                "info validator epoch {} with {} validators; this node {}",
+                set.epoch(),
+                set.len(),
+                match me {
+                    Some(index) => format!("is validator {index}"),
+                    None => "follows as an observer".to_owned(),
+                }
+            ));
+        }
         let safety = self.engine.safety();
         self.engine = Self::engine(
             &self.network,
-            &self.set,
+            &set,
             &self.signer,
-            self.me,
+            me,
+            at.seed_hash,
             safety,
-            finalized,
+            at.root,
         );
+        self.set = set;
+        self.me = me;
+        self.seed_hash = at.seed_hash;
         self.known
-            .retain(|_, proposal| proposal.block.header.height > finalized.height);
+            .retain(|_, proposal| proposal.block.header.height > at.root.height);
         self.timer = None;
         self.pending_build = None;
+        Ok(())
+    }
+}
+
+/// A line for the operator. Until the binary log backend exists (Section 45) stderr lines
+/// stand in for it, as they do in the daemon; an epoch change or a node moving between
+/// validator and observer is something the operator must see.
+#[allow(clippy::print_stderr)]
+pub(crate) fn operator_note(line: &str) {
+    eprintln!("aletheiad {line}");
+}
+
+/// This node's index in `set` when it is a member and holds the member's consensus key. A
+/// member without the key, or with a different one, follows as an observer: signing with the
+/// wrong key would only produce votes nobody counts.
+pub(crate) fn member_index(
+    set: &ValidatorSet,
+    signer: &NodeSigner,
+    node_key: &[u8; 32],
+) -> Option<aletheia_core::ValidatorIndex> {
+    let index = set.index_of(node_key)?;
+    let registered = set.member(index)?.consensus_key.to_bytes();
+    match signer.public_key() {
+        Some(key) if key == registered => Some(index),
+        Some(_) => {
+            operator_note(&format!(
+                "warn node key is validator {index}, but the consensus key differs from the registered one; following as an observer"
+            ));
+            None
+        }
+        None => None,
     }
 }

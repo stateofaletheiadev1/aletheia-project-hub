@@ -16,7 +16,7 @@ use aletheia_storage::datadir::LastFinalized;
 use tokio::sync::{mpsc, oneshot};
 
 use crate::channels::{BLOCK_RESPONSE_BYTES, CHAIN_REQUEST_QUEUE};
-use crate::ledger::{BuildParams, Ledger};
+use crate::ledger::{BuildParams, EngineEpoch, Ledger};
 
 type Reply<T> = oneshot::Sender<Result<T, AletheiaError>>;
 
@@ -73,6 +73,9 @@ pub(crate) enum ChainRequest {
     Rpc {
         query: crate::rpc::RpcQuery,
         reply: Reply<crate::rpc::RpcAnswer>,
+    },
+    EngineEpoch {
+        reply: Reply<EngineEpoch>,
     },
 }
 
@@ -182,6 +185,11 @@ impl ChainHandle {
         .await
     }
 
+    /// The validator epoch, set and start round the engine runs at the finalized tip.
+    pub(crate) async fn engine_epoch(&self) -> Result<EngineEpoch, AletheiaError> {
+        self.call(|reply| ChainRequest::EngineEpoch { reply }).await
+    }
+
     pub(crate) async fn persist_safety(&self, safety: SafetyData) -> Result<(), AletheiaError> {
         self.call(|reply| ChainRequest::PersistSafety { safety, reply })
             .await
@@ -262,6 +270,7 @@ fn serve<S: KvStore>(ledger: &mut Ledger<S>, request: ChainRequest) -> Result<()
         ChainRequest::ReadBlockByHash { hash, reply } => {
             answer(reply, ledger.read_block_by_hash(&hash))
         }
+        ChainRequest::EngineEpoch { reply } => answer(reply, ledger.engine_epoch()),
         ChainRequest::ApplyProven {
             blocks,
             proof,
@@ -344,9 +353,15 @@ fn read_blocks<S: KvStore>(
         if bytes > BLOCK_RESPONSE_BYTES && !blocks.is_empty() {
             break;
         }
+        let closes = aletheia_consensus::engine::closes_epoch(&block.block.header);
         blocks.push(block);
         if let Some(proof) = ledger.finality_proof(height)? {
             proven = Some((blocks.len(), proof));
+        }
+        // A batch never crosses an epoch boundary: its proof is verified against one epoch's
+        // set, and the closing block always carries one (ADR-069).
+        if closes && proven.as_ref().is_some_and(|(len, _)| *len == blocks.len()) {
+            break;
         }
         // Past what was asked for, keep going only while no proof has been found.
         if blocks.len() >= wanted && proven.is_some() {

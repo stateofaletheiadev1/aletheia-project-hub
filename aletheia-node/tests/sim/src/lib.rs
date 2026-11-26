@@ -424,6 +424,7 @@ impl Simulation {
                 round,
                 parent_qc,
                 timeout_cert,
+                suffix: _,
             } => {
                 let proposal = self.build(
                     node,

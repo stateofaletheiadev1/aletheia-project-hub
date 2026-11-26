@@ -26,6 +26,7 @@ pub mod registry_model;
 pub mod rules;
 pub mod runner;
 pub mod stateless;
+pub mod validator_model;
 
 pub use context::BlockContext;
 pub use executor::{ExecutedBlock, check_header_results, execute_block};

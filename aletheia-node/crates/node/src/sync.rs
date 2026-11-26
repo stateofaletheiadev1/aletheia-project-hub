@@ -25,7 +25,7 @@
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use std::time::Duration;
 
-use aletheia_consensus::{ConsensusMessage, FinalityProof, FinalizedTip, Input, Output};
+use aletheia_consensus::{ConsensusMessage, FinalityProof, Input, Output};
 use aletheia_core::block::Proposal;
 use aletheia_core::{
     AceDecode, AceEncode, AletheiaError, ErrorCode, Hash32, Height, SignedTransaction, Slot,
@@ -371,8 +371,17 @@ impl SyncService {
         };
         let network = driver.network;
         let tip = *self.tip.borrow();
+        // One epoch per batch (ADR-069): every block in the engine's epoch, and only the last
+        // may close it; the proof is then checked against that epoch's set.
+        let epoch = driver.set.epoch();
+        let one_epoch = blocks.iter().enumerate().all(|(position, block)| {
+            block.block.header.epoch == epoch
+                && (position.saturating_add(1) == blocks.len()
+                    || !aletheia_consensus::engine::closes_epoch(&block.block.header))
+        });
         let proven = FinalityProof::from_ace_bytes(finality_proof)
             .ok()
+            .filter(|_| one_epoch)
             .filter(|proof| proof.verify(&network, &driver.set).is_ok())
             .filter(|proof| {
                 let mut parent = tip.hash;
@@ -387,21 +396,12 @@ impl SyncService {
             self.request_more().await;
             return Ok(());
         };
-        let Some(last) = blocks.last().cloned() else {
-            return Ok(());
-        };
         match self.chain.apply_proven(blocks.clone(), proof).await {
             Ok(tip) => {
                 for block in &blocks {
                     self.finalized(tip, block).await?;
                 }
-                if let Some(driver) = self.consensus.as_mut() {
-                    driver.reset(FinalizedTip {
-                        hash: tip.hash,
-                        height: tip.height,
-                        round: last.block.header.slot,
-                    });
-                }
+                self.restart_engine().await?;
                 self.drive(Input::Start).await?;
             }
             Err(error) if error.is_fail_stop() => return Err(error),
@@ -481,8 +481,22 @@ impl SyncService {
         }
     }
 
+    /// Restarts the engine at the finalized tip, in the epoch the ledger says it runs (the
+    /// next one when the tip closed its epoch, ADR-069).
+    async fn restart_engine(&mut self) -> Result<(), AletheiaError> {
+        if self.consensus.is_none() {
+            return Ok(());
+        }
+        let at = self.chain.engine_epoch().await?;
+        if let Some(driver) = self.consensus.as_mut() {
+            driver.restart(&at)?;
+        }
+        Ok(())
+    }
+
     /// Feeds one input to the engine and carries out every output in order, including the
-    /// inputs those outputs produce (execution results, built blocks).
+    /// inputs those outputs produce (execution results, built blocks). When the engine
+    /// finalizes the block that closes its epoch, the next epoch's engine takes over.
     async fn drive(&mut self, input: Input) -> Result<(), AletheiaError> {
         let mut inputs = VecDeque::from([input]);
         while let Some(input) = inputs.pop_front() {
@@ -492,6 +506,15 @@ impl SyncService {
             let outputs = driver.engine.handle(input)?;
             for output in outputs {
                 self.carry_out(output, &mut inputs).await?;
+            }
+            if self
+                .consensus
+                .as_ref()
+                .is_some_and(|driver| driver.engine.is_closed())
+            {
+                self.restart_engine().await?;
+                inputs.clear();
+                inputs.push_back(Input::Start);
             }
         }
         Ok(())
@@ -539,6 +562,7 @@ impl SyncService {
                 round,
                 parent_qc,
                 timeout_cert,
+                suffix: _,
             } => {
                 if let Some(driver) = self.consensus.as_mut() {
                     // Pacing (Section 19.4): one slot duration after entering the round.

@@ -130,8 +130,9 @@ fn consensus_driver<S: KvStore>(
         (None, Some(remote)) => Some(Key::Remote(remote)),
         (None, None) => None,
     };
-    let epoch = aletheia_core::Epoch::new(0);
-    let Some(records) = ledger.validator_records(epoch.get())? else {
+    let at = ledger.engine_epoch()?;
+    let epoch = at.epoch;
+    let Some(records) = at.records.clone() else {
         if consensus_key.is_some() {
             return Err(config_error(
                 "a consensus key was given, but genesis has no validators".to_owned(),
@@ -147,7 +148,19 @@ fn consensus_driver<S: KvStore>(
     let network = *ledger.network();
     let set = validator_set(&network, epoch, &records)?;
     let index = set.index_of(&config.node_key.public_key().to_bytes());
-    let (me, signer) = match (index, consensus_key) {
+    let open_signer = |key: Key| -> Result<NodeSigner, AletheiaError> {
+        let signer = match key {
+            Key::Local(key) => aletheia_signer::Backend::Local(aletheia_signer::LocalSigner::open(
+                key,
+                &config.data_dir.join("signer"),
+            )?),
+            Key::Remote(remote) => aletheia_signer::Backend::Remote(remote),
+        };
+        Ok(NodeSigner::Validator(std::sync::Arc::new(
+            std::sync::Mutex::new(signer),
+        )))
+    };
+    let signer = match (index, consensus_key) {
         (Some(index), Some(key)) => {
             let registered = set.member(index).map(|m| m.consensus_key.to_bytes());
             let public_key = match &key {
@@ -159,46 +172,35 @@ fn consensus_driver<S: KvStore>(
                     "the consensus key is not the one registered for validator {index}"
                 )));
             }
-            let signer = match key {
-                Key::Local(key) => aletheia_signer::Backend::Local(
-                    aletheia_signer::LocalSigner::open(key, &config.data_dir.join("signer"))?,
-                ),
-                Key::Remote(remote) => aletheia_signer::Backend::Remote(remote),
-            };
-            (
-                Some(index),
-                NodeSigner::Validator(std::sync::Arc::new(std::sync::Mutex::new(signer))),
-            )
+            open_signer(key)?
         }
         (Some(index), None) => {
             return Err(config_error(format!(
                 "this node key is validator {index}, but no consensus key was given"
             )));
         }
-        (None, Some(_)) => {
-            return Err(config_error(
-                "a consensus key was given, but this node key is not in the validator set"
-                    .to_owned(),
+        // A registered operator's node waits for the Council: it follows as an observer and
+        // becomes a validator at the first epoch whose set includes it (ADR-069).
+        (None, Some(key)) => {
+            crate::consensus::operator_note(&format!(
+                "info this node key is not in the validator set of epoch {epoch}; following as an observer until it joins"
             ));
+            open_signer(key)?
         }
-        (None, None) => (None, NodeSigner::Observer),
+        (None, None) => NodeSigner::Observer,
     };
     let safety = ledger
         .safety()
         .unwrap_or_else(|| aletheia_consensus::SafetyData::genesis(epoch))
         .max_merge(&signer.floor(epoch)?);
-    let finalized = aletheia_consensus::FinalizedTip {
-        hash: ledger.tip().hash,
-        height: ledger.tip().height,
-        round: ledger.tip_round()?,
-    };
     Ok(Some(ConsensusDriver::new(
         network,
         set,
         signer,
-        me,
+        config.node_key.public_key().to_bytes(),
+        at.seed_hash,
         safety,
-        finalized,
+        at.root,
         Duration::from_millis(config.genesis.timing.slot_duration_ms),
     )))
 }

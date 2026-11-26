@@ -202,9 +202,41 @@ pub enum GovAction {
     RegisterGuardianSet(Box<crate::bridge::GuardianSet>),
     /// The council pauses (immediately) or resumes (after a timelock) a route.
     SetBridgeRoutePaused { route_id: u32, paused: bool },
+    /// Admits a registered validator; it joins the set when this block closes the epoch
+    /// (protocol version 2, ADR-069).
+    ActivateValidator { node_key: [u8; 32] },
+    /// Refuses a registered application; the bond returns to the operator.
+    RejectValidator { node_key: [u8; 32] },
+    /// Takes a validator out of the set at once (timelock 0, Section 35); it keeps its bond.
+    SuspendValidator { node_key: [u8; 32] },
+    /// Returns a suspended validator to the set.
+    ReinstateValidator { node_key: [u8; 32] },
+    /// The minimum bond (ALnT base units) and the largest set governance allows.
+    SetValidatorPolicy { min_bond: u128, max_validators: u16 },
+    /// Validator rewards (ADR-069): slots per reward period, ALnT base units the reward pool pays
+    /// per period on top of fees, and where the share earned by validators without a licensed
+    /// operator (the state's own) goes; `None` leaves it in the pools.
+    SetRewardPolicy {
+        period_slots: u64,
+        pool_payout: u128,
+        state_beneficiary: Option<Address>,
+    },
 }
 
 impl GovAction {
+    /// Validator registry actions exist from protocol version 2 (ADR-069).
+    pub const fn is_validator_action(&self) -> bool {
+        matches!(
+            self,
+            GovAction::ActivateValidator { .. }
+                | GovAction::RejectValidator { .. }
+                | GovAction::SuspendValidator { .. }
+                | GovAction::ReinstateValidator { .. }
+                | GovAction::SetValidatorPolicy { .. }
+                | GovAction::SetRewardPolicy { .. }
+        )
+    }
+
     /// The timelock class (Section 35): how many governance epochs must pass after approval.
     pub const fn timelock_epochs(&self) -> u64 {
         match self {
@@ -213,6 +245,12 @@ impl GovAction {
                 ..
             } => 0,
             GovAction::SetBridgeRoutePaused { paused: true, .. } => 0,
+            GovAction::SuspendValidator { .. } => 0,
+            GovAction::ActivateValidator { .. }
+            | GovAction::RejectValidator { .. }
+            | GovAction::ReinstateValidator { .. }
+            | GovAction::SetValidatorPolicy { .. }
+            | GovAction::SetRewardPolicy { .. } => 1,
             GovAction::SetBridgeRoutePaused { .. } => 1,
             GovAction::UpsertBridgeRoute(_) | GovAction::RegisterGuardianSet(_) => 4,
             GovAction::RegisterIssuer { .. }
@@ -305,6 +343,40 @@ impl AceEncode for GovAction {
                 out.u32(*route_id);
                 out.bool(*paused);
             }
+            GovAction::ActivateValidator { node_key } => {
+                out.u8(12);
+                out.fixed(node_key);
+            }
+            GovAction::RejectValidator { node_key } => {
+                out.u8(13);
+                out.fixed(node_key);
+            }
+            GovAction::SuspendValidator { node_key } => {
+                out.u8(14);
+                out.fixed(node_key);
+            }
+            GovAction::ReinstateValidator { node_key } => {
+                out.u8(15);
+                out.fixed(node_key);
+            }
+            GovAction::SetValidatorPolicy {
+                min_bond,
+                max_validators,
+            } => {
+                out.u8(16);
+                out.u128(*min_bond);
+                out.u16(*max_validators);
+            }
+            GovAction::SetRewardPolicy {
+                period_slots,
+                pool_payout,
+                state_beneficiary,
+            } => {
+                out.u8(17);
+                out.u64(*period_slots);
+                out.u128(*pool_payout);
+                out.option(state_beneficiary.as_ref());
+            }
         }
     }
 }
@@ -358,6 +430,27 @@ impl AceDecode for GovAction {
             11 => GovAction::SetBridgeRoutePaused {
                 route_id: input.u32()?,
                 paused: input.bool()?,
+            },
+            12 => GovAction::ActivateValidator {
+                node_key: input.array()?,
+            },
+            13 => GovAction::RejectValidator {
+                node_key: input.array()?,
+            },
+            14 => GovAction::SuspendValidator {
+                node_key: input.array()?,
+            },
+            15 => GovAction::ReinstateValidator {
+                node_key: input.array()?,
+            },
+            16 => GovAction::SetValidatorPolicy {
+                min_bond: input.u128()?,
+                max_validators: input.u16()?,
+            },
+            17 => GovAction::SetRewardPolicy {
+                period_slots: input.u64()?,
+                pool_payout: input.u128()?,
+                state_beneficiary: input.option()?,
             },
             _ => return Err(bad("unknown governance action")),
         })

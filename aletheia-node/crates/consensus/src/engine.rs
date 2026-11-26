@@ -11,6 +11,12 @@
 //! block, moves the lock and the round, and finalizes by the 2-chain rule: B is final when a
 //! QC exists for C with `C.parent == B` and `C.round == B.round + 1`; B's uncommitted
 //! ancestors are final with it.
+//!
+//! Epoch boundaries (ADR-069): a block whose `next_validator_set_hash` differs from its
+//! `validator_set_hash` closes the epoch. Its child (the suffix block that certifies it) must be
+//! empty and is never finalized, and nothing may extend that child, so the closing block is the
+//! last block this engine finalizes. The engine then reports itself closed and ignores every
+//! further input; the caller starts the next epoch's engine on the closing block.
 
 use std::collections::BTreeMap;
 
@@ -77,11 +83,13 @@ pub enum Output {
     Broadcast(ConsensusMessage),
     /// Execute against the parent's (possibly speculative) state; answer with `Executed`.
     Execute(Box<Proposal>),
-    /// This node leads `round`: build a block extending `parent_qc.block_hash`.
+    /// This node leads `round`: build a block extending `parent_qc.block_hash`. `suffix` means
+    /// the parent closes the epoch: the block must carry no transactions (ADR-069).
     BuildProposal {
         round: Slot,
         parent_qc: Box<QuorumCertificate>,
         timeout_cert: Option<Box<TimeoutCertificate>>,
+        suffix: bool,
     },
     ArmTimer {
         round: Slot,
@@ -139,6 +147,13 @@ pub struct Engine<S: ConsensusSigner> {
     /// Our timeout for the current round, re-broadcast each time the timer fires again so a
     /// lost message cannot stall the round.
     own_timeout: Option<Timeout>,
+    /// Set once this engine finalized a block that closes its epoch (ADR-069).
+    closed: bool,
+}
+
+/// Whether a block closes its validator epoch: it commits to a different next set (ADR-069).
+pub fn closes_epoch(header: &aletheia_core::block::BlockHeader) -> bool {
+    header.next_validator_set_hash != header.validator_set_hash
 }
 
 impl<S: ConsensusSigner> core::fmt::Debug for Engine<S> {
@@ -202,7 +217,29 @@ impl<S: ConsensusSigner> Engine<S> {
             evidenced: std::collections::BTreeSet::new(),
             proposed_in: None,
             own_timeout: None,
+            closed: false,
         }
+    }
+
+    /// Whether this engine finalized the block that closes its epoch. A closed engine ignores
+    /// every input; the caller replaces it with the next epoch's engine.
+    pub fn is_closed(&self) -> bool {
+        self.closed
+    }
+
+    /// Whether `hash` is a pending block that closes the epoch. The finalized root never counts:
+    /// an engine rooted on a closing block belongs to the next epoch.
+    fn pending_closes(&self, hash: &Hash32) -> bool {
+        self.blocks
+            .get(hash)
+            .is_some_and(|block| closes_epoch(&block.proposal.block.header))
+    }
+
+    /// Whether `hash` is a suffix block: a pending block whose parent closes the epoch.
+    fn pending_is_suffix(&self, hash: &Hash32) -> bool {
+        self.blocks
+            .get(hash)
+            .is_some_and(|block| self.pending_closes(&block.proposal.block.header.parent_hash))
     }
 
     pub fn round(&self) -> Slot {
@@ -236,6 +273,9 @@ impl<S: ConsensusSigner> Engine<S> {
     /// from peers are dropped (and evidenced where provable), never errors.
     pub fn handle(&mut self, input: Input) -> Result<Vec<Output>, AletheiaError> {
         let mut out = Vec::new();
+        if self.closed {
+            return Ok(out);
+        }
         match input {
             Input::Start => self.enter_round(&mut out),
             Input::Message(message) => self.on_message(message, &mut out)?,
@@ -419,6 +459,25 @@ impl<S: ConsensusSigner> Engine<S> {
                 block_hash: hash,
                 proposer: header.proposer,
                 reason: "height is not parent + 1".to_owned(),
+            })));
+            return Ok(());
+        }
+        // Epoch boundary (ADR-069): nothing extends a suffix block, and a suffix block is empty
+        // and does not close the epoch again.
+        let parent = proposal.block.header.parent_hash;
+        if self.pending_is_suffix(&parent) {
+            return Ok(());
+        }
+        if self.pending_closes(&parent)
+            && (!proposal.block.body.transactions.is_empty()
+                || closes_epoch(&proposal.block.header))
+        {
+            out.push(Output::Evidence(Box::new(Evidence::InvalidProposal {
+                block_hash: hash,
+                proposer: proposal.block.header.proposer,
+                reason:
+                    "a block extending the epoch's closing block must be empty and keep the set"
+                        .to_owned(),
             })));
             return Ok(());
         }
@@ -656,6 +715,17 @@ impl<S: ConsensusSigner> Engine<S> {
             cursor = block.proposal.block.header.parent_hash;
         }
         chain.reverse();
+        // A suffix block is never final, and a closing block is always the last block final in
+        // its epoch (ADR-069). Neither can occur otherwise given the proposal rules; refuse
+        // rather than finalize past an epoch boundary.
+        let crosses_boundary = chain.iter().enumerate().any(|(position, (_, block))| {
+            let header = &block.proposal.block.header;
+            self.pending_closes(&header.parent_hash)
+                || (closes_epoch(header) && position.saturating_add(1) != chain.len())
+        });
+        if crosses_boundary {
+            return Ok(());
+        }
         // A node never commits state it did not compute: every block to finalize must have been
         // executed here. If one is still executing, the commit is retried when it finishes.
         let all_executed = chain.iter().all(|(_, block)| {
@@ -689,9 +759,15 @@ impl<S: ConsensusSigner> Engine<S> {
             height: block.height,
             round: block.proposal.block.header.slot,
         });
+        let closing = chain
+            .last()
+            .is_some_and(|(_, block)| closes_epoch(&block.proposal.block.header));
         if let Some(tip) = last {
             self.finalized = tip;
             self.prune();
+        }
+        if closing {
+            self.closed = true;
         }
         out.push(Output::Finalize {
             blocks,
@@ -818,7 +894,9 @@ impl<S: ConsensusSigner> Engine<S> {
             // The leader extends the highest certified block, which it must hold to build on.
             let holds_parent = self.high_qc.block_hash == self.finalized.hash
                 || self.blocks.contains_key(&self.high_qc.block_hash);
-            if holds_parent {
+            // Nothing is built on a suffix block: the epoch ends with the closing block.
+            if holds_parent && !self.pending_is_suffix(&self.high_qc.block_hash) {
+                let suffix = self.pending_closes(&self.high_qc.block_hash);
                 let timeout_cert = self
                     .last_tc
                     .as_ref()
@@ -829,6 +907,7 @@ impl<S: ConsensusSigner> Engine<S> {
                     round,
                     parent_qc: Box::new(self.high_qc.clone()),
                     timeout_cert,
+                    suffix,
                 });
             }
         }

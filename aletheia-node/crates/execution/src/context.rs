@@ -16,6 +16,48 @@ pub struct BlockContext {
     pub proposer: ValidatorIndex,
     pub parent_hash: Hash32,
     pub protocol_version: ProtocolVersion,
+    /// Who signed the parent's quorum certificate (the header's `parent_qc`). Version 2 counts
+    /// missed signatures for validator rewards (ADR-069); empty for the unsigned root QC.
+    pub parent_signers: Signers,
+}
+
+/// A copyable set of validator indices (bit `i` is index `i`, up to `MAX_VALIDATORS`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Signers {
+    bits: [u8; 128],
+    signed: bool,
+}
+
+impl Signers {
+    /// No certificate signatures: the root QC, or a devnet producer's block.
+    pub const NONE: Signers = Signers {
+        bits: [0; 128],
+        signed: false,
+    };
+
+    pub fn from_bitmap(bitmap: &aletheia_core::block::SignerBitmap) -> Signers {
+        let mut signers = Signers::NONE;
+        for index in bitmap.signers() {
+            let position = usize::from(index.get());
+            if let Some(byte) = signers.bits.get_mut(position / 8) {
+                *byte |= 1u8 << (position % 8);
+                signers.signed = true;
+            }
+        }
+        signers
+    }
+
+    /// Whether the certificate carried any signature at all.
+    pub fn is_signed(&self) -> bool {
+        self.signed
+    }
+
+    pub fn contains(&self, index: u16) -> bool {
+        let position = usize::from(index);
+        self.bits
+            .get(position / 8)
+            .is_some_and(|byte| byte & (1u8 << (position % 8)) != 0)
+    }
 }
 
 /// The metered action could not be paid for within the transaction's `eu_limit`.

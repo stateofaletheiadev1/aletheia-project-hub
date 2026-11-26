@@ -321,6 +321,7 @@ impl Devnet {
             proposer: ValidatorIndex::new(0),
             parent_hash: self.head.block_hash(&self.network),
             protocol_version: aletheia_core::ProtocolVersion::new(entry.protocol_version),
+            parent_signers: aletheia_execution::context::Signers::NONE,
         };
         let mut overlay = aletheia_state::StateOverlay::new(&view);
         rules
@@ -382,6 +383,7 @@ impl Devnet {
             proposer: ValidatorIndex::new(0),
             parent_hash,
             protocol_version: aletheia_core::ProtocolVersion::new(entry.protocol_version),
+            parent_signers: aletheia_execution::context::Signers::NONE,
         };
         let mut executed = execute_block(rules, &records, &self.view(), &ctx, &ordered)?;
         if !self.injected.is_empty() {

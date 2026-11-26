@@ -374,6 +374,14 @@ pub enum ParamId {
     ChainTiming,
     MonetaryPolicy,
     GovernancePolicy,
+    /// The validator epoch and the set changes waiting for the end of the block (ADR-069).
+    ValidatorEpoch,
+    /// Minimum bond and largest set (ADR-069).
+    ValidatorPolicy,
+    /// Reward period, pool payout and the state's beneficiary (ADR-069).
+    RewardPolicy,
+    /// The current reward period's work record (ADR-069).
+    RewardLedger,
 }
 
 impl ParamId {
@@ -383,6 +391,10 @@ impl ParamId {
             ParamId::ChainTiming => 2,
             ParamId::MonetaryPolicy => 3,
             ParamId::GovernancePolicy => 4,
+            ParamId::ValidatorEpoch => 5,
+            ParamId::ValidatorPolicy => 6,
+            ParamId::RewardPolicy => 7,
+            ParamId::RewardLedger => 8,
         }
     }
 }

@@ -15,6 +15,7 @@ use crate::model::Records;
 use crate::ordering::check_canonical_order;
 use crate::receipt::Receipt;
 use crate::rules::Rules;
+use crate::rules::v2::validators::EpochPosition;
 use crate::stateless::VerifiedTransaction;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -26,6 +27,9 @@ pub struct ExecutedBlock {
     pub event_root: Hash32,
     pub eu_used: u64,
     pub tx_count: u32,
+    /// The next epoch's set, when this block closed its validator epoch (ADR-069); the header
+    /// then commits to it in `next_validator_set_hash`.
+    pub next_validator_set: Option<Vec<crate::model::ValidatorRecord>>,
 }
 
 fn limit_exceeded(detail: String) -> AletheiaError {
@@ -71,6 +75,32 @@ pub fn execute_block(
             ),
         ));
     }
+    // Validator epochs (ADR-069): a suffix block is empty and changes nothing.
+    let position = if rules.has_validator_epochs() {
+        crate::rules::v2::validators::position(records, base, ctx.epoch.get())?
+    } else {
+        EpochPosition::Open
+    };
+    if position == EpochPosition::Suffix {
+        if !transactions.is_empty() {
+            return Err(AletheiaError::new(
+                ErrorCode::BlkEpochMismatch,
+                "a block extending the epoch's closing block carries no transactions".to_owned(),
+            ));
+        }
+        let network = records.network();
+        let none: [[u8; 32]; 0] = [];
+        return Ok(ExecutedBlock {
+            changes: Vec::new(),
+            receipts: Vec::new(),
+            tx_root: merkle::root(network, &none),
+            receipt_root: merkle::root(network, &none),
+            event_root: merkle::root(network, &none),
+            eu_used: 0,
+            tx_count: 0,
+            next_validator_set: None,
+        });
+    }
     check_canonical_order(
         records.network(),
         &ctx.parent_hash,
@@ -83,6 +113,7 @@ pub fn execute_block(
     )?;
 
     let mut overlay = StateOverlay::new(base);
+    crate::rules::v2::validators::begin_block(records, &mut overlay, ctx, position)?;
     let mut receipts = Vec::with_capacity(transactions.len());
     let mut touched = Vec::new();
     let mut eu_used = 0u64;
@@ -119,6 +150,11 @@ pub fn execute_block(
 
     touched.extend(rules.end_block(records, &mut overlay, ctx)?);
     check_supply(rules, records, base, &overlay, transactions, &touched)?;
+    let next_validator_set = if rules.has_validator_epochs() {
+        crate::rules::v2::validators::closed_next_set(records, &overlay, ctx.epoch.get())?
+    } else {
+        None
+    };
 
     let network = records.network();
     let witness: Vec<[u8; 32]> = transactions
@@ -142,6 +178,7 @@ pub fn execute_block(
         receipts,
         eu_used,
         tx_count,
+        next_validator_set,
     })
 }
 

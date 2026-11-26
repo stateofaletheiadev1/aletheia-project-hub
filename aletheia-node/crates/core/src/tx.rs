@@ -123,6 +123,8 @@ pub enum Payload {
     /// Aletheia Payment Network (types 128-143).
     Apn(Box<crate::apn::ApnOp>),
     Bridge(Box<crate::bridge::BridgeOp>),
+    /// Validator registry (types 64-66, protocol version 2; ADR-069).
+    Validator(Box<crate::validator::ValidatorOp>),
     /// Test-only opaque note, at most 256 bytes (feature `test-protocol-v2`).
     #[cfg(feature = "test-protocol-v2")]
     TestRemark(Vec<u8>),
@@ -144,6 +146,7 @@ impl Payload {
             Payload::Registry(op) => TxType(op.tx_type()),
             Payload::Apn(op) => TxType(op.tx_type()),
             Payload::Bridge(op) => TxType(op.tx_type()),
+            Payload::Validator(op) => TxType(op.tx_type()),
             #[cfg(feature = "test-protocol-v2")]
             Payload::TestRemark(_) => TxType::TEST_REMARK,
         }
@@ -165,6 +168,7 @@ impl Payload {
             Payload::Registry(op) => op.encode_content(out),
             Payload::Apn(op) => op.encode_content(out),
             Payload::Bridge(op) => op.encode_content(out),
+            Payload::Validator(op) => op.encode_content(out),
             #[cfg(feature = "test-protocol-v2")]
             Payload::TestRemark(note) => out.bytes(note),
         }
@@ -206,6 +210,15 @@ impl Payload {
                     None => Err(AletheiaError::new(
                         ErrorCode::DecodeNonCanonical,
                         "not an APN type".to_owned(),
+                    )),
+                }
+            }
+            TxType(validator) if crate::validator::ValidatorOp::TX_TYPES.contains(&validator) => {
+                match crate::validator::ValidatorOp::decode_content(validator, input) {
+                    Some(op) => op.map(|op| Payload::Validator(Box::new(op))),
+                    None => Err(AletheiaError::new(
+                        ErrorCode::DecodeNonCanonical,
+                        "not a validator registry type".to_owned(),
                     )),
                 }
             }

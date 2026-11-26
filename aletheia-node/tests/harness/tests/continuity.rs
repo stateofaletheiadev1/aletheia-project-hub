@@ -1,6 +1,7 @@
 //! Continuity on a single node (spec 62.1, Phase 3): mixed-version history, historical replay
 //! under each block's own rules, and the clean halt at the edge of the binary's knowledge.
-//! Needs the test-only protocol version 2: `cargo test --features test-protocol-v2`.
+//! Needs the test-only protocol version 3 (version 2 plus `TestRemark`):
+//! `cargo test --features test-protocol-v2`.
 
 #![cfg(feature = "test-protocol-v2")]
 #![allow(
@@ -23,10 +24,11 @@ fn remark(net: &Devnet, from: usize, nonce: u64) -> aletheia_core::SignedTransac
     )
 }
 
-/// Blocks 1-2 under version 1, version 2 from height 3.
+/// Blocks 1-2 under version 1, the test version 3 from height 3.
 fn upgraded_history() -> Devnet {
     let mut net = Devnet::new(3, 100 * ONE_AEY, 100 * ONE_ALNT);
     net.schedule_upgrade(2, 3);
+    net.schedule_upgrade(3, 3);
     let b = net.address(1);
     net.produce(vec![net.transfer(0, 0, b, AssetId::AEY, ONE_AEY)])
         .unwrap();
@@ -45,6 +47,7 @@ fn upgraded_history() -> Devnet {
 fn the_new_type_is_inactive_before_activation_and_active_after() {
     let mut net = Devnet::new(2, 0, 100 * ONE_ALNT);
     net.schedule_upgrade(2, 3);
+    net.schedule_upgrade(3, 3);
     net.produce(vec![]).unwrap(); // height 1 records the schedule
     let early = net.verify(&[remark(&net, 0, 0)]).unwrap_err();
     assert_eq!(
@@ -54,7 +57,7 @@ fn the_new_type_is_inactive_before_activation_and_active_after() {
     );
     net.produce(vec![]).unwrap(); // height 2
     let (proposal, executed) = net.produce(vec![remark(&net, 0, 0)]).unwrap(); // height 3
-    assert_eq!(proposal.block.header.version.get(), 2);
+    assert_eq!(proposal.block.header.version.get(), 3);
     assert_eq!(executed.receipts[0].status, ReceiptStatus::Success);
     assert_eq!(executed.receipts[0].eu_used, 500);
 }
@@ -67,7 +70,7 @@ fn headers_carry_the_version_the_schedule_assigns() {
         .iter()
         .map(|(p, _)| p.block.header.version.get())
         .collect();
-    assert_eq!(versions, [1, 1, 2, 2]);
+    assert_eq!(versions, [1, 1, 3, 3]);
     let view = net.view();
     let records = net.records();
     assert_eq!(
@@ -90,6 +93,7 @@ fn replay_from_genesis_reproduces_every_root_across_the_upgrade() {
         aletheia_test_harness::keys(original.keys.len()),
     );
     replay.schedule_upgrade(2, 3);
+    replay.schedule_upgrade(3, 3);
     for (proposal, _) in &original.blocks {
         let txs = proposal.block.body.transactions.clone();
         let verified = replay.verify(&txs).unwrap();
@@ -106,7 +110,8 @@ fn replay_from_genesis_reproduces_every_root_across_the_upgrade() {
 fn a_version_this_binary_does_not_know_halts_cleanly() {
     let mut net = Devnet::new(1, 0, ONE_ALNT);
     net.schedule_upgrade(2, 2);
-    net.schedule_upgrade(3, 3);
+    net.schedule_upgrade(3, 2);
+    net.schedule_upgrade(4, 3);
     net.produce(vec![]).unwrap();
     net.produce(vec![]).unwrap();
     let error = net.produce(vec![]).unwrap_err();
@@ -115,12 +120,12 @@ fn a_version_this_binary_does_not_know_halts_cleanly() {
     assert!(
         error
             .detail()
-            .contains("Protocol version 3 activates at height 3"),
+            .contains("Protocol version 4 activates at height 3"),
         "{}",
         error.detail()
     );
     assert!(
-        error.detail().contains("supports protocol versions 1-2"),
+        error.detail().contains("supports protocol versions 1-3"),
         "{}",
         error.detail()
     );

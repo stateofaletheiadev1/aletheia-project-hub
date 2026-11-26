@@ -116,6 +116,7 @@ pub fn payload_name(payload: &Payload) -> &'static str {
         Payload::Registry(_) => "Registry",
         Payload::Apn(_) => "Apn",
         Payload::Bridge(_) => "Bridge",
+        Payload::Validator(_) => "Validator",
         #[allow(unreachable_patterns)]
         _ => "Other",
     }

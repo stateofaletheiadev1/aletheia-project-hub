@@ -300,15 +300,17 @@ async fn misconfigured_validators_are_refused_at_start() {
         .unwrap_err();
     assert!(error.detail().contains("no consensus key"), "{error}");
 
-    // A consensus key on a node outside the set.
+    // A consensus key on a node outside the set is an operator waiting to be admitted: it
+    // starts and follows as an observer until an epoch includes it (ADR-069).
     let m = member("outsider");
     let mut outsider = config(&m, &genesis, 9, Vec::new(), false);
-    outsider.consensus_key = Some(consensus_key(0));
-    let error = start(outsider, m.store.clone()).await.unwrap_err();
-    assert!(
-        error.detail().contains("not in the validator set"),
-        "{error}"
-    );
+    outsider.consensus_key = Some(consensus_key(9));
+    start(outsider, m.store.clone())
+        .await
+        .unwrap()
+        .shutdown()
+        .await
+        .unwrap();
 }
 
 /// An `aletheia-signer` daemon on loopback holding `key` (ADR-063); production uses a Unix
