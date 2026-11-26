@@ -370,6 +370,30 @@ async fn a_single_validator_chain_admits_and_loses_a_validator_without_stopping(
     // Both validators share the pool payout by work; the operator's share is near half.
     assert!(after_reward - before <= 2 * 1_000 * ONE_ALNT);
 
+    // The API reports the operator's registration, its work this period and the pools. The
+    // service holds a handle to the node, so it is dropped before the node shuts down.
+    let reported = aletheia_rpc::Service::new(v0.rpc_backend())
+        .validator_set(None)
+        .await
+        .unwrap();
+    let operator_row = &reported["validators"][1];
+    assert_eq!(operator_row["registration"]["status"], "active");
+    assert_eq!(
+        operator_row["registration"]["bond"],
+        (10_000 * ONE_ALNT).to_string()
+    );
+    assert!(operator_row["work"]["credit"].as_str().is_some());
+    assert!(
+        reported["validators"][0]["registration"].is_null(),
+        "genesis validator"
+    );
+    assert_eq!(reported["rewards"]["periodSlots"], 30);
+    assert_eq!(
+        reported["rewards"]["pool"]["address"],
+        aletheia_execution::rules::v2::rewards::REWARD_POOL
+            .to_text(aletheia_core::NetworkKind::Devnet)
+    );
+
     // The council suspends the operator at once; epoch 2 runs on the founder's validator alone
     // while the suspended node follows.
     client

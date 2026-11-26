@@ -78,7 +78,8 @@ pub struct WorkEntry {
 }
 
 impl WorkEntry {
-    fn credit(&self, end_height: u64) -> u64 {
+    /// Credit earned up to (not including) `end_height`.
+    pub fn credit(&self, end_height: u64) -> u64 {
         let current = if self.active {
             end_height
                 .saturating_sub(self.since_height)

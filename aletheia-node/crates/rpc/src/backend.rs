@@ -22,6 +22,30 @@ pub struct NodeStatus {
     pub syncing: bool,
 }
 
+/// The validator registry and reward state at the finalized tip (ADR-069), for explorers and
+/// operators.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct RegistryView {
+    /// One entry per requested node key, in request order; `None` for a validator without a
+    /// registration (a genesis validator).
+    pub registrations: Vec<Option<aletheia_execution::validator_model::ValidatorRegistration>>,
+    pub rewards: Option<RewardView>,
+}
+
+/// Reward policy, the current period's work record and what the next payout can draw on.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RewardView {
+    pub policy: aletheia_execution::rules::v2::rewards::RewardPolicy,
+    pub ledger: Option<aletheia_execution::rules::v2::rewards::RewardLedger>,
+    /// ALnT in the reward pool.
+    pub pool_alnt: u128,
+    /// Fees waiting in the fee pool, per fee asset.
+    pub fees_alnt: u128,
+    pub fees_aey: u128,
+    pub tip_height: u64,
+    pub tip_slot: u64,
+}
+
 /// A block by height or hash.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BlockRef {
@@ -172,4 +196,14 @@ pub trait Backend: Send + Sync {
         &self,
         bytes: Vec<u8>,
     ) -> impl Future<Output = Result<Receipt, AletheiaError>> + Send;
+
+    /// Registrations of `node_keys` and the reward state at the finalized tip (ADR-069). A
+    /// backend without a registry reports nothing.
+    fn registry(
+        &self,
+        node_keys: Vec<[u8; 32]>,
+    ) -> impl Future<Output = Result<RegistryView, AletheiaError>> + Send {
+        let _ = node_keys;
+        async { Ok(RegistryView::default()) }
+    }
 }

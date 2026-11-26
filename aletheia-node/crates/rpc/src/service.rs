@@ -848,17 +848,68 @@ impl<B: Backend> Service<B> {
         let total = members
             .iter()
             .fold(0u64, |sum, v| sum.saturating_add(v.voting_power));
+        let registry = self
+            .backend
+            .registry(members.iter().map(|v| v.node_key).collect())
+            .await
+            .map_err(|e| from_backend(&e))?;
+        let network = self.backend.network();
+        let end = status.finalized_height.saturating_add(1);
+        let work = |node_key: &[u8; 32]| {
+            registry
+                .rewards
+                .as_ref()
+                .and_then(|r| r.ledger.as_ref())
+                .and_then(|l| l.entries.iter().find(|e| &e.node_key == node_key))
+                .map(|e| {
+                    json!({
+                        "credit": e.credit(end).to_string(),
+                        "missed": e.missed.to_string(),
+                        "since": e.since_height,
+                        "active": e.active,
+                    })
+                })
+                .unwrap_or(Value::Null)
+        };
+        let validators: Vec<Value> = members
+            .iter()
+            .enumerate()
+            .map(|(index, v)| {
+                let registration = registry
+                    .registrations
+                    .get(index)
+                    .and_then(Option::as_ref)
+                    .map_or(Value::Null, |r| registration_json(&network, r));
+                json!({
+                    "index": index,
+                    "consensusKey": base16::encode(&v.consensus_key),
+                    "nodeKey": base16::encode(&v.node_key),
+                    "votingPower": v.voting_power.to_string(),
+                    "registration": registration,
+                    "work": work(&v.node_key),
+                })
+            })
+            .collect();
+        let rewards = registry.rewards.as_ref().map_or(Value::Null, |r| {
+            let period = r.tip_slot.checked_div(r.policy.period_slots).unwrap_or(0);
+            json!({
+                "periodSlots": r.policy.period_slots,
+                "period": period,
+                "nextPayoutSlot": period.saturating_add(1).saturating_mul(r.policy.period_slots),
+                "poolPayout": r.policy.pool_payout.to_string(),
+                "stateBeneficiary": r.policy.state_beneficiary.map(|a| address_text(&network, &a)),
+                "pool": { "address": address_text(&network, &aletheia_execution::rules::v2::rewards::REWARD_POOL), "alnt": r.pool_alnt.to_string() },
+                "fees": { "alnt": r.fees_alnt.to_string(), "aey": r.fees_aey.to_string() },
+                "slot": r.tip_slot,
+            })
+        });
         Ok(json!({
             "epoch": epoch,
             "height": status.finalized_height,
             "mode": if members.is_empty() { "single-producer" } else { "validator-set" },
             "totalVotingPower": total.to_string(),
-            "validators": members.iter().enumerate().map(|(index, v)| json!({
-                "index": index,
-                "consensusKey": base16::encode(&v.consensus_key),
-                "nodeKey": base16::encode(&v.node_key),
-                "votingPower": v.voting_power.to_string(),
-            })).collect::<Vec<_>>(),
+            "validators": validators,
+            "rewards": rewards,
         }))
     }
 
@@ -885,4 +936,21 @@ impl<B: Backend> Service<B> {
             "outstandingLiabilities": ledger.outstanding_liabilities.to_string(),
         }))
     }
+}
+
+/// A validator registration as the API reports it (ADR-069).
+fn registration_json(
+    network: &aletheia_core::NetworkIdentity,
+    r: &aletheia_execution::validator_model::ValidatorRegistration,
+) -> Value {
+    json!({
+        "operator": address_text(network, &r.operator),
+        "status": aletheia_core::validator::status::name(r.status),
+        "bond": r.bond.to_string(),
+        "registeredSlot": r.registered_slot,
+        "joinedEpoch": r.joined_epoch,
+        "leftEpoch": r.left_epoch,
+        "metadataHash": base16::encode(r.metadata_hash.as_bytes()),
+        "transportCertHash": base16::encode(r.transport_cert_hash.as_bytes()),
+    })
 }

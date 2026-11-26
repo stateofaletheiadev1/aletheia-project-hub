@@ -26,7 +26,8 @@ pub mod service;
 pub mod ws;
 
 pub use backend::{
-    Backend, BlockRef, EventFilter, EventPage, FoundEvent, Located, NodeStatus, StateRead,
+    Backend, BlockRef, EventFilter, EventPage, FoundEvent, Located, NodeStatus, RegistryView,
+    RewardView, StateRead,
 };
 pub use error::RpcError;
 pub use service::{METHODS, OPENRPC, PARAMS, Service};

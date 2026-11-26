@@ -114,7 +114,38 @@ export interface ValidatorSet {
   /** "validator-set" on networks with a recorded set; "single-producer" on a devnet run by one node. */
   readonly mode: "validator-set" | "single-producer";
   readonly totalVotingPower: string;
-  readonly validators: readonly { readonly index: number; readonly consensusKey: string; readonly nodeKey: string; readonly votingPower: string }[];
+  readonly validators: readonly ValidatorRow[];
+  /** Reward policy and pools (protocol version 2, node ADR-069); null on older nodes. */
+  readonly rewards?: RewardState | null;
+}
+
+export interface ValidatorRow {
+  readonly index: number;
+  readonly consensusKey: string;
+  readonly nodeKey: string;
+  readonly votingPower: string;
+  /** The licensed operator's registration; null for a genesis (state) validator. */
+  readonly registration?: {
+    readonly operator: string;
+    readonly status: string;
+    readonly bond: string;
+    readonly joinedEpoch: number | null;
+    readonly leftEpoch: number | null;
+    readonly metadataHash: string;
+  } | null;
+  /** Work in the current reward period: blocks served minus parent signatures missed. */
+  readonly work?: { readonly credit: string; readonly missed: string; readonly since: number; readonly active: boolean } | null;
+}
+
+export interface RewardState {
+  readonly periodSlots: number;
+  readonly period: number;
+  readonly nextPayoutSlot: number;
+  readonly poolPayout: string;
+  readonly stateBeneficiary: string | null;
+  readonly pool: { readonly address: string; readonly alnt: string };
+  readonly fees: { readonly alnt: string; readonly aey: string };
+  readonly slot: number;
 }
 
 /** One line of the live transaction stream. */

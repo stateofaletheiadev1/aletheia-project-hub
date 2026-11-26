@@ -33,6 +33,7 @@ pub(crate) enum RpcQuery {
     Assets,
     Supply(AssetId),
     Validators(u64),
+    Registry(Vec<[u8; 32]>),
     AccountHistory(Address, Option<(u64, u32)>, usize),
     StateProof(StateKey),
     Events(EventFilter, Option<(u64, u32, u16)>, usize),
@@ -51,6 +52,7 @@ pub(crate) enum RpcAnswer {
     Assets(Vec<(AssetId, AssetConfig)>),
     Supply(Option<Box<SupplyLedger>>),
     Validators(Option<Vec<ValidatorRecord>>),
+    Registry(Box<aletheia_rpc::RegistryView>),
     History(Vec<(u64, u32, Hash32)>),
     State(Box<StateRead>),
     Events(EventPage),
@@ -210,6 +212,7 @@ pub(crate) fn answer<S: KvStore>(
         }
         RpcQuery::Supply(asset) => RpcAnswer::Supply(ledger.supply_at_tip(asset)?.map(Box::new)),
         RpcQuery::Validators(epoch) => RpcAnswer::Validators(ledger.validators_at_tip(epoch)?),
+        RpcQuery::Registry(keys) => RpcAnswer::Registry(Box::new(ledger.registry_view(&keys)?)),
         RpcQuery::AccountHistory(address, before, limit) => RpcAnswer::History(
             ledger
                 .account_history(&address, before, limit)?
@@ -326,6 +329,16 @@ impl Backend for NodeBackend {
     async fn validators(&self, epoch: u64) -> Result<Option<Vec<ValidatorRecord>>, AletheiaError> {
         match self.ask(RpcQuery::Validators(epoch)).await? {
             RpcAnswer::Validators(v) => Ok(v),
+            _ => Err(unexpected()),
+        }
+    }
+
+    async fn registry(
+        &self,
+        node_keys: Vec<[u8; 32]>,
+    ) -> Result<aletheia_rpc::RegistryView, AletheiaError> {
+        match self.ask(RpcQuery::Registry(node_keys)).await? {
+            RpcAnswer::Registry(view) => Ok(*view),
             _ => Err(unexpected()),
         }
     }

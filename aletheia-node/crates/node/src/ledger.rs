@@ -1360,6 +1360,43 @@ impl<S: KvStore> Ledger<S> {
         })
     }
 
+    /// Registrations of `node_keys` and the reward state at the finalized tip (ADR-069).
+    pub fn registry_view(
+        &self,
+        node_keys: &[[u8; 32]],
+    ) -> Result<aletheia_rpc::RegistryView, AletheiaError> {
+        use aletheia_execution::rules::v2::rewards;
+        let records = Records::new(self.network);
+        let view = self.tip_view();
+        let validators = aletheia_execution::validator_model::Validators::new(&records);
+        let registrations = node_keys
+            .iter()
+            .map(|key| validators.registration(&view, key))
+            .collect::<Result<Vec<_>, _>>()?;
+        let balance = |address: &aletheia_core::Address, asset: aletheia_core::AssetId| {
+            records.balance(&view, address, asset).map(|b| b.available)
+        };
+        let rewards = aletheia_rpc::RewardView {
+            policy: rewards::policy(&records, &view)?,
+            ledger: rewards::ledger(&records, &view)?,
+            pool_alnt: balance(&rewards::REWARD_POOL, aletheia_core::AssetId::ALNT)?,
+            fees_alnt: balance(
+                &aletheia_execution::model::FEE_POOL,
+                aletheia_core::AssetId::ALNT,
+            )?,
+            fees_aey: balance(
+                &aletheia_execution::model::FEE_POOL,
+                aletheia_core::AssetId::AEY,
+            )?,
+            tip_height: self.tip.height.get(),
+            tip_slot: self.tip_round()?.get(),
+        };
+        Ok(aletheia_rpc::RegistryView {
+            registrations,
+            rewards: Some(rewards),
+        })
+    }
+
     /// The validator set of `epoch` as of the finalized tip.
     pub fn validator_records(
         &self,
