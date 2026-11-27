@@ -289,7 +289,9 @@ async fn a_single_validator_chain_admits_and_loses_a_validator_without_stopping(
                     consensus_key: key.public_key().to_bytes(),
                     proof_of_possession: key.prove_possession(&network).to_bytes(),
                     node_key: node_key(1).public_key().to_bytes(),
-                    transport_cert_hash: Hash32::from_bytes([1; 32]),
+                    // The certificate the operator's node presents (ADR-071): the founder's
+                    // node refuses this validator's connections with any other.
+                    transport_cert_hash: v1.transport_cert_hash(),
                     metadata_hash: Hash32::from_bytes([2; 32]),
                     bond: 10_000 * ONE_ALNT,
                 },

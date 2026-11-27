@@ -565,12 +565,40 @@ impl SyncService {
     }
 
     /// Tells the network the current epoch's validators, so it keeps connections to all of
-    /// them (ADR-070).
+    /// them (ADR-070), with the certificate hash each registered, so a connection presenting
+    /// another certificate is refused (ADR-071). A genesis validator, or a registration with a
+    /// zero hash, is not pinned.
     async fn announce_validators(&self) {
-        if let Some(driver) = self.consensus.as_ref() {
-            self.send(NetworkCommand::SetValidators(driver.validator_keys()))
-                .await;
-        }
+        let Some(driver) = self.consensus.as_ref() else {
+            return;
+        };
+        let keys = driver.validator_keys();
+        let hashes: Vec<Option<Hash32>> = match self
+            .chain
+            .rpc(crate::rpc::RpcQuery::Registry(keys.clone()))
+            .await
+        {
+            Ok(crate::rpc::RpcAnswer::Registry(view)) => view
+                .registrations
+                .iter()
+                .map(|registration| {
+                    registration
+                        .as_ref()
+                        .map(|r| r.transport_cert_hash)
+                        .filter(|hash| *hash != Hash32::ZERO)
+                })
+                .collect(),
+            _ => Vec::new(),
+        };
+        let pins = keys
+            .iter()
+            .enumerate()
+            .map(|(i, key)| aletheia_p2p::ValidatorPin {
+                node_key: *key,
+                cert_hash: hashes.get(i).copied().flatten(),
+            })
+            .collect();
+        self.send(NetworkCommand::SetValidators(pins)).await;
     }
 
     /// Feeds one input to the engine and carries out every output in order, including the

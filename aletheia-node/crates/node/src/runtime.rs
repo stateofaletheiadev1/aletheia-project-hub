@@ -65,6 +65,8 @@ impl core::fmt::Debug for NodeConfig {
 
 pub struct Node {
     local_addr: SocketAddr,
+    /// SHA-256 of this node's transport certificate (ADR-071).
+    transport_cert_hash: aletheia_core::Hash32,
     network: aletheia_core::NetworkIdentity,
     chain_handle: chain::ChainHandle,
     submissions: mpsc::Sender<Submission>,
@@ -226,11 +228,18 @@ impl Node {
         let (chain, chain_thread) = chain::spawn(ledger)?;
         let chain_handle = chain.clone();
 
+        // Kept across restarts, so the hash an operator registers stays valid (ADR-071).
+        let certificate = TransportCertificate::load_or_create(&config.data_dir.join("p2p"))?;
+        crate::consensus::operator_note(&format!(
+            "info transport certificate sha256={} (give it to validator register --cert-hash)",
+            aletheia_core::base16::encode(certificate.hash().as_bytes())
+        ));
+        let transport_cert_hash = certificate.hash();
         let local = LocalNode {
             network,
             versions: (1, MAX_SUPPORTED_VERSION),
             node_key: config.node_key,
-            certificate: TransportCertificate::generate()?,
+            certificate,
         };
         let network_handle = start_network(
             NetworkConfig {
@@ -261,6 +270,7 @@ impl Node {
         let sync = tokio::spawn(service.run());
         Ok(Node {
             local_addr,
+            transport_cert_hash,
             network,
             chain_handle,
             submissions: submit_tx,
@@ -284,6 +294,12 @@ impl Node {
 
     pub fn local_addr(&self) -> SocketAddr {
         self.local_addr
+    }
+
+    /// SHA-256 of this node's transport certificate: what its operator registers with
+    /// `validator register --cert-hash` (ADR-071).
+    pub fn transport_cert_hash(&self) -> aletheia_core::Hash32 {
+        self.transport_cert_hash
     }
 
     pub fn tip(&self) -> LastFinalized {

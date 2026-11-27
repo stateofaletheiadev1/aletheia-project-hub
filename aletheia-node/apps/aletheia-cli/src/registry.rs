@@ -65,7 +65,9 @@ pub(crate) enum ValidatorCommand {
         /// Ed25519 node public key, 32 bytes hex (from `aletheia-signer keygen --kind node`).
         #[arg(long)]
         node_key: String,
-        /// SHA-256 of the node's TLS certificate, 32 bytes hex; zero until pinning is in use.
+        /// SHA-256 of the node's transport certificate, 32 bytes hex, as aletheiad logs it at
+        /// start ("transport certificate sha256=..."). Other validators accept the node only
+        /// with this certificate (ADR-071).
         #[arg(long)]
         cert_hash: Option<String>,
         /// Commitment to the off-chain licence record, 32 bytes hex. Never personal data.

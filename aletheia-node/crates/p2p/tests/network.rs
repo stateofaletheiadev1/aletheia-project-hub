@@ -383,3 +383,73 @@ async fn a_banned_peer_cannot_return_at_once_under_a_new_key() {
         "no Connected event for the new key"
     );
 }
+
+/// ADR-071: a validator must present the transport certificate registered for it. A node that
+/// knows B as a validator with another certificate hash refuses B's connection; with B's real
+/// hash it accepts it.
+#[tokio::test]
+async fn a_validator_connection_with_a_certificate_other_than_the_registered_one_is_refused() {
+    use aletheia_p2p::ValidatorPin;
+    let b_local = local(2);
+    let config = |dial: Vec<SocketAddr>| NetworkConfig {
+        listen: "127.0.0.1:0".parse().unwrap(),
+        dial: dial
+            .into_iter()
+            .map(|address| DialTarget {
+                address,
+                expect: PeerExpectation::default(),
+            })
+            .collect(),
+    };
+
+    // Registered with another hash: refused.
+    let mut a = start(config(vec![]), local(1), TIP).await.unwrap();
+    a.commands
+        .send(NetworkCommand::SetValidators(vec![ValidatorPin {
+            node_key: id(2),
+            cert_hash: Some(Hash32::from_bytes([9; 32])),
+        }]))
+        .await
+        .unwrap();
+    let _b = start(config(vec![a.local_addr]), b_local, TIP)
+        .await
+        .unwrap();
+    let refused = tokio::time::timeout(Duration::from_secs(3), async {
+        loop {
+            if let Some(NetworkEvent::Connected { peer, .. }) = a.events.recv().await
+                && peer == id(2)
+            {
+                return;
+            }
+        }
+    })
+    .await;
+    assert!(
+        refused.is_err(),
+        "a validator with the wrong certificate was accepted"
+    );
+
+    // Registered with its real hash: accepted.
+    let mut a = start(config(vec![]), local(3), TIP).await.unwrap();
+    a.commands
+        .send(NetworkCommand::SetValidators(vec![ValidatorPin {
+            node_key: id(4),
+            cert_hash: None,
+        }]))
+        .await
+        .unwrap();
+    let c_local = local(4);
+    let c_hash = c_local.certificate.hash();
+    a.commands
+        .send(NetworkCommand::SetValidators(vec![ValidatorPin {
+            node_key: id(4),
+            cert_hash: Some(c_hash),
+        }]))
+        .await
+        .unwrap();
+    let _c = start(config(vec![a.local_addr]), c_local, TIP)
+        .await
+        .unwrap();
+    let peers = wait_connected(&mut a, 1).await;
+    assert_eq!(peers, vec![id(4)]);
+}

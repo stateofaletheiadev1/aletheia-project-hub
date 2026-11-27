@@ -42,6 +42,14 @@ pub struct DialTarget {
     pub expect: PeerExpectation,
 }
 
+/// A validator of the current epoch: its node key, and the SHA-256 of the transport
+/// certificate registered for it, when one is (ADR-071).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ValidatorPin {
+    pub node_key: PeerId,
+    pub cert_hash: Option<Hash32>,
+}
+
 #[derive(Debug, Clone)]
 pub struct NetworkConfig {
     pub listen: SocketAddr,
@@ -78,9 +86,10 @@ pub enum NetworkCommand {
         except: PeerId,
         message: Message,
     },
-    /// The current epoch's validators by node key; the network keeps connections to every one
-    /// whose address it knows (ADR-070).
-    SetValidators(Vec<PeerId>),
+    /// The current epoch's validators by node key, with their registered certificate hashes;
+    /// the network keeps connections to every one whose address it knows (ADR-070) and refuses
+    /// a validator connection whose certificate is not the registered one (ADR-071).
+    SetValidators(Vec<ValidatorPin>),
     /// The tip advertised in future handshakes.
     SetTip {
         height: Height,
@@ -149,6 +158,8 @@ struct PeerEntry {
     /// notice from an old connection never removes its replacement.
     generation: u64,
     address: SocketAddr,
+    /// SHA-256 of the certificate the peer presented.
+    cert_hash: Hash32,
     outbound: bool,
     dialer: PeerId,
     outbox: Outbox,
@@ -262,7 +273,8 @@ struct Supervisor {
     /// The port this node accepts connections on, announced to every peer.
     listen_port: u16,
     book: PeerBook,
-    validators: std::collections::BTreeSet<PeerId>,
+    /// The current epoch's validators and their registered certificate hashes (ADR-071).
+    validators: BTreeMap<PeerId, Option<Hash32>>,
     /// Dial tasks started from the address book, by the key they are pinned to.
     dialers: BTreeMap<PeerId, JoinHandle<()>>,
 }
@@ -317,7 +329,7 @@ pub async fn start(
         local: Arc::clone(&local),
         listen_port: local_addr.port(),
         book: PeerBook::default(),
-        validators: std::collections::BTreeSet::new(),
+        validators: BTreeMap::new(),
         dialers: BTreeMap::new(),
         local_id: local.node_key.public_key().to_bytes(),
         next_generation: 0,
@@ -614,17 +626,47 @@ impl Supervisor {
                     self.send_to(peer, &message).await;
                 }
             }
-            NetworkCommand::SetValidators(keys) => {
-                self.validators = keys
+            NetworkCommand::SetValidators(pins) => {
+                let next: BTreeMap<PeerId, Option<Hash32>> = pins
                     .into_iter()
-                    .filter(|key| *key != self.local_id)
+                    .filter(|pin| pin.node_key != self.local_id)
+                    .map(|pin| (pin.node_key, pin.cert_hash))
                     .collect();
+                // A dial task pinned to an old certificate hash starts again with the new one.
+                self.dialers.retain(|key, task| {
+                    let same = next.get(key) == self.validators.get(key);
+                    if !same {
+                        task.abort();
+                    }
+                    same
+                });
+                self.validators = next;
+                // A connected validator whose certificate is not the registered one goes.
+                let mismatched: Vec<PeerId> = self
+                    .peers
+                    .iter()
+                    .filter(|(key, entry)| self.pin_refuses(key, entry.cert_hash))
+                    .map(|(key, _)| *key)
+                    .collect();
+                for peer in mismatched {
+                    self.remove(
+                        peer,
+                        "its transport certificate is not the one registered for this validator"
+                            .to_owned(),
+                    )
+                    .await;
+                }
                 self.maintain();
             }
             NetworkCommand::SetTip { height, hash } => {
                 let _ = self.tip.send((height, hash));
             }
         }
+    }
+
+    /// Whether `peer` is a validator with a registered certificate other than `cert_hash`.
+    fn pin_refuses(&self, peer: &PeerId, cert_hash: Hash32) -> bool {
+        matches!(self.validators.get(peer), Some(Some(pin)) if *pin != cert_hash)
     }
 
     /// Starts dial tasks, pinned to their keys, for every validator this node knows an address
@@ -634,7 +676,8 @@ impl Supervisor {
     fn maintain(&mut self) {
         self.dialers.retain(|_, task| !task.is_finished());
         let outbound = self.peers.values().filter(|e| e.outbound).count();
-        let mut wanted: std::collections::BTreeSet<PeerId> = self.validators.clone();
+        let mut wanted: std::collections::BTreeSet<PeerId> =
+            self.validators.keys().copied().collect();
         let spare = MIN_OUTBOUND_PEERS.saturating_sub(outbound);
         if spare > 0 {
             for key in self.book.known() {
@@ -678,7 +721,7 @@ impl Supervisor {
                 address,
                 expect: PeerExpectation {
                     node_key: Some(key),
-                    cert_hash: None,
+                    cert_hash: self.validators.get(&key).copied().flatten(),
                 },
             };
             let task = tokio::spawn(dial_loop(
@@ -834,6 +877,10 @@ impl Supervisor {
         if self.is_banned(&peer) || (!outbound && self.is_address_banned(identity.address.ip())) {
             return;
         }
+        // A validator must present the certificate registered for it (ADR-071).
+        if self.pin_refuses(&peer, identity.cert_hash) {
+            return;
+        }
         let dialer = if outbound { self.local_id } else { peer };
         let mut waiting: Vec<oneshot::Sender<()>> = closed.into_iter().collect();
         let mut replacing = false;
@@ -896,6 +943,7 @@ impl Supervisor {
             PeerEntry {
                 generation,
                 address: identity.address,
+                cert_hash: identity.cert_hash,
                 outbound,
                 dialer,
                 outbox: Outbox { slots: slots_tx },

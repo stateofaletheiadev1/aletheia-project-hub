@@ -1,7 +1,8 @@
 //! TLS 1.3 with mutual authentication (spec Section 36, ADR-016).
 //!
-//! Peers present self-signed transport certificates (ECDSA P-256, rotated every 90 days per
-//! Section 19.2). Trust does not come from a CA: the verifiers below accept any certificate,
+//! Peers present self-signed transport certificates (ECDSA P-256). A node keeps its certificate
+//! across restarts ([`TransportCertificate::load_or_create`], ADR-071), so the SHA-256 an operator
+//! registers stays valid; rotation through the registry (Section 19.2) follows separately. Trust does not come from a CA: the verifiers below accept any certificate,
 //! or for validators only the one whose SHA-256 is pinned in the validator registry, but
 //! always check the TLS handshake signature, so a peer proves it holds its certificate's
 //! key. Who the peer *is* is established by the signed application handshake that follows,
@@ -84,6 +85,47 @@ impl TransportCertificate {
         })
     }
 
+    /// The node's certificate from `dir` (`transport-cert.der`, `transport-key.pk8`), or a new
+    /// one written there on first start (ADR-071). The key file is readable by its owner only.
+    /// A pair that does not belong together is refused rather than replaced: replacing it would
+    /// change the hash registered for this validator.
+    pub fn load_or_create(dir: &std::path::Path) -> Result<TransportCertificate, AletheiaError> {
+        let io = |action: &str, path: &std::path::Path, e: std::io::Error| {
+            AletheiaError::new(
+                ErrorCode::StoIo,
+                format!("{action} {}: {e}", path.display()),
+            )
+        };
+        let cert_path = dir.join("transport-cert.der");
+        let key_path = dir.join("transport-key.pk8");
+        if cert_path.exists() || key_path.exists() {
+            let certificate = std::fs::read(&cert_path).map_err(|e| io("read", &cert_path, e))?;
+            let key_pkcs8 = std::fs::read(&key_path).map_err(|e| io("read", &key_path, e))?;
+            let loaded = TransportCertificate {
+                certificate: CertificateDer::from(certificate),
+                key_pkcs8,
+            };
+            // rustls checks the key matches the certificate.
+            server_config(&loaded).map_err(|e| {
+                AletheiaError::new(
+                    ErrorCode::StoCorrupt,
+                    format!(
+                        "the transport certificate in {} does not match its key ({}); restore both files from backup",
+                        dir.display(),
+                        e.detail()
+                    ),
+                )
+            })?;
+            return Ok(loaded);
+        }
+        let fresh = TransportCertificate::generate()?;
+        std::fs::create_dir_all(dir).map_err(|e| io("create", dir, e))?;
+        write_private(&key_path, &fresh.key_pkcs8).map_err(|e| io("write", &key_path, e))?;
+        std::fs::write(&cert_path, fresh.certificate.as_ref())
+            .map_err(|e| io("write", &cert_path, e))?;
+        Ok(fresh)
+    }
+
     pub fn hash(&self) -> Hash32 {
         certificate_hash(&self.certificate)
     }
@@ -95,6 +137,25 @@ impl TransportCertificate {
     fn key(&self) -> PrivateKeyDer<'static> {
         PrivateKeyDer::Pkcs8(PrivatePkcs8KeyDer::from(self.key_pkcs8.clone()))
     }
+}
+
+/// Writes `bytes` to `path` readable by its owner only (0600 on Unix), via a temporary file and
+/// a rename so a crash never leaves half a key.
+fn write_private(path: &std::path::Path, bytes: &[u8]) -> std::io::Result<()> {
+    use std::io::Write;
+    let tmp = path.with_extension("tmp");
+    let mut options = std::fs::OpenOptions::new();
+    options.write(true).create(true).truncate(true);
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::OpenOptionsExt;
+        options.mode(0o600);
+    }
+    let mut file = options.open(&tmp)?;
+    file.write_all(bytes)?;
+    file.sync_all()?;
+    drop(file);
+    std::fs::rename(&tmp, path)
 }
 
 /// Accepts any certificate unless one is pinned, and always verifies handshake signatures.
@@ -233,4 +294,29 @@ pub fn server_config(identity: &TransportCertificate) -> Result<Arc<ServerConfig
         .with_single_cert(identity.chain(), identity.key())
         .map_err(|e| handshake_error(format!("TLS server certificate: {e}")))?;
     Ok(Arc::new(config))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_node_keeps_its_certificate_across_restarts_and_refuses_a_mismatched_pair() {
+        let dir = std::env::temp_dir().join(format!("aletheia-tls-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        let first = TransportCertificate::load_or_create(&dir).unwrap();
+        let again = TransportCertificate::load_or_create(&dir).unwrap();
+        assert_eq!(
+            first.hash(),
+            again.hash(),
+            "the same certificate after a restart"
+        );
+
+        // A key from another certificate is refused, never silently replaced.
+        let other = TransportCertificate::generate().unwrap();
+        std::fs::write(dir.join("transport-key.pk8"), &other.key_pkcs8).unwrap();
+        let error = TransportCertificate::load_or_create(&dir).unwrap_err();
+        assert_eq!(error.code(), ErrorCode::StoCorrupt);
+        let _ = std::fs::remove_dir_all(&dir);
+    }
 }

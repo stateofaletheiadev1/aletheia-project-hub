@@ -64,7 +64,12 @@ chain. Amounts are in ALnT (3 decimals).
    listen = "127.0.0.1:7781"                # local only; never expose a validator's RPC
    ```
 
-   On first start the node checks the genesis (chain 7770, genesis id
+   On first start the node creates its transport certificate in `/var/lib/aletheia/p2p/` and
+   logs its fingerprint: `journalctl -u aletheiad | grep "transport certificate"`. Back up
+   `/var/lib/aletheia/p2p/` with the node keystore: other validators accept this node only with
+   the certificate it registered (ADR-071).
+
+   On first start the node also checks the genesis (chain 7770, genesis id
    `a3ad0e1a821776800698ec99d672f00f5d084870d3230a1391fda45a58ba90ad`) and re-executes every block
    from genesis before it is current; on a 4 vCPU host this takes hours, once. Until the Council
    admits it, it follows the chain as an observer (`aletheiad info this node key is not in the
@@ -76,6 +81,7 @@ chain. Amounts are in ALnT (3 decimals).
    ```sh
    aletheia-cli --network mainnet validator register --keystore operator.json \
      --consensus-key <hex> --proof-of-possession <hex> --node-key <hex> \
+     --cert-hash <transport certificate sha256 from the node's log> \
      --licence AGV-EOI-YYYY-NNNN --bond 10000
    ```
 

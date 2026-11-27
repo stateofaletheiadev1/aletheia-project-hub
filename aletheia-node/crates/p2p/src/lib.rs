@@ -23,5 +23,7 @@ pub mod tls;
 pub use connection::{LocalNode, PeerConnection, PeerExpectation, PeerIdentity};
 pub use frame::{Channel, Frame, FrameDecoder};
 pub use message::{Message, PeerAddress};
-pub use network::{DialTarget, NetworkCommand, NetworkConfig, NetworkEvent, NetworkHandle, PeerId};
+pub use network::{
+    DialTarget, NetworkCommand, NetworkConfig, NetworkEvent, NetworkHandle, PeerId, ValidatorPin,
+};
 pub use tls::TransportCertificate;
