@@ -1,10 +1,12 @@
 // Follows the node's finalized head and keeps what the live pages need in memory: the latest
-// blocks, the latest transactions and the network figures. There is no database: on start
-// the follower loads recent blocks for the streams, then counts transactions back to genesis
-// in the background. One follower per server process, shared by every connected browser.
+// blocks, the latest transactions and the network figures. On start the follower loads recent
+// blocks for the streams, then reads older blocks in the background: back to its saved count
+// (checkpoint.ts) for the transaction total, and back seven days for the per-minute history.
+// One follower per server process, shared by every connected browser.
 
 import { rpc } from "./rpc";
 import { recentTransactions } from "./recent";
+import { loadCheckpoint, saveCheckpoint, type Checkpoint } from "./checkpoint";
 import { txLine as line } from "./lines";
 import type { BlockSummary, Stats, StreamMessage, TxLine } from "$lib/types";
 
@@ -15,6 +17,11 @@ const TXS_PER_BLOCK = 12;
 const POLL_MS = 400;
 const SUPPLY_EVERY_MS = 5_000;
 const BACKFILL_CONCURRENCY = 4;
+/** Pause between backfill chunks, so reading old blocks never crowds out the node's other
+ * clients (they share its request budget from loopback). */
+const BACKFILL_PAUSE_MS = 100;
+/** How often the count is saved once it reaches genesis. */
+const SAVE_EVERY_MS = 60_000;
 
 type Listener = (message: StreamMessage) => void;
 
@@ -48,9 +55,14 @@ class Follower {
   private chainId = 0;
   private protocolVersion = 1;
   private head = -1;
-  /** Transactions in heights [countedFrom, head]. */
+  /** Transactions in heights [countedFrom, head], plus the saved count once merged. */
   private counted = 0;
   private countedFrom = 0;
+  /** The saved count from genesis, if any; merged once the backfill reaches its height. */
+  private checkpoint: Checkpoint | null = null;
+  /** `counted` covers every height from genesis to the head. */
+  private countComplete = false;
+  private savedAt = 0;
   private aey: string | null = null;
   private validatorCount: number | null = null;
   private validatorMode: "validator-set" | "single-producer" | null = null;
@@ -88,7 +100,11 @@ class Follower {
   /** Per-minute history, oldest first, and how far back it is complete. */
   analytics(): { minutes: Minute[]; complete: boolean; latestMs: number | null } {
     const minutes = [...this.minutes.values()].sort((a, b) => a.t - b.t).map((m) => ({ ...m }));
-    return { minutes, complete: this.countedFrom === 0, latestMs: this.blocks[0]?.protocolTimeMs ?? null };
+    const oldest = minutes[0]?.t ?? null;
+    const latest = this.blocks[0]?.protocolTimeMs ?? null;
+    // Complete when the history reaches genesis or spans everything the explorer keeps.
+    const spansKept = oldest !== null && latest !== null && latest - oldest >= (KEEP_MINUTES - 1) * 60_000;
+    return { minutes, complete: this.countedFrom === 0 || spansKept, latestMs: latest };
   }
 
   snapshot(): StreamMessage {
@@ -108,7 +124,7 @@ class Follower {
       height: Math.max(this.head, 0),
       epoch: latest?.epoch ?? 0,
       totalTxs: this.counted,
-      countedFromGenesis: this.countedFrom === 0,
+      countedFromGenesis: this.countComplete,
       avgBlockMs: steps > 0 ? Math.round(span / steps) : null,
       latestTimeMs: latest?.protocolTimeMs ?? null,
       txsLastMinute: latest
@@ -189,6 +205,10 @@ class Follower {
       this.txs = [...txs, ...this.txs].slice(0, KEEP_TXS);
       this.emit({ kind: "block", stats: this.stats(), block, txs });
     }
+    if (this.countComplete && Date.now() - this.savedAt > SAVE_EVERY_MS) {
+      this.savedAt = Date.now();
+      void saveCheckpoint({ chainId: this.chainId, height: this.head, txs: this.counted });
+    }
   }
 
   /** First contact: the latest blocks for the streams, then the count back to genesis. */
@@ -218,32 +238,75 @@ class Follower {
     this.counted = blocks.reduce((sum, b) => sum + b.txCount, 0);
     for (const block of blocks) this.record(block);
     this.countedFrom = blocks.at(-1)?.height ?? target;
+    this.checkpoint = await loadCheckpoint(this.chainId);
+    this.mergeCheckpoint();
     this.emit(this.snapshot());
     void this.countBack();
   }
 
-  /** Walks the older heights down to genesis, adding their transaction counts. */
+  /** Adds the saved count once the backfill has reached the height just above it. */
+  private mergeCheckpoint(): void {
+    const saved = this.checkpoint;
+    if (this.countComplete || !saved || saved.height > this.head) return;
+    if (saved.height >= this.countedFrom) {
+      // A quick restart: the saved count already covers some of the blocks loaded at start.
+      // Count only those above it.
+      const above = this.blocks.filter((b) => b.height > saved.height).reduce((sum, b) => sum + b.txCount, 0);
+      this.counted = saved.txs + above;
+      this.countComplete = true;
+    } else if (this.countedFrom === saved.height + 1) {
+      this.counted += saved.txs;
+      this.countComplete = true;
+    }
+  }
+
+  /** Whether the per-minute history already spans the seven days the explorer keeps. */
+  private historyFull(oldestReadMs: number): boolean {
+    const latest = this.blocks[0]?.protocolTimeMs;
+    return latest !== undefined && latest - oldestReadMs >= KEEP_MINUTES * 60_000;
+  }
+
+  /**
+   * Reads older heights downwards: counting their transactions until the saved count (or
+   * genesis) is reached, and recording their minutes until seven days of history are kept.
+   * Paced, so it never takes the node's request budget from other clients.
+   */
   private async countBack(): Promise<void> {
     const chunk = 64;
     while (this.countedFrom > 0) {
       const top = this.countedFrom - 1;
       const heights = Array.from({ length: Math.min(chunk, top + 1) }, (_, i) => top - i);
+      const saved = this.checkpoint;
       let sum = 0;
+      let oldestMs = Number.POSITIVE_INFINITY;
       try {
         await pool(heights, BACKFILL_CONCURRENCY, async (height) => {
           // Await first, then add: `sum += await …` reads `sum` before the await and loses
           // the additions of the other lanes.
           const block = await rpc.blockAt(height);
-          sum += block.txCount;
+          if (!this.countComplete && (!saved || height > saved.height)) sum += block.txCount;
+          oldestMs = Math.min(oldestMs, block.protocolTimeMs);
           this.record(block);
         });
       } catch {
         await new Promise((resolve) => setTimeout(resolve, 2_000));
         continue;
       }
-      this.counted += sum;
+      if (!this.countComplete) this.counted += sum;
       this.countedFrom = heights.at(-1) ?? 0;
+      if (!this.countComplete && saved && this.countedFrom <= saved.height + 1) {
+        // The chunk reached the saved height; the heights at or below it were not added.
+        this.counted += saved.txs;
+        this.countComplete = true;
+      }
+      if (this.countedFrom === 0 && !this.countComplete) this.countComplete = true;
       this.emit({ kind: "stats", stats: this.stats() });
+      if (this.countComplete && this.historyFull(oldestMs)) break;
+      await new Promise((resolve) => setTimeout(resolve, BACKFILL_PAUSE_MS));
+    }
+    if (this.countComplete) {
+      this.savedAt = Date.now();
+      await saveCheckpoint({ chainId: this.chainId, height: this.head, txs: this.counted });
     }
   }
 
