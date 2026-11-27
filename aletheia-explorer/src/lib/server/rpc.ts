@@ -72,6 +72,11 @@ export const rpc = {
   receipt: (id: string) => get<ReceiptView>(`/receipts/${segment(id)}`),
   account: (address: string) => get<AccountView>(`/accounts/${segment(address)}`),
   balances: (address: string) => get<Balance[]>(`/accounts/${segment(address)}/balances`),
+  /** Finalized events of one emitter, newest first, strictly before `before` ("h:i:e"; node ADR-067). */
+  events: (emitter: string, limit: number, before?: string) =>
+    get<{ events: { txId: string; height: number; index: number; eventIndex: number }[]; next: string | null }>(
+      `/events?emitter=${segment(emitter)}&limit=${limit}${before ? `&before=${segment(before)}` : ""}`,
+    ),
   validators: (epoch?: number) => get<ValidatorSet>(epoch === undefined ? "/validators" : `/validators?epoch=${epoch}`),
   supply: (asset: string) => get<Supply>(`/monetary/${segment(asset)}/supply`),
   /** Finalized transactions touching an address, newest first (node ADR-064). */

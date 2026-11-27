@@ -4,6 +4,7 @@
 // in the background. One follower per server process, shared by every connected browser.
 
 import { rpc } from "./rpc";
+import { recentTransactions } from "./recent";
 import { txLine as line } from "./lines";
 import type { BlockSummary, Stats, StreamMessage, TxLine } from "$lib/types";
 
@@ -202,6 +203,14 @@ class Follower {
     for (const block of blocks) {
       if (txs.length >= KEEP_TXS) break;
       txs.push(...(await this.lines(block)));
+    }
+    // On a quiet chain the latest blocks hold few transactions or none: fill the stream from the
+    // node's event index so a restart never shows an empty list (2026-11-27).
+    if (txs.length < KEEP_TXS) {
+      const oldest = blocks.at(-1);
+      const before = oldest ? { height: oldest.height, index: 0 } : null;
+      const older = await recentTransactions(KEEP_TXS - txs.length, before).catch(() => ({ lines: [] as TxLine[], next: null }));
+      txs.push(...older.lines);
     }
     this.blocks = blocks;
     this.txs = txs.slice(0, KEEP_TXS);

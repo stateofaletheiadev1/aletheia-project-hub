@@ -113,7 +113,7 @@
 
     <div class="foot">
       {#if data.reachedGenesis}
-        <span class="genesis">The beginning of the ledger: the genesis block.</span>
+        <span class="genesis">The first transaction on the ledger.</span>
       {:else}
         <span class="faint">Show 25 records per page</span>
       {/if}
