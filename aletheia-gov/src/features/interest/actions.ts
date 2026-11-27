@@ -5,7 +5,7 @@ import { headers } from "next/headers";
 import { clientKey, createLimiter } from "@/server/security/rate-limit";
 import { checkPdf } from "@/server/security/pdf";
 import { registerInterest } from "@/server/services/interest";
-import { mailConfigured, notifyAddress, sendMail } from "@/server/mail/mailer";
+import { mailConfigured, notifyAddress, sendMail, toTeam } from "@/server/mail/mailer";
 import { registrationNotice, registrationReceived } from "@/server/mail/templates";
 import { getPublished } from "@/server/records/public-records";
 import { positionName } from "@/content/positions";
@@ -101,7 +101,7 @@ export async function submitInterest(_prev: InterestState, form: FormData): Prom
         positionTypes: positionTypes.map(positionName),
       };
       await sendMail(registrationReceived(summary));
-      await sendMail(registrationNotice(summary, notifyAddress()));
+      await sendMail(toTeam(registrationNotice(summary, notifyAddress())));
     });
   }
   return { status: "saved", reference: outcome.reference, positionTypes: outcome.positionTypes, institutions: outcome.institutions, cv: outcome.cv };

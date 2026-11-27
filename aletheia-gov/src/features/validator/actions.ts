@@ -5,7 +5,7 @@ import { headers } from "next/headers";
 import { clientKey, createLimiter } from "@/server/security/rate-limit";
 import { checkPdf } from "@/server/security/pdf";
 import { registerValidatorApplication } from "@/server/services/interest";
-import { mailConfigured, notifyAddress, sendMail } from "@/server/mail/mailer";
+import { mailConfigured, notifyAddress, sendMail, toTeam } from "@/server/mail/mailer";
 import { registrationNotice, registrationReceived } from "@/server/mail/templates";
 import { PROFILE_MAX_BYTES, ValidatorInput, type ValidatorState, type ValidatorValues } from "./schema";
 
@@ -83,7 +83,7 @@ export async function submitValidatorApplication(_prev: ValidatorState, form: Fo
         validator: true,
       };
       await sendMail(registrationReceived(summary));
-      await sendMail(registrationNotice(summary, notifyAddress()));
+      await sendMail(toTeam(registrationNotice(summary, notifyAddress())));
     });
   }
   return { status: "saved", reference: outcome.reference, profile: outcome.profile };

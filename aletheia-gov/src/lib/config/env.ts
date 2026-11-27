@@ -33,6 +33,16 @@ const schema = z.object({
   SMTP_PASS: optional,
   MAIL_FROM: optional,
   MAIL_NOTIFY: optional.pipe(z.union([z.email(), z.undefined()])),
+  /** Copied on every notice to the team, comma-separated, e.g. "emeka@stateofaletheia.org". */
+  MAIL_NOTIFY_CC: optional.pipe(
+    z.union([
+      z.string().refine(
+        (v) => v.split(",").every((a) => z.email().safeParse(a.trim()).success),
+        "MAIL_NOTIFY_CC must be email addresses separated by commas",
+      ),
+      z.undefined(),
+    ]),
+  ),
   /** 32 random bytes, base64. Wraps the per-person keys that encrypt personal data (brief §8.4). */
   DATA_ENCRYPTION_MASTER_KEY: optional.pipe(
     z.union([
