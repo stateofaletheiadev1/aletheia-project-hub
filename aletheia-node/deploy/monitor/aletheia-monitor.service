@@ -1,0 +1,30 @@
+# One monitor pass (aletheia_monitor.py; docs/operations/monitoring.md). Started every minute by
+# aletheia-monitor.timer. Install with deploy/monitor/install.sh.
+[Unit]
+Description=AletheiaChain host monitor (blocks, validators, services, disk, memory, endpoints)
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /usr/local/lib/aletheia-monitor/aletheia_monitor.py
+# Mail settings, owner-only; without the file alerts go to the journal only.
+EnvironmentFile=-/etc/aletheia/monitor.env
+Environment=MONITOR_PUBLIC_URLS=https://rpc.stateofaletheia.org/api/v1/network/status,https://aletheiascan.mainnet.stateofaletheia.org/
+DynamicUser=yes
+# Reads the watchdog's journal.
+SupplementaryGroups=systemd-journal
+StateDirectory=aletheia-monitor
+TimeoutStartSec=120
+Nice=5
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=yes
+LockPersonality=yes
+CapabilityBoundingSet=
