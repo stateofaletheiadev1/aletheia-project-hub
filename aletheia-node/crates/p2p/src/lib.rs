@@ -16,11 +16,12 @@ pub mod handshake;
 pub mod limits;
 pub mod message;
 pub mod network;
+pub mod peer_book;
 pub mod peer_score;
 pub mod tls;
 
 pub use connection::{LocalNode, PeerConnection, PeerExpectation, PeerIdentity};
 pub use frame::{Channel, Frame, FrameDecoder};
-pub use message::Message;
+pub use message::{Message, PeerAddress};
 pub use network::{DialTarget, NetworkCommand, NetworkConfig, NetworkEvent, NetworkHandle, PeerId};
 pub use tls::TransportCertificate;

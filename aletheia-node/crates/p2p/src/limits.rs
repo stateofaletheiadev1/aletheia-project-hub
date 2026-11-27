@@ -34,6 +34,12 @@ pub const BAN_DURATION: Duration = Duration::from_secs(600);
 /// long address ban would shut out honest peers behind the same NAT.
 pub const ADDRESS_BAN_DURATION: Duration = Duration::from_secs(60);
 
+/// Outbound connections kept to known peers besides validators, so observers and syncing nodes
+/// stay connected (ADR-070).
+pub const MIN_OUTBOUND_PEERS: usize = 4;
+/// How often every peer is asked for the peers it knows, and dialing is reviewed (ADR-070).
+pub const PEER_EXCHANGE_INTERVAL: Duration = Duration::from_secs(300);
+
 pub const DIAL_BACKOFF_INITIAL: Duration = Duration::from_millis(500);
 pub const DIAL_BACKOFF_MAX: Duration = Duration::from_secs(30);
 

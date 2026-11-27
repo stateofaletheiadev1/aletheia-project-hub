@@ -157,6 +157,7 @@ impl SyncService {
 
     pub(crate) async fn run(mut self) -> Result<(), AletheiaError> {
         let mut producer = self.produce_every.map(tokio::time::interval);
+        self.announce_validators().await;
         if self.consensus.is_some() {
             let started = self.drive(Input::Start).await;
             let failed = started.is_err();
@@ -266,12 +267,27 @@ impl SyncService {
             } => self.on_blocks(peer, blocks, &finality_proof).await?,
             Message::GetProposal { block_hash } => self.serve_proposal(peer, block_hash).await?,
             Message::Consensus { msg_type, payload } => {
-                if self.consensus.is_some() {
-                    // Undecodable or invalid messages are dropped; the engine verifies the rest.
-                    if let Ok(message) = ConsensusMessage::decode(msg_type, &payload) {
-                        self.drive(Input::Message(message)).await?;
-                    }
+                // Undecodable or invalid messages are dropped; the engine verifies the rest.
+                let Ok(message) = ConsensusMessage::decode(msg_type, &payload) else {
+                    return Ok(());
+                };
+                let relay = match self.consensus.as_mut() {
+                    Some(driver) => driver.relay(msg_type, &payload, &message),
+                    None => return Ok(()),
+                };
+                // Passed on once, verified, to every other peer (ADR-070): a validator whose
+                // direct link to another is down still hears it through the rest.
+                if relay {
+                    self.send(NetworkCommand::BroadcastExcept {
+                        except: peer,
+                        message: Message::Consensus {
+                            msg_type,
+                            payload: payload.clone(),
+                        },
+                    })
+                    .await;
                 }
+                self.drive(Input::Message(message)).await?;
             }
             Message::TxAnnounce(ids) => {
                 let missing: Vec<Hash32> = ids
@@ -311,6 +327,11 @@ impl SyncService {
                 .await
             }
             Message::Pong { .. } => {}
+            // Peer exchange is handled inside the network service (ADR-070); never delivered here.
+            Message::ListenPort { .. }
+            | Message::GetPeers
+            | Message::Peers(_)
+            | Message::UnknownMgmt { .. } => {}
         }
         Ok(())
     }
@@ -539,7 +560,17 @@ impl SyncService {
         if let Some(driver) = self.consensus.as_mut() {
             driver.restart(&at)?;
         }
+        self.announce_validators().await;
         Ok(())
+    }
+
+    /// Tells the network the current epoch's validators, so it keeps connections to all of
+    /// them (ADR-070).
+    async fn announce_validators(&self) {
+        if let Some(driver) = self.consensus.as_ref() {
+            self.send(NetworkCommand::SetValidators(driver.validator_keys()))
+                .await;
+        }
     }
 
     /// Feeds one input to the engine and carries out every output in order, including the
@@ -577,15 +608,19 @@ impl SyncService {
             // Durable before anything after it is sent (Section 24.2).
             Output::PersistSafety(safety) => self.chain.persist_safety(safety).await?,
             Output::Broadcast(message) => {
-                if let (ConsensusMessage::Proposal(proposal), Some(driver)) =
-                    (&message, self.consensus.as_mut())
-                {
-                    let hash = proposal.block.header.block_hash(&driver.network);
-                    driver.known.insert(hash, (**proposal).clone());
+                let msg_type = message.msg_type();
+                let payload = message.encode_payload();
+                if let Some(driver) = self.consensus.as_mut() {
+                    if let ConsensusMessage::Proposal(proposal) = &message {
+                        let hash = proposal.block.header.block_hash(&driver.network);
+                        driver.known.insert(hash, (**proposal).clone());
+                    }
+                    // Our own messages coming back through a peer are not relayed again.
+                    driver.sent(msg_type, &payload);
                 }
                 self.send(NetworkCommand::Broadcast(Message::Consensus {
-                    msg_type: message.msg_type(),
-                    payload: message.encode_payload(),
+                    msg_type,
+                    payload,
                 }))
                 .await;
             }

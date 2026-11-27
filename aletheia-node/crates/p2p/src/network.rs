@@ -2,7 +2,9 @@
 //! owned by a single supervisor task (spec Sections 36, 46A.1).
 //!
 //! The node talks to it only through two bounded channels: [`NetworkCommand`] in,
-//! [`NetworkEvent`] out. Peer state - outboxes, scores, bans - is owned by the supervisor;
+//! [`NetworkEvent`] out. Peer exchange (ADR-070) happens here, out of the node's sight: the
+//! supervisor keeps the address book, answers and asks for peers, and keeps connections to
+//! the current validators and a few other peers. Peer state - outboxes, scores, bans - is owned by the supervisor;
 //! reader tasks own their peer's rate budget. Every spawned task's `JoinHandle` is held by
 //! its owner and aborted when the peer is removed.
 
@@ -22,10 +24,12 @@ use crate::connection::{LocalNode, PeerConnection, PeerExpectation, PeerReader};
 use crate::frame::{Channel, Frame};
 use crate::limits::{
     ADDRESS_BAN_DURATION, BAN_DURATION, DIAL_BACKOFF_INITIAL, DIAL_BACKOFF_MAX, MAX_INBOUND_PEERS,
-    MAX_OUTBOUND_PEERS, MAX_PEERS_PER_IP, MAX_PENDING_HANDSHAKES, NETWORK_COMMAND_QUEUE,
-    NETWORK_EVENT_QUEUE, PEER_OUTBOX_FRAMES, SCORE_INVALID, SCORE_RATE_EXCEEDED, SCORE_USEFUL,
+    MAX_OUTBOUND_PEERS, MAX_PEERS_PER_IP, MAX_PENDING_HANDSHAKES, MIN_OUTBOUND_PEERS,
+    NETWORK_COMMAND_QUEUE, NETWORK_EVENT_QUEUE, PEER_EXCHANGE_INTERVAL, PEER_OUTBOX_FRAMES,
+    SCORE_INVALID, SCORE_RATE_EXCEEDED, SCORE_USEFUL,
 };
-use crate::message::Message;
+use crate::message::{MAX_PEER_ADDRESSES, Message};
+use crate::peer_book::PeerBook;
 use crate::peer_score::PeerBudget;
 use crate::tls::server_config;
 
@@ -69,6 +73,14 @@ pub enum NetworkCommand {
         message: Message,
     },
     Broadcast(Message),
+    /// To every connected peer but one: relaying what that peer sent (ADR-070).
+    BroadcastExcept {
+        except: PeerId,
+        message: Message,
+    },
+    /// The current epoch's validators by node key; the network keeps connections to every one
+    /// whose address it knows (ADR-070).
+    SetValidators(Vec<PeerId>),
     /// The tip advertised in future handshakes.
     SetTip {
         height: Height,
@@ -123,6 +135,12 @@ enum Internal {
         peer: PeerId,
         generation: u64,
         reason: String,
+    },
+    /// A peer-exchange message (ADR-070), handled by the supervisor and never shown to the node.
+    Exchange {
+        peer: PeerId,
+        generation: u64,
+        message: Message,
     },
 }
 
@@ -240,11 +258,19 @@ struct Supervisor {
     internal: mpsc::Sender<Internal>,
     tip: watch::Sender<(Height, Hash32)>,
     background: Vec<JoinHandle<()>>,
+    local: Arc<LocalNode>,
+    /// The port this node accepts connections on, announced to every peer.
+    listen_port: u16,
+    book: PeerBook,
+    validators: std::collections::BTreeSet<PeerId>,
+    /// Dial tasks started from the address book, by the key they are pinned to.
+    dialers: BTreeMap<PeerId, JoinHandle<()>>,
 }
 
 impl Drop for Supervisor {
     fn drop(&mut self) {
         self.background.iter().for_each(JoinHandle::abort);
+        self.dialers.values().for_each(JoinHandle::abort);
     }
 }
 
@@ -288,6 +314,11 @@ pub async fn start(
         )));
     }
     let supervisor = Supervisor {
+        local: Arc::clone(&local),
+        listen_port: local_addr.port(),
+        book: PeerBook::default(),
+        validators: std::collections::BTreeSet::new(),
+        dialers: BTreeMap::new(),
         local_id: local.node_key.public_key().to_bytes(),
         next_generation: 0,
         peers: BTreeMap::new(),
@@ -446,6 +477,26 @@ async fn reader_loop(
             }
         };
         budget.adjust(SCORE_USEFUL);
+        if matches!(
+            message,
+            Message::ListenPort { .. }
+                | Message::GetPeers
+                | Message::Peers(_)
+                | Message::UnknownMgmt { .. }
+        ) {
+            if internal
+                .send(Internal::Exchange {
+                    peer,
+                    generation,
+                    message,
+                })
+                .await
+                .is_err()
+            {
+                return;
+            }
+            continue;
+        }
         let event = NetworkEvent::Message { peer, message };
         let delivered = if frame.channel == Channel::TxGossip {
             // Shed, never block, on gossip (Section 46.2).
@@ -514,12 +565,21 @@ impl Supervisor {
         mut commands: mpsc::Receiver<NetworkCommand>,
         mut internal: mpsc::Receiver<Internal>,
     ) {
+        let mut exchange = tokio::time::interval(PEER_EXCHANGE_INTERVAL);
+        exchange.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Delay);
         loop {
             let deliver = !self.lifecycle.is_empty();
             let events = self.events.clone();
             tokio::select! {
                 Some(command) = commands.recv() => self.handle_command(command).await,
                 Some(message) = internal.recv() => self.handle_internal(message).await,
+                _ = exchange.tick() => {
+                    let peers: Vec<PeerId> = self.peers.keys().copied().collect();
+                    for peer in peers {
+                        self.send_to(peer, &Message::GetPeers).await;
+                    }
+                    self.maintain();
+                }
                 permit = events.reserve(), if deliver => match permit {
                     Ok(permit) => {
                         if let Some(event) = self.lifecycle.next() {
@@ -543,9 +603,121 @@ impl Supervisor {
                     self.send_to(peer, &message).await;
                 }
             }
+            NetworkCommand::BroadcastExcept { except, message } => {
+                let peers: Vec<PeerId> = self
+                    .peers
+                    .keys()
+                    .copied()
+                    .filter(|peer| *peer != except)
+                    .collect();
+                for peer in peers {
+                    self.send_to(peer, &message).await;
+                }
+            }
+            NetworkCommand::SetValidators(keys) => {
+                self.validators = keys
+                    .into_iter()
+                    .filter(|key| *key != self.local_id)
+                    .collect();
+                self.maintain();
+            }
             NetworkCommand::SetTip { height, hash } => {
                 let _ = self.tip.send((height, hash));
             }
+        }
+    }
+
+    /// Starts dial tasks, pinned to their keys, for every validator this node knows an address
+    /// for and is not connected to, and for other known peers while fewer than
+    /// [`MIN_OUTBOUND_PEERS`] outbound connections are open; stops the tasks of peers no longer
+    /// wanted. Dial tasks already redial on their own after a disconnect.
+    fn maintain(&mut self) {
+        self.dialers.retain(|_, task| !task.is_finished());
+        let outbound = self.peers.values().filter(|e| e.outbound).count();
+        let mut wanted: std::collections::BTreeSet<PeerId> = self.validators.clone();
+        let spare = MIN_OUTBOUND_PEERS.saturating_sub(outbound);
+        if spare > 0 {
+            for key in self.book.known() {
+                if wanted.len() >= self.validators.len().saturating_add(spare) {
+                    break;
+                }
+                if !self.peers.contains_key(&key) && key != self.local_id {
+                    wanted.insert(key);
+                }
+            }
+        }
+        // Tasks for peers that are neither validators nor needed for spare capacity stop.
+        let keep: std::collections::BTreeSet<PeerId> = wanted
+            .iter()
+            .copied()
+            .chain(
+                self.peers
+                    .keys()
+                    .copied()
+                    .filter(|k| self.dialers.contains_key(k)),
+            )
+            .collect();
+        self.dialers.retain(|key, task| {
+            let stay = keep.contains(key);
+            if !stay {
+                task.abort();
+            }
+            stay
+        });
+        for key in wanted {
+            if self.dialers.contains_key(&key)
+                || self.peers.contains_key(&key)
+                || self.dialers.len() >= MAX_OUTBOUND_PEERS
+            {
+                continue;
+            }
+            let Some(address) = self.book.address(&key) else {
+                continue;
+            };
+            let target = DialTarget {
+                address,
+                expect: PeerExpectation {
+                    node_key: Some(key),
+                    cert_hash: None,
+                },
+            };
+            let task = tokio::spawn(dial_loop(
+                target,
+                Arc::clone(&self.local),
+                self.tip.subscribe(),
+                self.internal.clone(),
+            ));
+            self.dialers.insert(key, task);
+        }
+    }
+
+    async fn handle_exchange(&mut self, peer: PeerId, message: Message) {
+        match message {
+            Message::ListenPort { port } => {
+                // Where an inbound peer accepts connections: its address with the announced port.
+                if let Some(entry) = self.peers.get(&peer)
+                    && !entry.outbound
+                    && port != 0
+                {
+                    let address = SocketAddr::new(entry.address.ip(), port);
+                    self.book.learn_live(peer, address);
+                    self.maintain();
+                }
+            }
+            Message::GetPeers => {
+                let answer = self
+                    .book
+                    .answer(usize::try_from(MAX_PEER_ADDRESSES).unwrap_or(64), &peer);
+                self.send_to(peer, &Message::Peers(answer)).await;
+            }
+            Message::Peers(list) => {
+                for hint in list {
+                    self.book.learn_hint(&self.local_id, hint);
+                }
+                self.maintain();
+            }
+            // A later release's management message: nothing to do.
+            _ => {}
         }
     }
 
@@ -586,6 +758,19 @@ impl Supervisor {
                     .is_some_and(|entry| entry.generation == generation)
                 {
                     self.remove(peer, reason).await;
+                }
+            }
+            Internal::Exchange {
+                peer,
+                generation,
+                message,
+            } => {
+                if self
+                    .peers
+                    .get(&peer)
+                    .is_some_and(|entry| entry.generation == generation)
+                {
+                    self.handle_exchange(peer, message).await;
                 }
             }
             Internal::Ban {
@@ -727,6 +912,14 @@ impl Supervisor {
                 (identity.hello.tip_height, identity.hello.tip_hash),
             );
         }
+        // Peer exchange (ADR-070): an address we reached the peer at is a live one; tell the
+        // peer where we accept connections and ask whom it knows.
+        if outbound {
+            self.book.learn_live(peer, identity.address);
+        }
+        let port = self.listen_port;
+        self.send_to(peer, &Message::ListenPort { port }).await;
+        self.send_to(peer, &Message::GetPeers).await;
     }
 
     async fn remove(&mut self, peer: PeerId, reason: String) {

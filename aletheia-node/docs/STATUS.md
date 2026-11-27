@@ -43,7 +43,8 @@ partly written; see the end of this file.
 | Block propagation, block sync, tx gossip (`node/sync.rs`) | 36 | yes | yes | 7-node convergence, late joiner (80+ blocks), restart | n/a | rustdoc | no |
 | Devnet producer (feature `devnet-producer`) | 62 (stand-in) | n/a | yes, devnet/regtest only | refused on mainnet | n/a | rustdoc | n/a |
 | State sync over the network (JMT chunks) | 42.4 | yes | **no** (snapshots exist locally; serving them is next) | no | no | no | no |
-| Peer exchange, keepalive pings, peer-version reporting | 36 | yes | **no** | no | no | no | no |
+| Peer exchange, address book, validator mesh, verified consensus relay (`p2p/peer_book.rs`, `network.rs`, ADR-070) | 36 | yes | yes | message and book units, relay memory, 3-validator discovery run | no | rustdoc | no |
+| Keepalive pings, peer-version reporting | 36 | yes | **no** | no | no | no | no |
 
 ## apps/aletheiad
 

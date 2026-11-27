@@ -421,3 +421,75 @@ async fn shutdown_finishes_while_an_rpc_client_still_holds_the_node() {
         "the held client is told the node stopped: {answer:?}"
     );
 }
+
+/// ADR-070: validators that are each configured with only one other node find the rest through
+/// peer exchange and connect to each other directly, and the chain keeps finalizing.
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn validators_configured_with_one_peer_find_each_other() {
+    use aletheia_rpc::Backend;
+    let genesis = genesis(3);
+    let network = genesis.network();
+    let members: Vec<Member> = (0..3)
+        .map(|i| Member {
+            data_dir: scratch(&format!("discover-{i}")),
+            store: Arc::new(MemoryKvStore::new()),
+        })
+        .collect();
+    let first = Node::start(
+        config(&members[0], &genesis, 0, Vec::new(), true),
+        members[0].store.clone(),
+    )
+    .await
+    .unwrap();
+    // Validators 1 and 2 know only validator 0.
+    let only_first = dial(&[first.local_addr()]);
+    let second = Node::start(
+        config(&members[1], &genesis, 1, only_first.clone(), true),
+        members[1].store.clone(),
+    )
+    .await
+    .unwrap();
+    let third = Node::start(
+        config(&members[2], &genesis, 2, only_first, true),
+        members[2].store.clone(),
+    )
+    .await
+    .unwrap();
+    let mut nodes = vec![first, second, third];
+
+    // Each validator ends up connected to both others.
+    let started = std::time::Instant::now();
+    loop {
+        let mut counts = Vec::new();
+        for node in &nodes {
+            counts.push(
+                node.rpc_backend()
+                    .status()
+                    .await
+                    .unwrap()
+                    .peers
+                    .unwrap_or(0),
+            );
+        }
+        if counts.iter().all(|&c| c == 2) {
+            break;
+        }
+        assert!(
+            started.elapsed() < WAIT,
+            "validators did not discover each other: peer counts {counts:?}"
+        );
+        tokio::time::sleep(Duration::from_millis(200)).await;
+    }
+
+    let target = Height::new(nodes[0].tip().height.get() + 10);
+    for node in &mut nodes {
+        node.wait_for_height(target, WAIT).await.unwrap();
+    }
+    let reference = hash_at(&nodes[0], &network, target).await;
+    for node in nodes.iter().skip(1) {
+        assert_eq!(hash_at(node, &network, target).await, reference);
+    }
+    for node in nodes {
+        node.shutdown().await.unwrap();
+    }
+}

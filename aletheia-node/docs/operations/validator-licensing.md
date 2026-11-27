@@ -54,7 +54,8 @@ chain. Amounts are in ALnT (3 decimals).
    [signer]
    socket = "/run/aletheia-signer/signer.sock"
 
-   # The State's validator: the node fetches the chain from it and finds the other validators.
+   # The State's validator: the node fetches the chain from it and learns every other node from
+   # it (peer exchange, ADR-070); it connects to each validator of the current epoch directly.
    [[peers]]
    address = "9.205.24.247:7771"
    node_key = "44fd466a9b450e9a417177fd84ac7d748f5cb8ec03490f0d286de71112e5c049"

@@ -16,7 +16,8 @@ use std::time::Duration;
 
 use aletheia_consensus::schedule::{LeaderSchedule, seed};
 use aletheia_consensus::{
-    ConsensusSigner, Engine, FinalizedTip, SafetyData, ValidatorInfo, ValidatorSet,
+    ConsensusMessage, ConsensusSigner, Engine, FinalizedTip, SafetyData, ValidatorInfo,
+    ValidatorSet, certificate,
 };
 use aletheia_core::block::{Proposal, QuorumCertificate, TimeoutCertificate};
 use aletheia_core::{AletheiaError, Epoch, ErrorCode, Hash32, NetworkIdentity, Slot};
@@ -168,6 +169,52 @@ pub(crate) struct ConsensusDriver {
     pub(crate) slot_duration: Duration,
     /// Misbehaviour seen (Section 19.8); on-chain submission arrives with slashing.
     pub(crate) evidence_seen: u64,
+    /// Consensus messages already seen or sent, so each is relayed at most once (ADR-070).
+    relayed: Relayed,
+}
+
+/// Most consensus message digests remembered for relay deduplication (ADR-070).
+pub(crate) const RELAY_MEMORY: usize = 16_384;
+
+/// A bounded memory of consensus messages, by a digest keyed per process (a collision can at
+/// worst suppress one relay; it never affects what the engine accepts).
+#[derive(Debug)]
+pub(crate) struct Relayed {
+    keys: std::hash::RandomState,
+    seen: std::collections::HashSet<u64>,
+    order: std::collections::VecDeque<u64>,
+}
+
+impl Default for Relayed {
+    fn default() -> Self {
+        Relayed {
+            keys: std::hash::RandomState::new(),
+            seen: std::collections::HashSet::new(),
+            order: std::collections::VecDeque::new(),
+        }
+    }
+}
+
+impl Relayed {
+    fn digest(&self, msg_type: u16, payload: &[u8]) -> u64 {
+        use std::hash::BuildHasher;
+        self.keys.hash_one((msg_type, payload))
+    }
+
+    /// Records the message; true when it had not been seen before.
+    pub(crate) fn first_sight(&mut self, msg_type: u16, payload: &[u8]) -> bool {
+        let digest = self.digest(msg_type, payload);
+        if !self.seen.insert(digest) {
+            return false;
+        }
+        self.order.push_back(digest);
+        while self.order.len() > RELAY_MEMORY {
+            if let Some(old) = self.order.pop_front() {
+                self.seen.remove(&old);
+            }
+        }
+        true
+    }
 }
 
 impl core::fmt::Debug for ConsensusDriver {
@@ -206,7 +253,70 @@ impl ConsensusDriver {
             pending_build: None,
             slot_duration,
             evidence_seen: 0,
+            relayed: Relayed::default(),
         }
+    }
+
+    /// Records a consensus message this node is about to broadcast, so it is not relayed back.
+    pub(crate) fn sent(&mut self, msg_type: u16, payload: &[u8]) {
+        self.relayed.first_sight(msg_type, payload);
+    }
+
+    /// Whether a message received from a peer is passed on (ADR-070): new to this node, and
+    /// valid for the current epoch's set, so the network never amplifies garbage.
+    pub(crate) fn relay(
+        &mut self,
+        msg_type: u16,
+        payload: &[u8],
+        message: &ConsensusMessage,
+    ) -> bool {
+        if !self.relayed.first_sight(msg_type, payload) {
+            return false;
+        }
+        let network = &self.network;
+        let set = &self.set;
+        match message {
+            ConsensusMessage::Vote(vote) => certificate::verify_vote(network, set, vote).is_ok(),
+            ConsensusMessage::Timeout(timeout) => {
+                certificate::verify_timeout(network, set, timeout).is_ok()
+            }
+            ConsensusMessage::QuorumCertificate(qc) => {
+                !qc.signers.is_empty() && certificate::verify_qc(network, set, qc).is_ok()
+            }
+            ConsensusMessage::TimeoutCertificate(tc) => {
+                certificate::verify_tc(network, set, tc).is_ok()
+            }
+            ConsensusMessage::Proposal(proposal) => {
+                let header = &proposal.block.header;
+                header.epoch == set.epoch()
+                    && header.proposer == self.engine.leader(header.slot)
+                    && set.member(header.proposer).is_some_and(|member| {
+                        BlsSignature::from_bytes(&proposal.proposer_signature).is_ok_and(
+                            |signature| {
+                                member
+                                    .consensus_key
+                                    .verify(
+                                        &Proposal::signing_digest(
+                                            network,
+                                            &header.block_hash(network),
+                                        ),
+                                        &signature,
+                                    )
+                                    .is_ok()
+                            },
+                        )
+                    })
+            }
+        }
+    }
+
+    /// The node keys of the current epoch's validators, for the network's validator mesh.
+    pub(crate) fn validator_keys(&self) -> Vec<[u8; 32]> {
+        self.set
+            .members()
+            .iter()
+            .map(|member| member.node_key)
+            .collect()
     }
 
     fn engine(
@@ -314,5 +424,32 @@ pub(crate) fn member_index(
             None
         }
         None => None,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_message_is_relayed_once_and_the_memory_is_bounded() {
+        let mut relayed = Relayed::default();
+        assert!(relayed.first_sight(2, b"vote"));
+        assert!(
+            !relayed.first_sight(2, b"vote"),
+            "seen once, never relayed again"
+        );
+        assert!(
+            relayed.first_sight(3, b"vote"),
+            "the type is part of the identity"
+        );
+        for i in 0..(RELAY_MEMORY + 10) {
+            relayed.first_sight(2, &i.to_le_bytes());
+        }
+        assert!(relayed.seen.len() <= RELAY_MEMORY);
+        assert!(
+            relayed.first_sight(2, b"vote"),
+            "forgotten after the memory turned over"
+        );
     }
 }

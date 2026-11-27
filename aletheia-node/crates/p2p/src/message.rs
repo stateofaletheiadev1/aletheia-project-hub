@@ -3,6 +3,7 @@
 //!
 //! ```text
 //! Mgmt      1 Ping { nonce u64 }   2 Pong { nonce u64 }   3 Status { tip_height u64, tip_hash Hash32 }
+//!           4 ListenPort { port u16 }   5 GetPeers   6 Peers { list<PeerAddress> (<= 64) }  (ADR-070)
 //! BlockProp 1 NewBlock { height u64, hash Hash32 }
 //!           2 GetBlocks { from u64, count u16 (1..=64) }
 //!           3 Blocks { list<Proposal> (<= 64), finality_proof bytes (<= 64 KiB) }
@@ -35,8 +36,51 @@ pub const MAX_BLOCKS_PER_REQUEST: u16 = 64;
 pub const MAX_TX_IDS: u32 = 1024;
 pub const MAX_TXS: u32 = 512;
 pub const MAX_FINALITY_PROOF_BYTES: u32 = 64 * 1024;
+/// Most peer addresses in one `Peers` answer (ADR-070).
+pub const MAX_PEER_ADDRESSES: u32 = 64;
 /// Consensus message types 1..=5 (Proposal, Vote, Timeout, QC, TC).
 pub const CONSENSUS_MSG_TYPES: core::ops::RangeInclusive<u16> = 1..=5;
+
+/// A node and the address it accepts connections at (ADR-070). A hint, never trusted: a
+/// connection to it still completes the signed handshake.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct PeerAddress {
+    pub node_key: [u8; 32],
+    pub address: std::net::SocketAddr,
+}
+
+impl AceEncode for PeerAddress {
+    fn encode(&self, out: &mut AceWriter) {
+        out.fixed(&self.node_key);
+        match self.address.ip() {
+            std::net::IpAddr::V4(ip) => {
+                out.u8(4);
+                out.fixed(&ip.octets());
+            }
+            std::net::IpAddr::V6(ip) => {
+                out.u8(6);
+                out.fixed(&ip.octets());
+            }
+        }
+        out.u16(self.address.port());
+    }
+}
+
+impl AceDecode for PeerAddress {
+    fn decode(input: &mut AceReader<'_>) -> Result<PeerAddress, AletheiaError> {
+        let node_key = input.array()?;
+        let ip = match input.u8()? {
+            4 => std::net::IpAddr::V4(std::net::Ipv4Addr::from(input.array::<4>()?)),
+            6 => std::net::IpAddr::V6(std::net::Ipv6Addr::from(input.array::<16>()?)),
+            other => return Err(malformed(format!("address family {other}"))),
+        };
+        let port = input.u16()?;
+        Ok(PeerAddress {
+            node_key,
+            address: std::net::SocketAddr::new(ip, port),
+        })
+    }
+}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Message {
@@ -49,6 +93,17 @@ pub enum Message {
     Status {
         tip_height: Height,
         tip_hash: Hash32,
+    },
+    /// The port this node accepts connections on, sent once after the handshake (ADR-070).
+    ListenPort {
+        port: u16,
+    },
+    GetPeers,
+    Peers(Vec<PeerAddress>),
+    /// A management message of a type this release does not know; ignored, never scored, so a
+    /// later release's additions do not get it banned (ADR-070).
+    UnknownMgmt {
+        msg_type: u16,
     },
     NewBlock {
         height: Height,
@@ -81,7 +136,13 @@ fn malformed(detail: String) -> AletheiaError {
 impl Message {
     pub fn channel(&self) -> Channel {
         match self {
-            Message::Ping { .. } | Message::Pong { .. } | Message::Status { .. } => Channel::Mgmt,
+            Message::Ping { .. }
+            | Message::Pong { .. }
+            | Message::Status { .. }
+            | Message::ListenPort { .. }
+            | Message::GetPeers
+            | Message::Peers(_)
+            | Message::UnknownMgmt { .. } => Channel::Mgmt,
             Message::NewBlock { .. }
             | Message::GetBlocks { .. }
             | Message::Blocks { .. }
@@ -96,7 +157,10 @@ impl Message {
             Message::Ping { .. } | Message::NewBlock { .. } | Message::TxAnnounce(_) => 1,
             Message::Pong { .. } | Message::GetBlocks { .. } | Message::GetTxs(_) => 2,
             Message::Status { .. } | Message::Blocks { .. } | Message::Txs(_) => 3,
-            Message::GetProposal { .. } => 4,
+            Message::GetProposal { .. } | Message::ListenPort { .. } => 4,
+            Message::GetPeers => 5,
+            Message::Peers(_) => 6,
+            Message::UnknownMgmt { msg_type } => *msg_type,
             Message::Consensus { msg_type, .. } => *msg_type,
         }
     }
@@ -135,7 +199,9 @@ impl Message {
             Message::GetProposal { block_hash } => block_hash.encode(&mut out),
             Message::TxAnnounce(ids) | Message::GetTxs(ids) => out.list(ids),
             Message::Txs(txs) => out.list(txs),
-            Message::Consensus { .. } => {}
+            Message::ListenPort { port } => out.u16(*port),
+            Message::Peers(peers) => out.list(peers),
+            Message::GetPeers | Message::UnknownMgmt { .. } | Message::Consensus { .. } => {}
         }
         Frame {
             channel: self.channel(),
@@ -172,6 +238,13 @@ impl Message {
                 tip_height: Height::decode(&mut input)?,
                 tip_hash: Hash32::decode(&mut input)?,
             },
+            (Channel::Mgmt, 4) => Message::ListenPort { port: input.u16()? },
+            (Channel::Mgmt, 5) => Message::GetPeers,
+            (Channel::Mgmt, 6) => Message::Peers(input.list(MAX_PEER_ADDRESSES)?),
+            // Type 0 is the hello, which is never valid after the handshake.
+            (Channel::Mgmt, msg_type) if msg_type > 6 => {
+                return Ok(Message::UnknownMgmt { msg_type });
+            }
             (Channel::BlockProp, 1) => Message::NewBlock {
                 height: Height::decode(&mut input)?,
                 hash: Hash32::decode(&mut input)?,
@@ -244,10 +317,49 @@ mod tests {
             Message::TxAnnounce(vec![Hash32::from_bytes([3; 32])]),
             Message::GetTxs(vec![]),
             Message::Txs(vec![]),
+            Message::ListenPort { port: 7771 },
+            Message::GetPeers,
+            Message::Peers(vec![
+                PeerAddress {
+                    node_key: [7; 32],
+                    address: "9.205.24.247:7771".parse().unwrap(),
+                },
+                PeerAddress {
+                    node_key: [8; 32],
+                    address: "[2001:db8::1]:7771".parse().unwrap(),
+                },
+            ]),
         ] {
             let frame = message.to_frame(1);
             assert_eq!(Message::from_frame(&frame).unwrap(), message);
         }
+    }
+
+    #[test]
+    fn unknown_management_types_are_ignored_and_peer_lists_are_bounded() {
+        let later = Frame {
+            channel: Channel::Mgmt,
+            msg_type: 40,
+            request_id: 0,
+            payload: vec![1, 2, 3],
+        };
+        assert_eq!(
+            Message::from_frame(&later).unwrap(),
+            Message::UnknownMgmt { msg_type: 40 }
+        );
+        let too_many = Message::Peers(vec![
+            PeerAddress {
+                node_key: [1; 32],
+                address: "127.0.0.1:1".parse().unwrap(),
+            };
+            65
+        ])
+        .to_frame(0);
+        // Refused like every over-long list; the reader scores the peer for it.
+        assert_eq!(
+            Message::from_frame(&too_many).unwrap_err().code(),
+            ErrorCode::DecodeLengthExceeded
+        );
     }
 
     #[test]
