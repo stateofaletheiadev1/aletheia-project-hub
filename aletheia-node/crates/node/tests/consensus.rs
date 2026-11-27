@@ -104,6 +104,7 @@ fn config(
         remote_signer: None,
         snapshots: aletheia_node::SnapshotPolicy::DISABLED,
         restore_snapshot: None,
+        next_signer: None,
     }
 }
 

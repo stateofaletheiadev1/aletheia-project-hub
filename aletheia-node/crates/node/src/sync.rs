@@ -551,6 +551,17 @@ impl SyncService {
             hash: tip.hash,
         })
         .await;
+        // A registration or governance change may have changed whose certificates are
+        // accepted, a rotation's above all (ADR-074): refresh the pins.
+        let registry_change = block.block.body.transactions.iter().any(|tx| {
+            matches!(
+                &tx.body.payload,
+                aletheia_core::Payload::Validator(_) | aletheia_core::Payload::Registry(_)
+            )
+        });
+        if registry_change {
+            self.announce_validators().await;
+        }
         self.send(NetworkCommand::Broadcast(Message::NewBlock {
             height: tip.height,
             hash: tip.hash,
@@ -630,29 +641,17 @@ impl SyncService {
             return;
         };
         let keys = driver.validator_keys();
-        let hashes: Vec<Option<Hash32>> = match self
+        let hashes = self
             .chain
-            .rpc(crate::rpc::RpcQuery::Registry(keys.clone()))
+            .validator_pins(keys.clone())
             .await
-        {
-            Ok(crate::rpc::RpcAnswer::Registry(view)) => view
-                .registrations
-                .iter()
-                .map(|registration| {
-                    registration
-                        .as_ref()
-                        .map(|r| r.transport_cert_hash)
-                        .filter(|hash| *hash != Hash32::ZERO)
-                })
-                .collect(),
-            _ => Vec::new(),
-        };
+            .unwrap_or_default();
         let pins = keys
             .iter()
             .enumerate()
             .map(|(i, key)| aletheia_p2p::ValidatorPin {
                 node_key: *key,
-                cert_hash: hashes.get(i).copied().flatten(),
+                cert_hashes: hashes.get(i).cloned().unwrap_or_default(),
             })
             .collect();
         self.send(NetworkCommand::SetValidators(pins)).await;

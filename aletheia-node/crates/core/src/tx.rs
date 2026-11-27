@@ -213,7 +213,10 @@ impl Payload {
                     )),
                 }
             }
-            TxType(validator) if crate::validator::ValidatorOp::TX_TYPES.contains(&validator) => {
+            TxType(validator)
+                if crate::validator::ValidatorOp::TX_TYPES.contains(&validator)
+                    || crate::validator::ValidatorOp::ROTATION_TX_TYPES.contains(&validator) =>
+            {
                 match crate::validator::ValidatorOp::decode_content(validator, input) {
                     Some(op) => op.map(|op| Payload::Validator(Box::new(op))),
                     None => Err(AletheiaError::new(

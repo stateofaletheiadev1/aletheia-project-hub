@@ -407,7 +407,7 @@ async fn a_validator_connection_with_a_certificate_other_than_the_registered_one
     a.commands
         .send(NetworkCommand::SetValidators(vec![ValidatorPin {
             node_key: id(2),
-            cert_hash: Some(Hash32::from_bytes([9; 32])),
+            cert_hashes: vec![Hash32::from_bytes([9; 32])],
         }]))
         .await
         .unwrap();
@@ -434,7 +434,7 @@ async fn a_validator_connection_with_a_certificate_other_than_the_registered_one
     a.commands
         .send(NetworkCommand::SetValidators(vec![ValidatorPin {
             node_key: id(4),
-            cert_hash: None,
+            cert_hashes: Vec::new(),
         }]))
         .await
         .unwrap();
@@ -443,7 +443,7 @@ async fn a_validator_connection_with_a_certificate_other_than_the_registered_one
     a.commands
         .send(NetworkCommand::SetValidators(vec![ValidatorPin {
             node_key: id(4),
-            cert_hash: Some(c_hash),
+            cert_hashes: vec![c_hash],
         }]))
         .await
         .unwrap();
@@ -452,4 +452,37 @@ async fn a_validator_connection_with_a_certificate_other_than_the_registered_one
         .unwrap();
     let peers = wait_connected(&mut a, 1).await;
     assert_eq!(peers, vec![id(4)]);
+}
+
+/// ADR-074: during a certificate rotation a validator is pinned to two certificates, the new
+/// one registered and the previous one in its grace period; it is accepted with either.
+#[tokio::test]
+async fn a_validator_in_a_certificate_rotation_is_accepted_with_either_certificate() {
+    use aletheia_p2p::ValidatorPin;
+    let config = |dial: Vec<SocketAddr>| NetworkConfig {
+        listen: "127.0.0.1:0".parse().unwrap(),
+        dial: dial
+            .into_iter()
+            .map(|address| DialTarget {
+                address,
+                expect: PeerExpectation::default(),
+            })
+            .collect(),
+    };
+    let mut a = start(config(vec![]), local(5), TIP).await.unwrap();
+    let b_local = local(6);
+    let previous = b_local.certificate.hash();
+    a.commands
+        .send(NetworkCommand::SetValidators(vec![ValidatorPin {
+            node_key: id(6),
+            // The newly registered certificate first, the one B still presents second.
+            cert_hashes: vec![Hash32::from_bytes([8; 32]), previous],
+        }]))
+        .await
+        .unwrap();
+    let _b = start(config(vec![a.local_addr]), b_local, TIP)
+        .await
+        .unwrap();
+    let peers = wait_connected(&mut a, 1).await;
+    assert_eq!(peers, vec![id(6)]);
 }

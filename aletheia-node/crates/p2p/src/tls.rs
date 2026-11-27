@@ -89,41 +89,51 @@ impl TransportCertificate {
     /// one written there on first start (ADR-071). The key file is readable by its owner only.
     /// A pair that does not belong together is refused rather than replaced: replacing it would
     /// change the hash registered for this validator.
+    ///
+    /// A certificate prepared with [`TransportCertificate::prepare_next`] is put in place first,
+    /// the old pair kept as `previous-transport-*` (ADR-074).
     pub fn load_or_create(dir: &std::path::Path) -> Result<TransportCertificate, AletheiaError> {
-        let io = |action: &str, path: &std::path::Path, e: std::io::Error| {
-            AletheiaError::new(
-                ErrorCode::StoIo,
-                format!("{action} {}: {e}", path.display()),
-            )
-        };
-        let cert_path = dir.join("transport-cert.der");
-        let key_path = dir.join("transport-key.pk8");
+        let cert_path = dir.join(CERT_FILE);
+        let key_path = dir.join(KEY_FILE);
+        promote_next(dir)?;
         if cert_path.exists() || key_path.exists() {
-            let certificate = std::fs::read(&cert_path).map_err(|e| io("read", &cert_path, e))?;
-            let key_pkcs8 = std::fs::read(&key_path).map_err(|e| io("read", &key_path, e))?;
-            let loaded = TransportCertificate {
-                certificate: CertificateDer::from(certificate),
-                key_pkcs8,
-            };
-            // rustls checks the key matches the certificate.
-            server_config(&loaded).map_err(|e| {
+            return read_pair(&cert_path, &key_path).map_err(|e| {
                 AletheiaError::new(
-                    ErrorCode::StoCorrupt,
+                    e.code(),
                     format!(
-                        "the transport certificate in {} does not match its key ({}); restore both files from backup",
-                        dir.display(),
-                        e.detail()
+                        "{}; restore both files of {} from backup",
+                        e.detail(),
+                        dir.display()
                     ),
                 )
-            })?;
-            return Ok(loaded);
+            });
         }
         let fresh = TransportCertificate::generate()?;
-        std::fs::create_dir_all(dir).map_err(|e| io("create", dir, e))?;
-        write_private(&key_path, &fresh.key_pkcs8).map_err(|e| io("write", &key_path, e))?;
+        std::fs::create_dir_all(dir).map_err(|e| io_failure("create", dir, &e))?;
+        write_private(&key_path, &fresh.key_pkcs8)
+            .map_err(|e| io_failure("write", &key_path, &e))?;
         std::fs::write(&cert_path, fresh.certificate.as_ref())
-            .map_err(|e| io("write", &cert_path, e))?;
+            .map_err(|e| io_failure("write", &cert_path, &e))?;
         Ok(fresh)
+    }
+
+    /// Writes a new certificate beside the current one (`next-transport-*`), used from the
+    /// node's next start, and returns its hash to register with `RotateTransportCert`
+    /// (ADR-074). Asked again before that start, it returns the same one.
+    pub fn prepare_next(dir: &std::path::Path) -> Result<Hash32, AletheiaError> {
+        let cert_path = dir.join(NEXT_CERT_FILE);
+        let key_path = dir.join(NEXT_KEY_FILE);
+        if cert_path.exists() && key_path.exists() {
+            return read_pair(&cert_path, &key_path).map(|pair| pair.hash());
+        }
+        let fresh = TransportCertificate::generate()?;
+        std::fs::create_dir_all(dir).map_err(|e| io_failure("create", dir, &e))?;
+        // The key first: a crash then leaves a key alone, which is ignored and rewritten.
+        write_private(&key_path, &fresh.key_pkcs8)
+            .map_err(|e| io_failure("write", &key_path, &e))?;
+        std::fs::write(&cert_path, fresh.certificate.as_ref())
+            .map_err(|e| io_failure("write", &cert_path, &e))?;
+        Ok(fresh.hash())
     }
 
     pub fn hash(&self) -> Hash32 {
@@ -137,6 +147,74 @@ impl TransportCertificate {
     fn key(&self) -> PrivateKeyDer<'static> {
         PrivateKeyDer::Pkcs8(PrivatePkcs8KeyDer::from(self.key_pkcs8.clone()))
     }
+}
+
+const CERT_FILE: &str = "transport-cert.der";
+const KEY_FILE: &str = "transport-key.pk8";
+const NEXT_CERT_FILE: &str = "next-transport-cert.der";
+const NEXT_KEY_FILE: &str = "next-transport-key.pk8";
+const PREVIOUS_CERT_FILE: &str = "previous-transport-cert.der";
+const PREVIOUS_KEY_FILE: &str = "previous-transport-key.pk8";
+
+fn io_failure(action: &str, path: &std::path::Path, error: &std::io::Error) -> AletheiaError {
+    AletheiaError::new(
+        ErrorCode::StoIo,
+        format!("{action} {}: {error}", path.display()),
+    )
+}
+
+/// A certificate and key read from disk, checked to belong together.
+fn read_pair(
+    cert_path: &std::path::Path,
+    key_path: &std::path::Path,
+) -> Result<TransportCertificate, AletheiaError> {
+    let certificate = std::fs::read(cert_path).map_err(|e| io_failure("read", cert_path, &e))?;
+    let key_pkcs8 = std::fs::read(key_path).map_err(|e| io_failure("read", key_path, &e))?;
+    let loaded = TransportCertificate {
+        certificate: CertificateDer::from(certificate),
+        key_pkcs8,
+    };
+    // rustls checks the key matches the certificate.
+    server_config(&loaded).map_err(|e| {
+        AletheiaError::new(
+            ErrorCode::StoCorrupt,
+            format!(
+                "the transport certificate {} does not match its key ({})",
+                cert_path.display(),
+                e.detail()
+            ),
+        )
+    })?;
+    Ok(loaded)
+}
+
+/// Puts a prepared certificate in place (ADR-074): the current pair is copied to
+/// `previous-transport-*`, then the next key and certificate are renamed over the current
+/// ones, key first. A start interrupted between the two renames finds the next certificate
+/// alone and finishes the move.
+fn promote_next(dir: &std::path::Path) -> Result<(), AletheiaError> {
+    let next_cert = dir.join(NEXT_CERT_FILE);
+    let next_key = dir.join(NEXT_KEY_FILE);
+    let cert = dir.join(CERT_FILE);
+    let key = dir.join(KEY_FILE);
+    if next_cert.exists() && next_key.exists() {
+        read_pair(&next_cert, &next_key)?;
+        if cert.exists() && key.exists() {
+            let old_cert = std::fs::read(&cert).map_err(|e| io_failure("read", &cert, &e))?;
+            let old_key = std::fs::read(&key).map_err(|e| io_failure("read", &key, &e))?;
+            let previous_key = dir.join(PREVIOUS_KEY_FILE);
+            let previous_cert = dir.join(PREVIOUS_CERT_FILE);
+            write_private(&previous_key, &old_key)
+                .map_err(|e| io_failure("write", &previous_key, &e))?;
+            std::fs::write(&previous_cert, old_cert)
+                .map_err(|e| io_failure("write", &previous_cert, &e))?;
+        }
+        std::fs::rename(&next_key, &key).map_err(|e| io_failure("rename", &next_key, &e))?;
+    }
+    if next_cert.exists() && !next_key.exists() {
+        std::fs::rename(&next_cert, &cert).map_err(|e| io_failure("rename", &next_cert, &e))?;
+    }
+    Ok(())
 }
 
 /// Writes `bytes` to `path` readable by its owner only (0600 on Unix), via a temporary file and
@@ -161,20 +239,19 @@ fn write_private(path: &std::path::Path, bytes: &[u8]) -> std::io::Result<()> {
 /// Accepts any certificate unless one is pinned, and always verifies handshake signatures.
 #[derive(Debug)]
 struct PeerCertVerifier {
-    pinned: Option<Hash32>,
+    /// Empty: any certificate.
+    pinned: Vec<Hash32>,
     algorithms: WebPkiSupportedAlgorithms,
 }
 
 impl PeerCertVerifier {
     fn check(&self, end_entity: &CertificateDer<'_>) -> Result<(), rustls::Error> {
-        match self.pinned {
-            Some(expected) if certificate_hash(end_entity) != expected => {
-                Err(rustls::Error::General(format!(
-                    "peer certificate is not the pinned one ({expected})"
-                )))
-            }
-            _ => Ok(()),
+        if self.pinned.is_empty() || self.pinned.contains(&certificate_hash(end_entity)) {
+            return Ok(());
         }
+        Err(rustls::Error::General(
+            "peer certificate is not a pinned one".to_owned(),
+        ))
     }
 }
 
@@ -260,10 +337,11 @@ fn provider() -> Arc<CryptoProvider> {
     Arc::new(rustls::crypto::ring::default_provider())
 }
 
-/// Dialing side. `pinned` is the peer's registered certificate hash, if it is a validator.
+/// Dialing side. `pinned` holds the certificates the peer may present (a validator's
+/// registered one, and during a rotation its previous one); empty accepts any.
 pub fn client_config(
     identity: &TransportCertificate,
-    pinned: Option<Hash32>,
+    pinned: Vec<Hash32>,
 ) -> Result<Arc<ClientConfig>, AletheiaError> {
     let provider = provider();
     let verifier = Arc::new(PeerCertVerifier {
@@ -284,7 +362,7 @@ pub fn client_config(
 pub fn server_config(identity: &TransportCertificate) -> Result<Arc<ServerConfig>, AletheiaError> {
     let provider = provider();
     let verifier = Arc::new(PeerCertVerifier {
-        pinned: None,
+        pinned: Vec::new(),
         algorithms: provider.signature_verification_algorithms,
     });
     let config = ServerConfig::builder_with_provider(provider)
@@ -317,6 +395,39 @@ mod tests {
         std::fs::write(dir.join("transport-key.pk8"), &other.key_pkcs8).unwrap();
         let error = TransportCertificate::load_or_create(&dir).unwrap_err();
         assert_eq!(error.code(), ErrorCode::StoCorrupt);
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn a_prepared_certificate_takes_over_on_the_next_start_and_the_old_one_is_kept() {
+        let dir = std::env::temp_dir().join(format!("aletheia-tls-next-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        let first = TransportCertificate::load_or_create(&dir).unwrap();
+        let next = TransportCertificate::prepare_next(&dir).unwrap();
+        assert_ne!(next, first.hash());
+        assert_eq!(
+            TransportCertificate::prepare_next(&dir).unwrap(),
+            next,
+            "asked twice before the start, the same one"
+        );
+        let started = TransportCertificate::load_or_create(&dir).unwrap();
+        assert_eq!(started.hash(), next);
+        assert!(!dir.join(NEXT_CERT_FILE).exists() && !dir.join(NEXT_KEY_FILE).exists());
+        let previous =
+            read_pair(&dir.join(PREVIOUS_CERT_FILE), &dir.join(PREVIOUS_KEY_FILE)).unwrap();
+        assert_eq!(previous.hash(), first.hash());
+        assert_eq!(
+            TransportCertificate::load_or_create(&dir).unwrap().hash(),
+            next
+        );
+
+        // A start interrupted after the key was moved finishes with the certificate.
+        let after = TransportCertificate::prepare_next(&dir).unwrap();
+        std::fs::rename(dir.join(NEXT_KEY_FILE), dir.join(KEY_FILE)).unwrap();
+        assert_eq!(
+            TransportCertificate::load_or_create(&dir).unwrap().hash(),
+            after
+        );
         let _ = std::fs::remove_dir_all(&dir);
     }
 }

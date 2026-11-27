@@ -156,7 +156,11 @@ pub(crate) struct ConsensusDriver {
     pub(crate) engine: Engine<NodeSigner>,
     pub(crate) network: NetworkIdentity,
     pub(crate) set: ValidatorSet,
+    /// The signer of the current epoch: one of `signers`.
     signer: NodeSigner,
+    /// Every consensus key this node holds: its current one and, during a rotation, the next
+    /// (ADR-074). Each epoch signs with the one its set records.
+    signers: Vec<NodeSigner>,
     pub(crate) me: Option<aletheia_core::ValidatorIndex>,
     /// This node's P2P identity: its place in each epoch's set, if any.
     node_key: [u8; 32],
@@ -231,13 +235,14 @@ impl ConsensusDriver {
     pub(crate) fn new(
         network: NetworkIdentity,
         set: ValidatorSet,
-        signer: NodeSigner,
+        signers: Vec<NodeSigner>,
         node_key: [u8; 32],
         seed_hash: Hash32,
         safety: SafetyData,
         finalized: FinalizedTip,
         slot_duration: Duration,
     ) -> ConsensusDriver {
+        let signer = choose_signer(&set, &signers, &node_key);
         let me = member_index(&set, &signer, &node_key);
         let engine = Self::engine(&network, &set, &signer, me, seed_hash, safety, finalized);
         ConsensusDriver {
@@ -245,6 +250,7 @@ impl ConsensusDriver {
             network,
             set,
             signer,
+            signers,
             me,
             node_key,
             seed_hash,
@@ -364,6 +370,17 @@ impl ConsensusDriver {
             )
         })?;
         let set = validator_set(&self.network, at.epoch, records)?;
+        let signer = choose_signer(&set, &self.signers, &self.node_key);
+        if signer.public_key() != self.signer.public_key()
+            && let Some(key) = signer.public_key()
+        {
+            operator_note(&format!(
+                "info validator epoch {}: signing with consensus key {} (rotated, ADR-074)",
+                set.epoch(),
+                aletheia_core::base16::encode(&key)
+            ));
+        }
+        self.signer = signer;
         let me = member_index(&set, &self.signer, &self.node_key);
         if me != self.me || set.epoch() != self.set.epoch() {
             operator_note(&format!(
@@ -408,6 +425,28 @@ pub(crate) fn operator_note(line: &str) {
 /// This node's index in `set` when it is a member and holds the member's consensus key. A
 /// member without the key, or with a different one, follows as an observer: signing with the
 /// wrong key would only produce votes nobody counts.
+/// The held signer whose key `set` records for `node_key`; otherwise the first one held (which
+/// then follows as an observer, see [`member_index`]).
+pub(crate) fn choose_signer(
+    set: &ValidatorSet,
+    signers: &[NodeSigner],
+    node_key: &[u8; 32],
+) -> NodeSigner {
+    let registered = set
+        .index_of(node_key)
+        .and_then(|index| set.member(index))
+        .map(|member| member.consensus_key.to_bytes());
+    registered
+        .and_then(|key| {
+            signers
+                .iter()
+                .find(|signer| signer.public_key() == Some(key))
+        })
+        .or_else(|| signers.first())
+        .cloned()
+        .unwrap_or(NodeSigner::Observer)
+}
+
 pub(crate) fn member_index(
     set: &ValidatorSet,
     signer: &NodeSigner,

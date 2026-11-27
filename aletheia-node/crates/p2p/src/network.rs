@@ -44,10 +44,12 @@ pub struct DialTarget {
 
 /// A validator of the current epoch: its node key, and the SHA-256 of the transport
 /// certificate registered for it, when one is (ADR-071).
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ValidatorPin {
     pub node_key: PeerId,
-    pub cert_hash: Option<Hash32>,
+    /// The certificates it may present; empty (a genesis validator) is not pinned. Two during
+    /// a certificate rotation (ADR-074).
+    pub cert_hashes: Vec<Hash32>,
 }
 
 #[derive(Debug, Clone)]
@@ -274,7 +276,7 @@ struct Supervisor {
     listen_port: u16,
     book: PeerBook,
     /// The current epoch's validators and their registered certificate hashes (ADR-071).
-    validators: BTreeMap<PeerId, Option<Hash32>>,
+    validators: BTreeMap<PeerId, Vec<Hash32>>,
     /// Dial tasks started from the address book, by the key they are pinned to.
     dialers: BTreeMap<PeerId, JoinHandle<()>>,
 }
@@ -400,7 +402,9 @@ async fn dial_loop(
     let mut backoff = DIAL_BACKOFF_INITIAL;
     loop {
         let current_tip = *tip.borrow();
-        match PeerConnection::connect(target.address, &local, current_tip, target.expect).await {
+        match PeerConnection::connect(target.address, &local, current_tip, target.expect.clone())
+            .await
+        {
             Ok(connection) => {
                 backoff = DIAL_BACKOFF_INITIAL;
                 let (closed_tx, closed_rx) = oneshot::channel();
@@ -627,10 +631,10 @@ impl Supervisor {
                 }
             }
             NetworkCommand::SetValidators(pins) => {
-                let next: BTreeMap<PeerId, Option<Hash32>> = pins
+                let next: BTreeMap<PeerId, Vec<Hash32>> = pins
                     .into_iter()
                     .filter(|pin| pin.node_key != self.local_id)
-                    .map(|pin| (pin.node_key, pin.cert_hash))
+                    .map(|pin| (pin.node_key, pin.cert_hashes))
                     .collect();
                 // A dial task pinned to an old certificate hash starts again with the new one.
                 self.dialers.retain(|key, task| {
@@ -664,9 +668,9 @@ impl Supervisor {
         }
     }
 
-    /// Whether `peer` is a validator with a registered certificate other than `cert_hash`.
+    /// Whether `peer` is a pinned validator and `cert_hash` is none of its certificates.
     fn pin_refuses(&self, peer: &PeerId, cert_hash: Hash32) -> bool {
-        matches!(self.validators.get(peer), Some(Some(pin)) if *pin != cert_hash)
+        matches!(self.validators.get(peer), Some(pins) if !pins.is_empty() && !pins.contains(&cert_hash))
     }
 
     /// Starts dial tasks, pinned to their keys, for every validator this node knows an address
@@ -721,7 +725,7 @@ impl Supervisor {
                 address,
                 expect: PeerExpectation {
                     node_key: Some(key),
-                    cert_hash: self.validators.get(&key).copied().flatten(),
+                    cert_hashes: self.validators.get(&key).cloned().unwrap_or_default(),
                 },
             };
             let task = tokio::spawn(dial_loop(

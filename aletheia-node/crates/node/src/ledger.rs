@@ -1540,6 +1540,22 @@ impl<S: KvStore> Ledger<S> {
         })
     }
 
+    /// The certificates each of `node_keys` may present at the tip: its registered one and,
+    /// during a rotation's grace, its previous one (ADR-074). Empty for a genesis validator.
+    pub fn validator_pins(
+        &self,
+        node_keys: &[[u8; 32]],
+    ) -> Result<Vec<Vec<Hash32>>, AletheiaError> {
+        let records = Records::new(self.network);
+        let view = self.tip_view();
+        let validators = aletheia_execution::validator_model::Validators::new(&records);
+        let slot = self.tip_round()?.get();
+        node_keys
+            .iter()
+            .map(|key| validators.accepted_cert_hashes(&view, key, slot))
+            .collect()
+    }
+
     /// The validator set of `epoch` as of the finalized tip.
     pub fn validator_records(
         &self,

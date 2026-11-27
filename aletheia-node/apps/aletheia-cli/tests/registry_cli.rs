@@ -179,6 +179,7 @@ async fn the_council_and_an_operator_use_the_registry_through_the_cli() {
             remote_signer: None,
             snapshots: aletheia_node::SnapshotPolicy::DISABLED,
             restore_snapshot: None,
+            next_signer: None,
         },
         Arc::new(MemoryKvStore::new()),
     )

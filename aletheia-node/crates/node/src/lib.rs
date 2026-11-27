@@ -17,5 +17,5 @@ pub(crate) mod sync;
 
 pub use ledger::{Ledger, Reconciled};
 pub use rpc::NodeBackend;
-pub use runtime::{Node, NodeConfig};
+pub use runtime::{NextSigner, Node, NodeConfig};
 pub use snapshots::{RestoreFrom, SnapshotPolicy};

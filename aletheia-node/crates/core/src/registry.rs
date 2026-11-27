@@ -221,6 +221,13 @@ pub enum GovAction {
         pool_payout: u128,
         state_beneficiary: Option<Address>,
     },
+    /// A validator's new consensus key, with its proof of possession (ADR-074, protocol
+    /// version 3): for any member, including a genesis validator that has no operator.
+    RotateValidatorKey {
+        node_key: [u8; 32],
+        consensus_key: [u8; crate::block::BLS_PUBLIC_KEY_LEN],
+        proof_of_possession: [u8; crate::block::BLS_SIGNATURE_LEN],
+    },
 }
 
 impl GovAction {
@@ -234,7 +241,18 @@ impl GovAction {
                 | GovAction::ReinstateValidator { .. }
                 | GovAction::SetValidatorPolicy { .. }
                 | GovAction::SetRewardPolicy { .. }
+                | GovAction::RotateValidatorKey { .. }
         )
+    }
+
+    /// The protocol version an action first exists in: refused before it, at admission, so no
+    /// block of an earlier version can carry it (ADR-074).
+    pub const fn first_version(&self) -> u16 {
+        match self {
+            GovAction::RotateValidatorKey { .. } => 3,
+            _ if self.is_validator_action() => 2,
+            _ => 1,
+        }
     }
 
     /// The timelock class (Section 35): how many governance epochs must pass after approval.
@@ -250,7 +268,8 @@ impl GovAction {
             | GovAction::RejectValidator { .. }
             | GovAction::ReinstateValidator { .. }
             | GovAction::SetValidatorPolicy { .. }
-            | GovAction::SetRewardPolicy { .. } => 1,
+            | GovAction::SetRewardPolicy { .. }
+            | GovAction::RotateValidatorKey { .. } => 1,
             GovAction::SetBridgeRoutePaused { .. } => 1,
             GovAction::UpsertBridgeRoute(_) | GovAction::RegisterGuardianSet(_) => 4,
             GovAction::RegisterIssuer { .. }
@@ -377,6 +396,16 @@ impl AceEncode for GovAction {
                 out.u128(*pool_payout);
                 out.option(state_beneficiary.as_ref());
             }
+            GovAction::RotateValidatorKey {
+                node_key,
+                consensus_key,
+                proof_of_possession,
+            } => {
+                out.u8(18);
+                out.fixed(node_key);
+                out.fixed(consensus_key);
+                out.fixed(proof_of_possession);
+            }
         }
     }
 }
@@ -451,6 +480,11 @@ impl AceDecode for GovAction {
                 period_slots: input.u64()?,
                 pool_payout: input.u128()?,
                 state_beneficiary: input.option()?,
+            },
+            18 => GovAction::RotateValidatorKey {
+                node_key: input.array()?,
+                consensus_key: input.array()?,
+                proof_of_possession: input.array()?,
             },
             _ => return Err(bad("unknown governance action")),
         })

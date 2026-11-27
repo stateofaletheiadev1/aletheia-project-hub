@@ -1134,6 +1134,17 @@ fn governance_execute(
             validator_action_active(cx, &proposal.action)?;
             crate::rules::v2::validators::govern(records, cx.overlay, &proposal.action, cx.events)?;
         }
+        GovAction::RotateValidatorKey { .. } => {
+            // Refused at admission before version 3; a proposal made under version 3 may only
+            // run under version 3 or later (ADR-074).
+            if cx.ctx.protocol_version.get() < proposal.action.first_version() {
+                return Err(fail(
+                    ErrorCode::TxTypeNotActive,
+                    "validator key rotation starts at protocol version 3",
+                ));
+            }
+            crate::rules::v3::rotation::govern(records, cx.overlay, &proposal.action, cx.events)?;
+        }
     }
     proposal.status = ProposalStatus::Executed;
     cx.reg.put_proposal(cx.overlay, id, &proposal);

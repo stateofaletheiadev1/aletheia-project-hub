@@ -12,9 +12,16 @@
 //! consensus_key_file = "/etc/aletheia/consensus.key"  # validators: 64 hex digits of BLS key
 //!                                             # material; devnet/regtest only
 //!
+//! next_consensus_key_file = "/etc/aletheia/consensus-next.key"  # devnet/regtest: the key a
+//!                                             # rotation moves to (ADR-074)
+//!
 //! [signer]                             # validators on every other network (ADR-063, Unix)
 //! socket = "/run/aletheia-signer/signer.sock"
 //! timeout_ms = 2000                    # per request; default 2000
+//!
+//! [next_signer]                        # optional, during a consensus key rotation (ADR-074):
+//! socket = "/run/aletheia-signer-next/signer.sock"   # the daemon holding the new key; the
+//!                                      # node signs with it from the epoch that records it
 //!
 //! [[peers]]
 //! address = "10.0.0.2:7771"
@@ -76,6 +83,7 @@ struct FileConfig {
     storage: Option<StorageSection>,
     rpc: Option<RpcSection>,
     signer: Option<SignerSection>,
+    next_signer: Option<SignerSection>,
     snapshots: Option<SnapshotsSection>,
 }
 
@@ -292,6 +300,7 @@ struct NodeSection {
     node_keystore: Option<PathBuf>,
     node_key_password_file: Option<PathBuf>,
     consensus_key_file: Option<PathBuf>,
+    next_consensus_key_file: Option<PathBuf>,
     restore_snapshot: Option<PathBuf>,
 }
 
@@ -318,6 +327,9 @@ pub(crate) struct Settings {
     pub(crate) produce_every: Option<Duration>,
     pub(crate) consensus_key: Option<BlsSecretKey>,
     pub(crate) signer: Option<SignerSettings>,
+    /// The key a consensus key rotation moves to (ADR-074).
+    pub(crate) next_consensus_key: Option<BlsSecretKey>,
+    pub(crate) next_signer: Option<SignerSettings>,
     pub(crate) executor: Executor,
     pub(crate) storage: StorageSettings,
     pub(crate) rpc: Option<RpcSettings>,
@@ -395,23 +407,43 @@ pub(crate) fn load(path: &std::path::Path) -> Result<Settings, String> {
             ));
         }
     }
+    let read_key = |path: &PathBuf| -> Result<BlsSecretKey, String> {
+        let text = read(path, "consensus key")?;
+        let material = base16::decode_fixed::<32>(text.trim()).map_err(|e| {
+            format!(
+                "{}: consensus key must be 64 lowercase hex digits ({})",
+                path.display(),
+                e.detail()
+            )
+        })?;
+        BlsSecretKey::from_key_material(&Secret::new(material))
+            .map_err(|e| format!("{}: {}", path.display(), e.detail()))
+    };
     let consensus_key = file
         .node
         .consensus_key_file
         .as_ref()
-        .map(|path| {
-            let text = read(path, "consensus key")?;
-            let material = base16::decode_fixed::<32>(text.trim()).map_err(|e| {
-                format!(
-                    "{}: consensus key must be 64 lowercase hex digits ({})",
-                    path.display(),
-                    e.detail()
-                )
-            })?;
-            BlsSecretKey::from_key_material(&Secret::new(material))
-                .map_err(|e| format!("{}: {}", path.display(), e.detail()))
-        })
+        .map(read_key)
         .transpose()?;
+    // The key a rotation moves to sits beside the current one, held the same way (ADR-074).
+    if file.node.next_consensus_key_file.is_some() && consensus_key.is_none() {
+        return Err("next_consensus_key_file needs consensus_key_file".to_owned());
+    }
+    let next_consensus_key = file
+        .node
+        .next_consensus_key_file
+        .as_ref()
+        .map(read_key)
+        .transpose()?;
+    let next_signer = file.next_signer.map(|section| SignerSettings {
+        socket: section.socket,
+        timeout: Duration::from_millis(section.timeout_ms.unwrap_or(2_000)),
+    });
+    if next_signer.is_some() && signer.is_none() {
+        return Err(
+            "[next_signer] needs [signer]: it holds the key a rotation moves to".to_owned(),
+        );
+    }
 
     let execution = file.execution.as_ref();
     let executor = match execution
@@ -480,7 +512,7 @@ pub(crate) fn load(path: &std::path::Path) -> Result<Settings, String> {
             address: peer.address,
             expect: PeerExpectation {
                 node_key,
-                cert_hash,
+                cert_hashes: cert_hash.into_iter().collect(),
             },
         });
     }
@@ -508,6 +540,8 @@ pub(crate) fn load(path: &std::path::Path) -> Result<Settings, String> {
             .map(|devnet| Duration::from_millis(devnet.produce_every_ms)),
         consensus_key,
         signer,
+        next_consensus_key,
+        next_signer,
         executor,
         storage,
     })

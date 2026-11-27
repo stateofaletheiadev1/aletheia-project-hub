@@ -45,6 +45,9 @@ pub struct NodeConfig {
     pub consensus_key: Option<BlsSecretKey>,
     /// A validator whose consensus key lives in the `aletheia-signer` daemon (ADR-063).
     pub remote_signer: Option<aletheia_signer::RemoteSigner>,
+    /// The key a consensus key rotation moves to (ADR-074): held beside the current one, and
+    /// used from the first epoch whose set records it.
+    pub next_signer: Option<NextSigner>,
     /// How often this node writes snapshots for others to start from (ADR-072).
     pub snapshots: crate::snapshots::SnapshotPolicy,
     /// A new data directory starts from a verified snapshot instead of genesis: one in a
@@ -66,9 +69,26 @@ impl core::fmt::Debug for NodeConfig {
                 &(self.consensus_key.is_some() || self.remote_signer.is_some()),
             )
             .field("remote_signer", &self.remote_signer.is_some())
+            .field("next_signer", &self.next_signer.is_some())
             .field("snapshots", &self.snapshots)
             .field("restore_snapshot", &self.restore_snapshot)
             .finish_non_exhaustive()
+    }
+}
+
+/// A validator's next consensus key during a rotation (ADR-074).
+pub enum NextSigner {
+    /// Devnet and regtest only, like `consensus_key`.
+    Local(BlsSecretKey),
+    Remote(aletheia_signer::RemoteSigner),
+}
+
+impl core::fmt::Debug for NextSigner {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.write_str(match self {
+            NextSigner::Local(_) => "NextSigner::Local",
+            NextSigner::Remote(_) => "NextSigner::Remote",
+        })
     }
 }
 
@@ -119,8 +139,6 @@ fn check_producer(config: &NodeConfig) -> Result<(), AletheiaError> {
     Ok(())
 }
 
-/// DSP when the finalized state records an epoch-0 validator set: the engine resumes at the
-/// tip with safety data no lower than the WAL's or the signer's.
 /// What the consensus driver needs from the configuration (the node key itself goes to the
 /// network, which may start before the ledger, ADR-073).
 struct DriverInputs<'a> {
@@ -130,10 +148,13 @@ struct DriverInputs<'a> {
     slot: Duration,
 }
 
+/// DSP when the finalized state records an epoch-0 validator set: the engine resumes at the
+/// tip with safety data no lower than the WAL's or any held signer's.
 fn consensus_driver<S: KvStore>(
     config: &DriverInputs<'_>,
     consensus_key: Option<BlsSecretKey>,
     remote_signer: Option<aletheia_signer::RemoteSigner>,
+    next_signer: Option<NextSigner>,
     ledger: &Ledger<S>,
 ) -> Result<Option<ConsensusDriver>, AletheiaError> {
     enum Key {
@@ -168,11 +189,11 @@ fn consensus_driver<S: KvStore>(
     let network = *ledger.network();
     let set = validator_set(&network, epoch, &records)?;
     let index = set.index_of(&config.node_key);
-    let open_signer = |key: Key| -> Result<NodeSigner, AletheiaError> {
+    let open_signer = |key: Key, dir: &str| -> Result<NodeSigner, AletheiaError> {
         let signer = match key {
             Key::Local(key) => aletheia_signer::Backend::Local(aletheia_signer::LocalSigner::open(
                 key,
-                &config.data_dir.join("signer"),
+                &config.data_dir.join(dir),
             )?),
             Key::Remote(remote) => aletheia_signer::Backend::Remote(remote),
         };
@@ -180,43 +201,59 @@ fn consensus_driver<S: KvStore>(
             std::sync::Mutex::new(signer),
         )))
     };
-    let signer = match (index, consensus_key) {
-        (Some(index), Some(key)) => {
+    let next = next_signer.map(|next| match next {
+        NextSigner::Local(key) => Key::Local(key),
+        NextSigner::Remote(remote) => Key::Remote(remote),
+    });
+    if next.is_some() && consensus_key.is_none() {
+        return Err(config_error(
+            "a next consensus key was given without a current one".to_owned(),
+        ));
+    }
+    let mut held = Vec::new();
+    if let Some(key) = consensus_key {
+        held.push(open_signer(key, "signer")?);
+    }
+    if let Some(key) = next {
+        held.push(open_signer(key, "signer-next")?);
+    }
+    match (index, held.is_empty()) {
+        (Some(index), false) => {
             let registered = set.member(index).map(|m| m.consensus_key.to_bytes());
-            let public_key = match &key {
-                Key::Local(key) => key.public_key().to_bytes(),
-                Key::Remote(remote) => remote.public_key(),
-            };
-            if registered != Some(public_key) {
+            if !held.iter().any(|signer| signer.public_key() == registered) {
                 return Err(config_error(format!(
-                    "the consensus key is not the one registered for validator {index}"
+                    "the consensus key{} is not the one registered for validator {index}",
+                    if held.len() > 1 {
+                        " (nor the next one)"
+                    } else {
+                        ""
+                    }
                 )));
             }
-            open_signer(key)?
         }
-        (Some(index), None) => {
+        (Some(index), true) => {
             return Err(config_error(format!(
                 "this node key is validator {index}, but no consensus key was given"
             )));
         }
         // A registered operator's node waits for the Council: it follows as an observer and
         // becomes a validator at the first epoch whose set includes it (ADR-069).
-        (None, Some(key)) => {
-            crate::consensus::operator_note(&format!(
-                "info this node key is not in the validator set of epoch {epoch}; following as an observer until it joins"
-            ));
-            open_signer(key)?
-        }
-        (None, None) => NodeSigner::Observer,
-    };
-    let safety = ledger
+        (None, false) => crate::consensus::operator_note(&format!(
+            "info this node key is not in the validator set of epoch {epoch}; following as an observer until it joins"
+        )),
+        (None, true) => held.push(NodeSigner::Observer),
+    }
+    // No key may sign below what any held signer has already signed.
+    let mut safety = ledger
         .safety()
-        .unwrap_or_else(|| aletheia_consensus::SafetyData::genesis(epoch))
-        .max_merge(&signer.floor(epoch)?);
+        .unwrap_or_else(|| aletheia_consensus::SafetyData::genesis(epoch));
+    for signer in &held {
+        safety = safety.max_merge(&signer.floor(epoch)?);
+    }
     Ok(Some(ConsensusDriver::new(
         network,
         set,
-        signer,
+        held,
         config.node_key,
         at.seed_hash,
         safety,
@@ -325,7 +362,9 @@ impl Node {
         let network = *ledger.network();
         let consensus_key = config.consensus_key.take();
         let remote_signer = config.remote_signer.take();
-        let consensus = consensus_driver(&inputs, consensus_key, remote_signer, &ledger)?;
+        let next_signer = config.next_signer.take();
+        let consensus =
+            consensus_driver(&inputs, consensus_key, remote_signer, next_signer, &ledger)?;
         let exporter = crate::snapshots::Exporter::open(&config.data_dir, config.snapshots);
         let (chain, chain_thread) = chain::spawn(ledger, exporter)?;
         let chain_handle = chain.clone();

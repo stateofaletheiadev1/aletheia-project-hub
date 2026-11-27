@@ -44,10 +44,12 @@ impl core::fmt::Debug for LocalNode {
 }
 
 /// What we require of a specific peer (registered validators); empty for open peering.
-#[derive(Debug, Clone, Copy, Default)]
+#[derive(Debug, Clone, Default)]
 pub struct PeerExpectation {
     pub node_key: Option<[u8; 32]>,
-    pub cert_hash: Option<Hash32>,
+    /// The certificates (SHA-256) the peer may present; empty accepts any. A validator in a
+    /// certificate rotation has two (ADR-074).
+    pub cert_hashes: Vec<Hash32>,
 }
 
 /// The authenticated identity of the other side.
@@ -159,8 +161,10 @@ impl PeerConnection {
                 .map_err(|e| io_failure(&format!("connect to {address}"), &e))?;
             tcp.set_nodelay(true)
                 .map_err(|e| io_failure("set TCP_NODELAY", &e))?;
-            let connector =
-                TlsConnector::from(client_config(&local.certificate, expect.cert_hash)?);
+            let connector = TlsConnector::from(client_config(
+                &local.certificate,
+                expect.cert_hashes.clone(),
+            )?);
             let name = ServerName::try_from(PEER_SERVER_NAME)
                 .map_err(|e| AletheiaError::new(ErrorCode::P2pHandshakeFailed, e.to_string()))?;
             let tls = connector

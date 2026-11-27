@@ -34,15 +34,15 @@ use crate::validator_model::{
     VALIDATOR_REGISTRY, ValidatorEpochState, ValidatorPolicy, ValidatorRegistration, Validators,
 };
 
-fn fail(code: ErrorCode, detail: impl Into<String>) -> AletheiaError {
+pub(crate) fn fail(code: ErrorCode, detail: impl Into<String>) -> AletheiaError {
     AletheiaError::new(code, detail.into())
 }
 
-fn key_text(node_key: &[u8; 32]) -> String {
+pub(crate) fn key_text(node_key: &[u8; 32]) -> String {
     aletheia_core::base16::encode(node_key)
 }
 
-fn emit(events: &mut Vec<Event>, schema: &str, node_key: &[u8; 32], data: Vec<u8>) {
+pub(crate) fn emit(events: &mut Vec<Event>, schema: &str, node_key: &[u8; 32], data: Vec<u8>) {
     events.push(Event {
         emitter: VALIDATOR_REGISTRY,
         event_type: event_type(schema),
@@ -114,7 +114,7 @@ pub fn begin_block(
 }
 
 /// The current set, in validator-index order.
-fn current_set(
+pub(crate) fn current_set(
     records: &Records,
     view: &dyn StateView,
     state: &ValidatorEpochState,
@@ -131,7 +131,7 @@ fn current_set(
 
 /// The next set: the current members in order without those leaving, then those joining in
 /// the order they were admitted.
-fn next_set(
+pub(crate) fn next_set(
     records: &Records,
     view: &dyn StateView,
     state: &ValidatorEpochState,
@@ -158,7 +158,7 @@ fn next_set(
 
 /// Refuses a change whose resulting set would be empty, too large, or hold a consensus key
 /// twice (one key would then cast two votes).
-fn check_bounds(
+pub(crate) fn check_bounds(
     records: &Records,
     view: &dyn StateView,
     state: &ValidatorEpochState,
@@ -201,7 +201,7 @@ fn check_bounds(
     Ok(())
 }
 
-fn in_current_set(
+pub(crate) fn in_current_set(
     records: &Records,
     view: &dyn StateView,
     state: &ValidatorEpochState,
@@ -287,7 +287,7 @@ fn register(
 }
 
 /// The registration the sender operates, in one of `allowed` statuses.
-fn operated(
+pub(crate) fn operated(
     records: &Records,
     view: &dyn StateView,
     sender: &Address,
@@ -367,6 +367,13 @@ pub(crate) fn apply(
     let units = match op {
         ValidatorOp::Register(_) => REGISTRY_EU.saturating_add(SIGNATURE_EU),
         ValidatorOp::WithdrawApplication { .. } | ValidatorOp::RequestExit { .. } => REGISTRY_EU,
+        // Version 3 (ADR-074); inactive here, refused at admission before this point.
+        ValidatorOp::RotateConsensusKey { .. } | ValidatorOp::RotateTransportCert { .. } => {
+            return Err(fail(
+                ErrorCode::TxTypeNotActive,
+                "key rotation starts at protocol version 3",
+            ));
+        }
     };
     if meter.charge(units).is_err() {
         return Ok(Err(OutOfEu));
@@ -412,6 +419,12 @@ pub(crate) fn apply(
                 node_key,
                 Vec::new(),
             );
+        }
+        ValidatorOp::RotateConsensusKey { .. } | ValidatorOp::RotateTransportCert { .. } => {
+            return Err(fail(
+                ErrorCode::TxTypeNotActive,
+                "key rotation starts at protocol version 3",
+            ));
         }
     }
     Ok(Ok(()))

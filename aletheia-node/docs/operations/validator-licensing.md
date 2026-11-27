@@ -121,6 +121,50 @@ chain. Amounts are in ALnT (3 decimals).
 
 No action may leave the set empty.
 
+## Rotating keys (protocol version 3, ADR-074)
+
+A new consensus key, with no time out of the set:
+
+1. Make the new key in a second signer daemon on the validator's host (`aletheia-signer keygen
+   --kind consensus ...`, then run it on its own socket, e.g.
+   `/run/aletheia-signer-next/signer.sock`).
+2. Add it to `/etc/aletheia/node.toml` and restart the node; it keeps signing with the current
+   key:
+
+   ```toml
+   [next_signer]
+   socket = "/run/aletheia-signer-next/signer.sock"
+   ```
+
+3. Register the new key. The block closes the epoch, and from the next block the node signs
+   with the new key by itself (`aletheiad info validator epoch N: signing with consensus key ...`):
+
+   ```sh
+   aletheia-cli --network mainnet validator rotate-key --keystore operator.json \
+     --node-key <hex> --consensus-key <new hex> --proof-of-possession <new hex>
+   ```
+
+4. Later, make the new signer the `[signer]`, remove `[next_signer]`, restart, and retire the old
+   key.
+
+The State's genesis validator has no operator account: the Council rotates it with
+`gov propose rotate-validator-key --node-key --consensus-key --proof-of-possession` (one epoch
+timelock), after giving its node the new key as `[next_signer]`. In an emergency, suspend first
+(no timelock) and rotate after.
+
+A new transport certificate (every 90 days, Section 19.2):
+
+```sh
+sudo -u aletheia aletheiad --config /etc/aletheia/node.toml --prepare-transport-cert   # prints sha256=
+aletheia-cli --network mainnet validator rotate-cert --keystore operator.json \
+  --node-key <hex> --cert-hash <sha256>
+sudo systemctl restart aletheiad
+```
+
+Other validators accept the previous certificate for about a day after the registration, so the
+restart can wait for a quiet moment. The old pair stays in `/var/lib/aletheia/p2p/` as
+`previous-transport-*`.
+
 ## Keep control of the chain
 
 Every validator has one vote and a block needs about two thirds of them. With 2 or 3 validators,

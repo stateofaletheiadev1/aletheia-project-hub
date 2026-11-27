@@ -65,7 +65,7 @@ async fn two_nodes_authenticate_each_other_and_exchange_messages() {
         TIP,
         PeerExpectation {
             node_key: Some(listener_key.to_bytes()),
-            cert_hash: None,
+            cert_hashes: Vec::new(),
         },
     )
     .await
@@ -127,7 +127,7 @@ async fn a_peer_with_an_unregistered_node_key_is_refused() {
         TIP,
         PeerExpectation {
             node_key: Some(wrong),
-            cert_hash: None,
+            cert_hashes: Vec::new(),
         },
     )
     .await
@@ -140,7 +140,7 @@ async fn a_certificate_that_is_not_the_pinned_one_fails_tls() {
     let (address, _accepted) = listen_once(node(1, network(9), (1, 1))).await;
     let pin = PeerExpectation {
         node_key: None,
-        cert_hash: Some(Hash32::from_bytes([7; 32])),
+        cert_hashes: vec![Hash32::from_bytes([7; 32])],
     };
     let error = PeerConnection::connect(address, &node(2, network(9), (1, 1)), TIP, pin)
         .await

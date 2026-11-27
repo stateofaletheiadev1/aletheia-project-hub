@@ -101,6 +101,37 @@ pub(crate) enum ValidatorCommand {
         #[command(flatten)]
         fees: Fees,
     },
+    /// Move the validator to a new consensus key (protocol version 3, ADR-074). Run the new
+    /// key's signer as the node's [next_signer] first: the node switches to it by itself at
+    /// the epoch change this causes.
+    RotateKey {
+        #[arg(long)]
+        keystore: PathBuf,
+        #[arg(long)]
+        node_key: String,
+        /// The new BLS public key, 48 bytes hex.
+        #[arg(long)]
+        consensus_key: String,
+        /// Its proof of possession, 96 bytes hex.
+        #[arg(long)]
+        proof_of_possession: String,
+        #[command(flatten)]
+        fees: Fees,
+    },
+    /// Register a new transport certificate (protocol version 3, ADR-074); the previous one is
+    /// accepted for about a day more. Prepare it with `aletheiad --prepare-transport-cert`,
+    /// register it, then restart the node.
+    RotateCert {
+        #[arg(long)]
+        keystore: PathBuf,
+        #[arg(long)]
+        node_key: String,
+        /// SHA-256 of the new certificate, 32 bytes hex.
+        #[arg(long)]
+        cert_hash: String,
+        #[command(flatten)]
+        fees: Fees,
+    },
 }
 
 #[derive(Debug, Subcommand)]
@@ -178,6 +209,16 @@ pub(crate) enum ProposeAction {
         pool_payout: String,
         #[arg(long)]
         beneficiary: String,
+    },
+    /// Move a validator, a genesis validator included, to a new consensus key (protocol version
+    /// 3, ADR-074; one epoch timelock).
+    RotateValidatorKey {
+        #[arg(long)]
+        node_key: String,
+        #[arg(long)]
+        consensus_key: String,
+        #[arg(long)]
+        proof_of_possession: String,
     },
     /// Schedule a protocol version to activate at a height.
     ScheduleUpgrade {
@@ -388,7 +429,11 @@ pub(crate) async fn validator(
                 metadata_hash: metadata,
                 bond: alnt(&bond)?,
             };
-            check_possession(&network, &application)?;
+            check_possession(
+                &network,
+                &application.consensus_key,
+                &application.proof_of_possession,
+            )?;
             let account = open_account(&keystore, &network)?;
             let what = format!("register validator {node_key} with a bond of {bond} ALnT");
             submit_and_report(rpc, &account, &fees, json_out, &what, |_| {
@@ -422,6 +467,49 @@ pub(crate) async fn validator(
             })
             .await?;
         }
+        ValidatorCommand::RotateKey {
+            keystore,
+            node_key,
+            consensus_key,
+            proof_of_possession,
+            fees,
+        } => {
+            let key = hex::<32>("--node-key", &node_key)?;
+            let consensus_key = hex::<48>("--consensus-key", &consensus_key)?;
+            let proof_of_possession = hex::<96>("--proof-of-possession", &proof_of_possession)?;
+            check_possession(&network, &consensus_key, &proof_of_possession)?;
+            let account = open_account(&keystore, &network)?;
+            let what = format!(
+                "move validator {node_key} to consensus key {}",
+                base16::encode(&consensus_key)
+            );
+            submit_and_report(rpc, &account, &fees, json_out, &what, |_| {
+                Payload::Validator(Box::new(ValidatorOp::RotateConsensusKey {
+                    node_key: key,
+                    consensus_key,
+                    proof_of_possession,
+                }))
+            })
+            .await?;
+        }
+        ValidatorCommand::RotateCert {
+            keystore,
+            node_key,
+            cert_hash,
+            fees,
+        } => {
+            let key = hex::<32>("--node-key", &node_key)?;
+            let hash = Hash32::from_bytes(hex::<32>("--cert-hash", &cert_hash)?);
+            let account = open_account(&keystore, &network)?;
+            let what = format!("register transport certificate {hash} for validator {node_key}");
+            submit_and_report(rpc, &account, &fees, json_out, &what, |_| {
+                Payload::Validator(Box::new(ValidatorOp::RotateTransportCert {
+                    node_key: key,
+                    transport_cert_hash: hash,
+                }))
+            })
+            .await?;
+        }
     }
     Ok(())
 }
@@ -429,11 +517,12 @@ pub(crate) async fn validator(
 /// Checks the proof of possession locally, so a mistyped key never costs a fee.
 fn check_possession(
     network: &NetworkIdentity,
-    application: &ValidatorApplication,
+    consensus_key: &[u8; 48],
+    proof_of_possession: &[u8; 96],
 ) -> Result<(), WalletError> {
-    let proof = aletheia_crypto::bls::BlsSignature::from_bytes(&application.proof_of_possession)
+    let proof = aletheia_crypto::bls::BlsSignature::from_bytes(proof_of_possession)
         .map_err(|e| fail(format!("--proof-of-possession: {}", e.detail())))?;
-    aletheia_crypto::bls::BlsPublicKey::from_bytes(&application.consensus_key)
+    aletheia_crypto::bls::BlsPublicKey::from_bytes(consensus_key)
         .and_then(|key| key.prove_possession(network, &proof))
         .map(|_| ())
         .map_err(|e| {
@@ -474,6 +563,26 @@ fn action(
             },
             format!("reinstate validator {node_key}"),
         ),
+        ProposeAction::RotateValidatorKey {
+            node_key,
+            consensus_key,
+            proof_of_possession,
+        } => {
+            let consensus_key = hex::<48>("--consensus-key", &consensus_key)?;
+            let proof_of_possession = hex::<96>("--proof-of-possession", &proof_of_possession)?;
+            check_possession(network, &consensus_key, &proof_of_possession)?;
+            (
+                GovAction::RotateValidatorKey {
+                    node_key: hex::<32>("--node-key", &node_key)?,
+                    consensus_key,
+                    proof_of_possession,
+                },
+                format!(
+                    "move validator {node_key} to consensus key {}",
+                    base16::encode(&consensus_key)
+                ),
+            )
+        }
         ProposeAction::ValidatorPolicy {
             min_bond,
             max_validators,

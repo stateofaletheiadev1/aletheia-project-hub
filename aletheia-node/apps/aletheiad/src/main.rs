@@ -2,7 +2,12 @@
 //!
 //! ```text
 //! aletheiad --config /etc/aletheia/node.toml
+//! aletheiad --config /etc/aletheia/node.toml --prepare-transport-cert
 //! ```
+//!
+//! `--prepare-transport-cert` writes a new transport certificate beside the current one, used
+//! from the node's next start, prints its hash for `validator rotate-cert` and exits (ADR-074);
+//! the running node is not touched.
 //!
 //! Exit status (docs/operations/exit-codes.md):
 //!   0   stopped cleanly on SIGTERM / SIGINT
@@ -27,11 +32,22 @@ const EXIT_FAIL_STOP: u8 = 70;
 const EXIT_UPGRADE_REQUIRED: u8 = 75;
 const EXIT_CONFIG: u8 = 78;
 
-fn config_path() -> Result<std::path::PathBuf, String> {
+/// The configuration file, and whether only a next transport certificate is prepared.
+fn config_path() -> Result<(std::path::PathBuf, bool), String> {
     let mut args = std::env::args().skip(1);
-    match (args.next().as_deref(), args.next(), args.next()) {
-        (Some("--config"), Some(path), None) => Ok(path.into()),
-        _ => Err("usage: aletheiad --config <path/to/node.toml>".to_owned()),
+    match (
+        args.next().as_deref(),
+        args.next(),
+        args.next().as_deref(),
+        args.next(),
+    ) {
+        (Some("--config"), Some(path), None, None) => Ok((path.into(), false)),
+        (Some("--config"), Some(path), Some("--prepare-transport-cert"), None) => {
+            Ok((path.into(), true))
+        }
+        _ => Err(
+            "usage: aletheiad --config <path/to/node.toml> [--prepare-transport-cert]".to_owned(),
+        ),
     }
 }
 
@@ -118,8 +134,8 @@ fn exit_for(error: &AletheiaError) -> ExitCode {
 
 #[tokio::main(flavor = "multi_thread", worker_threads = 4)]
 async fn main() -> ExitCode {
-    let path = match config_path() {
-        Ok(path) => path,
+    let (path, prepare_cert) = match config_path() {
+        Ok(found) => found,
         Err(usage) => {
             oplog::error(&usage);
             return ExitCode::from(EXIT_USAGE);
@@ -140,6 +156,20 @@ async fn main() -> ExitCode {
         network.chain_id(),
         network.genesis_id()
     ));
+    if prepare_cert {
+        let dir = settings.data_dir.join("p2p");
+        return match aletheia_p2p::TransportCertificate::prepare_next(&dir) {
+            Ok(hash) => {
+                oplog::line(&format!(
+                    "next transport certificate prepared in {} sha256={} - register it with validator rotate-cert, then restart the node to present it",
+                    dir.display(),
+                    aletheia_core::base16::encode(hash.as_bytes())
+                ));
+                ExitCode::SUCCESS
+            }
+            Err(error) => exit_for(&error),
+        };
+    }
 
     match &settings.executor {
         config::Executor::Sandboxed { program, timeout } => {
@@ -179,6 +209,17 @@ async fn main() -> ExitCode {
             return ExitCode::from(EXIT_CONFIG);
         }
     };
+    // The key a consensus key rotation moves to (ADR-074), held beside the current one.
+    let next_signer = match connect_signer(settings.next_signer.as_ref()) {
+        Ok(Some(remote)) => Some(aletheia_node::NextSigner::Remote(remote)),
+        Ok(None) => settings
+            .next_consensus_key
+            .map(aletheia_node::NextSigner::Local),
+        Err(reason) => {
+            oplog::error(&format!("configuration refused (next_signer): {reason}"));
+            return ExitCode::from(EXIT_CONFIG);
+        }
+    };
     let config = NodeConfig {
         data_dir: settings.data_dir.clone(),
         genesis: settings.genesis,
@@ -190,6 +231,7 @@ async fn main() -> ExitCode {
         remote_signer,
         snapshots: settings.snapshots,
         restore_snapshot: settings.restore_snapshot,
+        next_signer,
     };
     let mut node = match Node::start(config, store).await {
         Ok(node) => node,

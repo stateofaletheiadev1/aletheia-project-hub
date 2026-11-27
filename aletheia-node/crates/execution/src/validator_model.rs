@@ -5,6 +5,8 @@
 //! namespace 17, key epoch         the epoch's set (ValidatorRecord list, model.rs)
 //! namespace 65, parameter 5       ValidatorEpochState
 //! namespace 65, parameter 6       ValidatorPolicy
+//! namespace 65, parameter 9       pending key rotations (node keys; version 3, ADR-074)
+//! namespace 65, parameter 10      TransportCertGrace (version 3, ADR-074)
 //! ```
 //!
 //! Every record is absent on a chain that never ran a validator transaction, and absence reads
@@ -256,6 +258,33 @@ impl AceDecode for ValidatorPolicy {
     }
 }
 
+/// A transport certificate hash still accepted after its validator rotated to another
+/// (ADR-074), until `until_slot`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct CertGrace {
+    pub node_key: [u8; 32],
+    pub previous: Hash32,
+    pub until_slot: u64,
+}
+
+impl AceEncode for CertGrace {
+    fn encode(&self, out: &mut AceWriter) {
+        out.fixed(&self.node_key);
+        self.previous.encode(out);
+        out.u64(self.until_slot);
+    }
+}
+
+impl AceDecode for CertGrace {
+    fn decode(input: &mut AceReader<'_>) -> Result<CertGrace, AletheiaError> {
+        Ok(CertGrace {
+            node_key: input.array()?,
+            previous: Hash32::decode(input)?,
+            until_slot: input.u64()?,
+        })
+    }
+}
+
 /// Typed access to the validator records.
 #[derive(Debug, Clone, Copy)]
 pub struct Validators<'r> {
@@ -297,6 +326,83 @@ impl<'r> Validators<'r> {
             self.registration_key(&registration.node_key),
             registration.to_ace_bytes(),
         );
+    }
+
+    /// Members whose consensus key is replaced at the end of the current block (ADR-074).
+    pub fn rotations(&self, view: &dyn StateView) -> Result<Vec<[u8; 32]>, AletheiaError> {
+        view.get(&self.records.param_key(ParamId::ValidatorRotations))?
+            .map(|bytes| {
+                let mut input = AceReader::new(&bytes);
+                let keys = read_keys(&mut input)?;
+                input.finish()?;
+                Ok(keys)
+            })
+            .transpose()
+            .map_err(|e: AletheiaError| corrupt("validator rotations", &e))
+            .map(Option::unwrap_or_default)
+    }
+
+    pub fn put_rotations(&self, overlay: &mut StateOverlay<'_>, rotations: &[[u8; 32]]) {
+        let key = self.records.param_key(ParamId::ValidatorRotations);
+        if rotations.is_empty() {
+            overlay.delete(key);
+        } else {
+            let mut out = AceWriter::new();
+            keys(&mut out, rotations);
+            overlay.put(key, out.into_bytes());
+        }
+    }
+
+    /// Previous certificate hashes still accepted (ADR-074).
+    pub fn cert_grace(&self, view: &dyn StateView) -> Result<Vec<CertGrace>, AletheiaError> {
+        view.get(&self.records.param_key(ParamId::TransportCertGrace))?
+            .map(|bytes| {
+                let mut input = AceReader::new(&bytes);
+                let entries = input.list(MAX_PENDING)?;
+                input.finish()?;
+                Ok(entries)
+            })
+            .transpose()
+            .map_err(|e: AletheiaError| corrupt("transport certificate grace", &e))
+            .map(Option::unwrap_or_default)
+    }
+
+    pub fn put_cert_grace(&self, overlay: &mut StateOverlay<'_>, entries: &[CertGrace]) {
+        let key = self.records.param_key(ParamId::TransportCertGrace);
+        if entries.is_empty() {
+            overlay.delete(key);
+        } else {
+            let mut out = AceWriter::new();
+            out.list(entries);
+            overlay.put(key, out.into_bytes());
+        }
+    }
+
+    /// The certificate hashes a validator may present at `slot`: its registered one and any
+    /// previous one still in its grace period (ADR-074). Empty for a genesis validator or a
+    /// zero hash, which are not pinned.
+    pub fn accepted_cert_hashes(
+        &self,
+        view: &dyn StateView,
+        node_key: &[u8; 32],
+        slot: u64,
+    ) -> Result<Vec<Hash32>, AletheiaError> {
+        let mut hashes = Vec::new();
+        if let Some(registration) = self.registration(view, node_key)?
+            && registration.transport_cert_hash != Hash32::ZERO
+        {
+            hashes.push(registration.transport_cert_hash);
+            for grace in self.cert_grace(view)? {
+                if &grace.node_key == node_key
+                    && grace.until_slot > slot
+                    && grace.previous != Hash32::ZERO
+                    && !hashes.contains(&grace.previous)
+                {
+                    hashes.push(grace.previous);
+                }
+            }
+        }
+        Ok(hashes)
     }
 
     pub fn epoch_state(&self, view: &dyn StateView) -> Result<ValidatorEpochState, AletheiaError> {

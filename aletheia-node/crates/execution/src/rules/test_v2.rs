@@ -1,4 +1,4 @@
-//! Test-only protocol version 3 (feature `test-protocol-v2`, spec 62.1 Phase 3): version 2
+//! Test-only protocol version 4 (feature `test-protocol-v2`, spec 62.1 Phase 3): version 3
 //! plus the `TestRemark` transaction type, which costs 500 EU and changes nothing but the fee
 //! and nonce. It exists so mixed-version replay and clean-halt behaviour can be tested before
 //! any real upgrade. Never compiled into a release build.
@@ -70,8 +70,7 @@ pub const TX_TYPES: &[TxType] = &[
 pub const REMARK_EU: u64 = 500;
 
 pub fn tx_type_active(tx_type: TxType) -> bool {
-    TX_TYPES.contains(&tx_type)
-        || aletheia_core::validator::ValidatorOp::TX_TYPES.contains(&tx_type.get())
+    TX_TYPES.contains(&tx_type) || crate::rules::v3::tx_type_active(tx_type)
 }
 
 fn run_payload(
@@ -88,7 +87,7 @@ fn run_payload(
             Ok(()) => PayloadOutcome::Success,
             Err(_) => PayloadOutcome::OutOfEu,
         }),
-        _ => crate::rules::v2::run_payload(records, overlay, verified, ctx, meter, events, touched),
+        _ => crate::rules::v3::run_payload(records, overlay, verified, ctx, meter, events, touched),
     }
 }
 

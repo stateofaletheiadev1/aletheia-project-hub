@@ -1,5 +1,5 @@
-//! Validator registry payloads (spec Section 34, ADR-069): transaction types 64-66, active from
-//! protocol version 2. Activation, rejection, suspension and reinstatement are governance
+//! Validator registry payloads (spec Section 34): transaction types 64-66, active from protocol
+//! version 2 (ADR-069), and key rotation, types 67-68, active from protocol version 3 (ADR-074). Activation, rejection, suspension and reinstatement are governance
 //! actions (`GovAction`), not operator transactions.
 
 use crate::ace::{AceDecode, AceEncode, AceReader, AceWriter};
@@ -58,23 +58,44 @@ pub enum ValidatorOp {
     WithdrawApplication { node_key: [u8; 32] },
     /// Type 66: the operator of an active validator leaves at the end of the current epoch.
     RequestExit { node_key: [u8; 32] },
+    /// Type 67 (version 3): a new consensus key, with its proof of possession; a member's
+    /// takes effect when this block closes the epoch.
+    RotateConsensusKey {
+        node_key: [u8; 32],
+        consensus_key: [u8; BLS_PUBLIC_KEY_LEN],
+        proof_of_possession: [u8; BLS_SIGNATURE_LEN],
+    },
+    /// Type 68 (version 3): a new transport certificate hash; the previous one stays accepted
+    /// for a grace period so the node can restart onto the new certificate.
+    RotateTransportCert {
+        node_key: [u8; 32],
+        transport_cert_hash: Hash32,
+    },
 }
 
 impl ValidatorOp {
     pub const REGISTER: u16 = 64;
     pub const WITHDRAW_APPLICATION: u16 = 65;
     pub const REQUEST_EXIT: u16 = 66;
+    pub const ROTATE_CONSENSUS_KEY: u16 = 67;
+    pub const ROTATE_TRANSPORT_CERT: u16 = 68;
+    /// The types protocol version 2 activates.
     pub const TX_TYPES: [u16; 3] = [
         Self::REGISTER,
         Self::WITHDRAW_APPLICATION,
         Self::REQUEST_EXIT,
     ];
+    /// The types protocol version 3 adds (ADR-074).
+    pub const ROTATION_TX_TYPES: [u16; 2] =
+        [Self::ROTATE_CONSENSUS_KEY, Self::ROTATE_TRANSPORT_CERT];
 
     pub const fn tx_type(&self) -> u16 {
         match self {
             ValidatorOp::Register(_) => Self::REGISTER,
             ValidatorOp::WithdrawApplication { .. } => Self::WITHDRAW_APPLICATION,
             ValidatorOp::RequestExit { .. } => Self::REQUEST_EXIT,
+            ValidatorOp::RotateConsensusKey { .. } => Self::ROTATE_CONSENSUS_KEY,
+            ValidatorOp::RotateTransportCert { .. } => Self::ROTATE_TRANSPORT_CERT,
         }
     }
 
@@ -83,7 +104,9 @@ impl ValidatorOp {
         match self {
             ValidatorOp::Register(application) => application.node_key,
             ValidatorOp::WithdrawApplication { node_key }
-            | ValidatorOp::RequestExit { node_key } => *node_key,
+            | ValidatorOp::RequestExit { node_key }
+            | ValidatorOp::RotateConsensusKey { node_key, .. }
+            | ValidatorOp::RotateTransportCert { node_key, .. } => *node_key,
         }
     }
 
@@ -92,6 +115,22 @@ impl ValidatorOp {
             ValidatorOp::Register(application) => application.encode(out),
             ValidatorOp::WithdrawApplication { node_key }
             | ValidatorOp::RequestExit { node_key } => out.fixed(node_key),
+            ValidatorOp::RotateConsensusKey {
+                node_key,
+                consensus_key,
+                proof_of_possession,
+            } => {
+                out.fixed(node_key);
+                out.fixed(consensus_key);
+                out.fixed(proof_of_possession);
+            }
+            ValidatorOp::RotateTransportCert {
+                node_key,
+                transport_cert_hash,
+            } => {
+                out.fixed(node_key);
+                transport_cert_hash.encode(out);
+            }
         }
     }
 
@@ -110,6 +149,19 @@ impl ValidatorOp {
             Self::REQUEST_EXIT => input
                 .array()
                 .map(|node_key| ValidatorOp::RequestExit { node_key }),
+            Self::ROTATE_CONSENSUS_KEY => (|| {
+                Ok(ValidatorOp::RotateConsensusKey {
+                    node_key: input.array()?,
+                    consensus_key: input.array()?,
+                    proof_of_possession: input.array()?,
+                })
+            })(),
+            Self::ROTATE_TRANSPORT_CERT => (|| {
+                Ok(ValidatorOp::RotateTransportCert {
+                    node_key: input.array()?,
+                    transport_cert_hash: Hash32::decode(input)?,
+                })
+            })(),
             _ => return None,
         })
     }
@@ -160,6 +212,15 @@ mod tests {
             })),
             ValidatorOp::WithdrawApplication { node_key: [6; 32] },
             ValidatorOp::RequestExit { node_key: [7; 32] },
+            ValidatorOp::RotateConsensusKey {
+                node_key: [8; 32],
+                consensus_key: [9; BLS_PUBLIC_KEY_LEN],
+                proof_of_possession: [10; BLS_SIGNATURE_LEN],
+            },
+            ValidatorOp::RotateTransportCert {
+                node_key: [11; 32],
+                transport_cert_hash: Hash32::from_bytes([12; 32]),
+            },
         ];
         for op in ops {
             let mut out = AceWriter::new();
@@ -172,6 +233,6 @@ mod tests {
             input.finish().unwrap();
             assert_eq!(decoded, op);
         }
-        assert!(ValidatorOp::decode_content(67, &mut AceReader::new(&[])).is_none());
+        assert!(ValidatorOp::decode_content(69, &mut AceReader::new(&[])).is_none());
     }
 }

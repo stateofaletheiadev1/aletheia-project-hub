@@ -133,6 +133,7 @@ async fn start_with(
             remote_signer: None,
             snapshots,
             restore_snapshot: None,
+            next_signer: None,
         },
         member.store.clone(),
     )
@@ -182,6 +183,7 @@ async fn start_from(
             remote_signer: None,
             snapshots: aletheia_node::SnapshotPolicy::DISABLED,
             restore_snapshot: Some(source),
+            next_signer: None,
         },
         member.store.clone(),
     )

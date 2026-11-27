@@ -39,6 +39,7 @@ async fn start_node(devnet: &Devnet, test: &str) -> Node {
         remote_signer: None,
         snapshots: aletheia_node::SnapshotPolicy::DISABLED,
         restore_snapshot: None,
+        next_signer: None,
     };
     Node::start(config, Arc::new(MemoryKvStore::new()))
         .await
@@ -373,6 +374,7 @@ async fn the_event_index_survives_a_restart_without_duplicates() {
         remote_signer: None,
         snapshots: aletheia_node::SnapshotPolicy::DISABLED,
         restore_snapshot: None,
+        next_signer: None,
     };
     let store = Arc::new(MemoryKvStore::new());
     let node = Node::start(config(), store.clone()).await.unwrap();

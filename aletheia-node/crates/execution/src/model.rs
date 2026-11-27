@@ -382,6 +382,10 @@ pub enum ParamId {
     RewardPolicy,
     /// The current reward period's work record (ADR-069).
     RewardLedger,
+    /// Members whose consensus key changes at the end of the block (ADR-074).
+    ValidatorRotations,
+    /// Transport certificate hashes still accepted after a rotation (ADR-074).
+    TransportCertGrace,
 }
 
 impl ParamId {
@@ -395,6 +399,8 @@ impl ParamId {
             ParamId::ValidatorPolicy => 6,
             ParamId::RewardPolicy => 7,
             ParamId::RewardLedger => 8,
+            ParamId::ValidatorRotations => 9,
+            ParamId::TransportCertGrace => 10,
         }
     }
 }

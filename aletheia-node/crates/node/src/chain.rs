@@ -77,6 +77,11 @@ pub(crate) enum ChainRequest {
     EngineEpoch {
         reply: Reply<EngineEpoch>,
     },
+    /// The certificates each validator may present (ADR-071, ADR-074).
+    ValidatorPins {
+        node_keys: Vec<[u8; 32]>,
+        reply: Reply<Vec<Vec<aletheia_core::Hash32>>>,
+    },
     /// Ends the thread after the requests queued before it. Requests still queued behind it,
     /// or sent later, are refused (their callers see the node as stopped).
     Stop,
@@ -200,6 +205,14 @@ impl ChainHandle {
         self.call(|reply| ChainRequest::EngineEpoch { reply }).await
     }
 
+    pub(crate) async fn validator_pins(
+        &self,
+        node_keys: Vec<[u8; 32]>,
+    ) -> Result<Vec<Vec<aletheia_core::Hash32>>, AletheiaError> {
+        self.call(|reply| ChainRequest::ValidatorPins { node_keys, reply })
+            .await
+    }
+
     pub(crate) async fn persist_safety(&self, safety: SafetyData) -> Result<(), AletheiaError> {
         self.call(|reply| ChainRequest::PersistSafety { safety, reply })
             .await
@@ -306,6 +319,9 @@ fn serve<S: KvStore>(ledger: &mut Ledger<S>, request: ChainRequest) -> Result<()
             answer(reply, ledger.read_block_by_hash(&hash))
         }
         ChainRequest::EngineEpoch { reply } => answer(reply, ledger.engine_epoch()),
+        ChainRequest::ValidatorPins { node_keys, reply } => {
+            answer(reply, ledger.validator_pins(&node_keys))
+        }
         // Handled by the thread loop before `serve` is called.
         ChainRequest::Stop => Ok(()),
         ChainRequest::ApplyProven {

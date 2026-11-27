@@ -142,6 +142,23 @@ impl StatelessValidator {
                 ),
             ));
         }
+        // Governance actions added from version 3 on are refused here, before any block can
+        // carry them, exactly as a binary that cannot decode them would refuse (ADR-074).
+        // Earlier actions keep the checks they had when their blocks were made.
+        if let aletheia_core::Payload::Registry(op) = &body.payload
+            && let aletheia_core::registry::RegistryOp::GovPropose { action } = op.as_ref()
+            && action.first_version() >= 3
+            && self.rules.version().get() < action.first_version()
+        {
+            return Err(reject(
+                ErrorCode::TxTypeNotActive,
+                format!(
+                    "this governance action starts at protocol version {}; the chain is at {}",
+                    action.first_version(),
+                    self.rules.version()
+                ),
+            ));
+        }
         check_field_ranges(body, limits.fee_assets)?;
         if body.fee.eu_limit > limits.max_eu_limit {
             return Err(reject(
