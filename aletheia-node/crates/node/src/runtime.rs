@@ -27,6 +27,7 @@ use crate::channels::SUBMIT_QUEUE;
 use crate::consensus::{ConsensusDriver, NodeSigner, validator_set};
 use crate::ledger::Ledger;
 use crate::mempool::Mempool;
+use crate::snapshots::RestoreFrom;
 use crate::sync::{Submission, SyncService};
 
 pub struct NodeConfig {
@@ -46,9 +47,10 @@ pub struct NodeConfig {
     pub remote_signer: Option<aletheia_signer::RemoteSigner>,
     /// How often this node writes snapshots for others to start from (ADR-072).
     pub snapshots: crate::snapshots::SnapshotPolicy,
-    /// A new data directory starts from this verified snapshot instead of genesis (ADR-072).
-    /// Ignored once the data directory exists.
-    pub restore_snapshot: Option<PathBuf>,
+    /// A new data directory starts from a verified snapshot instead of genesis: one in a
+    /// directory (ADR-072) or fetched from peers (ADR-073). Ignored once the data directory
+    /// exists.
+    pub restore_snapshot: Option<RestoreFrom>,
 }
 
 impl core::fmt::Debug for NodeConfig {
@@ -119,8 +121,17 @@ fn check_producer(config: &NodeConfig) -> Result<(), AletheiaError> {
 
 /// DSP when the finalized state records an epoch-0 validator set: the engine resumes at the
 /// tip with safety data no lower than the WAL's or the signer's.
+/// What the consensus driver needs from the configuration (the node key itself goes to the
+/// network, which may start before the ledger, ADR-073).
+struct DriverInputs<'a> {
+    produce_every: Option<Duration>,
+    node_key: [u8; 32],
+    data_dir: &'a std::path::Path,
+    slot: Duration,
+}
+
 fn consensus_driver<S: KvStore>(
-    config: &NodeConfig,
+    config: &DriverInputs<'_>,
     consensus_key: Option<BlsSecretKey>,
     remote_signer: Option<aletheia_signer::RemoteSigner>,
     ledger: &Ledger<S>,
@@ -156,7 +167,7 @@ fn consensus_driver<S: KvStore>(
     }
     let network = *ledger.network();
     let set = validator_set(&network, epoch, &records)?;
-    let index = set.index_of(&config.node_key.public_key().to_bytes());
+    let index = set.index_of(&config.node_key);
     let open_signer = |key: Key| -> Result<NodeSigner, AletheiaError> {
         let signer = match key {
             Key::Local(key) => aletheia_signer::Backend::Local(aletheia_signer::LocalSigner::open(
@@ -206,53 +217,33 @@ fn consensus_driver<S: KvStore>(
         network,
         set,
         signer,
-        config.node_key.public_key().to_bytes(),
+        config.node_key,
         at.seed_hash,
         safety,
         at.root,
-        Duration::from_millis(config.genesis.timing.slot_duration_ms),
+        config.slot,
     )))
 }
 
+/// Reports a ledger just started from a snapshot.
+fn restored<S: KvStore>(ledger: Ledger<S>) -> Ledger<S> {
+    crate::consensus::operator_note(&format!(
+        "info restored from snapshot height={} state_root={}; history before it is not on this node",
+        ledger.tip().height,
+        ledger.tip().state_root
+    ));
+    ledger
+}
+
 impl Node {
-    /// Opens (or initializes from genesis) the data directory and starts every component.
+    /// Opens (or initializes from genesis or a snapshot) the data directory and starts every
+    /// component.
     pub async fn start<S: KvStore + 'static>(
         mut config: NodeConfig,
         store: S,
     ) -> Result<Node, AletheiaError> {
         check_producer(&config)?;
-        let ledger = if config.data_dir.join("DATADIR").exists() {
-            if let Some(snapshot) = &config.restore_snapshot {
-                crate::consensus::operator_note(&format!(
-                    "info restore_snapshot {} ignored: {} is already initialized",
-                    snapshot.display(),
-                    config.data_dir.display()
-                ));
-            }
-            Ledger::open(&config.data_dir, &config.genesis, store)?.0
-        } else if let Some(snapshot) = &config.restore_snapshot {
-            let ledger =
-                Ledger::init_from_snapshot(&config.data_dir, &config.genesis, store, snapshot)?;
-            crate::consensus::operator_note(&format!(
-                "info restored from snapshot {} height={} state_root={}; history before it is not on this node",
-                snapshot.display(),
-                ledger.tip().height,
-                ledger.tip().state_root
-            ));
-            ledger
-        } else {
-            Ledger::init(&config.data_dir, &config.genesis, store)?
-        };
-        ledger.check_next_height_supported()?;
-        let tip = ledger.tip();
-        let network = *ledger.network();
-        let consensus_key = config.consensus_key.take();
-        let remote_signer = config.remote_signer.take();
-        let consensus = consensus_driver(&config, consensus_key, remote_signer, &ledger)?;
-        let exporter = crate::snapshots::Exporter::open(&config.data_dir, config.snapshots);
-        let (chain, chain_thread) = chain::spawn(ledger, exporter)?;
-        let chain_handle = chain.clone();
-
+        let genesis_network = config.genesis.network();
         // Kept across restarts, so the hash an operator registers stays valid (ADR-071).
         let certificate = TransportCertificate::load_or_create(&config.data_dir.join("p2p"))?;
         crate::consensus::operator_note(&format!(
@@ -260,22 +251,86 @@ impl Node {
             aletheia_core::base16::encode(certificate.hash().as_bytes())
         ));
         let transport_cert_hash = certificate.hash();
+        let inputs = DriverInputs {
+            produce_every: config.produce_every,
+            node_key: config.node_key.public_key().to_bytes(),
+            data_dir: &config.data_dir,
+            slot: Duration::from_millis(config.genesis.timing.slot_duration_ms),
+        };
         let local = LocalNode {
-            network,
+            network: genesis_network,
             versions: (1, MAX_SUPPORTED_VERSION),
             node_key: config.node_key,
             certificate,
         };
-        let network_handle = start_network(
-            NetworkConfig {
-                listen: config.listen,
-                dial: config.peers,
-            },
-            local,
-            (tip.height, tip.hash),
-        )
-        .await?;
+        let network_config = NetworkConfig {
+            listen: config.listen,
+            dial: config.peers,
+        };
+        let initialized = config.data_dir.join("DATADIR").exists();
+        if initialized && let Some(source) = &config.restore_snapshot {
+            crate::consensus::operator_note(&format!(
+                "info restore_snapshot {source} ignored: {} is already initialized",
+                config.data_dir.display()
+            ));
+        }
+        let (ledger, network_handle) = match (&config.restore_snapshot, initialized) {
+            // A new node fetching its snapshot from peers: the network starts first, with an
+            // empty tip, and is handed to block sync afterwards (ADR-073).
+            (Some(RestoreFrom::Peers), false) => {
+                let mut network_handle =
+                    start_network(network_config, local, (Height::GENESIS, Hash32::ZERO)).await?;
+                let download = config.data_dir.join(crate::snapshot_fetch::DOWNLOAD_DIR);
+                let snapshot =
+                    crate::snapshot_fetch::fetch(&mut network_handle, &config.genesis, &download)
+                        .await?;
+                let ledger = restored(Ledger::init_from_snapshot(
+                    &config.data_dir,
+                    &config.genesis,
+                    store,
+                    &snapshot,
+                )?);
+                let _ = std::fs::remove_dir_all(&download);
+                let tip = ledger.tip();
+                let _ = network_handle
+                    .commands
+                    .send(aletheia_p2p::NetworkCommand::SetTip {
+                        height: tip.height,
+                        hash: tip.hash,
+                    })
+                    .await;
+                (ledger, network_handle)
+            }
+            (source, initialized) => {
+                let ledger = match (source, initialized) {
+                    (_, true) => Ledger::open(&config.data_dir, &config.genesis, store)?.0,
+                    (Some(RestoreFrom::Directory(snapshot)), false) => {
+                        restored(Ledger::init_from_snapshot(
+                            &config.data_dir,
+                            &config.genesis,
+                            store,
+                            snapshot,
+                        )?)
+                    }
+                    _ => Ledger::init(&config.data_dir, &config.genesis, store)?,
+                };
+                let tip = ledger.tip();
+                let network_handle =
+                    start_network(network_config, local, (tip.height, tip.hash)).await?;
+                (ledger, network_handle)
+            }
+        };
+        ledger.check_next_height_supported()?;
+        let tip = ledger.tip();
+        let network = *ledger.network();
+        let consensus_key = config.consensus_key.take();
+        let remote_signer = config.remote_signer.take();
+        let consensus = consensus_driver(&inputs, consensus_key, remote_signer, &ledger)?;
+        let exporter = crate::snapshots::Exporter::open(&config.data_dir, config.snapshots);
+        let (chain, chain_thread) = chain::spawn(ledger, exporter)?;
+        let chain_handle = chain.clone();
         let local_addr = network_handle.local_addr;
+        let snapshot_root = config.data_dir.join("snapshots");
 
         let (tip_tx, tip_rx) = watch::channel(tip);
         let (submit_tx, submit_rx) = mpsc::channel(SUBMIT_QUEUE);
@@ -292,6 +347,8 @@ impl Node {
             in_flight: None,
             no_history: std::collections::BTreeSet::new(),
             consensus,
+            snapshot_root,
+            snapshot_reads: tokio::task::JoinSet::new(),
         };
         let sync = tokio::spawn(service.run());
         Ok(Node {

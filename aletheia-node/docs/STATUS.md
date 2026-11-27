@@ -42,8 +42,8 @@ partly written; see the end of this file.
 | Chain thread (`node/chain.rs`) | 46A.1 | yes | yes | via network tests | n/a | rustdoc | n/a |
 | Block propagation, block sync, tx gossip (`node/sync.rs`) | 36 | yes | yes | 7-node convergence, late joiner (80+ blocks), restart | n/a | rustdoc | no |
 | Devnet producer (feature `devnet-producer`) | 62 (stand-in) | n/a | yes, devnet/regtest only | refused on mainnet | n/a | rustdoc | n/a |
-| Snapshot bootstrap (ADR-072: proven anchor, verified restore, snapshots written by running nodes) | 42.4 | yes | yes (snapshots travel by file copy; fetching over P2P is next) | forged set, missing epoch changes, damaged chunk, restored node follows the chain | no | ADR-072, runbook | no |
-| State sync over the network (JMT chunks) | 42.4 | yes | **no** (fetching ADR-072 snapshots over the SnapshotSync channel is next) | no | no | no | no |
+| Snapshot bootstrap (ADR-072: proven anchor, verified restore, snapshots written by running nodes) | 42.4 | yes | yes (from a directory or from peers) | forged set, missing epoch changes, damaged chunk, restored node follows the chain | no | ADR-072, runbook | no |
+| Snapshot fetch over P2P (ADR-073, SnapshotSync channel) | 36, 42.4 | yes | yes (`restore_snapshot = "peers"`; parts of 4 MiB, per-chunk checks, failover, resume) | forged higher offer refused, multi-part reassembly, end to end over TLS | no | ADR-073, runbook | no |
 | Peer exchange, address book, validator mesh, verified consensus relay (`p2p/peer_book.rs`, `network.rs`, ADR-070) | 36 | yes | yes | message and book units, relay memory, 3-validator discovery run | no | rustdoc | no |
 | Persistent transport certificate; validator connections pinned to the registered hash (`tls.rs`, `network.rs`, ADR-071) | 36 | yes | yes | restart and mismatched pair, wrong vs registered hash, end-to-end pinned operator | no | rustdoc | no |
 | Keepalive pings, peer-version reporting | 36 | yes | **no** | no | no | no | no |

@@ -147,6 +147,23 @@ async fn start_restored(
     peers: &[SocketAddr],
     snapshot: &std::path::Path,
 ) -> Result<Node, aletheia_core::AletheiaError> {
+    start_from(
+        member,
+        genesis,
+        peers,
+        aletheia_node::RestoreFrom::Directory(snapshot.to_path_buf()),
+        9,
+    )
+    .await
+}
+
+async fn start_from(
+    member: &Member,
+    genesis: &GenesisState,
+    peers: &[SocketAddr],
+    source: aletheia_node::RestoreFrom,
+    key: u8,
+) -> Result<Node, aletheia_core::AletheiaError> {
     Node::start(
         NodeConfig {
             data_dir: member.data_dir.clone(),
@@ -159,12 +176,12 @@ async fn start_restored(
                     expect: PeerExpectation::default(),
                 })
                 .collect(),
-            node_key: node_key(9),
+            node_key: node_key(key),
             produce_every: None,
             consensus_key: None,
             remote_signer: None,
             snapshots: aletheia_node::SnapshotPolicy::DISABLED,
-            restore_snapshot: Some(snapshot.to_path_buf()),
+            restore_snapshot: Some(source),
         },
         member.store.clone(),
     )
@@ -610,6 +627,48 @@ async fn a_single_validator_chain_admits_and_loses_a_validator_without_stopping(
             .len(),
         1
     );
+
+    // A new node told only "peers" fetches v0's newest snapshot over the network, verifies
+    // it, and follows the chain from there (ADR-073).
+    // The restored node serves a forged snapshot above v0's: it is the highest offer, it does
+    // not verify, and the new node uses v0's instead.
+    let planted = third
+        .data_dir
+        .join("snapshots")
+        .join((height + 1_000_000).to_string());
+    copy_dir(&forged, &planted);
+    let fourth = member("fetched");
+    let mut fetched = start_from(
+        &fourth,
+        &genesis,
+        &[restored.local_addr(), v0.local_addr()],
+        aletheia_node::RestoreFrom::Peers,
+        10,
+    )
+    .await
+    .unwrap();
+    let from = fetched.tip().height.get();
+    assert!(from >= height, "started from a snapshot at {from}");
+    assert!(
+        fetched
+            .block_at(Height::new(from - 1))
+            .await
+            .unwrap()
+            .is_none(),
+        "nothing before the fetched snapshot"
+    );
+    assert!(
+        !fourth.data_dir.join("snapshot-download").exists(),
+        "the download is removed after the restore"
+    );
+    let caught = Height::new(v0.tip().height.get() + 10);
+    v0.wait_for_height(caught, WAIT).await.unwrap();
+    fetched.wait_for_height(caught, WAIT).await.unwrap();
+    assert_eq!(
+        hash_at(&v0, &network, caught).await,
+        hash_at(&fetched, &network, caught).await
+    );
+    fetched.shutdown().await.unwrap();
 
     // It restarts like any node, from its own data directory.
     restored.shutdown().await.unwrap();

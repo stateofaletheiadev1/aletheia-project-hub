@@ -45,6 +45,24 @@ impl Default for SnapshotPolicy {
     }
 }
 
+/// Where a new data directory's snapshot comes from.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum RestoreFrom {
+    /// A snapshot directory copied to this host (ADR-072).
+    Directory(PathBuf),
+    /// Fetched from peers over the SnapshotSync channel and verified (ADR-073).
+    Peers,
+}
+
+impl core::fmt::Display for RestoreFrom {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            RestoreFrom::Directory(path) => write!(f, "{}", path.display()),
+            RestoreFrom::Peers => f.write_str("peers"),
+        }
+    }
+}
+
 struct Active {
     writer: SnapshotWriter,
     anchor: SnapshotAnchor,
@@ -224,6 +242,150 @@ impl Exporter {
         let excess = complete.len().saturating_sub(self.policy.keep.max(1));
         for (_, path) in complete.into_iter().take(excess) {
             let _ = std::fs::remove_dir_all(path);
+        }
+    }
+}
+
+/// The newest complete snapshot under `root` as an offer (ADR-073); height 0 when there is
+/// none. Blocking: runs off the sync task.
+pub(crate) fn offer(root: &Path) -> aletheia_p2p::Message {
+    for (height, path) in complete_snapshots(root).into_iter().rev() {
+        let manifest = aletheia_state::snapshot::read_manifest(&path);
+        let anchor = crate::bootstrap::read_anchor(&path);
+        if let (Ok(manifest), Ok(anchor)) = (manifest, anchor) {
+            return aletheia_p2p::Message::SnapshotOffer {
+                height,
+                manifest: manifest.to_ace_bytes(),
+                anchor: anchor.to_ace_bytes(),
+            };
+        }
+    }
+    aletheia_p2p::Message::SnapshotOffer {
+        height: 0,
+        manifest: Vec::new(),
+        anchor: Vec::new(),
+    }
+}
+
+/// Up to 4 MiB of one chunk of a complete snapshot from `offset` (ADR-073); `total` 0 when
+/// this node does not serve it. The path is built from numbers only. Blocking.
+pub(crate) fn part(root: &Path, height: u64, chunk: u32, offset: u64) -> aletheia_p2p::Message {
+    use std::io::{Read, Seek, SeekFrom};
+    let none = aletheia_p2p::Message::SnapshotPart {
+        height,
+        chunk,
+        offset,
+        total: 0,
+        data: Vec::new(),
+    };
+    let dir = root.join(height.to_string());
+    if !dir.join("manifest.ace").is_file() || !dir.join(ANCHOR_FILE).is_file() {
+        return none;
+    }
+    let Ok(index) = usize::try_from(chunk) else {
+        return none;
+    };
+    let path = dir.join(aletheia_state::snapshot::chunk_file_name(index));
+    let read = || -> std::io::Result<(u64, Vec<u8>)> {
+        let mut file = std::fs::File::open(&path)?;
+        let total = file.metadata()?.len();
+        if offset >= total {
+            return Ok((0, Vec::new()));
+        }
+        let want = total
+            .saturating_sub(offset)
+            .min(u64::from(aletheia_p2p::message::MAX_SNAPSHOT_PART_BYTES));
+        file.seek(SeekFrom::Start(offset))?;
+        let mut data = vec![0u8; usize::try_from(want).unwrap_or(0)];
+        file.read_exact(&mut data)?;
+        Ok((total, data))
+    };
+    match read() {
+        Ok((total, data)) if total > 0 => aletheia_p2p::Message::SnapshotPart {
+            height,
+            chunk,
+            offset,
+            total,
+            data,
+        },
+        _ => none,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #![allow(
+        clippy::unwrap_used,
+        clippy::panic,
+        clippy::arithmetic_side_effects,
+        clippy::cast_possible_truncation,
+        clippy::as_conversions
+    )]
+
+    use super::*;
+
+    fn scratch(name: &str) -> PathBuf {
+        let dir =
+            std::env::temp_dir().join(format!("aletheia-snapshots-{}-{name}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        dir
+    }
+
+    #[test]
+    fn a_chunk_is_served_in_parts_of_at_most_four_mebibytes() {
+        let root = scratch("parts");
+        let dir = root.join("77");
+        std::fs::create_dir_all(&dir).unwrap();
+        std::fs::write(dir.join("manifest.ace"), b"m").unwrap();
+        std::fs::write(dir.join(ANCHOR_FILE), b"a").unwrap();
+        let chunk: Vec<u8> = (0..9 * 1024 * 1024).map(|i| (i % 251) as u8).collect();
+        std::fs::write(dir.join("chunk-000000.zst"), &chunk).unwrap();
+        let mut assembled = Vec::new();
+        let mut parts = 0;
+        while assembled.len() < chunk.len() {
+            let offset = assembled.len() as u64;
+            match part(&root, 77, 0, offset) {
+                aletheia_p2p::Message::SnapshotPart {
+                    total,
+                    data,
+                    offset: o,
+                    ..
+                } => {
+                    assert_eq!(total, chunk.len() as u64);
+                    assert_eq!(o, offset);
+                    assert!(data.len() <= 4 * 1024 * 1024);
+                    assembled.extend_from_slice(&data);
+                    parts += 1;
+                }
+                other => panic!("{other:?}"),
+            }
+        }
+        assert_eq!(parts, 3);
+        assert_eq!(assembled, chunk);
+        let not_served = |message| matches!(message, aletheia_p2p::Message::SnapshotPart { total: 0, ref data, .. } if data.is_empty());
+        assert!(
+            not_served(part(&root, 77, 0, chunk.len() as u64)),
+            "past the end"
+        );
+        assert!(not_served(part(&root, 77, 1, 0)), "no such chunk");
+        assert!(not_served(part(&root, 78, 0, 0)), "no such snapshot");
+        // An incomplete snapshot (no anchor yet) is never served.
+        std::fs::remove_file(dir.join(ANCHOR_FILE)).unwrap();
+        assert!(not_served(part(&root, 77, 0, 0)));
+    }
+
+    #[test]
+    fn a_node_without_snapshots_offers_none() {
+        match offer(&scratch("none")) {
+            aletheia_p2p::Message::SnapshotOffer {
+                height,
+                manifest,
+                anchor,
+            } => {
+                assert_eq!(height, 0);
+                assert!(manifest.is_empty() && anchor.is_empty());
+            }
+            other => panic!("{other:?}"),
         }
     }
 }

@@ -29,8 +29,10 @@
 //! executor_path = "/usr/lib/aletheia/aletheia-arno-exec"   # default: beside aletheiad
 //! call_timeout_ms = 10000              # watchdog per contract call
 //!
-//! restore_snapshot = "/var/lib/aletheia-snapshot/4300000"   # optional: a NEW data directory
-//!                                             # starts from this verified snapshot (ADR-072)
+//! restore_snapshot = "peers"           # optional: a NEW data directory starts from a verified
+//!                                      # snapshot fetched from peers (ADR-073), or from a
+//!                                      # snapshot directory: "/var/lib/aletheia-snapshot/4300000"
+//!                                      # (ADR-072). Ignored once the directory exists.
 //!
 //! [snapshots]                          # optional: snapshots other nodes start from (ADR-072)
 //! every_blocks = 172800                # default 172800 (about a day); 0 writes none
@@ -320,7 +322,7 @@ pub(crate) struct Settings {
     pub(crate) storage: StorageSettings,
     pub(crate) rpc: Option<RpcSettings>,
     pub(crate) snapshots: aletheia_node::SnapshotPolicy,
-    pub(crate) restore_snapshot: Option<PathBuf>,
+    pub(crate) restore_snapshot: Option<aletheia_node::RestoreFrom>,
 }
 
 fn read(path: &std::path::Path, what: &str) -> Result<String, String> {
@@ -489,7 +491,13 @@ pub(crate) fn load(path: &std::path::Path) -> Result<Settings, String> {
     Ok(Settings {
         rpc,
         snapshots,
-        restore_snapshot: file.node.restore_snapshot,
+        restore_snapshot: file.node.restore_snapshot.map(|value| {
+            if value.as_os_str() == "peers" {
+                aletheia_node::RestoreFrom::Peers
+            } else {
+                aletheia_node::RestoreFrom::Directory(value)
+            }
+        }),
         data_dir: file.node.data_dir,
         genesis,
         listen: file.node.listen,

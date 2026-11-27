@@ -50,6 +50,7 @@ chain. Amounts are in ALnT (3 decimals).
    listen = "0.0.0.0:7771"                  # open TCP 7771 in the host firewall and the cloud's
    node_keystore = "/etc/aletheia/node-key.json"
    node_key_password_file = "/run/credentials/aletheiad.service/node-key-password"
+   restore_snapshot = "peers"               # first start: begin from a verified snapshot
 
    [signer]
    socket = "/run/aletheia-signer/signer.sock"
@@ -73,12 +74,12 @@ chain. Amounts are in ALnT (3 decimals).
    `a3ad0e1a821776800698ec99d672f00f5d084870d3230a1391fda45a58ba90ad`) and re-executes every block
    from genesis before it is current; on a 4 vCPU host this takes hours, once.
 
-   Faster: start from a snapshot (ADR-072). Every node writes one about once a day to
-   `/var/lib/aletheia/snapshots/<height>/`. Copy the newest from the State's validator (or any
-   node) to the new host, add `restore_snapshot = "/var/lib/aletheia-snapshot/<height>"` to
-   `[node]`, and start with an empty data directory. The node verifies the snapshot against the
-   genesis file alone (every validator set change and the finality proof of its block) and
-   refuses anything that does not prove out, so the copy needs no trusted channel. It then
+   Faster: start from a snapshot. Add `restore_snapshot = "peers"` to `[node]` and start with
+   an empty data directory: the node asks its peers for their newest snapshot (every node
+   writes one about once a day), fetches it, and verifies it against the genesis file alone
+   (every validator set change and the finality proof of its block), refusing anything that
+   does not prove out (ADR-073). A snapshot directory copied by hand works too:
+   `restore_snapshot = "/var/lib/aletheia-snapshot/<height>"` (ADR-072). Either way the node
    syncs only the blocks after the snapshot; blocks before it are not on this node. Until the Council
    admits it, it follows the chain as an observer (`aletheiad info this node key is not in the
    validator set ...`). `curl -s 127.0.0.1:7781/api/v1/network/status` shows its height.

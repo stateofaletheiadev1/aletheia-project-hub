@@ -37,7 +37,7 @@ use tokio::sync::{mpsc, oneshot, watch};
 use tokio::time::Instant;
 
 use crate::chain::ChainHandle;
-use crate::channels::{PROPOSAL_CANDIDATES, TX_RESPONSE_BYTES};
+use crate::channels::{PROPOSAL_CANDIDATES, SNAPSHOT_READS, TX_RESPONSE_BYTES};
 use crate::consensus::{ConsensusDriver, PendingBuild};
 use crate::ledger::BuildParams;
 use crate::mempool::{Admitted, Mempool};
@@ -83,6 +83,11 @@ pub(crate) struct SyncService {
     pub(crate) no_history: BTreeSet<PeerId>,
     /// Present on a chain with validators.
     pub(crate) consensus: Option<ConsensusDriver>,
+    /// Where this node's complete snapshots are, served to peers (ADR-073).
+    pub(crate) snapshot_root: std::path::PathBuf,
+    /// Snapshot reads in progress, at most [`SNAPSHOT_READS`]; owned and reaped here so a
+    /// slow disk never holds up consensus.
+    pub(crate) snapshot_reads: tokio::task::JoinSet<()>,
 }
 
 /// Whether an error from executing or building must stop the node: fail-stop errors, and the
@@ -209,6 +214,7 @@ impl SyncService {
                     }
                 }
                 () = sleep_until_or_never(build_at) => self.build().await,
+                Some(_) = self.snapshot_reads.join_next(), if !self.snapshot_reads.is_empty() => Ok(()),
             };
             let failed = step.is_err();
             Self::survive(step)?;
@@ -331,6 +337,14 @@ impl SyncService {
                 .await
             }
             Message::Pong { .. } => {}
+            Message::GetSnapshotOffer => self.serve_snapshot(peer, None),
+            Message::GetSnapshotPart {
+                height,
+                chunk,
+                offset,
+            } => self.serve_snapshot(peer, Some((height, chunk, offset))),
+            // Answers are only read while a new node fetches its snapshot (ADR-073).
+            Message::SnapshotOffer { .. } | Message::SnapshotPart { .. } => {}
             // Peer exchange is handled inside the network service (ADR-070); never delivered here.
             Message::ListenPort { .. }
             | Message::GetPeers
@@ -338,6 +352,27 @@ impl SyncService {
             | Message::UnknownMgmt { .. } => {}
         }
         Ok(())
+    }
+
+    /// Answers a snapshot request off this task: an offer, or a part of a chunk (ADR-073).
+    fn serve_snapshot(&mut self, peer: PeerId, part: Option<(u64, u32, u64)>) {
+        if self.snapshot_reads.len() >= SNAPSHOT_READS {
+            return;
+        }
+        let root = self.snapshot_root.clone();
+        let commands = self.network.commands.clone();
+        self.snapshot_reads.spawn(async move {
+            let read = tokio::task::spawn_blocking(move || match part {
+                None => crate::snapshots::offer(&root),
+                Some((height, chunk, offset)) => {
+                    crate::snapshots::part(&root, height, chunk, offset)
+                }
+            })
+            .await;
+            if let Ok(message) = read {
+                let _ = commands.send(NetworkCommand::Send { peer, message }).await;
+            }
+        });
     }
 
     /// Answers a fetch: a proposal consensus holds, or a finalized block from the archive.

@@ -11,10 +11,11 @@ pub mod ledger;
 pub mod mempool;
 pub mod rpc;
 pub mod runtime;
+pub(crate) mod snapshot_fetch;
 pub mod snapshots;
 pub(crate) mod sync;
 
 pub use ledger::{Ledger, Reconciled};
 pub use rpc::NodeBackend;
 pub use runtime::{Node, NodeConfig};
-pub use snapshots::SnapshotPolicy;
+pub use snapshots::{RestoreFrom, SnapshotPolicy};

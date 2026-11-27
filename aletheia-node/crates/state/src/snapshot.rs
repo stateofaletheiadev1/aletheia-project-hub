@@ -71,8 +71,57 @@ fn io(action: &str, path: &Path, error: &std::io::Error) -> AletheiaError {
     )
 }
 
+/// The file name of chunk `index` in a snapshot directory.
+pub fn chunk_file_name(index: usize) -> String {
+    format!("chunk-{index:06}.zst")
+}
+
 fn chunk_path(dir: &Path, index: usize) -> PathBuf {
-    dir.join(format!("chunk-{index:06}.zst"))
+    dir.join(chunk_file_name(index))
+}
+
+/// Largest compressed chunk a snapshot can hold: zstd's bound on the largest raw chunk.
+pub const MAX_COMPRESSED_CHUNK_BYTES: usize = MAX_CHUNK_BYTES + MAX_CHUNK_BYTES / 128 + 1024;
+
+/// Checks one compressed chunk against the hash its manifest records, as a download
+/// completes, so a bad chunk is fetched again from another peer instead of failing the
+/// restore. The restore checks every chunk again.
+pub fn check_chunk(
+    compressed: &[u8],
+    expected: &Hash32,
+    index: usize,
+) -> Result<(), AletheiaError> {
+    let raw = zstd::bulk::decompress(compressed, MAX_CHUNK_BYTES).map_err(|e| {
+        AletheiaError::new(
+            ErrorCode::ProofInvalid,
+            format!("snapshot chunk {index} does not decompress: {e}"),
+        )
+    })?;
+    if chunk_hash(&raw) != *expected {
+        return Err(AletheiaError::new(
+            ErrorCode::ProofInvalid,
+            format!("snapshot chunk {index} does not match its manifest hash"),
+        ));
+    }
+    Ok(())
+}
+
+/// Writes a synced file into a snapshot directory (a downloaded chunk).
+pub fn write_chunk(dir: &Path, index: usize, compressed: &[u8]) -> Result<(), AletheiaError> {
+    write_file_synced(&chunk_path(dir, index), compressed)
+}
+
+/// Writes `manifest.ace` for a snapshot assembled from parts (a download).
+pub fn write_manifest(dir: &Path, manifest: &SnapshotManifest) -> Result<(), AletheiaError> {
+    write_file_synced(&dir.join("manifest.ace"), &manifest_file_bytes(manifest))
+}
+
+fn manifest_file_bytes(manifest: &SnapshotManifest) -> Vec<u8> {
+    let encoded = manifest.to_ace_bytes();
+    let mut file_bytes = MANIFEST_MAGIC.to_vec();
+    file_bytes.extend_from_slice(&encoded);
+    file_bytes.extend_from_slice(&crc32c_of(&encoded).to_le_bytes());
+    file_bytes
 }
 
 fn chunk_hash(bytes: &[u8]) -> Hash32 {
@@ -208,11 +257,10 @@ impl SnapshotWriter {
             chunk_hashes: self.chunk_hashes,
             finality_proof,
         };
-        let encoded = manifest.to_ace_bytes();
-        let mut file_bytes = MANIFEST_MAGIC.to_vec();
-        file_bytes.extend_from_slice(&encoded);
-        file_bytes.extend_from_slice(&crc32c_of(&encoded).to_le_bytes());
-        write_file_synced(&self.dir.join("manifest.ace"), &file_bytes)?;
+        write_file_synced(
+            &self.dir.join("manifest.ace"),
+            &manifest_file_bytes(&manifest),
+        )?;
         sync_dir(&self.dir)?;
         Ok(manifest)
     }

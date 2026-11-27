@@ -24,4 +24,9 @@ pub const BLOCK_RESPONSE_BYTES: usize = 7 * 1024 * 1024;
 /// Transactions answered per GetTxs request, under the 256 KiB tx-gossip frame.
 pub const TX_RESPONSE_BYTES: usize = 200 * 1024;
 
+/// Snapshot requests (offers, chunk parts) served at once, each a task the sync service owns
+/// and reaps (ADR-073). Full means the disk is behind: the request is dropped and the asker
+/// times out and tries again or another peer.
+pub const SNAPSHOT_READS: usize = 4;
+
 pub use aletheia_p2p::limits::{NETWORK_COMMAND_QUEUE, NETWORK_EVENT_QUEUE, PEER_OUTBOX_FRAMES};

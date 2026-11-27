@@ -11,7 +11,15 @@
 //! TxGossip  1 TxAnnounce { list<Hash32> (<= 1024) }       2 GetTxs { list<Hash32> (<= 1024) }
 //!           3 Txs { list<SignedTransaction> (<= 512) }
 //! Consensus 1 Proposal  2 Vote  3 Timeout  4 QuorumCertificate  5 TimeoutCertificate
+//! SnapshotSync (ADR-073)
+//!           1 GetSnapshotOffer {}
+//!           2 SnapshotOffer { height u64 (0: none), manifest bytes, anchor bytes }
+//!           3 GetSnapshotPart { height u64, chunk u32, offset u64 }
+//!           4 SnapshotPart { height u64, chunk u32, offset u64, total u64, data bytes (<= 4 MiB) }
 //! ```
+//!
+//! Snapshot manifests and anchors are carried as ACE bytes, like consensus payloads: the node
+//! decodes and verifies them against genesis; nothing in them is trusted here.
 //!
 //! Consensus payloads are carried as bytes: this crate checks the type is one of the five and
 //! the size is within the channel budget, and the consensus crate decodes and verifies them.
@@ -38,6 +46,11 @@ pub const MAX_TXS: u32 = 512;
 pub const MAX_FINALITY_PROOF_BYTES: u32 = 64 * 1024;
 /// Most peer addresses in one `Peers` answer (ADR-070).
 pub const MAX_PEER_ADDRESSES: u32 = 64;
+/// Largest piece of a snapshot chunk in one `SnapshotPart` (ADR-073): a chunk may compress
+/// to nearly the sync frame limit, so it travels in parts.
+pub const MAX_SNAPSHOT_PART_BYTES: u32 = 4 * 1024 * 1024;
+/// Most bytes a snapshot manifest or anchor may take in an offer: the sync frame limit.
+const MAX_SNAPSHOT_OFFER_FIELD: u32 = 15 * 1024 * 1024;
 /// Consensus message types 1..=5 (Proposal, Vote, Timeout, QC, TC).
 pub const CONSENSUS_MSG_TYPES: core::ops::RangeInclusive<u16> = 1..=5;
 
@@ -127,6 +140,28 @@ pub enum Message {
         msg_type: u16,
         payload: Vec<u8>,
     },
+    /// Which snapshot do you serve? (ADR-073)
+    GetSnapshotOffer,
+    /// The newest complete snapshot this node serves; `height` 0 and empty fields for none.
+    SnapshotOffer {
+        height: u64,
+        manifest: Vec<u8>,
+        anchor: Vec<u8>,
+    },
+    GetSnapshotPart {
+        height: u64,
+        chunk: u32,
+        offset: u64,
+    },
+    /// Bytes of a compressed chunk from `offset`; `total` is the chunk file's length. Empty
+    /// `data` with `total` 0: this node no longer serves that snapshot.
+    SnapshotPart {
+        height: u64,
+        chunk: u32,
+        offset: u64,
+        total: u64,
+        data: Vec<u8>,
+    },
 }
 
 fn malformed(detail: String) -> AletheiaError {
@@ -149,15 +184,30 @@ impl Message {
             | Message::GetProposal { .. } => Channel::BlockProp,
             Message::TxAnnounce(_) | Message::GetTxs(_) | Message::Txs(_) => Channel::TxGossip,
             Message::Consensus { .. } => Channel::Consensus,
+            Message::GetSnapshotOffer
+            | Message::SnapshotOffer { .. }
+            | Message::GetSnapshotPart { .. }
+            | Message::SnapshotPart { .. } => Channel::SnapshotSync,
         }
     }
 
     pub fn msg_type(&self) -> u16 {
         match self {
-            Message::Ping { .. } | Message::NewBlock { .. } | Message::TxAnnounce(_) => 1,
-            Message::Pong { .. } | Message::GetBlocks { .. } | Message::GetTxs(_) => 2,
-            Message::Status { .. } | Message::Blocks { .. } | Message::Txs(_) => 3,
-            Message::GetProposal { .. } | Message::ListenPort { .. } => 4,
+            Message::Ping { .. }
+            | Message::NewBlock { .. }
+            | Message::TxAnnounce(_)
+            | Message::GetSnapshotOffer => 1,
+            Message::Pong { .. }
+            | Message::GetBlocks { .. }
+            | Message::GetTxs(_)
+            | Message::SnapshotOffer { .. } => 2,
+            Message::Status { .. }
+            | Message::Blocks { .. }
+            | Message::Txs(_)
+            | Message::GetSnapshotPart { .. } => 3,
+            Message::GetProposal { .. }
+            | Message::ListenPort { .. }
+            | Message::SnapshotPart { .. } => 4,
             Message::GetPeers => 5,
             Message::Peers(_) => 6,
             Message::UnknownMgmt { msg_type } => *msg_type,
@@ -201,7 +251,41 @@ impl Message {
             Message::Txs(txs) => out.list(txs),
             Message::ListenPort { port } => out.u16(*port),
             Message::Peers(peers) => out.list(peers),
-            Message::GetPeers | Message::UnknownMgmt { .. } | Message::Consensus { .. } => {}
+            Message::SnapshotOffer {
+                height,
+                manifest,
+                anchor,
+            } => {
+                out.u64(*height);
+                out.bytes(manifest);
+                out.bytes(anchor);
+            }
+            Message::GetSnapshotPart {
+                height,
+                chunk,
+                offset,
+            } => {
+                out.u64(*height);
+                out.u32(*chunk);
+                out.u64(*offset);
+            }
+            Message::SnapshotPart {
+                height,
+                chunk,
+                offset,
+                total,
+                data,
+            } => {
+                out.u64(*height);
+                out.u32(*chunk);
+                out.u64(*offset);
+                out.u64(*total);
+                out.bytes(data);
+            }
+            Message::GetPeers
+            | Message::UnknownMgmt { .. }
+            | Message::Consensus { .. }
+            | Message::GetSnapshotOffer => {}
         }
         Frame {
             channel: self.channel(),
@@ -269,6 +353,24 @@ impl Message {
             (Channel::TxGossip, 1) => Message::TxAnnounce(input.list(MAX_TX_IDS)?),
             (Channel::TxGossip, 2) => Message::GetTxs(input.list(MAX_TX_IDS)?),
             (Channel::TxGossip, 3) => Message::Txs(input.list(MAX_TXS)?),
+            (Channel::SnapshotSync, 1) => Message::GetSnapshotOffer,
+            (Channel::SnapshotSync, 2) => Message::SnapshotOffer {
+                height: input.u64()?,
+                manifest: input.bytes(MAX_SNAPSHOT_OFFER_FIELD)?.to_vec(),
+                anchor: input.bytes(MAX_SNAPSHOT_OFFER_FIELD)?.to_vec(),
+            },
+            (Channel::SnapshotSync, 3) => Message::GetSnapshotPart {
+                height: input.u64()?,
+                chunk: input.u32()?,
+                offset: input.u64()?,
+            },
+            (Channel::SnapshotSync, 4) => Message::SnapshotPart {
+                height: input.u64()?,
+                chunk: input.u32()?,
+                offset: input.u64()?,
+                total: input.u64()?,
+                data: input.bytes(MAX_SNAPSHOT_PART_BYTES)?.to_vec(),
+            },
             (channel, msg_type) => {
                 return Err(malformed(format!(
                     "message type {msg_type} is not defined on the {channel:?} channel"
@@ -319,6 +421,29 @@ mod tests {
             Message::Txs(vec![]),
             Message::ListenPort { port: 7771 },
             Message::GetPeers,
+            Message::GetSnapshotOffer,
+            Message::SnapshotOffer {
+                height: 0,
+                manifest: Vec::new(),
+                anchor: Vec::new(),
+            },
+            Message::SnapshotOffer {
+                height: 4_300_000,
+                manifest: vec![1; 40],
+                anchor: vec![2; 300],
+            },
+            Message::GetSnapshotPart {
+                height: 4_300_000,
+                chunk: 3,
+                offset: 8 * 1024 * 1024,
+            },
+            Message::SnapshotPart {
+                height: 4_300_000,
+                chunk: 3,
+                offset: 0,
+                total: 9,
+                data: vec![7; 9],
+            },
             Message::Peers(vec![
                 PeerAddress {
                     node_key: [7; 32],
@@ -358,6 +483,22 @@ mod tests {
         // Refused like every over-long list; the reader scores the peer for it.
         assert_eq!(
             Message::from_frame(&too_many).unwrap_err().code(),
+            ErrorCode::DecodeLengthExceeded
+        );
+    }
+
+    #[test]
+    fn a_snapshot_part_above_four_mebibytes_is_refused() {
+        let frame = Message::SnapshotPart {
+            height: 1,
+            chunk: 0,
+            offset: 0,
+            total: 5 * 1024 * 1024,
+            data: vec![0; 4 * 1024 * 1024 + 1],
+        }
+        .to_frame(0);
+        assert_eq!(
+            Message::from_frame(&frame).unwrap_err().code(),
             ErrorCode::DecodeLengthExceeded
         );
     }
