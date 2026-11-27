@@ -40,8 +40,34 @@ chain. Amounts are in ALnT (3 decimals).
 
    The first prints `consensus_key` and `proof_of_possession`, the second the node key.
 
-2. Start the node with the signer daemon. Until the Council admits it, it follows the chain as
-   an observer (`aletheiad info this node key is not in the validator set ...`).
+2. Connect the node to Mainnet Beta and start it with the signer daemon (`docs/operations/vps.md`
+   sections 1-3 for the build, users, systemd and the daemon). Its `/etc/aletheia/node.toml`:
+
+   ```toml
+   [node]
+   data_dir = "/var/lib/aletheia"
+   genesis = "/etc/aletheia/genesis.toml"   # a copy of genesis/mainnet-beta.toml in this repository
+   listen = "0.0.0.0:7771"                  # open TCP 7771 in the host firewall and the cloud's
+   node_keystore = "/etc/aletheia/node-key.json"
+   node_key_password_file = "/run/credentials/aletheiad.service/node-key-password"
+
+   [signer]
+   socket = "/run/aletheia-signer/signer.sock"
+
+   # The State's validator: the node fetches the chain from it and finds the other validators.
+   [[peers]]
+   address = "9.205.24.247:7771"
+   node_key = "44fd466a9b450e9a417177fd84ac7d748f5cb8ec03490f0d286de71112e5c049"
+
+   [rpc]
+   listen = "127.0.0.1:7781"                # local only; never expose a validator's RPC
+   ```
+
+   On first start the node checks the genesis (chain 7770, genesis id
+   `a3ad0e1a821776800698ec99d672f00f5d084870d3230a1391fda45a58ba90ad`) and re-executes every block
+   from genesis before it is current; on a 4 vCPU host this takes hours, once. Until the Council
+   admits it, it follows the chain as an observer (`aletheiad info this node key is not in the
+   validator set ...`). `curl -s 127.0.0.1:7781/api/v1/network/status` shows its height.
 
 3. The operator registers from its own account, locking the bond (minimum 10,000 ALnT unless the
    Council changed it):
