@@ -174,8 +174,8 @@ fn step_5_rule_table_lists_only_active_types() {
     assert!(!Rules::V1.tx_type_active(TxType::new(64)));
 }
 
-/// ADR-074: key rotation is refused before protocol version 3, the Council's rotation
-/// included, so no block of an earlier version carries one.
+/// ADR-074, ADR-075: key rotation and evidence are refused before protocol version 3, the
+/// Council's rotation included, so no block of an earlier version carries one.
 #[test]
 fn key_rotation_is_refused_before_version_3() {
     let rotate = |rules: Rules, payload: Payload| {
@@ -199,7 +199,22 @@ fn key_rotation_is_refused_before_version_3() {
             proof_of_possession: [4; 96],
         },
     }));
+    let evidence = Payload::Validator(Box::new(
+        aletheia_core::validator::ValidatorOp::SubmitEvidence(Box::new(
+            aletheia_core::validator::Equivocation::Votes {
+                epoch: aletheia_core::Epoch::new(1),
+                round: Slot::new(9),
+                voter: 0,
+                first: Box::new((Hash32::from_bytes([1; 32]), [5; 96])),
+                second: Box::new((Hash32::from_bytes([2; 32]), [6; 96])),
+            },
+        )),
+    ));
     for rules in [Rules::V1, Rules::V2] {
+        assert_eq!(
+            rotate(rules, evidence.clone()),
+            Err(ErrorCode::TxTypeNotActive)
+        );
         assert_eq!(
             rotate(rules, operator.clone()),
             Err(ErrorCode::TxTypeNotActive)
@@ -210,6 +225,7 @@ fn key_rotation_is_refused_before_version_3() {
         );
     }
     assert_eq!(rotate(Rules::V3, operator), Ok(()));
+    assert_eq!(rotate(Rules::V3, evidence), Ok(()));
     assert_eq!(rotate(Rules::V3, council), Ok(()));
     // Earlier actions keep the checks they always had at admission.
     let earlier = Payload::Registry(Box::new(aletheia_core::registry::RegistryOp::GovPropose {

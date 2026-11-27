@@ -368,10 +368,12 @@ pub(crate) fn apply(
         ValidatorOp::Register(_) => REGISTRY_EU.saturating_add(SIGNATURE_EU),
         ValidatorOp::WithdrawApplication { .. } | ValidatorOp::RequestExit { .. } => REGISTRY_EU,
         // Version 3 (ADR-074); inactive here, refused at admission before this point.
-        ValidatorOp::RotateConsensusKey { .. } | ValidatorOp::RotateTransportCert { .. } => {
+        ValidatorOp::RotateConsensusKey { .. }
+        | ValidatorOp::RotateTransportCert { .. }
+        | ValidatorOp::SubmitEvidence(_) => {
             return Err(fail(
                 ErrorCode::TxTypeNotActive,
-                "key rotation starts at protocol version 3",
+                "key rotation and evidence start at protocol version 3",
             ));
         }
     };
@@ -420,10 +422,12 @@ pub(crate) fn apply(
                 Vec::new(),
             );
         }
-        ValidatorOp::RotateConsensusKey { .. } | ValidatorOp::RotateTransportCert { .. } => {
+        ValidatorOp::RotateConsensusKey { .. }
+        | ValidatorOp::RotateTransportCert { .. }
+        | ValidatorOp::SubmitEvidence(_) => {
             return Err(fail(
                 ErrorCode::TxTypeNotActive,
-                "key rotation starts at protocol version 3",
+                "key rotation and evidence start at protocol version 3",
             ));
         }
     }

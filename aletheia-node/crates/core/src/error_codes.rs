@@ -209,6 +209,8 @@ error_codes! {
     ValBondTooLow = 14017, "VAL_BOND_TOO_LOW", Reject;
     ValSetBound = 14018, "VAL_SET_BOUND", Reject;
     ValKeyInvalid = 14019, "VAL_KEY_INVALID", Reject;
+    ValEvidenceInvalid = 14020, "VAL_EVIDENCE_INVALID", Reject;
+    ValEvidenceKnown = 14021, "VAL_EVIDENCE_KNOWN", Reject;
 }
 
 #[cfg(test)]

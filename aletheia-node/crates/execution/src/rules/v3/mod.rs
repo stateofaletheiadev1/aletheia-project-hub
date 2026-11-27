@@ -1,7 +1,8 @@
-//! Protocol version 3 (ADR-074): version 2 plus validator key rotation (types 67-68 and the
-//! Council's `RotateValidatorKey`). Every version-2 behaviour is reused unchanged; only what
+//! Protocol version 3: version 2 plus validator key rotation (types 67-68 and the Council's
+//! `RotateValidatorKey`, ADR-074) and equivocation evidence (type 69, ADR-075). Every version-2 behaviour is reused unchanged; only what
 //! version 3 adds lives here.
 
+pub mod evidence;
 pub mod rotation;
 
 use aletheia_core::validator::ValidatorOp;
@@ -15,7 +16,7 @@ use crate::rules::{v1, v2};
 use crate::stateless::VerifiedTransaction;
 
 pub fn tx_type_active(tx_type: TxType) -> bool {
-    v2::tx_type_active(tx_type) || ValidatorOp::ROTATION_TX_TYPES.contains(&tx_type.get())
+    v2::tx_type_active(tx_type) || ValidatorOp::VERSION_3_TX_TYPES.contains(&tx_type.get())
 }
 
 pub(crate) fn run_payload(
@@ -28,6 +29,14 @@ pub(crate) fn run_payload(
     touched: &mut v1::Touched,
 ) -> Result<PayloadOutcome, AletheiaError> {
     match &verified.transaction().body.payload {
+        Payload::Validator(op) if matches!(op.as_ref(), ValidatorOp::SubmitEvidence(_)) => {
+            let ValidatorOp::SubmitEvidence(evidence) = op.as_ref() else {
+                unreachable!("matched above")
+            };
+            outcome(evidence::apply(
+                records, overlay, evidence, ctx, meter, events,
+            ))
+        }
         Payload::Validator(op)
             if matches!(
                 op.as_ref(),

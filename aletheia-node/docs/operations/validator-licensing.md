@@ -165,6 +165,19 @@ Other validators accept the previous certificate for about a day after the regis
 restart can wait for a quiet moment. The old pair stays in `/var/lib/aletheia/p2p/` as
 `previous-transport-*`.
 
+## Equivocation evidence (protocol version 3, ADR-075)
+
+A node that sees a validator sign two conflicting votes or proposals saves the proof and logs
+`aletheiad warn equivocation: ... evidence saved at /var/lib/aletheia/evidence/<file>.ace`.
+Anyone may submit it; the chain verifies both signatures and suspends the validator at once
+(its bond stays; the Council decides on reinstatement):
+
+```sh
+aletheia-cli --network mainnet validator submit-evidence --keystore council.json   --file /var/lib/aletheia/evidence/<file>.ace
+```
+
+The last validator in the set is never suspended this way; the evidence is still recorded.
+
 ## Keep control of the chain
 
 Every validator has one vote and a block needs about two thirds of them. With 2 or 3 validators,

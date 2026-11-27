@@ -1,10 +1,118 @@
 //! Validator registry payloads (spec Section 34): transaction types 64-66, active from protocol
-//! version 2 (ADR-069), and key rotation, types 67-68, active from protocol version 3 (ADR-074). Activation, rejection, suspension and reinstatement are governance
+//! version 2 (ADR-069), and key rotation and equivocation evidence, types 67-69, active from
+//! protocol version 3 (ADR-074, ADR-075). Activation, rejection, suspension and reinstatement are governance
 //! actions (`GovAction`), not operator transactions.
 
 use crate::ace::{AceDecode, AceEncode, AceReader, AceWriter};
-use crate::block::{BLS_PUBLIC_KEY_LEN, BLS_SIGNATURE_LEN};
-use crate::{AletheiaError, Hash32};
+use crate::block::{BLS_PUBLIC_KEY_LEN, BLS_SIGNATURE_LEN, BlockHeader};
+use crate::{AletheiaError, Epoch, Hash32, Slot};
+
+/// Proof that one validator signed two conflicting consensus messages (Section 19.8,
+/// ADR-075), checkable by anyone against the epoch's set in state.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Equivocation {
+    /// Two votes by `voter` in one round of `epoch` for different blocks. A vote's signature
+    /// covers its round, block hash and epoch, so the hashes and signatures are the whole proof.
+    Votes {
+        epoch: Epoch,
+        round: Slot,
+        voter: u16,
+        first: Box<(Hash32, [u8; BLS_SIGNATURE_LEN])>,
+        second: Box<(Hash32, [u8; BLS_SIGNATURE_LEN])>,
+    },
+    /// Two proposals by the same leader for one slot. A proposal's signature covers only the
+    /// block hash, so the headers come along to show they share epoch, slot and proposer.
+    Proposals {
+        first: Box<(BlockHeader, [u8; BLS_SIGNATURE_LEN])>,
+        second: Box<(BlockHeader, [u8; BLS_SIGNATURE_LEN])>,
+    },
+}
+
+/// The evidence file a node saves for submission: `ALEVID01 | ACE(Equivocation)`.
+pub const EVIDENCE_FILE_MAGIC: &[u8; 8] = b"ALEVID01";
+
+impl Equivocation {
+    pub fn to_file_bytes(&self) -> Vec<u8> {
+        let mut bytes = EVIDENCE_FILE_MAGIC.to_vec();
+        bytes.extend_from_slice(&self.to_ace_bytes());
+        bytes
+    }
+
+    pub fn from_file_bytes(bytes: &[u8]) -> Result<Equivocation, AletheiaError> {
+        let body = bytes
+            .strip_prefix(&EVIDENCE_FILE_MAGIC[..])
+            .ok_or_else(|| {
+                AletheiaError::new(
+                    crate::ErrorCode::DecodeNonCanonical,
+                    "not an evidence file (wrong magic)".to_owned(),
+                )
+            })?;
+        Equivocation::from_ace_bytes(body)
+    }
+}
+
+impl AceEncode for Equivocation {
+    fn encode(&self, out: &mut AceWriter) {
+        match self {
+            Equivocation::Votes {
+                epoch,
+                round,
+                voter,
+                first,
+                second,
+            } => {
+                out.u8(1);
+                epoch.encode(out);
+                round.encode(out);
+                out.u16(*voter);
+                for side in [first, second] {
+                    side.0.encode(out);
+                    out.fixed(&side.1);
+                }
+            }
+            Equivocation::Proposals { first, second } => {
+                out.u8(2);
+                for side in [first, second] {
+                    side.0.encode(out);
+                    out.fixed(&side.1);
+                }
+            }
+        }
+    }
+}
+
+impl AceDecode for Equivocation {
+    fn decode(input: &mut AceReader<'_>) -> Result<Equivocation, AletheiaError> {
+        match input.u8()? {
+            1 => {
+                let epoch = Epoch::decode(input)?;
+                let round = Slot::decode(input)?;
+                let voter = input.u16()?;
+                let first = Box::new((Hash32::decode(input)?, input.array()?));
+                let second = Box::new((Hash32::decode(input)?, input.array()?));
+                Ok(Equivocation::Votes {
+                    epoch,
+                    round,
+                    voter,
+                    first,
+                    second,
+                })
+            }
+            2 => {
+                let first = (BlockHeader::decode(input)?, input.array()?);
+                let second = (BlockHeader::decode(input)?, input.array()?);
+                Ok(Equivocation::Proposals {
+                    first: Box::new(first),
+                    second: Box::new(second),
+                })
+            }
+            other => Err(AletheiaError::new(
+                crate::ErrorCode::DecodeNonCanonical,
+                format!("equivocation kind {other}"),
+            )),
+        }
+    }
+}
 
 /// What an operator submits to become a validator. The bond is in ALnT base units and is
 /// locked in the registry until the application is withdrawn or rejected, or the validator's
@@ -71,6 +179,9 @@ pub enum ValidatorOp {
         node_key: [u8; 32],
         transport_cert_hash: Hash32,
     },
+    /// Type 69 (version 3): proof of a validator's equivocation, from any account; the
+    /// validator is suspended (ADR-075).
+    SubmitEvidence(Box<Equivocation>),
 }
 
 impl ValidatorOp {
@@ -79,15 +190,19 @@ impl ValidatorOp {
     pub const REQUEST_EXIT: u16 = 66;
     pub const ROTATE_CONSENSUS_KEY: u16 = 67;
     pub const ROTATE_TRANSPORT_CERT: u16 = 68;
+    pub const SUBMIT_EVIDENCE: u16 = 69;
     /// The types protocol version 2 activates.
     pub const TX_TYPES: [u16; 3] = [
         Self::REGISTER,
         Self::WITHDRAW_APPLICATION,
         Self::REQUEST_EXIT,
     ];
-    /// The types protocol version 3 adds (ADR-074).
-    pub const ROTATION_TX_TYPES: [u16; 2] =
-        [Self::ROTATE_CONSENSUS_KEY, Self::ROTATE_TRANSPORT_CERT];
+    /// The types protocol version 3 adds (ADR-074, ADR-075).
+    pub const VERSION_3_TX_TYPES: [u16; 3] = [
+        Self::ROTATE_CONSENSUS_KEY,
+        Self::ROTATE_TRANSPORT_CERT,
+        Self::SUBMIT_EVIDENCE,
+    ];
 
     pub const fn tx_type(&self) -> u16 {
         match self {
@@ -96,17 +211,20 @@ impl ValidatorOp {
             ValidatorOp::RequestExit { .. } => Self::REQUEST_EXIT,
             ValidatorOp::RotateConsensusKey { .. } => Self::ROTATE_CONSENSUS_KEY,
             ValidatorOp::RotateTransportCert { .. } => Self::ROTATE_TRANSPORT_CERT,
+            ValidatorOp::SubmitEvidence(_) => Self::SUBMIT_EVIDENCE,
         }
     }
 
-    /// The node key the operation is about.
-    pub fn node_key(&self) -> [u8; 32] {
+    /// The node key the operation is about; evidence names its validator by index in an
+    /// epoch's set instead.
+    pub fn node_key(&self) -> Option<[u8; 32]> {
         match self {
-            ValidatorOp::Register(application) => application.node_key,
+            ValidatorOp::Register(application) => Some(application.node_key),
             ValidatorOp::WithdrawApplication { node_key }
             | ValidatorOp::RequestExit { node_key }
             | ValidatorOp::RotateConsensusKey { node_key, .. }
-            | ValidatorOp::RotateTransportCert { node_key, .. } => *node_key,
+            | ValidatorOp::RotateTransportCert { node_key, .. } => Some(*node_key),
+            ValidatorOp::SubmitEvidence(_) => None,
         }
     }
 
@@ -131,6 +249,7 @@ impl ValidatorOp {
                 out.fixed(node_key);
                 transport_cert_hash.encode(out);
             }
+            ValidatorOp::SubmitEvidence(evidence) => evidence.encode(out),
         }
     }
 
@@ -162,6 +281,8 @@ impl ValidatorOp {
                     transport_cert_hash: Hash32::decode(input)?,
                 })
             })(),
+            Self::SUBMIT_EVIDENCE => Equivocation::decode(input)
+                .map(|evidence| ValidatorOp::SubmitEvidence(Box::new(evidence))),
             _ => return None,
         })
     }
@@ -221,6 +342,13 @@ mod tests {
                 node_key: [11; 32],
                 transport_cert_hash: Hash32::from_bytes([12; 32]),
             },
+            ValidatorOp::SubmitEvidence(Box::new(Equivocation::Votes {
+                epoch: Epoch::new(2),
+                round: Slot::new(900),
+                voter: 1,
+                first: Box::new((Hash32::from_bytes([13; 32]), [14; BLS_SIGNATURE_LEN])),
+                second: Box::new((Hash32::from_bytes([15; 32]), [16; BLS_SIGNATURE_LEN])),
+            })),
         ];
         for op in ops {
             let mut out = AceWriter::new();
@@ -233,6 +361,6 @@ mod tests {
             input.finish().unwrap();
             assert_eq!(decoded, op);
         }
-        assert!(ValidatorOp::decode_content(69, &mut AceReader::new(&[])).is_none());
+        assert!(ValidatorOp::decode_content(70, &mut AceReader::new(&[])).is_none());
     }
 }

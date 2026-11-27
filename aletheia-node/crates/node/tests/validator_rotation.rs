@@ -56,10 +56,13 @@ fn pre_genesis() -> NetworkIdentity {
     )
 }
 
-/// One genesis validator; harness account 0 is the council, account 1 the operator.
-fn genesis() -> GenesisState {
+/// One genesis validator; harness account 0 is the council, account 1 the operator. Each test
+/// passes its own `chain`, so the two tests' nodes, which share keys and run in one process,
+/// can never mistake each other for peers of their own chain (the handshake checks genesis).
+fn genesis(chain: u64) -> GenesisState {
     let mut toml = format!(
-        "[chain]\nchain_id = 7771\nnetwork = \"devnet\"\nprotocol_version = 1\ngenesis_time_ms = 1767225600000\nslot_duration_ms = {SLOT_MS}\n\n[fees]\neu_price_aey = \"1000000000\"\neu_price_alnt = \"1\"\n"
+        "[chain]\nchain_id = 7771\nnetwork = \"devnet\"\nprotocol_version = 1\ngenesis_time_ms = {}\nslot_duration_ms = {SLOT_MS}\n\n[fees]\neu_price_aey = \"1000000000\"\neu_price_alnt = \"1\"\n",
+        1_767_225_600_000 + chain
     );
     let mut council = String::new();
     for (index, key) in keys(2).iter().enumerate() {
@@ -270,7 +273,7 @@ async fn set_keys(node: &Node, epoch: u64) -> Vec<[u8; 48]> {
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
 async fn validators_rotate_consensus_keys_and_certificates_without_stopping() {
-    let genesis = genesis();
+    let genesis = genesis(1);
     let network = genesis.network();
     let mut client = Client {
         devnet: Devnet::from_genesis(genesis.clone(), keys(2)),
@@ -409,6 +412,142 @@ async fn validators_rotate_consensus_keys_and_certificates_without_stopping() {
         proposers(&v0, after, resumed, 3).await,
         BTreeSet::from([0, 1]),
         "both lead after the certificate change"
+    );
+
+    v1.shutdown().await.unwrap();
+    v0.shutdown().await.unwrap();
+}
+
+/// Equivocation evidence (ADR-075): two votes a validator signed for different blocks in one
+/// round, submitted by any account, suspend it at once; the same evidence twice, or evidence
+/// with a forged signature, is refused; evidence against the last validator is recorded but
+/// never empties the set.
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn an_equivocating_validator_is_suspended_on_evidence_but_the_last_one_stays() {
+    use aletheia_core::block::{Proposal, QuorumCertificate};
+    use aletheia_core::validator::Equivocation;
+
+    let genesis = genesis(2);
+    let network = genesis.network();
+    let mut client = Client {
+        devnet: Devnet::from_genesis(genesis.clone(), keys(2)),
+        nonces: [0, 0],
+    };
+    let first = member("e0");
+    let mut v0 = start(&first, &genesis, 0, 200, None, &[]).await;
+    v0.wait_for_height(Height::new(3), WAIT).await.unwrap();
+    let v2_at = v0.tip().height.get() + 80;
+    for (version, height) in [(2, v2_at), (3, v2_at + 5)] {
+        client
+            .govern(
+                &v0,
+                GovAction::ScheduleUpgrade {
+                    protocol_version: version,
+                    activation_height: height,
+                },
+            )
+            .await;
+    }
+    v0.wait_for_height(Height::new(v2_at + 8), WAIT)
+        .await
+        .unwrap();
+    let second = member("e1");
+    let mut v1 = start(&second, &genesis, 1, 201, None, &[v0.local_addr()]).await;
+    let key = consensus_key(201);
+    client
+        .ok(
+            &v0,
+            1,
+            Payload::Validator(Box::new(ValidatorOp::Register(Box::new(
+                ValidatorApplication {
+                    consensus_key: key.public_key().to_bytes(),
+                    proof_of_possession: key.prove_possession(&network).to_bytes(),
+                    node_key: node_key(1).public_key().to_bytes(),
+                    transport_cert_hash: v1.transport_cert_hash(),
+                    metadata_hash: Hash32::from_bytes([2; 32]),
+                    bond: 10_000 * ONE_ALNT,
+                },
+            )))),
+        )
+        .await;
+    client
+        .govern(
+            &v0,
+            GovAction::ActivateValidator {
+                node_key: node_key(1).public_key().to_bytes(),
+            },
+        )
+        .await;
+    both_lead(&mut v0, &mut v1, &network, 1).await;
+
+    // Validator 1 signs two votes for different blocks in one round of epoch 1.
+    let round = aletheia_core::Slot::new(v0.tip().height.get() + 5_000);
+    let vote = |hash: u8, signer: &BlsSecretKey| {
+        let block = Hash32::from_bytes([hash; 32]);
+        let digest = QuorumCertificate::vote_digest(&network, round, &block, Epoch::new(1));
+        (block, signer.sign(&digest).to_bytes())
+    };
+    let evidence = |second_signer: &BlsSecretKey| {
+        Payload::Validator(Box::new(ValidatorOp::SubmitEvidence(Box::new(
+            Equivocation::Votes {
+                epoch: Epoch::new(1),
+                round,
+                voter: 1,
+                first: Box::new(vote(1, &key)),
+                second: Box::new(vote(2, second_signer)),
+            },
+        ))))
+    };
+
+    // A second vote signed by another key proves nothing.
+    let (status, code) = client.submit(&v0, 0, evidence(&consensus_key(99))).await;
+    assert_ne!(status, ReceiptStatus::Success);
+    assert_eq!(code, 14020, "VAL_EVIDENCE_INVALID");
+
+    // The real equivocation, from the council's account (any account may): validator 1 leaves
+    // the set at once and epoch 2 runs on validator 0 alone.
+    client.ok(&v0, 0, evidence(&key)).await;
+    let opened = wait_for_epoch(&mut v0, 2).await;
+    assert_eq!(set_keys(&v0, 2).await.len(), 1);
+    let later = Height::new(opened.get() + 10);
+    v0.wait_for_height(later, WAIT).await.unwrap();
+    assert_eq!(proposers(&v0, opened, later, 2).await, BTreeSet::from([0]));
+
+    // The same evidence again is refused.
+    let (status, code) = client.submit(&v0, 0, evidence(&key)).await;
+    assert_ne!(status, ReceiptStatus::Success);
+    assert_eq!(code, 14021, "VAL_EVIDENCE_KNOWN");
+
+    // Validator 0 proposed twice in one slot: proven and recorded, but as the last member it
+    // stays, and the chain carries on.
+    let signed = v0.block_at(later).await.unwrap().unwrap();
+    let mut twin = signed.block.header.clone();
+    twin.eu_used += 1;
+    let twin_signature = consensus_key(200)
+        .sign(&Proposal::signing_digest(
+            &network,
+            &twin.block_hash(&network),
+        ))
+        .to_bytes();
+    client
+        .ok(
+            &v0,
+            0,
+            Payload::Validator(Box::new(ValidatorOp::SubmitEvidence(Box::new(
+                Equivocation::Proposals {
+                    first: Box::new((signed.block.header.clone(), signed.proposer_signature)),
+                    second: Box::new((twin, twin_signature)),
+                },
+            )))),
+        )
+        .await;
+    let still = Height::new(v0.tip().height.get() + 10);
+    v0.wait_for_height(still, WAIT).await.unwrap();
+    let block = v0.block_at(still).await.unwrap().unwrap();
+    assert_eq!(
+        block.block.header.epoch,
+        Epoch::new(2),
+        "the set did not change"
     );
 
     v1.shutdown().await.unwrap();

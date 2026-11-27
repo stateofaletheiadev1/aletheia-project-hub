@@ -6,6 +6,7 @@ pub mod bootstrap;
 pub(crate) mod chain;
 pub mod channels;
 pub(crate) mod consensus;
+pub mod evidence;
 pub mod host;
 pub mod ledger;
 pub mod mempool;

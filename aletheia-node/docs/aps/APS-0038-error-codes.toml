@@ -1145,3 +1145,17 @@ name = "VAL_KEY_INVALID"
 variant = "ValKeyInvalid"
 class = "reject"
 message = "The consensus key's proof of possession does not verify, or the key is already in the set."
+
+[[code]]
+code = 14020
+name = "VAL_EVIDENCE_INVALID"
+variant = "ValEvidenceInvalid"
+class = "reject"
+message = "The evidence does not prove an equivocation: the messages do not conflict, or a signature does not verify against the epoch's set."
+
+[[code]]
+code = 14021
+name = "VAL_EVIDENCE_KNOWN"
+variant = "ValEvidenceKnown"
+class = "reject"
+message = "This equivocation has already been recorded."

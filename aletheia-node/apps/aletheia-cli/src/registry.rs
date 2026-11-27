@@ -118,6 +118,18 @@ pub(crate) enum ValidatorCommand {
         #[command(flatten)]
         fees: Fees,
     },
+    /// Submit proof that a validator signed two conflicting messages (protocol version 3,
+    /// ADR-075): the file a node saved in its data directory's `evidence/`. Any account may;
+    /// the validator is suspended once the chain verifies it.
+    SubmitEvidence {
+        #[arg(long)]
+        keystore: PathBuf,
+        /// An evidence file (`<data_dir>/evidence/*.ace`).
+        #[arg(long)]
+        file: PathBuf,
+        #[command(flatten)]
+        fees: Fees,
+    },
     /// Register a new transport certificate (protocol version 3, ADR-074); the previous one is
     /// accepted for about a day more. Prepare it with `aletheiad --prepare-transport-cert`,
     /// register it, then restart the node.
@@ -489,6 +501,35 @@ pub(crate) async fn validator(
                     consensus_key,
                     proof_of_possession,
                 }))
+            })
+            .await?;
+        }
+        ValidatorCommand::SubmitEvidence {
+            keystore,
+            file,
+            fees,
+        } => {
+            let bytes = std::fs::read(&file)
+                .map_err(|e| fail(format!("--file {}: {e}", file.display())))?;
+            let evidence = aletheia_core::validator::Equivocation::from_file_bytes(&bytes)
+                .map_err(|e| fail(format!("--file {}: {}", file.display(), e.detail())))?;
+            let account = open_account(&keystore, &network)?;
+            let what = match &evidence {
+                aletheia_core::validator::Equivocation::Votes {
+                    epoch,
+                    round,
+                    voter,
+                    ..
+                } => format!(
+                    "evidence that validator {voter} voted twice in round {round} of epoch {epoch}"
+                ),
+                aletheia_core::validator::Equivocation::Proposals { first, .. } => format!(
+                    "evidence that validator {} proposed twice in slot {} of epoch {}",
+                    first.0.proposer, first.0.slot, first.0.epoch
+                ),
+            };
+            submit_and_report(rpc, &account, &fees, json_out, &what, |_| {
+                Payload::Validator(Box::new(ValidatorOp::SubmitEvidence(Box::new(evidence))))
             })
             .await?;
         }
