@@ -384,10 +384,13 @@ impl Node {
             peer_tips: std::collections::BTreeMap::new(),
             peers: peers_tx,
             in_flight: None,
+            requested_at: tokio::time::Instant::now(),
+            progressed_at: tokio::time::Instant::now(),
             no_history: std::collections::BTreeSet::new(),
             consensus,
             snapshot_root,
             snapshot_reads: tokio::task::JoinSet::new(),
+            evidence_dir: config.data_dir.join("evidence"),
         };
         let sync = tokio::spawn(service.run());
         Ok(Node {

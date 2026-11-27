@@ -45,6 +45,15 @@ use crate::mempool::{Admitted, Mempool};
 /// Under consensus, block sync starts only when a peer is this far ahead. Closer than that,
 /// the blocks are in flight through consensus and will be finalized there.
 pub(crate) const SYNC_LAG_BLOCKS: u64 = 8;
+/// Under consensus, a node that has finalized nothing for this long syncs from a peer that is
+/// ahead by any amount. Consensus alone cannot always deliver a block it missed: a node one
+/// block short of an epoch's closing block ignores the next epoch's messages, and that epoch
+/// may need its vote (Mainnet Beta's joining validators; found by the rotation tests).
+pub(crate) const STALLED_AFTER: Duration = Duration::from_secs(3);
+/// How often the sync service checks for a stall or a block request that went unanswered.
+pub(crate) const CATCH_UP_EVERY: Duration = Duration::from_secs(1);
+/// A block request without an answer for this long is given up and asked again.
+pub(crate) const REQUEST_TIMEOUT: Duration = Duration::from_secs(10);
 
 /// What the node knows of its peers, published for the RPC status (`peers`, `syncing`).
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
@@ -78,6 +87,10 @@ pub(crate) struct SyncService {
     pub(crate) peers: watch::Sender<PeerView>,
     /// The peer we are currently syncing blocks from.
     pub(crate) in_flight: Option<PeerId>,
+    /// When the block request in flight was sent.
+    pub(crate) requested_at: Instant,
+    /// When this node last finalized a block.
+    pub(crate) progressed_at: Instant,
     /// Peers that answered a block request with nothing although they are ahead: started from
     /// a snapshot above our height (ADR-072). Not asked again while connected.
     pub(crate) no_history: BTreeSet<PeerId>,
@@ -88,6 +101,8 @@ pub(crate) struct SyncService {
     /// Snapshot reads in progress, at most [`SNAPSHOT_READS`]; owned and reaped here so a
     /// slow disk never holds up consensus.
     pub(crate) snapshot_reads: tokio::task::JoinSet<()>,
+    /// Where equivocations the engine detects are saved for submission (ADR-075).
+    pub(crate) evidence_dir: std::path::PathBuf,
 }
 
 /// Whether an error from executing or building must stop the node: fail-stop errors, and the
@@ -165,6 +180,7 @@ impl SyncService {
 
     pub(crate) async fn run(mut self) -> Result<(), AletheiaError> {
         let mut producer = self.produce_every.map(tokio::time::interval);
+        let mut catch_up = tokio::time::interval(CATCH_UP_EVERY);
         self.announce_validators().await;
         if self.consensus.is_some() {
             let started = self.drive(Input::Start).await;
@@ -215,6 +231,13 @@ impl SyncService {
                 }
                 () = sleep_until_or_never(build_at) => self.build().await,
                 Some(_) = self.snapshot_reads.join_next(), if !self.snapshot_reads.is_empty() => Ok(()),
+                _ = catch_up.tick() => {
+                    if self.in_flight.is_some() && self.requested_at.elapsed() >= REQUEST_TIMEOUT {
+                        self.in_flight = None;
+                    }
+                    self.request_more().await;
+                    Ok(())
+                }
             };
             let failed = step.is_err();
             Self::survive(step)?;
@@ -414,7 +437,8 @@ impl SyncService {
         else {
             return;
         };
-        let lag = if self.consensus.is_some() {
+        // Closer than SYNC_LAG_BLOCKS, consensus delivers the blocks, unless it has stalled.
+        let lag = if self.consensus.is_some() && self.progressed_at.elapsed() < STALLED_AFTER {
             SYNC_LAG_BLOCKS
         } else {
             0
@@ -427,6 +451,7 @@ impl SyncService {
         let count = u16::try_from(behind.min(u64::from(MAX_BLOCKS_PER_REQUEST)))
             .unwrap_or(MAX_BLOCKS_PER_REQUEST);
         self.in_flight = Some(peer);
+        self.requested_at = Instant::now();
         self.send(NetworkCommand::Send {
             peer,
             message: Message::GetBlocks { from, count },
@@ -546,6 +571,7 @@ impl SyncService {
         block: &Proposal,
     ) -> Result<(), AletheiaError> {
         let _ = self.tip.send(tip);
+        self.progressed_at = Instant::now();
         self.send(NetworkCommand::SetTip {
             height: tip.height,
             hash: tip.hash,
@@ -765,10 +791,12 @@ impl SyncService {
                 }))
                 .await;
             }
-            Output::Evidence(_) => {
+            Output::Evidence(evidence) => {
                 if let Some(driver) = self.consensus.as_mut() {
                     driver.evidence_seen = driver.evidence_seen.saturating_add(1);
                 }
+                // Kept for submission on chain (ADR-075).
+                crate::evidence::record(&self.evidence_dir, &evidence);
             }
         }
         Ok(())
