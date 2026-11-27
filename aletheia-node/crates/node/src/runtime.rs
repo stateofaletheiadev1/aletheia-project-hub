@@ -44,6 +44,11 @@ pub struct NodeConfig {
     pub consensus_key: Option<BlsSecretKey>,
     /// A validator whose consensus key lives in the `aletheia-signer` daemon (ADR-063).
     pub remote_signer: Option<aletheia_signer::RemoteSigner>,
+    /// How often this node writes snapshots for others to start from (ADR-072).
+    pub snapshots: crate::snapshots::SnapshotPolicy,
+    /// A new data directory starts from this verified snapshot instead of genesis (ADR-072).
+    /// Ignored once the data directory exists.
+    pub restore_snapshot: Option<PathBuf>,
 }
 
 impl core::fmt::Debug for NodeConfig {
@@ -59,6 +64,8 @@ impl core::fmt::Debug for NodeConfig {
                 &(self.consensus_key.is_some() || self.remote_signer.is_some()),
             )
             .field("remote_signer", &self.remote_signer.is_some())
+            .field("snapshots", &self.snapshots)
+            .field("restore_snapshot", &self.restore_snapshot)
             .finish_non_exhaustive()
     }
 }
@@ -215,7 +222,24 @@ impl Node {
     ) -> Result<Node, AletheiaError> {
         check_producer(&config)?;
         let ledger = if config.data_dir.join("DATADIR").exists() {
+            if let Some(snapshot) = &config.restore_snapshot {
+                crate::consensus::operator_note(&format!(
+                    "info restore_snapshot {} ignored: {} is already initialized",
+                    snapshot.display(),
+                    config.data_dir.display()
+                ));
+            }
             Ledger::open(&config.data_dir, &config.genesis, store)?.0
+        } else if let Some(snapshot) = &config.restore_snapshot {
+            let ledger =
+                Ledger::init_from_snapshot(&config.data_dir, &config.genesis, store, snapshot)?;
+            crate::consensus::operator_note(&format!(
+                "info restored from snapshot {} height={} state_root={}; history before it is not on this node",
+                snapshot.display(),
+                ledger.tip().height,
+                ledger.tip().state_root
+            ));
+            ledger
         } else {
             Ledger::init(&config.data_dir, &config.genesis, store)?
         };
@@ -225,7 +249,8 @@ impl Node {
         let consensus_key = config.consensus_key.take();
         let remote_signer = config.remote_signer.take();
         let consensus = consensus_driver(&config, consensus_key, remote_signer, &ledger)?;
-        let (chain, chain_thread) = chain::spawn(ledger)?;
+        let exporter = crate::snapshots::Exporter::open(&config.data_dir, config.snapshots);
+        let (chain, chain_thread) = chain::spawn(ledger, exporter)?;
         let chain_handle = chain.clone();
 
         // Kept across restarts, so the hash an operator registers stays valid (ADR-071).
@@ -265,6 +290,7 @@ impl Node {
             peer_tips: std::collections::BTreeMap::new(),
             peers: peers_tx,
             in_flight: None,
+            no_history: std::collections::BTreeSet::new(),
             consensus,
         };
         let sync = tokio::spawn(service.run());

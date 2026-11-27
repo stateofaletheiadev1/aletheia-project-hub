@@ -42,7 +42,8 @@ partly written; see the end of this file.
 | Chain thread (`node/chain.rs`) | 46A.1 | yes | yes | via network tests | n/a | rustdoc | n/a |
 | Block propagation, block sync, tx gossip (`node/sync.rs`) | 36 | yes | yes | 7-node convergence, late joiner (80+ blocks), restart | n/a | rustdoc | no |
 | Devnet producer (feature `devnet-producer`) | 62 (stand-in) | n/a | yes, devnet/regtest only | refused on mainnet | n/a | rustdoc | n/a |
-| State sync over the network (JMT chunks) | 42.4 | yes | **no** (snapshots exist locally; serving them is next) | no | no | no | no |
+| Snapshot bootstrap (ADR-072: proven anchor, verified restore, snapshots written by running nodes) | 42.4 | yes | yes (snapshots travel by file copy; fetching over P2P is next) | forged set, missing epoch changes, damaged chunk, restored node follows the chain | no | ADR-072, runbook | no |
+| State sync over the network (JMT chunks) | 42.4 | yes | **no** (fetching ADR-072 snapshots over the SnapshotSync channel is next) | no | no | no | no |
 | Peer exchange, address book, validator mesh, verified consensus relay (`p2p/peer_book.rs`, `network.rs`, ADR-070) | 36 | yes | yes | message and book units, relay memory, 3-validator discovery run | no | rustdoc | no |
 | Persistent transport certificate; validator connections pinned to the registered hash (`tls.rs`, `network.rs`, ADR-071) | 36 | yes | yes | restart and mismatched pair, wrong vs registered hash, end-to-end pinned operator | no | rustdoc | no |
 | Keepalive pings, peer-version reporting | 36 | yes | **no** | no | no | no | no |
@@ -277,7 +278,7 @@ partly written; see the end of this file.
 | Consensus WAL (`wal.rs`) | APS-0034 | yes | yes | torn tail at every offset, corruption, gaps, rotation, pruning | **no** | rustdoc | no |
 | Block archive (`archive.rs`) | 42.3 | yes | yes | round trip, order, tamper, wrong network, torn tail | **no** | rustdoc | no |
 | Migration framework (`migrate.rs`) | 44.5 | yes | yes | dummy 1->2 step: clean run, crash-and-resume from journal, rollback, failed tip check | n/a | rustdoc | no |
-| Snapshots (`crates/state/src/snapshot.rs`) | 42.4 | yes | yes (restore holds state in memory; streaming restore with state sync in Phase 4) | round trip, tampered chunk, forged root | **no** | rustdoc | no |
+| Snapshots (`crates/state/src/snapshot.rs`) | 42.4 | yes | yes (written a page at a time; restore holds state in memory; streaming restore with state sync) | round trip, paged equals one-pass, tampered chunk, forged root | **no** | rustdoc | no |
 | State sync over the network | 42.4 | yes | **no** (Phase 4) | no | no | no | no |
 
 ## crates/state

@@ -102,6 +102,8 @@ fn config(
         produce_every: None,
         consensus_key: validator.then(|| consensus_key(index)),
         remote_signer: None,
+        snapshots: aletheia_node::SnapshotPolicy::DISABLED,
+        restore_snapshot: None,
     }
 }
 

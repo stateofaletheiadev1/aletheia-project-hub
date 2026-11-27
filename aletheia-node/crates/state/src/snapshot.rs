@@ -96,6 +96,141 @@ fn write_file_synced(path: &Path, bytes: &[u8]) -> Result<(), AletheiaError> {
     file.sync_all().map_err(|e| io("sync", path, &e))
 }
 
+/// Entries one [`SnapshotWriter::step`] reads by default: small enough that a node writing a
+/// snapshot between other work never holds that work up for long.
+pub const STEP_ENTRIES: usize = 4096;
+
+/// Writes the state at one height into a directory a page at a time, so the owner of the
+/// store can interleave the work with everything else it does. The version being written must
+/// stay readable until [`SnapshotWriter::finish`] (no pruning of it meanwhile).
+#[derive(Debug)]
+pub struct SnapshotWriter {
+    dir: PathBuf,
+    height: u64,
+    state_root: Hash32,
+    chunk_bytes: usize,
+    chunk_hashes: Vec<Hash32>,
+    pending: Vec<(StateKey, StateValue)>,
+    pending_bytes: usize,
+    after: Option<StateKey>,
+    done: bool,
+}
+
+impl SnapshotWriter {
+    /// Starts a snapshot of `height` in `dir`, which must not exist.
+    pub fn begin(
+        tree: &JellyfishMerkleTree<'_>,
+        height: u64,
+        dir: &Path,
+        chunk_bytes: usize,
+    ) -> Result<SnapshotWriter, AletheiaError> {
+        if dir.exists() {
+            return Err(AletheiaError::new(
+                ErrorCode::StoIo,
+                format!("snapshot directory {} already exists", dir.display()),
+            ));
+        }
+        fs::create_dir_all(dir).map_err(|e| io("create snapshot directory", dir, &e))?;
+        Ok(SnapshotWriter {
+            dir: dir.to_path_buf(),
+            height,
+            state_root: tree.root_hash(height)?,
+            chunk_bytes: chunk_bytes.max(1),
+            chunk_hashes: Vec::new(),
+            pending: Vec::new(),
+            pending_bytes: 0,
+            after: None,
+            done: false,
+        })
+    }
+
+    pub fn height(&self) -> u64 {
+        self.height
+    }
+
+    pub fn dir(&self) -> &Path {
+        &self.dir
+    }
+
+    /// Reads up to `entries` more live entries, flushing every chunk that fills. Returns true
+    /// once every entry has been read; then call [`SnapshotWriter::finish`].
+    pub fn step(
+        &mut self,
+        tree: &JellyfishMerkleTree<'_>,
+        entries: usize,
+    ) -> Result<bool, AletheiaError> {
+        if self.done {
+            return Ok(true);
+        }
+        let page = tree.live_entries(self.height, self.after.as_ref(), entries.max(1))?;
+        if page.is_empty() {
+            self.done = true;
+            return Ok(true);
+        }
+        for entry in page {
+            self.pending_bytes = self
+                .pending_bytes
+                .saturating_add(entry.1.len())
+                .saturating_add(36);
+            self.after = Some(entry.0);
+            self.pending.push(entry);
+            if self.pending_bytes >= self.chunk_bytes {
+                let index = self.chunk_hashes.len();
+                self.chunk_hashes
+                    .push(flush_chunk(&self.dir, index, &self.pending)?);
+                self.pending.clear();
+                self.pending_bytes = 0;
+            }
+        }
+        Ok(false)
+    }
+
+    /// Flushes the last chunk and writes the manifest (synced). The snapshot is complete only
+    /// once this returns.
+    pub fn finish(mut self, finality_proof: Vec<u8>) -> Result<SnapshotManifest, AletheiaError> {
+        if !self.done {
+            return Err(AletheiaError::new(
+                ErrorCode::StoIo,
+                format!(
+                    "snapshot at height {} finished before every entry was read",
+                    self.height
+                ),
+            ));
+        }
+        if !self.pending.is_empty() || self.chunk_hashes.is_empty() {
+            let index = self.chunk_hashes.len();
+            self.chunk_hashes
+                .push(flush_chunk(&self.dir, index, &self.pending)?);
+        }
+        let manifest = SnapshotManifest {
+            height: self.height,
+            state_root: self.state_root,
+            chunk_hashes: self.chunk_hashes,
+            finality_proof,
+        };
+        let encoded = manifest.to_ace_bytes();
+        let mut file_bytes = MANIFEST_MAGIC.to_vec();
+        file_bytes.extend_from_slice(&encoded);
+        file_bytes.extend_from_slice(&crc32c_of(&encoded).to_le_bytes());
+        write_file_synced(&self.dir.join("manifest.ace"), &file_bytes)?;
+        sync_dir(&self.dir)?;
+        Ok(manifest)
+    }
+}
+
+/// Makes a directory's entries (new files, renames) durable where the platform allows it.
+pub fn sync_dir(dir: &Path) -> Result<(), AletheiaError> {
+    #[cfg(unix)]
+    {
+        fs::File::open(dir)
+            .and_then(|d| d.sync_all())
+            .map_err(|e| io("sync directory", dir, &e))?;
+    }
+    #[cfg(not(unix))]
+    let _ = dir;
+    Ok(())
+}
+
 /// Writes the state at `height` into `dir` (which must not exist) and returns its manifest.
 pub fn create(
     tree: &JellyfishMerkleTree<'_>,
@@ -104,52 +239,9 @@ pub fn create(
     dir: &Path,
     chunk_bytes: usize,
 ) -> Result<SnapshotManifest, AletheiaError> {
-    if dir.exists() {
-        return Err(AletheiaError::new(
-            ErrorCode::StoIo,
-            format!("snapshot directory {} already exists", dir.display()),
-        ));
-    }
-    fs::create_dir_all(dir).map_err(|e| io("create snapshot directory", dir, &e))?;
-    let state_root = tree.root_hash(height)?;
-    let mut chunk_hashes = Vec::new();
-    let mut pending: Vec<(StateKey, StateValue)> = Vec::new();
-    let mut pending_bytes = 0usize;
-    let mut after: Option<StateKey> = None;
-    loop {
-        let page = tree.live_entries(height, after.as_ref(), 4096)?;
-        let done = page.is_empty();
-        for entry in page {
-            pending_bytes = pending_bytes
-                .saturating_add(entry.1.len())
-                .saturating_add(36);
-            after = Some(entry.0);
-            pending.push(entry);
-            if pending_bytes >= chunk_bytes {
-                chunk_hashes.push(flush_chunk(dir, chunk_hashes.len(), &pending)?);
-                pending.clear();
-                pending_bytes = 0;
-            }
-        }
-        if done {
-            break;
-        }
-    }
-    if !pending.is_empty() || chunk_hashes.is_empty() {
-        chunk_hashes.push(flush_chunk(dir, chunk_hashes.len(), &pending)?);
-    }
-    let manifest = SnapshotManifest {
-        height,
-        state_root,
-        chunk_hashes,
-        finality_proof,
-    };
-    let encoded = manifest.to_ace_bytes();
-    let mut file_bytes = MANIFEST_MAGIC.to_vec();
-    file_bytes.extend_from_slice(&encoded);
-    file_bytes.extend_from_slice(&crc32c_of(&encoded).to_le_bytes());
-    write_file_synced(&dir.join("manifest.ace"), &file_bytes)?;
-    Ok(manifest)
+    let mut writer = SnapshotWriter::begin(tree, height, dir, chunk_bytes)?;
+    while !writer.step(tree, STEP_ENTRIES)? {}
+    writer.finish(finality_proof)
 }
 
 /// The manifest's own integrity check; its authenticity comes from the finality proof.
@@ -202,6 +294,18 @@ pub fn restore(
     dir: &Path,
     manifest: &SnapshotManifest,
 ) -> Result<(), AletheiaError> {
+    let batch = restore_batch(store, network, dir, manifest)?;
+    store.write_sync(batch)
+}
+
+/// [`restore`] without the write: the batch holding the rebuilt tree, verified against the
+/// manifest's root, for a caller that commits it together with its own records.
+pub fn restore_batch(
+    store: &dyn KvStore,
+    network: &NetworkIdentity,
+    dir: &Path,
+    manifest: &SnapshotManifest,
+) -> Result<aletheia_storage::WriteBatch, AletheiaError> {
     let invalid = |reason: String| {
         AletheiaError::new(
             ErrorCode::ProofInvalid,
@@ -244,5 +348,5 @@ pub fn restore(
             manifest.state_root
         )));
     }
-    store.write_sync(batch)
+    Ok(batch)
 }

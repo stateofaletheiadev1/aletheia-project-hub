@@ -29,6 +29,13 @@
 //! executor_path = "/usr/lib/aletheia/aletheia-arno-exec"   # default: beside aletheiad
 //! call_timeout_ms = 10000              # watchdog per contract call
 //!
+//! restore_snapshot = "/var/lib/aletheia-snapshot/4300000"   # optional: a NEW data directory
+//!                                             # starts from this verified snapshot (ADR-072)
+//!
+//! [snapshots]                          # optional: snapshots other nodes start from (ADR-072)
+//! every_blocks = 172800                # default 172800 (about a day); 0 writes none
+//! keep = 2                             # newest kept; default 2
+//!
 //! [storage]                            # optional: RocksDB memory and file budget
 //! block_cache_mb = 256                 # default: an eighth of RAM, 64 to 512
 //! write_buffer_mb = 128                # memtables, all column families; default as cache
@@ -67,6 +74,35 @@ struct FileConfig {
     storage: Option<StorageSection>,
     rpc: Option<RpcSection>,
     signer: Option<SignerSection>,
+    snapshots: Option<SnapshotsSection>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct SnapshotsSection {
+    every_blocks: Option<u64>,
+    keep: Option<usize>,
+}
+
+/// Snapshots for other nodes to start from (ADR-072): on by default, about once a day.
+fn snapshot_policy(
+    section: Option<&SnapshotsSection>,
+) -> Result<aletheia_node::SnapshotPolicy, String> {
+    let every_blocks = section
+        .and_then(|s| s.every_blocks)
+        .unwrap_or(aletheia_node::snapshots::DEFAULT_EVERY_BLOCKS);
+    let keep = section
+        .and_then(|s| s.keep)
+        .unwrap_or(aletheia_node::snapshots::DEFAULT_KEEP);
+    if every_blocks != 0 && every_blocks < 1_000 {
+        return Err(format!(
+            "[snapshots] every_blocks = {every_blocks} is below 1000 (0 turns snapshots off)"
+        ));
+    }
+    if !(1..=16).contains(&keep) {
+        return Err(format!("[snapshots] keep = {keep} is outside 1 to 16"));
+    }
+    Ok(aletheia_node::SnapshotPolicy { every_blocks, keep })
 }
 
 #[derive(Debug, Deserialize)]
@@ -254,6 +290,7 @@ struct NodeSection {
     node_keystore: Option<PathBuf>,
     node_key_password_file: Option<PathBuf>,
     consensus_key_file: Option<PathBuf>,
+    restore_snapshot: Option<PathBuf>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -282,6 +319,8 @@ pub(crate) struct Settings {
     pub(crate) executor: Executor,
     pub(crate) storage: StorageSettings,
     pub(crate) rpc: Option<RpcSettings>,
+    pub(crate) snapshots: aletheia_node::SnapshotPolicy,
+    pub(crate) restore_snapshot: Option<PathBuf>,
 }
 
 fn read(path: &std::path::Path, what: &str) -> Result<String, String> {
@@ -446,8 +485,11 @@ pub(crate) fn load(path: &std::path::Path) -> Result<Settings, String> {
 
     let storage = storage_settings(file.storage.as_ref())?;
     let rpc = file.rpc.map(rpc_settings).transpose()?;
+    let snapshots = snapshot_policy(file.snapshots.as_ref())?;
     Ok(Settings {
         rpc,
+        snapshots,
+        restore_snapshot: file.node.restore_snapshot,
         data_dir: file.node.data_dir,
         genesis,
         listen: file.node.listen,
@@ -487,6 +529,19 @@ mod tests {
         assert!(storage_settings(Some(&section(Some(8), None, None))).is_err());
         assert!(storage_settings(Some(&section(None, Some(10), None))).is_err());
         assert!(storage_settings(Some(&section(None, None, Some(0)))).is_err());
+        let snapshots = |every_blocks, keep| SnapshotsSection { every_blocks, keep };
+        assert_eq!(
+            snapshot_policy(None).unwrap().every_blocks,
+            aletheia_node::snapshots::DEFAULT_EVERY_BLOCKS
+        );
+        assert_eq!(
+            snapshot_policy(Some(&snapshots(Some(0), None)))
+                .unwrap()
+                .every_blocks,
+            0
+        );
+        assert!(snapshot_policy(Some(&snapshots(Some(10), None))).is_err());
+        assert!(snapshot_policy(Some(&snapshots(None, Some(0)))).is_err());
         let ok = storage_settings(Some(&section(Some(128), Some(1024), Some(2)))).unwrap();
         assert_eq!(ok.block_cache_bytes, 128 * 1024 * 1024);
         assert_eq!(ok.write_buffer_bytes, 128 * 1024 * 1024);

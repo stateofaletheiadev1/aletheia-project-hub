@@ -62,6 +62,8 @@ async fn a_key_receives_and_sends_aey_through_the_cli() {
         produce_every: Some(Duration::from_millis(100)),
         consensus_key: None,
         remote_signer: None,
+        snapshots: aletheia_node::SnapshotPolicy::DISABLED,
+        restore_snapshot: None,
     };
     let node = Node::start(config, Arc::new(MemoryKvStore::new()))
         .await
@@ -301,6 +303,8 @@ async fn an_api_key_from_the_cli_has_its_own_budget_on_the_node() {
         produce_every: Some(Duration::from_millis(200)),
         consensus_key: None,
         remote_signer: None,
+        snapshots: aletheia_node::SnapshotPolicy::DISABLED,
+        restore_snapshot: None,
     };
     let node = Node::start(config, Arc::new(MemoryKvStore::new()))
         .await

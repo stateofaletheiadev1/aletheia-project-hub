@@ -98,6 +98,23 @@ fn member(name: &str) -> Member {
 }
 
 async fn start(member: &Member, genesis: &GenesisState, index: u8, peers: &[SocketAddr]) -> Node {
+    start_with(
+        member,
+        genesis,
+        index,
+        peers,
+        aletheia_node::SnapshotPolicy::DISABLED,
+    )
+    .await
+}
+
+async fn start_with(
+    member: &Member,
+    genesis: &GenesisState,
+    index: u8,
+    peers: &[SocketAddr],
+    snapshots: aletheia_node::SnapshotPolicy,
+) -> Node {
     Node::start(
         NodeConfig {
             data_dir: member.data_dir.clone(),
@@ -114,11 +131,86 @@ async fn start(member: &Member, genesis: &GenesisState, index: u8, peers: &[Sock
             produce_every: None,
             consensus_key: Some(consensus_key(index)),
             remote_signer: None,
+            snapshots,
+            restore_snapshot: None,
         },
         member.store.clone(),
     )
     .await
     .unwrap()
+}
+
+/// A new observer whose data directory starts from `snapshot` (ADR-072).
+async fn start_restored(
+    member: &Member,
+    genesis: &GenesisState,
+    peers: &[SocketAddr],
+    snapshot: &std::path::Path,
+) -> Result<Node, aletheia_core::AletheiaError> {
+    Node::start(
+        NodeConfig {
+            data_dir: member.data_dir.clone(),
+            genesis: genesis.clone(),
+            listen: "127.0.0.1:0".parse().unwrap(),
+            peers: peers
+                .iter()
+                .map(|&address| DialTarget {
+                    address,
+                    expect: PeerExpectation::default(),
+                })
+                .collect(),
+            node_key: node_key(9),
+            produce_every: None,
+            consensus_key: None,
+            remote_signer: None,
+            snapshots: aletheia_node::SnapshotPolicy::DISABLED,
+            restore_snapshot: Some(snapshot.to_path_buf()),
+        },
+        member.store.clone(),
+    )
+    .await
+}
+
+/// Waits for a complete snapshot in `data_dir` above `above` and copies it to `to`: the node
+/// keeps only its newest two, so the original may be pruned while a test reads it.
+async fn take_snapshot(data_dir: &std::path::Path, above: u64, to: &std::path::Path) -> u64 {
+    let started = Instant::now();
+    loop {
+        let newest = aletheia_node::snapshots::complete_snapshots(&data_dir.join("snapshots"))
+            .into_iter()
+            .rev()
+            .find(|(height, _)| *height > above);
+        if let Some((height, path)) = newest
+            && try_copy_dir(&path, to).is_ok()
+            && to.join("anchor.ace").is_file()
+        {
+            return height;
+        }
+        assert!(
+            started.elapsed() < WAIT,
+            "no snapshot above {above} was written"
+        );
+        tokio::time::sleep(Duration::from_millis(50)).await;
+    }
+}
+
+fn try_copy_dir(from: &std::path::Path, to: &std::path::Path) -> std::io::Result<()> {
+    let _ = std::fs::remove_dir_all(to);
+    std::fs::create_dir_all(to)?;
+    for entry in std::fs::read_dir(from)? {
+        let entry = entry?;
+        std::fs::copy(entry.path(), to.join(entry.file_name()))?;
+    }
+    Ok(())
+}
+
+fn copy_dir(from: &std::path::Path, to: &std::path::Path) {
+    let _ = std::fs::remove_dir_all(to);
+    std::fs::create_dir_all(to).unwrap();
+    for entry in std::fs::read_dir(from).unwrap() {
+        let entry = entry.unwrap();
+        std::fs::copy(entry.path(), to.join(entry.file_name())).unwrap();
+    }
 }
 
 /// Signs and submits transactions for the harness accounts, tracking their nonces.
@@ -419,13 +511,113 @@ async fn a_single_validator_chain_admits_and_loses_a_validator_without_stopping(
         BTreeSet::from([0])
     );
 
-    // A restart in the middle of epoch 2 resumes in epoch 2.
+    // A restart in the middle of epoch 2 resumes in epoch 2, now writing snapshots.
     v1.shutdown().await.unwrap();
     v0.shutdown().await.unwrap();
-    let mut v0 = start(&first, &genesis, 0, &[]).await;
+    let policy = aletheia_node::SnapshotPolicy {
+        every_blocks: 10,
+        keep: 2,
+    };
+    let mut v0 = start_with(&first, &genesis, 0, &[], policy).await;
     let resumed = Height::new(after.get() + 10);
     v0.wait_for_height(resumed, WAIT).await.unwrap();
     let block = v0.block_at(resumed).await.unwrap().unwrap();
     assert_eq!(block.block.header.epoch, Epoch::new(2));
+
+    // Snapshot bootstrap (ADR-072): a snapshot of epoch 2 carries both epoch changes, and a
+    // new node started from it verifies them against genesis and follows the chain from there
+    // without re-executing anything before it.
+    let snapshot = scratch("snapshot");
+    let height = take_snapshot(&first.data_dir, reopened.get(), &snapshot).await;
+    let anchor = aletheia_node::bootstrap::read_anchor(&snapshot).unwrap();
+    assert_eq!(anchor.links.len(), 2, "epochs 0 -> 1 and 1 -> 2");
+    assert_eq!(anchor.block.block.header.height.get(), height);
+
+    // A forged set in the epoch chain is refused before anything is written.
+    let forged = scratch("forged-anchor");
+    copy_dir(&snapshot, &forged);
+    let mut bad = anchor.clone();
+    bad.links[1].next_set[0].voting_power += 1;
+    aletheia_node::bootstrap::write_anchor(&forged, &bad).unwrap();
+    let error = start_restored(&member("forged"), &genesis, &[], &forged)
+        .await
+        .unwrap_err();
+    assert_eq!(
+        error.code(),
+        aletheia_core::ErrorCode::ProofInvalid,
+        "{error}"
+    );
+
+    // So is an epoch-2 block presented without the epoch changes that lead to its set.
+    let shortened = scratch("shortened-anchor");
+    copy_dir(&snapshot, &shortened);
+    let mut cut = anchor.clone();
+    cut.links.clear();
+    aletheia_node::bootstrap::write_anchor(&shortened, &cut).unwrap();
+    let error = start_restored(&member("shortened"), &genesis, &[], &shortened)
+        .await
+        .unwrap_err();
+    assert_eq!(
+        error.code(),
+        aletheia_core::ErrorCode::ProofInvalid,
+        "{error}"
+    );
+
+    // A damaged state chunk is refused too.
+    let damaged = scratch("damaged-chunk");
+    copy_dir(&snapshot, &damaged);
+    let chunk = damaged.join("chunk-000000.zst");
+    let mut bytes = std::fs::read(&chunk).unwrap();
+    let last = bytes.len() - 1;
+    bytes[last] ^= 0x55;
+    std::fs::write(&chunk, bytes).unwrap();
+    let error = start_restored(&member("damaged"), &genesis, &[], &damaged)
+        .await
+        .unwrap_err();
+    assert_eq!(
+        error.code(),
+        aletheia_core::ErrorCode::ProofInvalid,
+        "{error}"
+    );
+
+    let third = member("restored");
+    let mut restored = start_restored(&third, &genesis, &[v0.local_addr()], &snapshot)
+        .await
+        .unwrap();
+    assert_eq!(restored.tip().height.get(), height);
+    assert!(
+        restored
+            .block_at(Height::new(height - 1))
+            .await
+            .unwrap()
+            .is_none(),
+        "history before the snapshot is not on the restored node"
+    );
+    let ahead = Height::new(v0.tip().height.get() + 10);
+    v0.wait_for_height(ahead, WAIT).await.unwrap();
+    restored.wait_for_height(ahead, WAIT).await.unwrap();
+    assert_eq!(
+        hash_at(&v0, &network, ahead).await,
+        hash_at(&restored, &network, ahead).await
+    );
+    assert_eq!(
+        restored
+            .rpc_backend()
+            .validators(2)
+            .await
+            .unwrap()
+            .unwrap()
+            .len(),
+        1
+    );
+
+    // It restarts like any node, from its own data directory.
+    restored.shutdown().await.unwrap();
+    let mut restored = start_restored(&third, &genesis, &[v0.local_addr()], &snapshot)
+        .await
+        .unwrap();
+    let further = Height::new(v0.tip().height.get() + 5);
+    restored.wait_for_height(further, WAIT).await.unwrap();
+    restored.shutdown().await.unwrap();
     v0.shutdown().await.unwrap();
 }

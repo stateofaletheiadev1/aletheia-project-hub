@@ -71,7 +71,15 @@ chain. Amounts are in ALnT (3 decimals).
 
    On first start the node also checks the genesis (chain 7770, genesis id
    `a3ad0e1a821776800698ec99d672f00f5d084870d3230a1391fda45a58ba90ad`) and re-executes every block
-   from genesis before it is current; on a 4 vCPU host this takes hours, once. Until the Council
+   from genesis before it is current; on a 4 vCPU host this takes hours, once.
+
+   Faster: start from a snapshot (ADR-072). Every node writes one about once a day to
+   `/var/lib/aletheia/snapshots/<height>/`. Copy the newest from the State's validator (or any
+   node) to the new host, add `restore_snapshot = "/var/lib/aletheia-snapshot/<height>"` to
+   `[node]`, and start with an empty data directory. The node verifies the snapshot against the
+   genesis file alone (every validator set change and the finality proof of its block) and
+   refuses anything that does not prove out, so the copy needs no trusted channel. It then
+   syncs only the blocks after the snapshot; blocks before it are not on this node. Until the Council
    admits it, it follows the chain as an observer (`aletheiad info this node key is not in the
    validator set ...`). `curl -s 127.0.0.1:7781/api/v1/network/status` shows its height.
 

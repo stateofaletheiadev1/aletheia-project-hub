@@ -135,6 +135,43 @@ fn a_snapshot_restores_to_the_same_root_and_values() {
 }
 
 #[test]
+fn writing_a_page_at_a_time_gives_the_same_snapshot() {
+    let store = MemoryKvStore::new();
+    history(&store);
+    let tree = JellyfishMerkleTree::new(&store, network());
+    let whole = snapshot::create(&tree, 2, b"proof".to_vec(), &scratch("whole"), 2_000).unwrap();
+    let dir = scratch("paged");
+    let mut writer = snapshot::SnapshotWriter::begin(&tree, 2, &dir, 2_000).unwrap();
+    let mut steps = 0;
+    while !writer.step(&tree, 7).unwrap() {
+        steps += 1;
+    }
+    assert!(steps > 10, "many small steps");
+    let paged = writer.finish(b"proof".to_vec()).unwrap();
+    assert_eq!(paged, whole);
+    let restored = MemoryKvStore::new();
+    snapshot::restore(&restored, &network(), &dir, &paged).unwrap();
+    assert_eq!(
+        JellyfishMerkleTree::new(&restored, network())
+            .root_hash(2)
+            .unwrap(),
+        tree.root_hash(2).unwrap()
+    );
+}
+
+#[test]
+fn a_snapshot_is_not_finished_before_every_entry_is_read() {
+    let store = MemoryKvStore::new();
+    history(&store);
+    let tree = JellyfishMerkleTree::new(&store, network());
+    let dir = scratch("unfinished");
+    let mut writer = snapshot::SnapshotWriter::begin(&tree, 2, &dir, 2_000).unwrap();
+    writer.step(&tree, 3).unwrap();
+    assert!(writer.finish(Vec::new()).is_err());
+    assert!(!dir.join("manifest.ace").exists());
+}
+
+#[test]
 fn a_tampered_chunk_is_refused() {
     let store = MemoryKvStore::new();
     history(&store);

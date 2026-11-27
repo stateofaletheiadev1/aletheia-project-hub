@@ -78,6 +78,9 @@ pub(crate) struct SyncService {
     pub(crate) peers: watch::Sender<PeerView>,
     /// The peer we are currently syncing blocks from.
     pub(crate) in_flight: Option<PeerId>,
+    /// Peers that answered a block request with nothing although they are ahead: started from
+    /// a snapshot above our height (ADR-072). Not asked again while connected.
+    pub(crate) no_history: BTreeSet<PeerId>,
     /// Present on a chain with validators.
     pub(crate) consensus: Option<ConsensusDriver>,
 }
@@ -226,6 +229,7 @@ impl SyncService {
             }
             NetworkEvent::Disconnected { peer, .. } => {
                 self.peer_tips.remove(&peer);
+                self.no_history.remove(&peer);
                 self.publish_peers();
                 if self.in_flight == Some(peer) {
                     self.in_flight = None;
@@ -249,17 +253,17 @@ impl SyncService {
                 self.request_more().await;
             }
             Message::GetBlocks { from, count } => {
+                // Always answered, empty when these blocks are not here (a node started from a
+                // snapshot above them), so the asker moves on instead of waiting (ADR-072).
                 let (blocks, proof) = self.chain.read_blocks(from, count).await?;
-                if !blocks.is_empty() {
-                    self.send(NetworkCommand::Send {
-                        peer,
-                        message: Message::Blocks {
-                            blocks,
-                            finality_proof: proof.map(|p| p.to_ace_bytes()).unwrap_or_default(),
-                        },
-                    })
-                    .await;
-                }
+                self.send(NetworkCommand::Send {
+                    peer,
+                    message: Message::Blocks {
+                        blocks,
+                        finality_proof: proof.map(|p| p.to_ace_bytes()).unwrap_or_default(),
+                    },
+                })
+                .await;
             }
             Message::Blocks {
                 blocks,
@@ -367,7 +371,11 @@ impl SyncService {
             return;
         }
         let ours = self.our_height();
-        let Some((&peer, &theirs)) = self.peer_tips.iter().max_by_key(|(_, height)| **height)
+        let Some((&peer, &theirs)) = self
+            .peer_tips
+            .iter()
+            .filter(|(peer, _)| !self.no_history.contains(*peer))
+            .max_by_key(|(_, height)| **height)
         else {
             return;
         };
@@ -397,10 +405,24 @@ impl SyncService {
         blocks: Vec<Proposal>,
         finality_proof: &[u8],
     ) -> Result<(), AletheiaError> {
-        if self.in_flight == Some(peer) {
+        let asked = self.in_flight == Some(peer);
+        if asked {
             self.in_flight = None;
         }
         let ours = self.our_height();
+        if asked && blocks.is_empty() {
+            let ahead = self
+                .peer_tips
+                .get(&peer)
+                .is_some_and(|theirs| *theirs > ours);
+            if ahead {
+                crate::consensus::operator_note(&format!(
+                    "info peer {} does not hold blocks above height {ours} (started from a later snapshot); syncing from others",
+                    aletheia_core::base16::encode(&peer)
+                ));
+                self.no_history.insert(peer);
+            }
+        }
         let blocks: Vec<Proposal> = blocks
             .into_iter()
             .filter(|block| block.block.header.height > ours)

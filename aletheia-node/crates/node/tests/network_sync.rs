@@ -58,6 +58,8 @@ async fn start(
         produce_every: produce.then_some(BLOCK_EVERY),
         consensus_key: None,
         remote_signer: None,
+        snapshots: aletheia_node::SnapshotPolicy::DISABLED,
+        restore_snapshot: None,
     };
     Node::start(config, Arc::new(MemoryKvStore::new()))
         .await
@@ -195,6 +197,8 @@ async fn a_node_restarts_from_its_data_directory_and_keeps_following() {
         produce_every: None,
         consensus_key: None,
         remote_signer: None,
+        snapshots: aletheia_node::SnapshotPolicy::DISABLED,
+        restore_snapshot: None,
     };
     let mut follower = Node::start(
         follower_config(dial(&[producer.local_addr()])),
@@ -238,6 +242,8 @@ async fn the_devnet_producer_is_refused_on_mainnet() {
         produce_every: Some(BLOCK_EVERY),
         consensus_key: None,
         remote_signer: None,
+        snapshots: aletheia_node::SnapshotPolicy::DISABLED,
+        restore_snapshot: None,
     };
     let error = Node::start(config, Arc::new(MemoryKvStore::new()))
         .await

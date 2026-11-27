@@ -188,6 +188,8 @@ async fn main() -> ExitCode {
         produce_every: settings.produce_every,
         consensus_key: settings.consensus_key,
         remote_signer,
+        snapshots: settings.snapshots,
+        restore_snapshot: settings.restore_snapshot,
     };
     let mut node = match Node::start(config, store).await {
         Ok(node) => node,

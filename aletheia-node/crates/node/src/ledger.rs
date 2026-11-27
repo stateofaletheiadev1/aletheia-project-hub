@@ -89,6 +89,11 @@ fn touched_accounts(tx: &aletheia_core::tx::SignedTransaction) -> Vec<aletheia_c
 
 /// Set once the event index covers every finalized receipt (ADR-067).
 const META_EVENT_INDEX: &[u8] = b"event_index_v1";
+/// The first height this data directory holds blocks for, on a node started from a snapshot
+/// (ADR-072); absent means genesis.
+const META_HISTORY_FROM: &[u8] = b"history_from";
+/// Present in a data directory while a snapshot restore is committing it.
+const RESTORING_MARKER: &str = "RESTORING";
 
 /// Event index (ADR-067): node-local, never hashed into state, in the `Events` column family.
 /// `tag || subject || height u64 BE || index u32 BE || event u16 BE` → empty; the event itself
@@ -345,6 +350,135 @@ impl<S: KvStore> Ledger<S> {
         })
     }
 
+    /// Creates a new data directory from a snapshot (ADR-072): the anchor and manifest are
+    /// verified against the genesis file alone, the tree is rebuilt from the chunks and must
+    /// reach the anchor block's state root, and the block, its proof, the tree and the tip are
+    /// committed in one synced batch. History before the snapshot height is not on this node.
+    pub fn init_from_snapshot(
+        root: &Path,
+        genesis: &GenesisState,
+        store: S,
+        snapshot: &Path,
+    ) -> Result<Ledger<S>, AletheiaError> {
+        let network = genesis.network();
+        let manifest = aletheia_state::snapshot::read_manifest(snapshot)?;
+        let anchor = crate::bootstrap::read_anchor(snapshot)?;
+        let proof = crate::bootstrap::verify(genesis, &anchor, &manifest)?;
+        if root.join("DATADIR").exists() {
+            return Err(fail_stop(
+                ErrorCode::StoIo,
+                format!(
+                    "{} already holds a data directory; a snapshot restores only into a new one",
+                    root.display()
+                ),
+            ));
+        }
+        // Until the batch below lands, this directory is not a node's: say so on any start.
+        let marker = root.join(RESTORING_MARKER);
+        std::fs::create_dir_all(root)
+            .and_then(|()| {
+                std::fs::write(
+                    &marker,
+                    format!("restoring snapshot {}\n", snapshot.display()),
+                )
+            })
+            .map_err(|e| fail_stop(ErrorCode::StoIo, format!("write {}: {e}", marker.display())))?;
+        let datadir = DataDir::create(root, DataDirManifest::new(&network, RELEASE))?;
+        let mut batch =
+            aletheia_state::snapshot::restore_batch(&store, &network, snapshot, &manifest)?;
+        let header = &anchor.block.block.header;
+        let hash = header.block_hash(&network);
+        let mut archive = BlockArchive::open(
+            &datadir.path("blocks"),
+            network,
+            ArchiveConfig::default(),
+            None,
+        )?;
+        let location = archive.append(&anchor.block)?;
+        index_entries(&mut batch, header.height, &hash, location);
+        batch.put(
+            ColumnFamily::FinalityProofs,
+            &header.height.get().to_be_bytes(),
+            &proof.to_ace_bytes(),
+        );
+        let tip = LastFinalized {
+            height: header.height,
+            hash,
+            state_root: header.state_root,
+        };
+        let from = header.height.to_ace_bytes();
+        batch.put(ColumnFamily::Meta, META_LAST_FINALIZED, &tip.to_ace_bytes());
+        batch.put(ColumnFamily::Meta, META_HISTORY_FROM, &from);
+        // The indexes are complete from the snapshot height: there is nothing earlier here.
+        batch.put(ColumnFamily::Meta, META_ACCOUNT_INDEX, &from);
+        batch.put(ColumnFamily::Meta, META_EVENT_INDEX, &from);
+        store.write_sync(batch)?;
+        let (mut wal, _) = Wal::open(&datadir.path("wal"), WalConfig::default())?;
+        wal.append(
+            RecordType::Checkpoint,
+            &finalize_payload(tip.height, &tip.hash),
+        )?;
+        wal.sync()?;
+        std::fs::remove_file(&marker).map_err(|e| {
+            fail_stop(
+                ErrorCode::StoIo,
+                format!("remove {}: {e}", marker.display()),
+            )
+        })?;
+        let ledger = Ledger {
+            datadir,
+            store,
+            archive,
+            wal,
+            network,
+            tip,
+            speculative: std::collections::BTreeMap::new(),
+            safety: None,
+            #[cfg(feature = "fault-injection")]
+            crash_at: None,
+        };
+        ledger.verify_tip()?;
+        Ok(ledger)
+    }
+
+    /// The first height this node holds blocks for: 0, or the snapshot it started from.
+    pub fn history_from(&self) -> Result<Height, AletheiaError> {
+        self.store
+            .get(ColumnFamily::Meta, META_HISTORY_FROM)?
+            .map(|bytes| {
+                Height::from_ace_bytes(&bytes).map_err(|e| {
+                    fail_stop(
+                        ErrorCode::StoCorrupt,
+                        format!("history_from marker: {}", e.detail()),
+                    )
+                })
+            })
+            .transpose()
+            .map(|from| from.unwrap_or(Height::GENESIS))
+    }
+
+    /// What binds a snapshot of `height` to the chain (ADR-072): the finalized block there and
+    /// every validator epoch change before it. `height` must carry a stored finality proof.
+    pub fn snapshot_anchor(
+        &self,
+        height: Height,
+    ) -> Result<(crate::bootstrap::SnapshotAnchor, FinalityProof), AletheiaError> {
+        let unprovable = |what: &str| {
+            AletheiaError::new(
+                ErrorCode::StoCorrupt,
+                format!("cannot prove a snapshot at height {height}: {what}"),
+            )
+        };
+        let block = self
+            .read_block(height)?
+            .ok_or_else(|| unprovable("the block is not here"))?;
+        let proof = self
+            .finality_proof(height)?
+            .ok_or_else(|| unprovable("no finality proof is stored there"))?;
+        let links = crate::bootstrap::epoch_links(self, height.get())?;
+        Ok((crate::bootstrap::SnapshotAnchor { block, links }, proof))
+    }
+
     /// Opens an existing directory and recovers to a verified finalized tip.
     pub fn open(
         root: &Path,
@@ -352,6 +486,15 @@ impl<S: KvStore> Ledger<S> {
         store: S,
     ) -> Result<(Ledger<S>, Reconciled), AletheiaError> {
         let network = genesis.network();
+        if root.join(RESTORING_MARKER).exists() {
+            return Err(fail_stop(
+                ErrorCode::StoCorrupt,
+                format!(
+                    "{} holds a snapshot restore that did not finish; delete the directory and restore again",
+                    root.display()
+                ),
+            ));
+        }
         let datadir = DataDir::open(root)?;
         match decide(
             datadir.manifest(),
@@ -1708,5 +1851,44 @@ impl<S: KvStore> Ledger<S> {
         manifest.last_finalized = Some(self.tip);
         manifest.last_writer_release = RELEASE.to_owned();
         self.datadir.write_manifest(manifest)
+    }
+}
+
+/// The serving side of a snapshot's epoch chain (ADR-072): past headers, proofs and sets.
+impl<S: KvStore> crate::bootstrap::History for Ledger<S> {
+    fn header_by_hash(
+        &self,
+        hash: &Hash32,
+    ) -> Result<Option<aletheia_core::block::BlockHeader>, AletheiaError> {
+        Ok(self.read_block_by_hash(hash)?.map(|p| p.block.header))
+    }
+
+    fn finality_proof_at(&self, height: u64) -> Result<Option<FinalityProof>, AletheiaError> {
+        self.finality_proof(Height::new(height))
+    }
+
+    fn opened_after(&self, version: u64) -> Result<Hash32, AletheiaError> {
+        let records = Records::new(self.network);
+        let view = VersionView {
+            tree: JellyfishMerkleTree::new(&self.store, self.network),
+            version,
+        };
+        Ok(
+            aletheia_execution::validator_model::Validators::new(&records)
+                .epoch_state(&view)?
+                .opened_after,
+        )
+    }
+
+    fn set_at(
+        &self,
+        version: u64,
+        epoch: u64,
+    ) -> Result<Option<Vec<ValidatorRecord>>, AletheiaError> {
+        let view = VersionView {
+            tree: JellyfishMerkleTree::new(&self.store, self.network),
+            version,
+        };
+        Records::new(self.network).validator_set(&view, epoch)
     }
 }

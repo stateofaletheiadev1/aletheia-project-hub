@@ -239,18 +239,37 @@ impl ChainHandle {
 /// the ledger down cleanly (checkpoint at the tip, Section 46A.3 steps 3-5).
 pub(crate) fn spawn<S: KvStore + 'static>(
     ledger: Ledger<S>,
+    mut snapshots: crate::snapshots::Exporter,
 ) -> Result<(ChainHandle, JoinHandle<Result<(), AletheiaError>>), AletheiaError> {
     let (requests, mut inbox) = mpsc::channel(CHAIN_REQUEST_QUEUE);
     let thread = std::thread::Builder::new()
         .name("chain".to_owned())
         .spawn(move || {
             let mut ledger = ledger;
-            while let Some(request) = inbox.blocking_recv() {
+            loop {
+                // A snapshot in progress is written a page at a time, only while no request
+                // waits (ADR-072): requests always go first.
+                let request = if snapshots.busy() {
+                    match inbox.try_recv() {
+                        Ok(request) => request,
+                        Err(mpsc::error::TryRecvError::Empty) => {
+                            snapshots.step(&ledger);
+                            continue;
+                        }
+                        Err(mpsc::error::TryRecvError::Disconnected) => break,
+                    }
+                } else {
+                    match inbox.blocking_recv() {
+                        Some(request) => request,
+                        None => break,
+                    }
+                };
                 if matches!(request, ChainRequest::Stop) {
                     break;
                 }
                 // A fail-stop error ends the thread: it is never answered and carried on from.
                 serve(&mut ledger, request)?;
+                snapshots.after_request(&ledger);
             }
             // Refuse whatever is still queued: dropping the queue drops every reply channel.
             inbox.close();
